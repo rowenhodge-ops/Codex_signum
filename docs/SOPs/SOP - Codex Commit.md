@@ -1,0 +1,6 @@
+1.  **Create/Update the Note:** After a call or meeting, open the relevant note (e.g., `C2 - Anthony Autore Call Notes.md`).
+2.  **Add the Metadata Block (Tier 3):** At the top of the file, fill out the YAML frontmatter with the structured data: stakeholder ID, type, date, status, key learnings, etc.
+3.  **Write Your Summary & Notes:** In the body of the note, write your analysis and raw notes. As you write, use **Wiki-Links (Tier 2)** to connect to every relevant person (`[[Peter Kearney]]`), SOP (`[[SOP as a Living System]]`), or strategic concept (`[[Business Plan - P1 - The Proprietary Data Mandate]]`).
+4.  **Add Inline Hashtags (Tier 1):** If you need to flag something specific within your notes that isn't captured in the metadata, use a hashtag like `#question_for_mentor` or `#hypothesis_validation`.
+
+By following this three-tiered protocol, you transform your Obsidian vault from a collection of documents into a relational database of your own proprietary business intelligence. This is how you build the "evolving learning system" you're aiming for.

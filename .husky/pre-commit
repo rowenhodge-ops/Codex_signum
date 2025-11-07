@@ -1,0 +1,53 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# Step 1: Validate documentation structure (if docs/ files changed)
+if git diff --cached --name-only | grep -q "^docs/"; then
+  sh .husky/pre-commit-docs
+  DOCS_EXIT=$?
+  if [ $DOCS_EXIT -ne 0 ]; then
+    exit $DOCS_EXIT
+  fi
+fi
+
+# Step 2: Run QA Agent (quality enforcement)
+echo "🛡️  Running QA Agent quality checks..."
+node scripts/agents/qa-agent.js --no-output
+QA_EXIT=$?
+
+if [ $QA_EXIT -ne 0 ]; then
+  echo ""
+  echo "❌ QA Agent checks failed!"
+  echo ""
+  echo "The QA Agent has identified quality issues that must be fixed before committing."
+  echo "Review the output above and address the issues."
+  echo ""
+  echo "Common fixes:"
+  echo "  - Run: node scripts/agents/qa-agent.js (with auto-fix enabled)"
+  echo "  - Or: npm run lint -- --fix"
+  echo "  - Or: npm run typecheck"
+  echo "  - Then: git add ."
+  echo "  - Then: git commit again"
+  echo ""
+  exit $QA_EXIT
+fi
+
+# Step 3: Run lint-staged (final formatting)
+npx lint-staged
+
+# Exit code from lint-staged
+LINT_EXIT_CODE=$?
+
+if [ $LINT_EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "❌ Pre-commit checks failed!"
+  echo ""
+  exit $LINT_EXIT_CODE
+fi
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+echo ""
