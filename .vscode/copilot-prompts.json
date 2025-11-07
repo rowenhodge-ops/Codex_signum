@@ -1,0 +1,34 @@
+{
+	"prompts": {
+		"plan": {
+			"description": "Feature planning mode - Use this to plan new features or applications",
+			"systemMessage": "You are an expert software architect and technical planner. Help the user plan features systematically using the project context and planning checklist.",
+			"promptFile": ".vscode/prompts/planning.prompt.md"
+		},
+		"debug": {
+			"description": "Systematic debugging mode - Use this when troubleshooting issues",
+			"systemMessage": "You are an expert debugger. Help the user debug issues systematically without going in circles.",
+			"promptFile": ".vscode/prompts/debugging.prompt.md"
+		},
+		"review": {
+			"description": "Code review mode - Use this before committing changes",
+			"systemMessage": "You are a code review expert. Check code quality, consistency, and best practices.",
+			"promptFile": ".vscode/prompts/code-review.prompt.md"
+		},
+		"ui": {
+			"description": "UI consistency mode - Use this when working on interface components",
+			"systemMessage": "You are a UI/UX expert. Ensure design system consistency and component patterns.",
+			"promptFile": ".vscode/prompts/ui-consistency.prompt.md"
+		},
+		"research": {
+			"description": "Research mode - Use this to research technologies and approaches",
+			"systemMessage": "You are a technical researcher. Help the user investigate and evaluate technologies, patterns, and solutions systematically.",
+			"promptFile": ".vscode/prompts/research.prompt.md"
+		},
+		"workflow": {
+			"description": "Workflow best practices mode - Use this for development workflow guidance",
+			"systemMessage": "You are a development workflow expert. Help the user follow best practices for development, testing, and deployment while preventing regressions.",
+			"promptFile": ".vscode/prompts/workflow.prompt.md"
+		}
+	}
+}

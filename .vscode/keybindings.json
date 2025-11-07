@@ -1,0 +1,35 @@
+// Custom keybindings for Kore workspace
+[
+	{
+		"key": "ctrl+shift+p ctrl+p",
+		"command": "workbench.action.chat.open",
+		"args": {
+			"query": "@workspace /plan"
+		},
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "ctrl+shift+p ctrl+d",
+		"command": "workbench.action.chat.open",
+		"args": {
+			"query": "@workspace /debug"
+		},
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "ctrl+shift+p ctrl+r",
+		"command": "workbench.action.chat.open",
+		"args": {
+			"query": "@workspace /review"
+		},
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "ctrl+shift+p ctrl+u",
+		"command": "workbench.action.chat.open",
+		"args": {
+			"query": "@workspace /ui"
+		},
+		"when": "editorTextFocus"
+	}
+]
