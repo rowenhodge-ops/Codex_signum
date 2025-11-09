@@ -1,27 +1,123 @@
 ---
 aliases: []
-stakeholder-id: 
+stakeholder-id: "[[Stakeholder Name]]"
+stakeholder-type: # C1, C2, C3, C4
 engagement-date: <% tp.date.now("YYYY-MM-DD") %>
-engagement-type: call # call, meeting, email
+engagement-time: <% tp.date.now("HH:mm") %>
+engagement-type: call # call, meeting, email, linkedin-dm
 status: completed # pending, completed, requires-follow-up
+response-time-hours: # Time from outreach to response (for performance tracking)
+cta-success: # Accepted, Deferred, Rejected
+sentiment-score: # -1 (Negative) to +1 (Highly Positive)
+edit-distance-score: # 1-5 (1=Sent as-is, 5=Total rewrite)
 learning-id:
-  - 
+  -
 key-language:
-  - 
+  -
 messy-problems:
-  - 
+  -
+new-contacts:
+  -
 action-items:
-  - 
+  -
+related-target: # "[[Target Profile]]" if applicable
+related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 ---
 
 ### 1. Executive Summary & Goal
-- **Goal for this engagement:** 
-- **Key finding:** 
 
-### 2. Key Notes & Transcript
-- 
+- **Goal for this engagement:**
+- **Key finding:**
+- **CTA Outcome:** [What was requested and what was the response]
 
-### 3. Analysis & Next Steps
-- **What worked:**
-- **What didn't work:**
-- **Next tangible action:** [[<% tp.file.cursor() %>]]
+### 2. Pre-Engagement Context
+
+- **Relationship history:** [How did this connection come about?]
+- **Expected value:** [What did we hope to learn/gain?]
+- **Preparation notes:** [Any research or context gathered beforehand]
+
+### 3. Key Notes & Transcript
+
+#### Opening
+
+-
+
+#### Main Discussion
+
+-
+
+#### Key Insights
+
+-
+
+#### Closing & Next Steps
+
+-
+
+### 4. Data Extraction (For Codex Commit)
+
+#### Key Language Captured
+
+> [Exact phrases and terminology they used - copy verbatim]
+
+-
+-
+
+#### Messy Problems Identified
+
+1. **Problem:**
+   - **Impact:**
+   - **Their words:** ""
+
+#### New Contacts Mentioned
+
+- **[[Contact Name]]** - [Title, Organization, Potential value]
+
+#### Strategic Insights
+
+-
+
+### 5. Outcome & Response
+
+#### Immediate Response
+
+- **Date sent:**
+- **Response received:** [Yes/No, Date/Time if yes]
+- **Response time:** [Hours from sending to reply]
+- **Sentiment:** [Positive/Neutral/Negative with specific indicators]
+
+#### CTA Analysis
+
+- **What was asked:**
+- **Their response:**
+- **Result:** [Accepted/Deferred/Rejected]
+- **Next action scheduled:** [Yes/No, Date if yes]
+
+### 6. Analysis & Learning
+
+#### What Worked
+
+-
+-
+
+#### What Didn't Work
+
+-
+-
+
+#### Learnings to Codify
+
+- **[[L-XXX]]** - [Principle learned that should be added to Learning Registry]
+
+#### LLM Draft Quality
+
+- **Edit distance score:** [1-5]
+- **Major edits required:** [List specific changes made to AI-generated draft]
+- **Patterns for improvement:** [What should the AI learn from these edits?]
+
+### 7. Next Steps
+
+- **Immediate action:** [[<% tp.file.cursor() %>]]
+- **Follow-up required by:** [Date]
+- **Update to Target Profile:** [Yes/No - What needs updating?]
+- **Codex commit status:** [ ] Complete
