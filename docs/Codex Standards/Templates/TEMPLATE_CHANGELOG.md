@@ -1,5 +1,92 @@
 # Template System Change Log
 
+## 2025-11-10 - Phase 2C: User-Friendly Template Enhancements
+
+### Overview
+
+Enhanced all 8 templates with inline help documentation to improve usability without requiring native Obsidian dropdown/tooltip support. Each template now includes prominent file naming conventions and descriptive inline comments explaining all metadata fields.
+
+### Changes Made
+
+#### All 8 Templates Enhanced
+
+1. **TPL - Engagement Note.md**
+   - Added: File naming convention header with examples (`YYYY-MM-DD - [Stakeholder Name] - [Topic].md`)
+   - Enhanced: `stakeholder-type` with descriptive labels (C1 Strategic Navigator, C2 Peer Collaborator, C3 Market Intel, C4 Economic Buyer)
+   - Enhanced: `engagement-type` with all options (call, meeting, email, linkedin-dm, video-call, in-person)
+   - Enhanced: `status`, `cta-success`, `sentiment-score`, `edit-distance-score` with explanatory comments
+   - Enhanced: All array fields with examples in comments
+
+2. **TPL - Stakeholder Profile.md**
+   - Added: File naming convention (`[Full Name] - [Company].md` with examples)
+   - Enhanced: `stakeholder-type` with full C1-C4 descriptive labels
+   - Enhanced: `status` options (active, dormant, archived) with definitions
+   - Enhanced: `relationship-strength` and `potential-value` with option descriptions
+   - Enhanced: `vertical` with industry examples
+
+3. **TPL - Target Profile.md**
+   - Added: File naming convention (`[Organization Name] - Target Profile.md`)
+   - Enhanced: `target-id` format explanation (TGT-[ORG]-[###])
+   - Enhanced: `status` options (research, qualified, engaged, client) with definitions
+   - Enhanced: `priority` tiers (low/medium/high/strategic) with descriptions
+   - Enhanced: `segment` with industry examples
+
+4. **TPL - Learning Registry.md**
+   - Added: File naming convention (`[YYYY-MM-DD] - [Brief Principle].md`)
+   - Enhanced: `learning-id` format (L-[###])
+   - Enhanced: `stakeholder-type` with full C1-C4 labels
+   - Enhanced: `validation-status` options (untested, validated, superseded) with definitions
+
+5. **TPL - Market Insight.md**
+   - Added: File naming convention (`[Topic/Pattern] - Market Insight.md`)
+   - Enhanced: `insight-id` format (INS-YYYYMMDD-[###])
+   - Enhanced: `category` with all options (governance, technology, case-study, methodology, market-trend, stakeholder-pattern)
+   - Enhanced: `relevance` and `status` with descriptive definitions
+
+6. **TPL - Weekly Review.md**
+   - Added: File naming convention (`Week [NN] - YYYY.md`)
+   - Enhanced: `week-number` explanation (ISO week 01-52)
+   - Enhanced: All performance metrics with definitions (total-engagements, cta-success-rate, avg-edit-distance)
+   - Enhanced: Target values in comments (edit distance target: ≤2.0)
+
+7. **TPL - Event Debrief.md**
+   - Added: File naming convention (`[Event Name] - [Date] - Event Debrief.md`)
+   - Enhanced: `event-type` with all options (conference, networking, workshop, exhibition, webinar, panel-discussion)
+   - Enhanced: All count fields with explanatory comments
+
+8. **TPL - Research Note.md**
+   - Added: File naming convention (`[Topic/Question] - Research Note.md`)
+   - Enhanced: `research-id` format (RES-YYYYMMDD-[###])
+   - Enhanced: `status` options (in-progress, complete, archived, parked) with definitions
+   - Enhanced: `category` and `research-type` with all available options
+
+### New Capabilities
+
+1. **Self-Documenting Templates**: Users can now see all available options and their meanings directly in the template frontmatter
+2. **Consistent File Naming**: Each template header provides the correct naming pattern with examples
+3. **Reduced User Errors**: Inline comments prevent typos in option fields (e.g., knowing it's "C1" not "c1" or "Type 1")
+4. **Onboarding Improvement**: New users don't need external documentation to understand metadata fields
+
+### Rationale
+
+Obsidian's YAML frontmatter doesn't natively support dropdowns or tooltips. Instead of waiting for external plugins, we've made templates self-documenting through:
+- **Inline comments** (`#`) explaining each field's purpose
+- **Option lists** showing all valid values
+- **Examples** demonstrating proper formatting
+- **File naming headers** ensuring consistent note organization
+
+### Migration Notes
+
+- **Backward Compatible**: Existing notes are unaffected (only template files changed)
+- **No Action Required**: Just start using updated templates for new notes
+- **Lint Warnings**: File examples in comments will trigger markdown linter "no link definition" warnings (expected, ignore)
+
+### Breaking Changes
+
+None. This is purely additive enhancement to improve user experience.
+
+---
+
 ## 2025-11-10 - Phase 2 Enhancement: Structured Tasks Integration
 
 ### Overview

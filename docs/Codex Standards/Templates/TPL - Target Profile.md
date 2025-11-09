@@ -1,27 +1,32 @@
 ---
-target-id: # e.g., "TGT-UOW-001"
-organization:
-segment: # HEI, Logistics, Government, B2B Services, etc.
+# FILE NAMING CONVENTION: [Organization Name] - Target Profile.md
+# Example: University of Wollongong - Target Profile.md
+# Example: Acme Corporation - Target Profile.md
+
+target-id: # Unique identifier. Format: TGT-[ORG]-[###]. Example: TGT-UOW-001
+organization: # Full legal organization name
+segment: # Industry/sector. Examples: HEI (Higher Education), Logistics, Government, B2B Services, Healthcare, Finance
 gtm-plan: "[[GTM Strategy V1.0]]"
 date-created: <% tp.date.now("YYYY-MM-DD") %>
-last-updated: <% tp.date.now("YYYY-MM-DD") %>
-status: research # research, qualified, engaged, client
-economic-buyer: # "[[Stakeholder Name]]" if identified
-priority: medium # low, medium, high, strategic
-estimated-value: # Contract value estimate
-decision-timeline: # Expected decision timeframe
-messy-problems:
-  -
-killer-question: |
-  The strategic pitch angle
-related-contacts:
-  -  # "[[C1 - Name]]"
-  -  # "[[C3 - Name]]"
+last-updated: <% tp.date.now("YYYY-MM-DD") %> # Update this on every major revision
+status: research # Options: research (investigating), qualified (validated fit), engaged (active conversation), client (signed contract)
+economic-buyer: # Link to the decision-maker. Example: "[[Jane Smith - CFO]]"
+priority: medium # Options: low (opportunistic), medium (solid prospect), high (hot lead), strategic (game-changing opportunity)
+estimated-value: # Expected contract value. Examples: $50k, $100-200k, $500k+
+decision-timeline: # Expected timeframe. Examples: Q1 2026, 6-12 months, Unknown
+messy-problems: # Key pain points you've identified (their language)
+  -  # Example: "Manual compliance reporting takes 40 hours/month"
+killer-question:
+  | # The strategic pitch angle - one question that qualifies or disqualifies
+  # Example: "Are you actively budgeting for AI automation in Q1 2026, or just exploring?"
+related-contacts: # Stakeholders at this organization
+  -  # Example: "[[Bob Johnson - CTO]]" (C4 - Economic Buyer)
+  -  # Example: "[[Jane Smith - Project Lead]]" (C3 - Market Intel)
 tasks:
-  - description: ""
-    status: not-started # not-started, in-progress, completed, blocked
-    priority: medium # low, medium, high, urgent
-    due-date: YYYY-MM-DD
+  - description: "" # Next action for this target
+    status: not-started # Options: not-started, in-progress, completed, blocked
+    priority: medium # Options: low, medium, high, urgent
+    due-date: YYYY-MM-DD # When to complete this task
 tags:
   - target-profile
 related-sop: "[[SOP - Market Intelligence (V1.0)]]"

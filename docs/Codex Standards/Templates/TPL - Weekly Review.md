@@ -1,18 +1,22 @@
 ---
-week-of: <% tp.date.now("YYYY-MM-DD") %>
-week-number: <% tp.date.now("WW") %>
+# FILE NAMING CONVENTION: Week [NN] - YYYY.md
+# Example: Week 45 - 2025.md
+# Example: Week 01 - 2026.md
+
+week-of: <% tp.date.now("YYYY-MM-DD") %> # Monday of this week
+week-number: <% tp.date.now("WW") %> # ISO week number (01-52)
 year: <% tp.date.now("YYYY") %>
-total-engagements: 0
-cta-success-rate: 0%
-avg-edit-distance: 0
-new-learnings: 0
-new-contacts: 0
-status: draft # draft, complete
+total-engagements: 0 # Count of all interactions this week (C1/C2/C3/C4)
+cta-success-rate: 0% # Percentage of CTAs that were Accepted (not Deferred/Rejected)
+avg-edit-distance: 0 # Average edit-distance-score across all engagement notes (target: ≤2.0)
+new-learnings: 0 # Count of Learning Registry entries created this week
+new-contacts: 0 # Count of new Stakeholder Profiles created this week
+status: draft # Options: draft (in progress), complete (finalized)
 tasks:
-  - description: ""
-    status: not-started # not-started, in-progress, completed, blocked
-    priority: medium # low, medium, high, urgent
-    due-date: YYYY-MM-DD
+  - description: "" # Priority actions for next week
+    status: not-started # Options: not-started, in-progress, completed, blocked
+    priority: medium # Options: low, medium, high, urgent
+    due-date: YYYY-MM-DD # Target completion date
 tags:
   - weekly-review
   - performance-metrics

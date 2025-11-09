@@ -1,21 +1,25 @@
 ---
-insight-id: INS-<% tp.date.now("YYYYMMDD") %>-XXX
-title:
-category: # governance, technology, case-study, methodology, market-trend
-relevance: high # high, medium, low
-source: # research, client-engagement, industry-report, academic-paper
-source-url:
+# FILE NAMING CONVENTION: [Topic/Pattern] - Market Insight.md
+# Example: HEI AI Governance Patterns - Market Insight.md
+# Example: C3 Engagement Strategy - Market Insight.md
+
+insight-id: INS-<% tp.date.now("YYYYMMDD") %>-XXX # Unique identifier. Format: INS-YYYYMMDD-[###]
+title: # Descriptive title of this insight/pattern
+category: # Options: governance, technology, case-study, methodology, market-trend, stakeholder-pattern
+relevance: high # Options: high (immediately actionable), medium (valuable context), low (reference only)
+source: # Where did this come from? Options: research, client-engagement, industry-report, academic-paper, conversation
+source-url: # URL if from external source
 date-captured: <% tp.date.now("YYYY-MM-DD") %>
-last-updated: <% tp.date.now("YYYY-MM-DD") %>
-applies-to:
-  -  # HEI, Government, Logistics, B2B Services, etc.
-related-sops:
-  -  # "[[SOP - Initium Delivery]]"
-related-target-profiles:
-  -  # "[[Target Profile - Organization]]"
-key-concepts:
-  -
-status: active # active, validated, superseded, archived
+last-updated: <% tp.date.now("YYYY-MM-DD") %> # Update when insight is refined/validated
+applies-to: # Which industries/sectors does this apply to?
+  -  # Examples: HEI (Higher Education), Government, Logistics, B2B Services, Healthcare
+related-sops: # Which SOPs leverage this insight?
+  -  # Example: "[[SOP - Initium Delivery]]"
+related-target-profiles: # Which Target Profiles does this inform?
+  -  # Example: "[[University of Wollongong - Target Profile]]"
+key-concepts: # Tags for semantic search
+  -  # Examples: ai-governance, stakeholder-engagement, procurement-process
+status: active # Options: active (current), validated (confirmed across multiple engagements), superseded (replaced by newer insight), archived (no longer relevant)
 tags:
   - insight
   - market-intelligence
