@@ -11,6 +11,7 @@ Enhanced all 8 templates with inline help documentation to improve usability wit
 #### All 8 Templates Enhanced
 
 1. **TPL - Engagement Note.md**
+
    - Added: File naming convention header with examples (`YYYY-MM-DD - [Stakeholder Name] - [Topic].md`)
    - Enhanced: `stakeholder-type` with descriptive labels (C1 Strategic Navigator, C2 Peer Collaborator, C3 Market Intel, C4 Economic Buyer)
    - Enhanced: `engagement-type` with all options (call, meeting, email, linkedin-dm, video-call, in-person)
@@ -18,6 +19,7 @@ Enhanced all 8 templates with inline help documentation to improve usability wit
    - Enhanced: All array fields with examples in comments
 
 2. **TPL - Stakeholder Profile.md**
+
    - Added: File naming convention (`[Full Name] - [Company].md` with examples)
    - Enhanced: `stakeholder-type` with full C1-C4 descriptive labels
    - Enhanced: `status` options (active, dormant, archived) with definitions
@@ -25,6 +27,7 @@ Enhanced all 8 templates with inline help documentation to improve usability wit
    - Enhanced: `vertical` with industry examples
 
 3. **TPL - Target Profile.md**
+
    - Added: File naming convention (`[Organization Name] - Target Profile.md`)
    - Enhanced: `target-id` format explanation (TGT-[ORG]-[###])
    - Enhanced: `status` options (research, qualified, engaged, client) with definitions
@@ -32,24 +35,28 @@ Enhanced all 8 templates with inline help documentation to improve usability wit
    - Enhanced: `segment` with industry examples
 
 4. **TPL - Learning Registry.md**
+
    - Added: File naming convention (`[YYYY-MM-DD] - [Brief Principle].md`)
    - Enhanced: `learning-id` format (L-[###])
    - Enhanced: `stakeholder-type` with full C1-C4 labels
    - Enhanced: `validation-status` options (untested, validated, superseded) with definitions
 
 5. **TPL - Market Insight.md**
+
    - Added: File naming convention (`[Topic/Pattern] - Market Insight.md`)
    - Enhanced: `insight-id` format (INS-YYYYMMDD-[###])
    - Enhanced: `category` with all options (governance, technology, case-study, methodology, market-trend, stakeholder-pattern)
    - Enhanced: `relevance` and `status` with descriptive definitions
 
 6. **TPL - Weekly Review.md**
+
    - Added: File naming convention (`Week [NN] - YYYY.md`)
    - Enhanced: `week-number` explanation (ISO week 01-52)
    - Enhanced: All performance metrics with definitions (total-engagements, cta-success-rate, avg-edit-distance)
    - Enhanced: Target values in comments (edit distance target: ≤2.0)
 
 7. **TPL - Event Debrief.md**
+
    - Added: File naming convention (`[Event Name] - [Date] - Event Debrief.md`)
    - Enhanced: `event-type` with all options (conference, networking, workshop, exhibition, webinar, panel-discussion)
    - Enhanced: All count fields with explanatory comments
@@ -70,6 +77,7 @@ Enhanced all 8 templates with inline help documentation to improve usability wit
 ### Rationale
 
 Obsidian's YAML frontmatter doesn't natively support dropdowns or tooltips. Instead of waiting for external plugins, we've made templates self-documenting through:
+
 - **Inline comments** (`#`) explaining each field's purpose
 - **Option lists** showing all valid values
 - **Examples** demonstrating proper formatting
@@ -98,26 +106,31 @@ Upgraded all templates with structured `tasks:` blocks to enable dynamic task ma
 #### Templates Updated (6 files)
 
 1. **TPL - Engagement Note.md**
+
    - Added: `tasks:` block with status/priority/due-date fields
    - Added: `tags: [engagement]` for Dataview queries
    - Preserved: All existing fields and cell markers
 
 2. **TPL - Stakeholder Profile.md**
+
    - Added: `tasks:` block with status/priority/due-date fields
    - Preserved: Existing `tags: [stakeholder-profile, stakeholder]`
    - Preserved: All existing fields and cell markers
 
 3. **TPL - Target Profile.md**
+
    - Added: `tasks:` block with status/priority/due-date fields
    - Preserved: Existing `tags: [target-profile]`
    - Preserved: All existing fields and cell markers
 
 4. **TPL - Weekly Review.md**
+
    - Added: `tasks:` block with status/priority/due-date fields
    - Preserved: Existing `tags: [weekly-review, performance-metrics]`
    - Preserved: All existing fields and cell markers
 
 5. **TPL - Event Debrief.md**
+
    - Added: `tasks:` block with status/priority/due-date fields
    - Preserved: Existing `tags: [event, debrief, c2_qualification, c3_intel]`
    - Preserved: All existing fields and cell markers
@@ -152,12 +165,14 @@ Upgraded all templates with structured `tasks:` blocks to enable dynamic task ma
 ### Migration Notes
 
 **For Existing Notes:**
+
 - No immediate action required
 - Templates will apply to new notes only
 - Gradually migrate old notes by adding `tasks:` block when updating them
 - Old notes remain compatible with new dashboard (queries handle missing fields)
 
 **For New Notes:**
+
 - Use updated templates (Templater will auto-insert new fields)
 - Fill out `tasks:` block for any action items
 - Set priority (`low`/`medium`/`high`/`urgent`) based on urgency
@@ -187,6 +202,7 @@ Upgraded all templates with structured `tasks:` blocks to enable dynamic task ma
 ### Rollback Plan
 
 If issues arise:
+
 1. Restore old dashboard from `docs/archive/dashboards/Dashboard-v1-2025-11-10.md`
 2. Remove `tasks:` blocks from templates
 3. Revert copilot-instructions.md from archive

@@ -6,8 +6,8 @@
 aliases: []
 stakeholder-id: "[[Stakeholder Name]]" # Link to their Stakeholder Profile
 stakeholder-type: C1 # C1 (Strategic Navigator), C2 (Peer Collaborator), C3 (Market Intel), C4 (Economic Buyer)
-engagement-date: <% tp.date.now("YYYY-MM-DD") %>
-engagement-time: <% tp.date.now("HH:mm") %>
+engagement-date: 2025-11-10
+engagement-time: 00:37
 engagement-type: call # Options: call, meeting, email, linkedin-dm, video-call, in-person
 status: completed # Options: pending, completed, requires-follow-up
 response-time-hours: # Time from your outreach to their response (number of hours, for performance tracking)
