@@ -8,6 +8,8 @@ principle: |
 source-interaction: "[[link-to-engagement-note]]"
 validation-status: untested # untested, validated, superseded
 application-count: 0 # Track how many times this learning has been applied
+tags:
+  - learning-registry
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 ---
 

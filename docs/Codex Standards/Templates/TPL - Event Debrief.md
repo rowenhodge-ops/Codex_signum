@@ -1,10 +1,4 @@
 ---
-tags:
-  - event
-  - debrief
-  - c2_qualification
-  - c3_intel
-aliases: []
 event-id: EVT-<% tp.date.now("YYYYMMDD") %>
 date: <% tp.date.now("YYYY-MM-DD") %>
 event-name: # Name of the event
@@ -18,6 +12,17 @@ new-target-profiles:
 learnings-captured: 0
 follow-up-required: 0
 status: draft # draft, complete
+aliases: []
+tasks:
+  - description: ""
+    status: not-started # not-started, in-progress, completed, blocked
+    priority: medium # low, medium, high, urgent
+    due-date: YYYY-MM-DD
+tags:
+  - event
+  - debrief
+  - c2_qualification
+  - c3_intel
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 ---
 

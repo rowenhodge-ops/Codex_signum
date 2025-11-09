@@ -17,6 +17,11 @@ killer-question: |
 related-contacts:
   -  # "[[C1 - Name]]"
   -  # "[[C3 - Name]]"
+tasks:
+  - description: ""
+    status: not-started # not-started, in-progress, completed, blocked
+    priority: medium # low, medium, high, urgent
+    due-date: YYYY-MM-DD
 tags:
   - target-profile
 related-sop: "[[SOP - Market Intelligence (V1.0)]]"
