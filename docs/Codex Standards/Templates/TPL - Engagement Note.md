@@ -29,7 +29,7 @@ tasks:
     status: not-started # Options: not-started, in-progress, completed, blocked
     priority: medium # Options: low, medium, high, urgent
     due-date: YYYY-MM-DD # Target completion date
-related-target:# Link to organization profile if applicable
+related-target: # Link to organization profile if applicable
   # Example: "[[University of Wollongong - Target Profile]]"
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 tags:
