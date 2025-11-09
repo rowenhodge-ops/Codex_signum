@@ -1,18 +1,22 @@
 ---
-research-id: RES-<% tp.date.now("YYYYMMDD") %>-XXX
-topic:
+# FILE NAMING CONVENTION: [Topic/Question] - Research Note.md
+# Example: LLM Router Evaluation - Research Note.md
+# Example: HEI Procurement Processes - Research Note.md
+
+research-id: RES-<% tp.date.now("YYYYMMDD") %>-XXX # Unique identifier. Format: RES-YYYYMMDD-[###]
+topic: # What are you researching?
 date-started: <% tp.date.now("YYYY-MM-DD") %>
-date-completed:
-status: in-progress # in-progress, complete, archived, parked
-priority: medium # low, medium, high, urgent
-category: # technology, market, methodology, competitor, regulation
-research-type: # exploratory, validation, deep-dive, comparative
-related-projects:
-  -
-related-target-profiles:
-  -
-related-sops:
-  -
+date-completed: # Update when research is concluded
+status: in-progress # Options: in-progress (active research), complete (concluded), archived (no longer relevant), parked (paused for later)
+priority: medium # Options: low (nice to know), medium (valuable context), high (urgent need), urgent (blocking decision)
+category: # What type of research? Options: technology, market, methodology, competitor, regulation, vendor-evaluation
+research-type: # Approach type. Options: exploratory (open-ended), validation (testing hypothesis), deep-dive (comprehensive analysis), comparative (A vs B evaluation)
+related-projects: # If research supports specific project/product
+  - # Example: "[[Initium - Product Definition]]"
+related-target-profiles: # If research informs specific target organizations
+  - # Example: "[[University of Wollongong - Target Profile]]"
+related-sops: # If research will inform SOP updates
+  - # Example: "[[SOP - Initium Delivery]]"
 tags:
   - research
 ---

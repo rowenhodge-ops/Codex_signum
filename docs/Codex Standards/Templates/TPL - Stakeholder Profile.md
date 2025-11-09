@@ -1,27 +1,32 @@
 ---
+# FILE NAMING CONVENTION: [Full Name] - [Company].md
+# Example: Jane Smith - University of Wollongong.md
+# Example: Bob Johnson - Acme Corp.md
+
 aliases: []
 stakeholder-id: "<% tp.file.title %>"
-stakeholder-type: C1 # C1 (Navigator), C2 (Collaborator), C3 (Market Intel), C4 (Economic Buyer)
-status: active # active, dormant, archived
+stakeholder-type: C1 # Options: C1 (Strategic Navigator), C2 (Peer Collaborator), C3 (Market Intel), C4 (Economic Buyer)
+status: active # Options: active (current engagement), dormant (inactive >90 days), archived (no longer relevant)
 first-contact-date: <% tp.date.now("YYYY-MM-DD") %>
-last-contact-date:
-relationship-strength: cold # cold, warm, hot
-potential-value: medium # low, medium, high, strategic
-company:
-title:
-vertical: # HEI, Logistics, Government, B2B Services, etc.
-linkedin:
-email:
-phone:
-location:
-related-target: # "[[Target Profile - Organization]]" if applicable
-related-stakeholders:
-  -  # Other connected contacts
+last-contact-date: # Update after every interaction
+relationship-strength: cold # Options: cold (initial contact), warm (ongoing dialogue), hot (active opportunity/partnership)
+potential-value: medium # Options: low (referral source), medium (valuable intel), high (potential client), strategic (game-changer)
+company: # Their organization name
+title: # Their job title/role
+vertical: # Industry/sector. Examples: HEI (Higher Ed), Logistics, Government, B2B Services, Healthcare, Finance
+linkedin: # LinkedIn profile URL
+email: # Primary email address
+phone: # Phone number with country code
+location: # City, Country (for timezone/meeting planning)
+related-target:# Link to Target Profile if they work at a prospect organization
+  # Example: "[[University of Wollongong - Target Profile]]"
+related-stakeholders: # Other contacts in their network
+  -  # Example: "[[John Doe - CTO]]" (their colleague/connection)
 tasks:
-  - description: ""
-    status: not-started # not-started, in-progress, completed, blocked
-    priority: medium # low, medium, high, urgent
-    due-date: YYYY-MM-DD
+  - description: "" # Next action with this stakeholder
+    status: not-started # Options: not-started, in-progress, completed, blocked
+    priority: medium # Options: low, medium, high, urgent
+    due-date: YYYY-MM-DD # When to complete this task
 tags:
   - stakeholder
 ---

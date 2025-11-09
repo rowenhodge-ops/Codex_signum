@@ -1,28 +1,32 @@
 ---
-event-id: EVT-<% tp.date.now("YYYYMMDD") %>
+# FILE NAMING CONVENTION: [Event Name] - [Date] - Event Debrief.md
+# Example: AI Conference Sydney - 2025-11-10 - Event Debrief.md
+# Example: HEI Networking Breakfast - 2025-11-10 - Event Debrief.md
+
+event-id: EVT-<% tp.date.now("YYYYMMDD") %> # Unique identifier. Format: EVT-YYYYMMDD
 date: <% tp.date.now("YYYY-MM-DD") %>
-event-name: # Name of the event
-event-type: # conference, networking, workshop, exhibition
-location:
-attendees-met: 0
-new-stakeholders:
-  -
-new-target-profiles:
-  -
-learnings-captured: 0
-follow-up-required: 0
-status: draft # draft, complete
+event-name: # Full name of the event
+event-type: # Options: conference, networking, workshop, exhibition, webinar, panel-discussion
+location: # City or "Virtual" if online
+attendees-met: 0 # Total number of people you spoke with
+new-stakeholders: # New Stakeholder Profiles created from this event
+  -  # Example: "[[Jane Smith - University of Sydney]]"
+new-target-profiles: # New Target Profiles created from this event
+  -  # Example: "[[Acme Corp - Target Profile]]"
+learnings-captured: 0 # Count of Learning Registry entries from this event
+follow-up-required: 0 # Number of people requiring follow-up action
+status: draft # Options: draft (incomplete), complete (finalized)
 aliases: []
 tasks:
-  - description: ""
-    status: not-started # not-started, in-progress, completed, blocked
-    priority: medium # low, medium, high, urgent
-    due-date: YYYY-MM-DD
+  - description: "" # Follow-up actions from this event
+    status: not-started # Options: not-started, in-progress, completed, blocked
+    priority: medium # Options: low, medium, high, urgent
+    due-date: YYYY-MM-DD # When to complete follow-up
 tags:
   - event
   - debrief
-  - c2_qualification
-  - c3_intel
+  - c2_qualification # If you qualified any C2 prospects
+  - c3_intel # If you gathered market intelligence
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 ---
 
