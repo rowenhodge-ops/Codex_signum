@@ -8,6 +8,11 @@ avg-edit-distance: 0
 new-learnings: 0
 new-contacts: 0
 status: draft # draft, complete
+tasks:
+  - description: ""
+    status: not-started # not-started, in-progress, completed, blocked
+    priority: medium # low, medium, high, urgent
+    due-date: YYYY-MM-DD
 tags:
   - weekly-review
   - performance-metrics

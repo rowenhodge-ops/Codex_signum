@@ -11,14 +11,39 @@
 
 **Business Identity**: Codex Signum
 
-**Positioning**: A systems-driven strategic advisory firm specializing in operational transformation for universities.
+**Positioning**: A strategic advisory practice specialising in end-to-end operational transformation—from diagnostic to implementation—with fixed-cost delivery and guaranteed, validated outcomes.
 
-**Value Proposition**: We help university COOs and CFOs eliminate the cost of stale data and rigid forecasting—delivering measurable efficiency gains through fixed-price diagnostic and implementation projects with guaranteed ROI.
+**Value Proposition**:
 
-**Business Model**:
-We operate as a high-margin advisory practice with a proprietary delivery methodology. Client engagements fund continuous improvement of our internal knowledge base and delivery systems, creating compounding competitive advantage.
+We de-risk and execute operational transformation through a proven three-phase approach:
 
-**Year 1 Target**: ~$570k Revenue / ~$296k Profit (52% EBITDA)
+1. **De-risk existing initiatives** → Strategic diagnostics validate current transformation investments and identify high-impact opportunities
+2. **Implement end-to-end solutions** → Fixed-price delivery eliminates scope creep and budget uncertainty
+3. **Guarantee measurable outcomes** → Mandatory ROI validation proves business impact with documented results
+
+Clients get certainty: defined scope, known investment, proven results—no open-ended consulting fees, no ambiguous outcomes.
+
+### Business Model
+
+We operate a **progressive engagement ladder** designed for predictable conversion and recurring revenue:
+
+| Product       | Price               | Purpose                                                                          | Client Value                                      | Margin |
+| ------------- | ------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
+| **Initium**   | $15k                | 2-week diagnostic qualifies opportunities                                        | Low-risk entry                                    | 93%    |
+| **Consilium** | $45k (credit 15k\*) | 3-week roadmap de-risks implementation                                           | De-risked commitment                              | 93%    |
+| **Fabrica**   | $100-200k           | 90-day transformation delivery                                                   | High-value Delivery                               | 50%    |
+| **Vigilia**   | $120-360k/year      | Ongoing governance and continuous improvement retainer. Move from Capex to Opex. | Predictable forecasting. Guaranteed Improvements. | 67%    |
+
+_Full Initium cost ($15k) credited if client commits to Consilium within 3 months of Initium completion_
+
+### Target Economics
+
+- 40% Initium → Fabrica conversion
+- 50% Fabrica → Vigilia retention
+- Year 1: $500k revenue, 53% EBITDA
+- Year 2: $1.6M revenue, 60% EBITDA (operational leverage)
+
+Each engagement refines our proprietary delivery systems, compounding speed and quality while maintaining margins.
 
 ---
 
@@ -42,105 +67,108 @@ These principles govern all strategic and operational decisions:
 
 ## 3.0 Product Offering
 
-### Product 1: University AI Readiness Assessment (The "Hook")
+Our fixed-price product ladder progresses clients from low-risk diagnostic through high-value transformation to recurring governance:
 
-- **Price**: Free
-- **Format**: Online diagnostic tool
-- **Function**: Captures a prospect's current state and primary challenges
-- **Goal**: Convert cold inquiries into qualified discovery calls
 
-### Product 2: Initium - Strategic Diagnostic (The "Wedge")
+| Product                                           | Price                                      | Duration        | Payment Terms                                      | Key Deliverables                                                                                                                                                 | Purpose                                                                              |
+| ------------------------------------------------- | ------------------------------------------ | --------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Strategic Assessment**                          | Free                                       | Online tool     | N/A                                                | • Current state diagnostic<br>• Challenge prioritisation<br>• Readiness assessment                                                                               | Qualify prospects and convert cold inquiries to discovery calls                      |
+| **Initium - Strategic Diagnostic**                | $15,000                                    | 2 weeks         | 100% upfront                                       | • Business process audit<br>• Challenge analysis and validation<br>• 3-5 prioritised solution hypotheses<br>• Recommended scope for Consilium                    | Low-risk entry point. Solve immediate diagnostic need and qualify for implementation |
+| **Consilium - Implementation Roadmap**            | $45,000 standalone<br>$30,000 with credit* | 3-4 weeks       | 50% upfront<br>50% on delivery                     | • Detailed implementation plan<br>• Stakeholder engagement strategy<br>• Risk mitigation framework<br>• Technical architecture requirements<br>• SOW for Fabrica | De-risk Fabrica investment through detailed planning and stakeholder alignment       |
+| **Fabrica - Implementation**                      | $100,000-$200,000                          | 90 days         | 40% upfront<br>30% at 45 days<br>30% on completion | • Complete solution implementation<br>• Process documentation and training<br>• Performance monitoring dashboard<br>• Mandatory ROI validation report            | Deliver validated transformation outcomes with measurable business impact            |
+| **Vigilia - Governance & Continuous Improvement** | $10k-$30k/month<br>($120k-$360k/year)      | Annual contract | Monthly in advance                                 | • Continuous monitoring and optimisation<br>• Quarterly performance reviews<br>• Proactive issue resolution<br>• Strategic planning support                      | High-margin recurring revenue with ongoing value delivery                            |
 
-- **Price**: $15,000 (Fixed price, 100% upfront)
-- **Duration**: 2 weeks
-- **Deliverable**:
-  - Comprehensive audit of current data flows and forecasting architecture
-  - Business process map of the identified challenge
-  - Prioritized roadmap with 3-5 solution hypotheses
-  - Detailed SOW for recommended implementation (Fabrica)
-- **Goal**:
-  - Solve immediate diagnostic need
-  - Acquire deep implementation data
-  - Set up Fabrica engagement
+* **Initium Credit Terms**: Full $15k Initium cost credited toward Consilium if client commits within 3 months of Initium completion.
+### Client Journey Economics
 
-### Product 3: Consilium - Implementation Roadmap (The "Bridge")
+**Progressive Engagement Path**:
+- Initium + Consilium + Fabrica = $195,000 total revenue, $117,000 gross profit (60% margin)
+- Add Vigilia = +$160,000 annual profit (67% margin)
 
-- **Price**: $45,000 (Credits $15k from Initium if purchased together)
-- **Duration**: 3-4 weeks
-- **Deliverable**:
-  - Detailed implementation plan for selected solution
-  - Stakeholder engagement strategy
-  - Risk mitigation framework
-  - Technical architecture and integration requirements
-  - Formal SOW for Fabrica implementation
-- **Goal**:
-  - De-risk the Fabrica investment for client
-  - Ensure alignment across stakeholders
-  - Lock in Fabrica commitment
-
-### Product 4: Fabrica - Implementation Project (The "Transformation")
-
-- **Price**: $100k - $200k (Fixed price)
-- **Duration**: 90 days
-- **Deliverable**:
-  - Full implementation of selected solution
-  - Process documentation and training
-  - Performance metrics and monitoring dashboard
-  - ROI validation report (required)
-- **Goal**:
-  - Deliver substantial, validated ROI
-  - Capture implementation methodology data
-  - Transition client to Vigilia (ongoing governance)
-
-### Product 5: Vigilia - Governance as a Service (The "Retention")
-
-- **Price**: $10k - $30k/month ($120k - $360k/year)
-- **Duration**: Ongoing annual contract
-- **Deliverable**:
-  - Continuous monitoring and optimization
-  - Quarterly performance reviews
-  - Proactive issue resolution
-  - Strategic planning support
-- **Goal**: High-margin, predictable recurring revenue
+**Key Success Factors**:
+- Mandatory ROI validation on every Fabrica engagement (documented, client-signed proof)
+- Fixed-price guarantee eliminates scope creep and budget overruns
+- Progressive de-risking reduces client uncertainty at each stage
+- Vigilia provides predictable, high-margin cash flow
 
 ---
 
 ## 4.0 Operational Methodology
 
-Our delivery methodology is powered by three internal systems:
+Our delivery methodology is powered by an AI-native operational framework that creates exponential leverage through intelligent automation and institutional memory.
 
-### 4.1 The Codex - Knowledge Repository
+### 4.1 The Codex - Intelligent Knowledge System
 
-A structured database capturing all proprietary client data:
+A multi-layered knowledge architecture that serves as an emergent institutional memory:
 
-- Market intelligence and sector trends
-- Process patterns and anti-patterns
-- Solution architectures and outcomes
-- Validated ROI metrics
+#### Knowledge Layers
+- **Market Intelligence**: Sector dynamics, competitive landscapes, stakeholder networks, transformation initiatives
+- **Process Patterns**: Documented methodologies, solution architectures, anti-patterns, implementation frameworks
+- **Client Context**: Challenge landscapes, organizational dynamics, decision patterns, success factors
+- **Validated Outcomes**: Quantified ROI metrics, implementation learnings, refinement insights
 
-This becomes our competitive moat—institutional knowledge that compounds with each engagement.
+#### AI-Native Capabilities
+- **Contextual Retrieval**: Semantic search across all engagements to surface relevant patterns and insights
+- **Pattern Recognition**: Autonomous identification of recurring challenges, success factors, and risk indicators
+- **Adaptive Learning**: System continuously refines methodologies based on validated outcomes and delivery feedback
+- **Real-Time Advisory**: Acts as intelligent "second brain" providing context-aware guidance across all business functions
 
-### 4.2 The Colophon - ROI Validation Protocol
+#### Strategic Advantage
+This becomes our **competitive moat**—institutional knowledge that compounds with each engagement. While competitors rely on individual consultant experience, our system captures, synthesises, and operationalises collective intelligence across all client work, enabling:
+- Faster, more accurate diagnostics
+- Higher-confidence scoping and pricing
+- Continuous methodology improvement
+- Predictable, scalable delivery quality
 
-A mandatory project close-out process:
+Traditional consulting firms lose knowledge when consultants leave. Our knowledge system ensures every engagement makes the business permanently smarter and more capable.
 
-- Client sign-off on delivered outcomes
-- Documented ROI with measurable metrics
-- Lessons learned and methodology improvements
-- Data feed into the Codex
+### 4.2 The Colophon - ROI Validation & Feedback Loop
 
-This ensures fiduciary accountability and captures high-value implementation data.
+A mandatory project close-out protocol that validates outcomes and feeds the knowledge system:
 
-### 4.3 Delivery Automation System
+**Validation Process**:
+- Client sign-off with minuted acceptance of delivered outcomes
+- Documented ROI with quantitative and qualitative metrics
+- Post-implementation review (30/60/90 day checkpoints)
+- Stakeholder feedback capture and analysis
 
-Internal tools and processes that increase delivery leverage:
+**Knowledge Synthesis**:
+- Automated extraction of key learnings and pattern identification
+- Systematic categorization and integration into the Codex
+- Methodology refinement recommendations based on delivery insights
+- Client journey analysis for conversion optimization
 
-- Standardized diagnostic frameworks
-- Templated deliverables and reports
-- Process documentation systems
-- Client communication workflows
+**Fiduciary Accountability**:
+Ensures we maintain trusted advisor status by proving measurable value on every engagement. No engagement is "complete" without validated ROI and documented learnings.
 
-Reduces delivery time and increases consistency while maintaining quality.
+**Feedback Loop**: All Colophon outputs automatically enrich the Codex, creating a self-improving system where each project increases the quality and speed of future delivery.
+
+### 4.3 Intelligent Delivery Framework
+
+Autonomous systems that leverage AI for maximum operational leverage:
+
+**Pre-Engagement Intelligence**:
+- Automated synthesis of market intelligence, stakeholder backgrounds, organizational context
+- Pattern-based hypothesis generation from similar client engagements
+- Context-aware proposal development with relevant case studies and risk mitigation strategies
+
+**Active Engagement Support**:
+- Real-time contextual assistance during client conversations and diagnostic work
+- Automated documentation synthesis and stakeholder mapping
+- Intelligent templating with client-specific customization
+
+**Post-Engagement Optimization**:
+- Automated performance tracking and continuous improvement recommendations
+- Cross-engagement pattern analysis and methodology refinement
+- Relationship intelligence and engagement health monitoring
+
+**Operational Impact**:
+- **Speed**: Reduced diagnostic and proposal development time through intelligent context retrieval
+- **Consistency**: Standardized frameworks ensure quality across all engagements
+- **Scalability**: AI augmentation enables high-quality delivery without linear headcount growth
+- **Compounding Returns**: Every engagement improves system capability, creating exponential advantage over time
+
+**Implementation Philosophy**: AI-native from inception. Every process is designed for intelligent augmentation, creating structural advantage impossible for traditional consulting firms to replicate without complete operational redesign.
 
 ---
 
@@ -160,9 +188,8 @@ Reduces delivery time and increases consistency while maintaining quality.
 
 **Initial Target List**:
 
+- Monash University
 - University of Wollongong
-- University of Technology Sydney
-- Western Sydney University
 - Macquarie University
 
 ### 5.2 Engagement Model

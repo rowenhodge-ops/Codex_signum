@@ -17,6 +17,11 @@ location:
 related-target: # "[[Target Profile - Organization]]" if applicable
 related-stakeholders:
   -  # Other connected contacts
+tasks:
+  - description: ""
+    status: not-started # not-started, in-progress, completed, blocked
+    priority: medium # low, medium, high, urgent
+    due-date: YYYY-MM-DD
 tags:
   - stakeholder
 ---

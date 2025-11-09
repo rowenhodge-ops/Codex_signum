@@ -20,8 +20,15 @@ new-contacts:
   -
 action-items:
   -
+tasks:
+  - description: ""
+    status: not-started # not-started, in-progress, completed, blocked
+    priority: medium # low, medium, high, urgent
+    due-date: YYYY-MM-DD
 related-target: # "[[Target Profile]]" if applicable
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
+tags:
+  - engagement
 ---
 
 <!-- CELL: executive-summary | type: summary | rag-priority: high -->

@@ -1,511 +1,65 @@
-# Codex Signum - AI Agent Instructions
+---
+archived-date: 2025-11-10
+archived-reason: Incorrect project context - these were Kore (Next.js) instructions, not Codex Signum (Obsidian vault)
+note: File was accidentally copied from different project
+---
+
+# [ARCHIVED] Kore Project Instructions
+
+**These instructions are for a different project (Kore - Next.js/Firebase).**  
+**For Codex Signum instructions, see: [[copilot-instructions.md]]**
+
+---
+
+# Kore - AI Coding Agent Instructions
 
 <!-- markdownlint-disable MD024,MD050 -->
 
+## 🎯 Quick Mode Shortcuts
+
+When the user types these hashtags, apply the corresponding specialized prompt:
+
+- **#plan** → Load `.vscode/prompts/planning.prompt.md` - Feature planning and architecture
+- **#debug** → Load `.vscode/prompts/debugging.prompt.md` - Systematic debugging workflow
+- **#review** → Load `.vscode/prompts/code-review.prompt.md` - Pre-commit quality checklist
+- **#ui** → Load `.vscode/prompts/ui-consistency.prompt.md` - Design system guidelines
+- **#workflow** → Load `.vscode/prompts/workflow.prompt.md` - Best practices and regression prevention
+
+These files contain detailed checklists and frameworks for each mode.
+
 ## Project Overview
 
-**Codex Signum** is an Obsidian vault for business development, sales engagement tracking, and knowledge management. Built around a sophisticated template system with Dataview queries, it captures stakeholder relationships, learning insights, and market intelligence.
+**Kore** is a personal knowledge management system combining Obsidian-style note-taking with AI-powered chat, graph visualization, and RAG search. Built as a single-user tool with modular architecture for business app integration.
 
-**Tech Stack**: Obsidian (Markdown), Dataview Plugin, Templater Plugin, Git (version control)
+**Tech Stack**: TypeScript, Next.js 15, React 18, Firebase/Firestore, External LLM Router (TBD), Tailwind CSS, Shadcn/ui
 
-**Core Philosophy**: Systematic capture → structured analysis → actionable intelligence. Every interaction is documented, every learning is tracked, every insight is queryable.
+**Architecture Philosophy**: Kore Core provides knowledge management foundation. Business apps (separate repos) integrate via shared SDK (`@kore/sdk`) for bidirectional context sync.
 
-**NOT a coding project**: This is a documentation/knowledge management system. No TypeScript, no Next.js, no Python.
+⚠️ **Important**: This is NOT a Python project. Python language server/tooling should be disabled (configured in `.vscode/settings.json`).
 
----
+## 🎯 Current Phase: Architecture Pivot (Oct 2025)
 
-## 🎯 Current Phase: Phase 2 Complete (Nov 2025)
+**Status**: Transitioning from commercial multi-tenant product to personal knowledge management tool
 
-**Status**: Template system with Jupyter-style cell markers and structured task management
+**Active Research Tasks**:
 
-**Recent Changes**:
+- [Task-010](docs/tasks/task-010-llm-router-evaluation.md): LLM Router selection (Portkey vs LiteLLM vs OpenRouter)
+- [Task-011](docs/tasks/task-011-obsidian-vs-custom.md): UI strategy (Obsidian plugin vs custom Next.js UI)
 
-- ✅ Phase 1: Template overhaul (8 templates with standardized metadata)
-- ✅ Phase 2A: Jupyter-style cell markers for future RAG integration (52 cells)
-- ✅ Phase 2B: Structured `tasks:` blocks for Dataview task management
-- ✅ Control Center Dashboard with dynamic queries
-- ✅ Comprehensive USER_GUIDE.md (800+ lines)
+**Key Changes**:
 
-**See**:
+- ✅ Removed multi-tenant architecture
+- ✅ Simplified to single-user mode (no auth complexity)
+- ✅ Keeping GitHub + Firebase integrations
+- ✅ All data stays in Google Cloud (Firestore + Cloud Storage)
+- ⏸️ LLM router decision pending (see Task-010)
+- ⏸️ UI strategy decision pending (see Task-011)
 
-- [[TEMPLATE_CHANGELOG]] for Phase 2 implementation details
-- [[USER_GUIDE]] for daily workflow documentation
-- [[JUPYTER_STYLE_EVOLUTION]] for cell marker technical docs
+**See**: [ADR-005](docs/decisions/ADR-005-simplified-kore-architecture.md) for full architecture decision rationale.
 
----
+## � CRITICAL: Documentation Workflow Protocol
 
-## � CRITICAL: Documentation Standards
-
-### Obsidian Vault Guidelines
-
-**This entire `docs/` folder is an Obsidian vault.** Respect Obsidian-specific syntax:
-
-**DO**:
-
-- ✅ Use `[[wiki-links]]` for internal references
-- ✅ Use `#tags` for categorization (e.g., `#engagement`, `#stakeholder`, `#learning-registry`)
-- ✅ Preserve Templater syntax: `<% tp.date.now("YYYY-MM-DD") %>`
-- ✅ Keep YAML frontmatter intact (metadata critical for Dataview)
-- ✅ Respect HTML comment cell markers (`<!-- CELL: -->`)
-
-**DON'T**:
-
-- ❌ Modify `.obsidian/` directory (user-specific settings, git-ignored)
-- ❌ Convert wiki-links to markdown links
-- ❌ Remove or modify cell markers without explicit permission
-- ❌ Delete YAML frontmatter fields (breaks Dataview queries)
-- ❌ Reformat for "style" reasons (preserve existing structure)
-
-### Archiving Workflow
-
-When files become deprecated:
-
-1. **Create archive subdirectory** (e.g., `docs/archive/dashboards/`)
-2. **Move (don't copy)** file to archive with timestamp
-3. **Add archive header** with date, reason, superseded-by link
-4. **Delete from original location** (archive becomes source of truth)
-5. **Archive is immutable** - never modify archived content
-
-Example archive header:
-
-```markdown
----
-archived-date: 2025-11-10
-archived-reason: Brief explanation
-superseded-by: ../Current-File.md
----
-
-# [ARCHIVED] Original Title
-
-**See current version: [[Current File]]**
-
----
-
-[Original content follows...]
-```
-
----
-
-## 🤖 AI Agent Validation Protocol
-
-Before EVERY file modification:
-
-### Phase 1: Intent Check (10 seconds)
-
-- [ ] What is the user requesting? (One sentence)
-- [ ] Which files will be affected? (Specific paths)
-- [ ] Is this additive or destructive? (Adding vs deleting)
-- [ ] Do I need permission? (Template changes, dashboard edits, deletions)
-
-**If unsure → ASK user first**
-
-### Phase 2: Context Gathering (30 seconds)
-
-- [ ] Read current file with `read_file` (don't assume)
-- [ ] Check git status if uncertain
-- [ ] Verify templates still follow standard structure
-- [ ] Confirm Dataview queries reference correct tags
-
-### Phase 3: Change Planning (30 seconds)
-
-- [ ] What sections will be modified? (Line ranges)
-- [ ] Will I delete content? (Requires permission for templates/dashboard)
-- [ ] Metadata updates needed? (Tags, frontmatter, change logs)
-- [ ] Related docs to update? (Cross-references, changelog)
-
-### Phase 4: Quality Gates (30 seconds)
-
-**For Template Changes**:
-
-- [ ] YAML frontmatter valid? (No syntax errors)
-- [ ] Tags present for Dataview? (e.g., `tags: [engagement]`)
-- [ ] Templater syntax preserved? (e.g., `<% tp.date.now() %>`)
-- [ ] Cell markers intact? (Don't remove `<!-- CELL: -->` comments)
-
-**For Dashboard Changes**:
-
-- [ ] Dataview queries valid? (Syntax correct)
-- [ ] Tags match template frontmatter? (e.g., `FROM #stakeholder`)
-- [ ] Archive old version first? (If major restructure)
-
-**For Documentation**:
-
-- [ ] Change log updated? (For template system changes)
-- [ ] Links still valid? (No broken `[[wiki-links]]`)
-- [ ] Cross-references updated? (Related templates, guides)
-
-### Phase 5: Pre-Commit Checklist (30 seconds)
-
-- [ ] Commit message follows convention?
-  - ✅ `docs: Update template frontmatter`
-  - ✅ `feat: Add new dashboard section`
-  - ✅ `fix: Correct Dataview query syntax`
-  - ❌ "changes" (too vague)
-  - ❌ "update files" (not descriptive)
-- [ ] Related docs referenced? (e.g., `Related: TEMPLATE_CHANGELOG`)
-- [ ] No debug artifacts? (No test data, temporary notes)
-- [ ] Confident this works? (Tested queries if modified dashboard)
-
-**If ANY checkbox unchecked → REVIEW before proceeding**
-
----
-
-## 📋 Template System Architecture
-
-### 8 Core Templates
-
-1. **TPL - Engagement Note.md** (Daily workhorse)
-
-   - Captures every interaction (calls, meetings, emails)
-   - Tracks CTA success, sentiment, edit distance
-   - Links to Stakeholder Profiles, Target Profiles, Learning Registry
-   - **Tag**: `#engagement`
-
-2. **TPL - Stakeholder Profile.md** (Relationship memory)
-
-   - Comprehensive person records (C1/C2/C3/C4 types)
-   - Key language, messy problems, network connections
-   - Links to Engagement Notes, Target Profiles
-   - **Tag**: `#stakeholder`
-
-3. **TPL - Target Profile.md** (T1/T2/T3 analysis)
-
-   - Organization-level strategic research
-   - Strategic/Technical/Operational context
-   - Killer question, contact strategy
-   - **Tag**: `#target-profile`
-
-4. **TPL - Learning Registry.md** (Knowledge compound interest)
-
-   - Actionable principles from engagements
-   - Validation status (untested/validated/superseded)
-   - Application count tracking
-   - **Tag**: `#learning-registry`
-
-5. **TPL - Market Insight.md** (Intelligence assets)
-
-   - Patterns across multiple engagements
-   - Stakeholder-specific talking points
-   - Strategic implications
-   - **Tag**: `#market-insight`
-
-6. **TPL - Weekly Review.md** (System health check)
-
-   - Performance metrics (engagements, CTA success, edit distance)
-   - C1/C2/C3/C4 breakdown
-   - Wins, challenges, insights, action items
-   - **Tag**: `#weekly-review`
-
-7. **TPL - Event Debrief.md** (Multi-contact capture)
-
-   - Conference/networking event documentation
-   - C2 qualification, C3 market intel
-   - Performance metrics, follow-up plan
-   - **Tag**: `#event`
-
-8. **TPL - Research Note.md** (Exploratory workflow)
-   - Investigative research documentation
-   - Confidence levels, findings, analysis
-   - Can be promoted to Market Insights
-   - **Tag**: `#research-note`
-
-### Structured Tasks System
-
-**All templates (except Learning Registry) have:**
-
-```yaml
-tasks:
-  - description: ""
-    status: not-started # not-started, in-progress, completed, blocked
-    priority: medium # low, medium, high, urgent
-    due-date: YYYY-MM-DD
-```
-
-**Critical**: Dashboard queries depend on this structure. Don't modify field names.
-
-### Cell Markers (Phase 2)
-
-Templates include HTML comment cell markers for future RAG integration:
-
-```markdown
-<!-- CELL: cell-id | type: cell-type | rag-priority: priority -->
-
-Content here...
-
-<!-- END CELL -->
-```
-
-**9 Cell Types**:
-
-- `training-data`: Examples, templates
-- `inference-prompt`: Questions, frameworks
-- `validation-metrics`: Performance data
-- `analysis`: Strategic thinking
-- `context`: Background info
-- `raw-data`: Unprocessed notes
-- `relationships`: Connections
-- `action-items`: Tasks, CTAs
-- `summary`: High-level overviews
-
-**3 RAG Priority Levels**:
-
-- `high`: Primary retrieval targets
-- `medium`: Supporting context
-- `low`: Reference only
-
-**Critical**: Don't remove or modify cell markers without explicit permission.
-
----
-
-## 📊 Dashboard & Dataview Queries
-
-### Control Center Dashboard
-
-Located at: `Codex Signum - Dashboard.md`
-
-**8 Dynamic Sections**:
-
-1. Quick Status (last 7 days from Weekly Reviews)
-2. Urgent & High-Priority Tasks (structured tasks with `priority: high|urgent`)
-3. Hot Prospects & Stalled Deals (C2/C4 without contact in 14+ days)
-4. Pipeline Status (Target Profiles by stage)
-5. Untested Learnings (Learning Registry entries needing validation)
-6. Key Language Repository (last 15 captures from Engagement Notes)
-7. Performance & Funnel (8-week rolling metrics)
-8. Pipeline Funnel (stakeholder count by type)
-
-**Critical Query Patterns**:
-
-```dataview
-// Task queries
-FROM !"Codex Standards/Templates"
-WHERE tasks AND any(tasks, (t) => t.priority = "high")
-
-// Stakeholder queries
-FROM #stakeholder
-WHERE stakeholder-type = "C2"
-
-// Weekly review queries
-FROM #weekly-review
-WHERE week-of >= date(today) - dur(7 days)
-```
-
-**Common Issues**:
-
-- ❌ `FROM #action_item` (tag doesn't exist - use `tasks` structure instead)
-- ❌ `FROM "Templates"` (should be `FROM !"Codex Standards/Templates"` to exclude)
-- ❌ Missing `link()` function (use `link(file.name)` for clickable links)
-
----
-
-## 🔧 Development Workflow
-
-### Daily Template Usage
-
-1. **After every interaction**: Create Engagement Note
-2. **New person?**: Create Stakeholder Profile
-3. **Learned something?**: Create Learning Registry entry
-4. **Researching org?**: Create Target Profile
-5. **Friday/Monday**: Create Weekly Review (mandatory)
-
-### Git Workflow
-
-```bash
-# Check status
-git status
-
-# Stage changes
-git add docs/
-
-# Commit with descriptive message
-git commit -m "docs: Add structured tasks to templates"
-
-# Push to remote
-git push origin main
-```
-
-**Commit Message Convention**:
-
-- `docs:` Documentation/template changes
-- `feat:` New features (new templates, dashboard sections)
-- `fix:` Bug fixes (broken queries, syntax errors)
-- `refactor:` Structure changes (template reorganization)
-- `chore:` Maintenance (archive cleanup, folder structure)
-
-### Change Tracking
-
-**Always update when modifying templates/dashboard**:
-
-- `docs/Codex Standards/Templates/TEMPLATE_CHANGELOG.md`
-
-**Format**:
-
-```markdown
-## YYYY-MM-DD - Change Title
-
-### Overview
-
-Brief description of what changed and why.
-
-### Changes Made
-
-- Template 1: What was added/modified
-- Template 2: What was added/modified
-
-### New Capabilities
-
-- What new features are enabled
-- What queries now work
-
-### Migration Notes
-
-- What users need to know
-- Backward compatibility status
-```
-
----
-
-## 🎯 Common Tasks & Patterns
-
-### Adding a New Template
-
-1. Create file: `docs/Codex Standards/Templates/TPL - New Template.md`
-2. Add YAML frontmatter with:
-   - Template-specific fields
-   - `tasks:` block
-   - `tags:` array
-3. Add cell markers for semantic sections
-4. Document in TEMPLATE_CHANGELOG.md
-5. Update QUICK_REFERENCE.md decision tree
-6. Add example to USER_GUIDE.md
-
-### Modifying Dashboard Queries
-
-1. Archive current dashboard to `docs/archive/dashboards/` with timestamp
-2. Modify `Codex Signum - Dashboard.md`
-3. Test queries (create sample notes if needed)
-4. Document in TEMPLATE_CHANGELOG.md
-
-### Archiving Deprecated Content
-
-1. Create archive subdirectory: `docs/archive/category/`
-2. Add archive header to file
-3. Move file to archive
-4. Delete from original location
-5. Update cross-references in active docs
-
-### Updating Frontmatter Across Templates
-
-1. Read all affected templates first
-2. Plan changes (what fields to add/modify)
-3. Update templates systematically
-4. Test Dataview queries
-5. Document in TEMPLATE_CHANGELOG.md
-6. Commit with descriptive message
-
----
-
-## 📚 Key Documentation Files
-
-### For Users
-
-- **USER_GUIDE.md**: 800+ line comprehensive usage guide
-- **QUICK_REFERENCE.md**: Template decision trees, cheat sheets
-- **TEMPLATE_SYSTEM_UPDATE.md**: Phase 1 technical documentation
-
-### For Developers (AI Agents)
-
-- **TEMPLATE_CHANGELOG.md**: Change history and migration notes
-- **JUPYTER_STYLE_EVOLUTION.md**: Cell marker technical specs
-- **copilot-instructions.md** (this file): AI agent guidelines
-
-### Archived
-
-- `docs/archive/dashboards/`: Old dashboard versions
-- `.github/archive/`: Archived config files (e.g., Kore instructions)
-
----
-
-## 🚨 Critical Constraints
-
-### NEVER Do This
-
-- ❌ **Delete YAML frontmatter fields** (breaks Dataview queries)
-- ❌ **Remove cell markers** (needed for future RAG)
-- ❌ **Modify Templater syntax** (e.g., `<% tp.date.now() %>`)
-- ❌ **Change tag names** without updating dashboard queries
-- ❌ **Reformat templates** for "style" reasons
-- ❌ **Modify `.obsidian/` directory** (user-specific settings)
-- ❌ **Modify archived files** (immutable by definition)
-
-### Always Do This
-
-- ✅ **Read file before editing** (use `read_file` tool)
-- ✅ **Update TEMPLATE_CHANGELOG** (when modifying templates)
-- ✅ **Archive before major restructure** (preserve history)
-- ✅ **Test Dataview queries** (if dashboard/template changes)
-- ✅ **Add change logs** (explain what/why)
-- ✅ **Commit with descriptive messages** (no "changes" or "update")
-
----
-
-## 🎓 Learning Resources
-
-### Understanding the System
-
-1. **Start here**: Read `USER_GUIDE.md` (Quick Start section)
-2. **Template decision tree**: See `QUICK_REFERENCE.md`
-3. **Technical details**: Read `TEMPLATE_SYSTEM_UPDATE.md`
-4. **Change history**: Review `TEMPLATE_CHANGELOG.md`
-5. **Cell markers**: See `JUPYTER_STYLE_EVOLUTION.md`
-
-### Obsidian Plugins
-
-**Required**:
-
-- **Dataview**: Powers dashboard queries
-- **Templater**: Template automation
-
-**Recommended**:
-
-- **Linter**: Metadata validation
-- **Kanban**: Task board visualization
-
-### Dataview Query Syntax
-
-```dataview
-TABLE field1, field2
-FROM #tag
-WHERE condition
-SORT field ASC
-LIMIT 10
-```
-
-**Key Functions**:
-
-- `link(file.name)`: Clickable file links
-- `choice(condition, if-true, if-false)`: Conditional display
-- `date(today)`, `dur(7 days)`: Date calculations
-- `any(array, condition)`: Array filtering
-
----
-
-## 💡 Pro Tips
-
-1. **Before modifying templates**: Always read USER_GUIDE.md to understand user workflows
-2. **Dashboard queries failing?**: Check template tags match query `FROM #tag`
-3. **Archiving files**: Include superseded-by link so users can find replacement
-4. **Git commits**: Reference related docs (e.g., `Related: TEMPLATE_CHANGELOG`)
-5. **Cell markers**: They're invisible in Obsidian - users won't see them
-6. **Tasks structure**: Field names must match exactly for queries to work
-7. **Testing changes**: Create sample notes from templates, verify dashboard updates
-
----
-
-**Last Updated**: 2025-11-10  
-**Version**: 2.0 (Phase 2 Complete)  
-**Maintained By**: AI Agents (following validation protocol)  
-**Related**: [[TEMPLATE_CHANGELOG]], [[USER_GUIDE]], [[JUPYTER_STYLE_EVOLUTION]]
+**STOP and READ**: Before editing ANY documentation file (`docs/` directory), you MUST follow the comprehensive workflow policies in `docs/WORKFLOW_POLICIES.md`.
 
 ### Quick Rules by Document Type
 
