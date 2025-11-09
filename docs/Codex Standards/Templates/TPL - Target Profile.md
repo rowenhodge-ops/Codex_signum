@@ -24,6 +24,8 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 # Target Profile: {{organization}}
 
+<!-- CELL: executive-summary | type: summary | rag-priority: high -->
+
 ## Executive Summary
 
 **What they do:**
@@ -32,7 +34,11 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 **Our angle:**
 
+<!-- END CELL -->
+
 ---
+
+<!-- CELL: t1-strategic | type: context | rag-priority: high -->
 
 ## T1: Strategic Language
 
@@ -42,9 +48,7 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 -
 -
--
-
-**Evidence (Annual reports, press releases, LinkedIn posts):**
+- **Evidence (Annual reports, press releases, LinkedIn posts):**
 
 -
 
@@ -52,13 +56,9 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 **Budget situation:**
 
--
+- **Financial pressure points:**
 
-**Financial pressure points:**
-
--
-
-**Investment appetite:**
+- **Investment appetite:**
 
 -
 
@@ -71,9 +71,11 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 **Strategic initiatives mentioned:**
 
 -
--
+- ***
 
----
+  <!-- END CELL -->
+
+<!-- CELL: t2-technical | type: context | rag-priority: high -->
 
 ## T2: Technical Reality
 
@@ -83,21 +85,15 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 -
 -
--
-
-**Sources:** [Where did we learn this? Contact mentions, case studies, vendor sites]
+- **Sources:** [Where did we learn this? Contact mentions, case studies, vendor sites]
 
 ### Vendor Gaps
 
 **Recent implementations:**
 
--
+- **Known challenges:**
 
-**Known challenges:**
-
--
-
-**Integration points:**
+- **Integration points:**
 
 -
 
@@ -105,17 +101,15 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 **Systems that don't talk:**
 
--
+- **Manual workarounds:**
 
-**Manual workarounds:**
+- **Data silos:**
 
--
+- ***
 
-**Data silos:**
+  <!-- END CELL -->
 
--
-
----
+<!-- CELL: t3-operational | type: training-data | rag-priority: high -->
 
 ## T3: Operational Symptoms
 
@@ -149,6 +143,10 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: synthesis | type: analysis | rag-priority: high -->
+
 ## Synthesis: The Messy Problem
 
 ### The Pattern
@@ -171,6 +169,10 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: killer-question | type: inference-prompt | rag-priority: high -->
+
 ## The Killer Question
 
 ### Our Pitch Angle
@@ -192,9 +194,11 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 **Evidence we can reference:**
 
 -
--
+- ***
 
----
+  <!-- END CELL -->
+
+<!-- CELL: contact-strategy | type: action-items | rag-priority: medium -->
 
 ## Contact Strategy
 
@@ -220,6 +224,10 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: intelligence-sources | type: relationships | rag-priority: low -->
+
 ## Intelligence Sources
 
 ### Primary Sources
@@ -242,6 +250,8 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 
 ---
 
+<!-- END CELL -->
+
 ## Next Actions
 
 ### Research Needed
@@ -259,13 +269,9 @@ related-sop: "[[SOP - Market Intelligence (V1.0)]]"
 **What we still need to learn:**
 
 -
--
+- **How we'll learn it:**
 
-**How we'll learn it:**
-
--
-
----
+- ***
 
 ## Change Log
 

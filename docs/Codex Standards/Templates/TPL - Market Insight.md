@@ -23,6 +23,8 @@ tags:
 
 # Market Insight: {{title}}
 
+<!-- CELL: executive-summary | type: summary | rag-priority: high -->
+
 ## Executive Summary
 
 **The Key Takeaway:**
@@ -33,7 +35,11 @@ tags:
 
 **Confidence Level:** High / Medium / Low
 
+<!-- END CELL -->
+
 ---
+
+<!-- CELL: insight | type: training-data | rag-priority: high -->
 
 ## The Insight
 
@@ -50,17 +56,17 @@ tags:
 **Primary sources:**
 
 -
--
-
-**Supporting data:**
+- **Supporting data:**
 
 -
--
+- **Validation:**
+  [How do we know this is true? Client feedback? Industry reports? Case studies?]
 
-**Validation:**
-[How do we know this is true? Client feedback? Industry reports? Case studies?]
+  ***
 
----
+  <!-- END CELL -->
+
+<!-- CELL: deep-dive | type: analysis | rag-priority: medium -->
 
 ## Deep Dive Analysis
 
@@ -83,6 +89,10 @@ tags:
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: application-codex | type: inference-prompt | rag-priority: high -->
+
 ## Application to Codex Signum
 
 ### Use in Initium Diagnostic
@@ -90,9 +100,7 @@ tags:
 **How this shapes our diagnostic approach:**
 
 -
--
-
-**Specific questions to ask:**
+- **Specific questions to ask:**
 
 1.
 2.
@@ -111,10 +119,23 @@ tags:
 **Proof points:**
 
 -
--
+- **Risk mitigation:**
+  [How we address this in our methodology]
 
-**Risk mitigation:**
-[How we address this in our methodology]
+### Use in Proposals
+
+**Value proposition framing:**
+
+>
+
+**Proof points:**
+
+-
+- **Risk mitigation:**
+  [How we address this in our methodology]
+  <!-- END CELL -->
+
+<!-- CELL: stakeholder-talking-points | type: inference-prompt | rag-priority: high -->
 
 ### Talking Points for Stakeholder Engagements
 
@@ -143,9 +164,7 @@ tags:
 **Validation questions:**
 
 -
--
-
-**What to listen for:**
+- **What to listen for:**
 
 -
 
@@ -157,9 +176,11 @@ tags:
 
 **ROI linkage:**
 
--
+- ***
 
----
+  <!-- END CELL -->
+
+<!-- CELL: examples | type: context | rag-priority: medium -->
 
 ## Real-World Examples
 
@@ -185,6 +206,10 @@ tags:
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: strategic-implications | type: analysis | rag-priority: high -->
+
 ## Strategic Implications
 
 ### Market Positioning
@@ -200,6 +225,10 @@ tags:
 [Potential challenges or limitations of this insight]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: related-insights | type: relationships | rag-priority: low -->
 
 ## Related Insights
 
@@ -219,6 +248,7 @@ tags:
 1. [[INS-XXX]] - [Foundation]
 2. [[INS-XXX]] - [Build on foundation]
 3. **THIS INSIGHT** - [Synthesis]
+<!-- END CELL -->
 
 ---
 
