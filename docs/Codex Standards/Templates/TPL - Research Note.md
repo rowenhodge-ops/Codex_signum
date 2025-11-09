@@ -12,11 +12,11 @@ priority: medium # Options: low (nice to know), medium (valuable context), high 
 category: # What type of research? Options: technology, market, methodology, competitor, regulation, vendor-evaluation
 research-type: # Approach type. Options: exploratory (open-ended), validation (testing hypothesis), deep-dive (comprehensive analysis), comparative (A vs B evaluation)
 related-projects: # If research supports specific project/product
-  - # Example: "[[Initium - Product Definition]]"
+  -  # Example: "[[Initium - Product Definition]]"
 related-target-profiles: # If research informs specific target organizations
-  - # Example: "[[University of Wollongong - Target Profile]]"
+  -  # Example: "[[University of Wollongong - Target Profile]]"
 related-sops: # If research will inform SOP updates
-  - # Example: "[[SOP - Initium Delivery]]"
+  -  # Example: "[[SOP - Initium Delivery]]"
 tags:
   - research
 ---

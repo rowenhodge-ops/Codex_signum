@@ -1,36 +1,31 @@
 ---
-# FILE NAMING CONVENTION: YYYY-MM-DD - [Stakeholder Name] - [Topic].md
-# Example: 2025-11-10 - Jane Smith - Demo Call.md
-# Example: 2025-11-10 - Bob Johnson - Pricing Discussion.md
-
 aliases: []
-stakeholder-id: "[[Stakeholder Name]]" # Link to their Stakeholder Profile
-stakeholder-type: C1 # C1 (Strategic Navigator), C2 (Peer Collaborator), C3 (Market Intel), C4 (Economic Buyer)
-engagement-date: <% tp.date.now("YYYY-MM-DD") %>
-engagement-time: <% tp.date.now("HH:mm") %>
-engagement-type: call # Options: call, meeting, email, linkedin-dm, video-call, in-person
-status: completed # Options: pending, completed, requires-follow-up
-response-time-hours: # Time from your outreach to their response (number of hours, for performance tracking)
-cta-success: # Your call-to-action result. Options: Accepted, Deferred, Rejected
-sentiment-score: # Their engagement level. Scale: -1 (Negative/Resistant) to +1 (Highly Positive/Engaged)
-edit-distance-score: # How much you edited your notes. Scale: 1 (Sent as-is, clear capture) to 5 (Total rewrite, poor capture)
-learning-id: # Link to Learning Registry entries created from this engagement
-  -  # Example: "[[L-042 - Two-sentence openers]]"
-key-language: # Their exact words/phrases (copy verbatim for future messaging)
-  -  # Example: "We're data-rich but insight-poor"
-messy-problems: # Pain points they mentioned (their words, not your interpretation)
-  -  # Example: "Manual data entry for compliance reports"
-new-contacts: # New people they mentioned
-  -  # Example: "[[Jane Doe - Head of Admissions]]"
-action-items: # Your commitments from this call
-  -  # Example: "Send pricing proposal by Friday EOD"
+stakeholder-id: "[[Stakeholder Name]]"
+stakeholder-type:
+engagement-date: 2025-11-10
+engagement-time: 00:21
+engagement-type: call
+status: completed
+response-time-hours:
+cta-success:
+sentiment-score:
+edit-distance-score:
+learning-id:
+  - 
+key-language:
+  - 
+messy-problems:
+  - 
+new-contacts:
+  - 
+action-items:
+  - 
 tasks:
-  - description: "" # Specific next step with clear completion criteria
-    status: not-started # Options: not-started, in-progress, completed, blocked
-    priority: medium # Options: low, medium, high, urgent
-    due-date: YYYY-MM-DD # Target completion date
-related-target:# Link to organization profile if applicable
-  # Example: "[[University of Wollongong - Target Profile]]"
+  - description: ""
+    status: not-started
+    priority: medium
+    due-date: YYYY-MM-DD
+related-target:
 related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 tags:
   - engagement

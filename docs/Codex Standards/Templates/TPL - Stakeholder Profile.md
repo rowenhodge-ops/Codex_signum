@@ -18,7 +18,7 @@ linkedin: # LinkedIn profile URL
 email: # Primary email address
 phone: # Phone number with country code
 location: # City, Country (for timezone/meeting planning)
-related-target: # Link to Target Profile if they work at a prospect organization
+related-target:# Link to Target Profile if they work at a prospect organization
   # Example: "[[University of Wollongong - Target Profile]]"
 related-stakeholders: # Other contacts in their network
   -  # Example: "[[John Doe - CTO]]" (their colleague/connection)
