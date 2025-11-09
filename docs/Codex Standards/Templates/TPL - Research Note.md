@@ -19,6 +19,8 @@ tags:
 
 # Research Note: {{topic}}
 
+<!-- CELL: research-question | type: summary | rag-priority: high -->
+
 ## Research Question
 
 **Primary Question:**
@@ -30,7 +32,11 @@ tags:
 **Success Criteria:**
 [How will we know when this research is complete?]
 
+<!-- END CELL -->
+
 ---
+
+<!-- CELL: context | type: context | rag-priority: medium -->
 
 ## Context & Motivation
 
@@ -51,6 +57,10 @@ tags:
 [How will this research inform decisions or strategy?]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: research-plan | type: action-items | rag-priority: low -->
 
 ## Research Plan
 
@@ -79,6 +89,10 @@ tags:
 - **Actual completion:**
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: findings | type: training-data | rag-priority: high -->
 
 ## Findings
 
@@ -117,6 +131,10 @@ tags:
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: analysis | type: analysis | rag-priority: high -->
+
 ## Analysis & Synthesis
 
 ### Pattern Recognition
@@ -133,6 +151,10 @@ tags:
 - [[Market Insight - Title]] - [How this validates or challenges the insight]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: conclusions | type: summary | rag-priority: high -->
 
 ## Conclusions
 
@@ -153,6 +175,10 @@ tags:
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: recommendations | type: action-items | rag-priority: medium -->
+
 ## Actionable Recommendations
 
 ### Strategic Implications
@@ -165,13 +191,9 @@ tags:
 
 **For Initium Diagnostic:**
 
--
+- **For Stakeholder Engagements:**
 
-**For Stakeholder Engagements:**
-
--
-
-**For Target Profiling:**
+- **For Target Profiling:**
 
 -
 
@@ -181,6 +203,8 @@ tags:
 - [ ] [Follow-up question]
 
 ---
+
+<!-- END CELL -->
 
 ## Documentation & Artifacts
 

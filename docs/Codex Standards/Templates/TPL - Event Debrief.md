@@ -32,6 +32,19 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- CELL: event-info | type: context | rag-priority: low -->
+
+## Event Information
+
+**Event:** {{event-name}}
+**Date:** {{date}}
+**Location:** {{location}}
+**Attendees Met:** {{attendees-met}}
+
+<!-- END CELL -->
+
+<!-- CELL: c2-debrief | type: analysis | rag-priority: high -->
+
 ## C2 Debrief: [Name, Title]
 
 ### Assessment
@@ -45,12 +58,9 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ### General Observations & #key_language
 
-- **How they pitched their business to others:** (Was it a focused solution or a "smorgasbord of technology"?)
-  -
-- **Inter-personal dynamics:**
-  -
-- **Reaction to my "Initium-as-a-Filter" Pitch:**
-  -
+- ## **How they pitched their business to others:** (Was it a focused solution or a "smorgasbord of technology"?)
+- ## **Inter-personal dynamics:**
+- ## **Reaction to my "Initium-as-a-Filter" Pitch:**
 
 ### Assessment Score (1-5, 5=High)
 
@@ -59,27 +69,31 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: c3-market-intel | type: training-data | rag-priority: high -->
+
 ## C3 Market Intel
 
 ### Company 1: [Company Name]
 
 - **Contact:** [Name, Title]
 - **Vertical:** [e.g., Logistics, B2B Services]
-- **#messy_problem Identified:**
-  -
-- **#key_language Used:**
-  -
+- ## **#messy_problem Identified:**
+- ## **#key_language Used:**
 
 ### Company 2: [Company Name]
 
 - **Contact:** [Name, Title]
 - **Vertical:** [e.g., Logistics, B2B Services]
-- **#messy_problem Identified:**
-  -
-- **#key_language Used:**
-  -
+- ## **#messy_problem Identified:**
+- ## **#key_language Used:**
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: metrics-summary | type: validation-metrics | rag-priority: medium -->
 
 ## Event Metrics & Summary
 
@@ -100,6 +114,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 - **Key insight gained:**
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: p2-processing | type: action-items | rag-priority: medium -->
 
 ## P2 Reward: Post-Show Processing
 
@@ -127,6 +145,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: final-assessment | type: analysis | rag-priority: high -->
+
 ## Final Assessment & Strategic Actions
 
 **Overall Event ROI:** [High/Medium/Low]
@@ -137,9 +159,7 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 **Key Strategic Insights:**
 
 -
--
-
-**Next Actions:**
+- **Next Actions:**
 
 1. [ ] [Action] by [Date]
 2. [ ] [Action] by [Date]
@@ -151,3 +171,8 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 - [[Target Profile - Organization]]
 - [[Engagement Note - Follow-up]]
 - [[L-XXX - Learning captured]]
+<!-- END CELL -->
+
+```
+
+```

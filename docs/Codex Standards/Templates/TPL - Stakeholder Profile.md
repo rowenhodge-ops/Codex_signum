@@ -21,12 +21,17 @@ tags:
   - stakeholder
 ---
 
+<!-- CELL: executive-summary | type: summary | rag-priority: high -->
+
 ### Summary
 
 - **Who they are:** [Role, background, areas of expertise]
 - **What they want:** [Their goals, pain points, objectives]
 - **How we help:** [Our value proposition to them specifically]
 - **Relationship origin:** [How did we connect? Who introduced us?]
+<!-- END CELL -->
+
+<!-- CELL: strategic-value | type: analysis | rag-priority: high -->
 
 ### Strategic Value
 
@@ -40,6 +45,9 @@ tags:
 
 - **Our value to them:** [What specific value do we bring?]
 - **Their success metrics:** [What does success look like for them?]
+<!-- END CELL -->
+
+<!-- CELL: context-background | type: context | rag-priority: medium -->
 
 ### Context & Background
 
@@ -55,6 +63,9 @@ tags:
 - **Communication preferences:** [Email, LinkedIn, phone, etc.]
 - **Response patterns:** [Quick responder? Prefers meetings? Detail-oriented?]
 - **Interests/motivations:** [What drives them professionally?]
+<!-- END CELL -->
+
+<!-- CELL: key-language | type: training-data | rag-priority: high -->
 
 ### Key Language & Terminology
 
@@ -63,11 +74,18 @@ tags:
 -
 -
 
+<!-- END CELL -->
+
+<!-- CELL: messy-problems | type: training-data | rag-priority: high -->
+
 ### Messy Problems (Their Context)
 
 1. **Problem:**
    - **Impact on them:**
    - **Their words:** ""
+   <!-- END CELL -->
+
+<!-- CELL: network-connections | type: relationships | rag-priority: low -->
 
 ### Network & Connections
 
@@ -78,6 +96,9 @@ tags:
 #### Organizations Connected To
 
 - **[[Organization]]** - [Nature of connection]
+<!-- END CELL -->
+
+<!-- CELL: engagement-history | type: context | rag-priority: medium -->
 
 ### Engagement History
 
@@ -92,6 +113,9 @@ tags:
 
 - **[[Engagement Note - Date]]** - [Brief summary, outcome]
 - **[[Engagement Note - Date]]** - [Brief summary, outcome]
+<!-- END CELL -->
+
+<!-- CELL: performance-metrics | type: validation-metrics | rag-priority: medium -->
 
 ### Performance Metrics
 
@@ -100,6 +124,9 @@ tags:
 - **CTA acceptance rate:** N/A
 - **Last engagement sentiment:** N/A
 - **Relationship trajectory:** [Growing, Stable, Declining]
+<!-- END CELL -->
+
+<!-- CELL: strategic-notes | type: action-items | rag-priority: medium -->
 
 ### Strategic Notes
 
@@ -117,6 +144,7 @@ tags:
 
 1. [ ] [Specific action with timeline]
 2. [ ] [Specific action with timeline]
+<!-- END CELL -->
 
 ### Related Documents
 

@@ -16,6 +16,8 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 # Weekly Review: Week of <% tp.date.now("YYYY-MM-DD") %>
 
+<!-- CELL: overview | type: summary | rag-priority: high -->
+
 ## Overview & Goals
 
 ### Week's Primary Objectives
@@ -30,6 +32,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 **Overall week rating:** [Excellent / Good / Fair / Poor]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: engagement-performance | type: validation-metrics | rag-priority: high -->
 
 ## Engagement Performance
 
@@ -121,6 +127,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: learning-performance | type: validation-metrics | rag-priority: medium -->
+
 ## Learning System Performance
 
 ### Learnings Registry Updates
@@ -154,6 +164,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: target-progress | type: validation-metrics | rag-priority: medium -->
+
 ## Target Profile Progress
 
 ### Active Targets
@@ -176,9 +190,11 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 **What we still need to learn:**
 
 -
--
+- ***
 
----
+  <!-- END CELL -->
+
+<!-- CELL: wins | type: summary | rag-priority: high -->
 
 ## Key Wins
 
@@ -193,6 +209,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 [Any significant insights, connections, or progress]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: challenges | type: analysis | rag-priority: medium -->
 
 ## Challenges & Obstacles
 
@@ -213,6 +233,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 
 ---
 
+<!-- END CELL -->
+
+<!-- CELL: insights | type: analysis | rag-priority: high -->
+
 ## Insights & Patterns
 
 ### Market Intelligence Gathered
@@ -220,30 +244,24 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 **Key themes heard multiple times:**
 
 -
--
+- **Emerging patterns:**
 
-**Emerging patterns:**
-
--
-
-**Validation status:**
-[Are we seeing consistent patterns across multiple conversations?]
+- **Validation status:**
+  [Are we seeing consistent patterns across multiple conversations?]
 
 ### Positioning Refinement
 
 **What resonated:**
 
--
+- **What fell flat:**
 
-**What fell flat:**
+- **Adjustments needed:**
 
--
+- ***
 
-**Adjustments needed:**
+  <!-- END CELL -->
 
--
-
----
+<!-- CELL: action-items | type: action-items | rag-priority: high -->
 
 ## Action Items for Next Week
 
@@ -263,6 +281,10 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 - [ ] [Action] - [By when]
 
 ---
+
+<!-- END CELL -->
+
+<!-- CELL: next-week-focus | type: action-items | rag-priority: medium -->
 
 ## Next Week's Focus
 
@@ -288,9 +310,9 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 **What to test/validate:**
 
 -
--
+- ***
 
----
+  <!-- END CELL -->
 
 ## System Health Check
 
@@ -305,9 +327,7 @@ related-sop: "[[SOP - Strategic Network & Stakeholder Engagement (v2.2)]]"
 ### Areas Needing Attention
 
 -
--
-
----
+- ***
 
 ## Reflection & Meta-Learning
 
