@@ -36,6 +36,7 @@ tags:
 ## Overview
 
 **PARKED** - Customer Success Agent would provide:
+
 1. **Client health scoring** (engagement frequency, sentiment, deliverable satisfaction)
 2. **Churn risk alerts** (inactivity, declining sentiment, stalled projects)
 3. **Expansion opportunity detection** (Initium → Fabrica upsell, retainer conversion)
@@ -50,18 +51,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: Client Health Scorer
+
 - Scores 0-100 based on: engagement frequency, sentiment, NPS, deliverable satisfaction
 - Flags at-risk clients (score <60) for proactive outreach
 
 ### Tool 2: Churn Risk Alerter
+
 - Detects warning signs: 30+ days inactivity, declining sentiment, stalled projects
 - Recommends intervention (check-in call, value reminder, success story)
 
 ### Tool 3: Expansion Opportunity Finder
+
 - Identifies upsell triggers: Initium success → Fabrica readiness, recurring needs → retainer
 - Calculates expansion potential (additional $X revenue per client)
 
 ### Tool 4: QBR Automation
+
 - Generates quarterly business review reports (performance metrics, ROI achieved, roadmap)
 - Synthesizes engagement data into client-facing insights
 

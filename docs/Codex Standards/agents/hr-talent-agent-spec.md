@@ -35,6 +35,7 @@ tags:
 ## Overview
 
 **PARKED** - HR & Talent Agent would handle:
+
 1. **Onboarding automation** (new hire checklists, system access, training modules)
 2. **Training content generation** (SOPs, best practices, case studies for new consultants)
 3. **Talent pipeline management** (candidate tracking, interview scheduling)
@@ -49,18 +50,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: Onboarding Checklist Generator
+
 - Creates personalized onboarding plans (role-specific)
 - Automates system access provisioning (Obsidian, Neo4j, Firebase)
 
 ### Tool 2: Training Content Creator
+
 - Converts engagement notes → training case studies
 - Generates SOPs from successful project patterns
 
 ### Tool 3: Candidate Pipeline Tracker
+
 - Manages recruitment pipeline (sourcing → screening → offer)
 - Automates interview scheduling (calendar integration)
 
 ### Tool 4: Performance Review Assistant
+
 - Tracks goals, KPIs, feedback throughout year
 - Generates draft performance reviews (for human refinement)
 

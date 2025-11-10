@@ -39,6 +39,7 @@ tags:
 ## Overview
 
 The Strategist Agent is invoked **weekly** (manual trigger) or **on-demand** for strategic planning sessions. It:
+
 1. **Analyzes pipeline health** using Auditor Agent data
 2. **Identifies patterns** via Neo4j graph queries (successful vs stalled deals)
 3. **Recommends actions** using Claude 3.5 Sonnet (strategic reasoning)
@@ -110,7 +111,7 @@ def analyze_pipeline_conversion() -> str:
         result = session.run("""
             MATCH (t:Target)
             OPTIONAL MATCH (t)<-[:VALIDATES]-(e:Note {type: 'engagement'})
-            WITH t, 
+            WITH t,
                  count(DISTINCT e) AS engagement_count,
                  max(e.date) AS last_engagement,
                  duration.inDays(min(e.date), max(e.date)).days AS cycle_days
@@ -118,12 +119,12 @@ def analyze_pipeline_conversion() -> str:
                    count(t) AS target_count,
                    avg(engagement_count) AS avg_engagements,
                    avg(cycle_days) AS avg_cycle_days,
-                   collect(CASE 
-                       WHEN last_engagement < date() - duration({days: 30}) 
-                       THEN t.name 
-                       ELSE null 
+                   collect(CASE
+                       WHEN last_engagement < date() - duration({days: 30})
+                       THEN t.name
+                       ELSE null
                    END) AS stalled_targets
-            ORDER BY 
+            ORDER BY
                 CASE t.status
                     WHEN 'qualified' THEN 1
                     WHEN 'engaged' THEN 2
@@ -134,11 +135,12 @@ def analyze_pipeline_conversion() -> str:
                     ELSE 7
                 END
         """)
-        
+
         return [dict(record) for record in result]
 ```
 
 **Example Output**:
+
 ```python
 [
     {
@@ -185,7 +187,7 @@ def identify_success_patterns() -> str:
                  t.t2_validated AS t2_validated,
                  t.t3_validated AS t3_validated,
                  duration.inDays(min(e.date), max(e.date)).days AS cycle_days
-            RETURN 
+            RETURN
                 t.status AS outcome,
                 avg(stakeholder_count) AS avg_stakeholders,
                 avg(c4_count) AS avg_c4_engagement,
@@ -197,11 +199,12 @@ def identify_success_patterns() -> str:
                 count(t) AS deal_count
             GROUP BY t.status
         """)
-        
+
         return [dict(record) for record in result]
 ```
 
 **Example Insight**:
+
 ```
 Closed-won deals have:
 - 2.3x more C4 engagement (1.8 vs 0.8 touchpoints)
@@ -239,8 +242,8 @@ def prioritize_warm_intro_targets() -> str:
                    [node IN nodes(path) | node.name] AS intro_path,
                    length(path) AS path_length,
                    t.messy_problems AS pain_points
-            ORDER BY 
-                CASE t.priority 
+            ORDER BY
+                CASE t.priority
                     WHEN 'strategic' THEN 1
                     WHEN 'high' THEN 2
                     WHEN 'medium' THEN 3
@@ -250,7 +253,7 @@ def prioritize_warm_intro_targets() -> str:
                 t.estimated_value DESC
             LIMIT 10
         """)
-        
+
         return [dict(record) for record in result]
 ```
 
@@ -280,14 +283,14 @@ def optimize_resource_allocation() -> str:
                    avg(CASE WHEN t.status = 'closed-won' THEN 1.0 ELSE 0.0 END) AS win_rate
             GROUP BY t.status
         """).data()
-        
+
         # Calculate ROI per stage
         for stage in pipeline_data:
             stage['roi'] = (stage['avg_deal_value'] * stage['win_rate']) / max(stage['total_hours'], 1)
-        
+
         # Sort by ROI (highest return per hour)
         sorted_stages = sorted(pipeline_data, key=lambda x: x['roi'], reverse=True)
-        
+
         return {
             "current_allocation": pipeline_data,
             "recommended_reallocation": sorted_stages,
@@ -341,6 +344,7 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 ## Implementation Checklist
 
 ### Prerequisites
+
 - [ ] Auditor Agent deployed (provides system health data)
 - [ ] Researcher Agent deployed (context retrieval)
 - [ ] Synthesizer Agent deployed (report generation)
@@ -348,6 +352,7 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 - [ ] Claude 3.5 Sonnet API key configured
 
 ### Core Functionality
+
 - [ ] Pipeline conversion analysis tool
 - [ ] Success pattern recognition tool
 - [ ] Warm intro prioritization tool
@@ -355,12 +360,14 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 - [ ] Strategic report generation (calls Synthesizer Agent)
 
 ### Integration
+
 - [ ] Weekly Strategic Review Dashboard
 - [ ] Firestore collection: `strategic_insights`
 - [ ] Email digest with top 3 recommendations
 - [ ] Chat interface for ad-hoc strategic questions
 
 ### Testing & Validation
+
 - [ ] Run on 3 months of historical data
 - [ ] Validate pattern recognition against known outcomes
 - [ ] Human validation: 80%+ recommendations deemed actionable
@@ -371,17 +378,20 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 ## Success Metrics
 
 **Quantitative**:
+
 - ✅ Recommendation accuracy: 80%+ of "prioritize" targets convert to next stage within 30 days
 - ✅ Resource allocation ROI: 15%+ improvement in pipeline velocity after reallocation
 - ✅ Pattern recognition: 90%+ success factors match actual closed-won deals
 - ✅ Response time: <5 seconds for pipeline analysis queries
 
 **Qualitative**:
+
 - ✅ Principal acts on 70%+ of strategic recommendations within 7 days
 - ✅ Strategic insights surface non-obvious opportunities (e.g., warm intros)
 - ✅ Reduces "analysis paralysis" - faster decision-making on pipeline priorities
 
 **Cost Efficiency**:
+
 - **Monthly cost**: $20 (Claude API ~$15, Neo4j queries ~$5)
 - **Time saved**: 4 hours/week (manual pipeline review eliminated)
 - **ROI**: 80x ($1,600 value / $20 cost)
@@ -395,29 +405,33 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 **User Input**: "Analyze this week's pipeline health and recommend top 3 priorities"
 
 **Agent Execution**:
+
 1. **Query pipeline conversion**:
+
    - 12 qualified targets, 3 stalled >30 days
    - 8 engaged targets, avg cycle 67 days (above target of 45)
    - 2 proposal stage, both active
 
 2. **Identify success patterns**:
+
    - Closed-won deals: 95% T2 validation, 1.8 C4 touchpoints, 53-day cycle
    - Current engaged deals: 62% T2 validation, 0.9 C4 touchpoints (RISK)
 
 3. **Strategic recommendation**:
+
    ```
    **Recommendation**: Shift focus to C4 engagement for engaged deals
-   
-   **Evidence**: 
+
+   **Evidence**:
    - Our engaged deals lag closed-won pattern by 50% on C4 engagement (0.9 vs 1.8 touchpoints)
    - Cycle time already 15% over target (67 vs 53 days)
    - Risk: 5 deals could stall without executive sponsorship
-   
+
    **Action Items**:
    1. Acme Corp: Request warm intro to CFO via Jane Doe (procurement lead) - [3-hop path available]
    2. TechCo: Escalate from IT Director to CIO - use AI governance white paper as value prop
    3. HealthOrg: Disqualify - 90 days stalled, no C4 engagement, low sentiment (2.8)
-   
+
    **Risk Assessment**: If we don't engage C4 in next 14 days, 3 deals likely move to closed-lost
    ```
 
@@ -433,7 +447,9 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 **User Input**: "Should I focus more time on new prospects or nurturing existing deals?"
 
 **Agent Execution**:
+
 1. **Query resource allocation**:
+
    ```
    Current allocation (last 90 days):
    - Research stage: 40 hours (10 targets) = 4 hours/target
@@ -443,6 +459,7 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
    ```
 
 2. **Calculate ROI per stage**:
+
    ```
    ROI (expected value / hour):
    - Proposal stage: $3,000/hour (60% win rate × $100K deals / 20 hours)
@@ -452,21 +469,22 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
    ```
 
 3. **Strategic recommendation**:
+
    ```
    **Recommendation**: Shift 30% of research time → proposal/engaged stages
-   
+
    **Evidence**:
    - Proposal/engaged stages deliver 5-20x higher ROI per hour
    - Historical data: 80% of research targets don't convert to qualified
    - Current pipeline has sufficient qualified deals to hit revenue target
-   
+
    **Action Items**:
    1. Reduce new prospect research from 40 → 28 hours/month (7 → 5 targets)
    2. Increase proposal support from 40 → 52 hours/month (deeper due diligence)
    3. Increase engaged nurturing from 80 → 92 hours/month (more frequent C2/C3 touchpoints)
-   
+
    **Expected Impact**: 15% increase in pipeline velocity, $75K additional revenue in Q1
-   
+
    **Risk**: Fewer new prospects → thinner top-of-funnel in 90 days (mitigate with warm intro strategy)
    ```
 
@@ -475,16 +493,19 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 ## Maintenance & Governance
 
 ### Monitoring
+
 - LangSmith traces for strategic reasoning quality
 - Firestore analytics: Recommendation acceptance rate
 - Quarterly review: Did recommendations improve outcomes?
 
 ### Tuning
+
 - Update success pattern queries as business evolves
 - Refine ROI calculation model based on actual outcomes
 - Adjust agent prompt if recommendations too conservative/aggressive
 
 ### Human Oversight
+
 - Principal reviews all strategic recommendations before acting
 - Monthly retrospective: Which recommendations were correct? Which were wrong?
 - Feedback loop: Update Neo4j success patterns based on new closed deals
@@ -503,6 +524,7 @@ Be decisive. Principal needs clear recommendations, not analysis paralysis."""),
 ## Changelog
 
 ### 2025-11-10 - Version 1.0 (Initial Spec)
+
 - Created comprehensive Strategist Agent specification
 - Defined 4 strategic analysis tools (pipeline, patterns, intros, allocation)
 - Documented decision-support workflow

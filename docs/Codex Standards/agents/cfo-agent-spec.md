@@ -36,6 +36,7 @@ tags:
 ## Overview
 
 The CFO Agent runs **monthly** (automated) and **on-demand** for financial planning. It:
+
 1. **Tracks revenue** (actuals vs forecast, monthly/quarterly trends)
 2. **Forecasts pipeline** (weighted probability-based revenue projections)
 3. **Monitors profitability** (gross margin by engagement, client, service type)
@@ -110,7 +111,7 @@ def calculate_revenue(period: str = "month") -> str:
             date_filter = "date() - duration({days: 90})"
         elif period == "year":
             date_filter = "date() - duration({days: 365})"
-        
+
         result = session.run(f"""
             MATCH (t:Target)
             WHERE t.status = 'closed-won'
@@ -120,9 +121,9 @@ def calculate_revenue(period: str = "month") -> str:
                    avg(t.contract_value) AS avg_deal_size,
                    sum(t.hours_completed * 375) AS billable_revenue
         """)
-        
+
         data = result.single()
-        
+
         # Get forecast from targets (estimated pipeline)
         forecast_result = session.run(f"""
             MATCH (t:Target)
@@ -132,14 +133,14 @@ def calculate_revenue(period: str = "month") -> str:
             WITH sum(t.estimated_value * t.win_probability) AS weighted_pipeline
             RETURN weighted_pipeline
         """)
-        
+
         forecast_data = forecast_result.single()
         forecast_revenue = forecast_data["weighted_pipeline"] or 0
-        
+
         actual_revenue = data["actual_revenue"] or 0
         variance = actual_revenue - forecast_revenue
         variance_pct = (variance / forecast_revenue * 100) if forecast_revenue > 0 else 0
-        
+
         return {
             "period": period,
             "actual_revenue": actual_revenue,
@@ -170,7 +171,7 @@ def forecast_pipeline(months_ahead: int = 3) -> str:
             MATCH (t:Target)
             WHERE t.status IN ['qualified', 'engaged', 'proposal', 'negotiation']
               AND (t.expected_close_date IS NULL OR t.expected_close_date <= date() + duration({months: $months}))
-            
+
             WITH t.status AS stage,
                  CASE t.status
                      WHEN 'qualified' THEN 0.10
@@ -180,13 +181,13 @@ def forecast_pipeline(months_ahead: int = 3) -> str:
                      ELSE 0.05
                  END AS stage_probability,
                  t.estimated_value AS deal_value
-            
+
             RETURN stage,
                    count(*) AS deal_count,
                    sum(deal_value) AS total_pipeline,
                    sum(deal_value * stage_probability) AS weighted_revenue,
                    avg(deal_value) AS avg_deal_size
-            ORDER BY 
+            ORDER BY
                 CASE stage
                     WHEN 'negotiation' THEN 1
                     WHEN 'proposal' THEN 2
@@ -194,14 +195,14 @@ def forecast_pipeline(months_ahead: int = 3) -> str:
                     WHEN 'qualified' THEN 4
                 END
         """, months=months_ahead)
-        
+
         pipeline_data = [dict(record) for record in result]
-        
+
         # Calculate totals
         total_weighted = sum(stage["weighted_revenue"] for stage in pipeline_data)
         best_case = sum(stage["total_pipeline"] for stage in pipeline_data)
         worst_case = total_weighted * 0.7  # Conservative estimate
-        
+
         return {
             "forecast_period_months": months_ahead,
             "by_stage": pipeline_data,
@@ -213,6 +214,7 @@ def forecast_pipeline(months_ahead: int = 3) -> str:
 ```
 
 **Example Output**:
+
 ```python
 {
     "forecast_period_months": 3,
@@ -277,12 +279,13 @@ def analyze_profitability(group_by: str = "target") -> str:
                        round((revenue - costs) / revenue * 100, 1) AS margin_pct
                 ORDER BY margin_pct DESC
             """
-        
+
         result = session.run(query)
         return [dict(record) for record in result]
 ```
 
 **Example Output** (by service type):
+
 ```python
 [
     {"category": "Fabrica", "revenue": 450000, "costs": 225000, "gross_profit": 225000, "margin_pct": 50.0},
@@ -318,17 +321,17 @@ def optimize_pricing() -> str:
                    max(revenue / total_hours) AS max_rate,
                    avg((revenue - total_hours * 150) / revenue) AS avg_margin_pct
         """)
-        
+
         data = result.single()
         avg_rate = data["avg_effective_rate"] or 0
         avg_margin = data["avg_margin_pct"] or 0
-        
+
         # Pricing recommendations
         target_rate = 375  # $375/hour standard rate
         target_margin = 0.50  # 50% gross margin target
-        
+
         recommendations = []
-        
+
         if avg_rate < target_rate * 0.9:
             recommendations.append({
                 "issue": "Below-market pricing",
@@ -337,7 +340,7 @@ def optimize_pricing() -> str:
                 "action": f"Increase standard rate by {((target_rate / avg_rate) - 1) * 100:.0f}%",
                 "impact": f"+${(target_rate - avg_rate) * 160:.0f} per Initium engagement"
             })
-        
+
         if avg_margin < target_margin:
             recommendations.append({
                 "issue": "Below-target margins",
@@ -346,7 +349,7 @@ def optimize_pricing() -> str:
                 "action": "Improve delivery efficiency (reduce scope creep) OR increase rates",
                 "impact": f"Need {((target_margin / avg_margin) - 1) * 100:.0f}% margin improvement to hit target"
             })
-        
+
         return {
             "current_avg_rate": round(avg_rate, 2),
             "rate_range": f"${data['min_rate']:.0f} - ${data['max_rate']:.0f}",
@@ -402,12 +405,14 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 ## Implementation Checklist
 
 ### Prerequisites
+
 - [ ] Neo4j graph with financial fields (`contract_value`, `estimated_value`, `hours_completed`, `expected_close_date`, `win_probability`)
 - [ ] COO Agent operational (provides cost data)
 - [ ] Firestore collection: `financial_metrics`
 - [ ] Monthly financial close process defined
 
 ### Core Functionality
+
 - [ ] Revenue tracker (actuals vs forecast)
 - [ ] Pipeline forecaster (weighted probabilities)
 - [ ] Profitability analyzer (gross margin calculations)
@@ -415,12 +420,14 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 - [ ] Alert system for budget variance
 
 ### Integration
+
 - [ ] Monthly financial dashboard (key metrics)
 - [ ] Quarterly business review reports
 - [ ] Cloud Scheduler: Monthly 1st day execution
 - [ ] Email digest for Principal
 
 ### Testing & Validation
+
 - [ ] Run on 6 months historical data
 - [ ] Verify pipeline forecast accuracy (±20% tolerance)
 - [ ] Human validation: Are pricing recommendations sound?
@@ -431,17 +438,20 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 ## Success Metrics
 
 **Quantitative**:
+
 - ✅ Revenue tracking accuracy: ±5% of actual bookkeeping
 - ✅ Pipeline forecast accuracy: ±20% of actual closed revenue
 - ✅ Margin calculation accuracy: ±3% of manual calculation
 - ✅ Response time: <5 seconds for all financial queries
 
 **Qualitative**:
+
 - ✅ Principal uses financial dashboard monthly for planning
 - ✅ Pricing recommendations grounded in data (vs guesswork)
 - ✅ Early warnings prevent revenue shortfalls
 
 **Cost Efficiency**:
+
 - **Monthly cost**: $15 (Gemini Flash API ~$10, Cloud Functions ~$5)
 - **Time saved**: 3 hours/month (manual financial reporting eliminated)
 - **ROI**: 60x ($900 value / $15 cost)
@@ -453,6 +463,7 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 ### Review 1: Monthly Financial Close
 
 **Agent Output** (November 2025):
+
 ```
 **Financial Status**: ✅ ON-TRACK
 
@@ -497,6 +508,7 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 **User Input**: "Should we increase our standard rate?"
 
 **Agent Output**:
+
 ```
 **Pricing Analysis** (Last 6 months):
 
@@ -552,16 +564,19 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 ## Maintenance & Governance
 
 ### Monitoring
+
 - Monthly financial dashboard review (15 min)
 - Quarterly business review (deep dive on trends)
 - Alert log (track revenue variance patterns)
 
 ### Tuning
+
 - Update win probability assumptions (currently 10%/25%/50%/75% by stage) based on historical conversion
 - Refine cost assumptions (currently $150/hour) if hiring contractors
 - Adjust pricing targets based on market evolution
 
 ### Human Oversight
+
 - Principal reviews all pricing recommendations before implementation
 - Quarterly: Compare forecast vs actuals (improve model accuracy)
 - Annual: Strategic pricing review (market positioning, competitive analysis)
@@ -579,6 +594,7 @@ Be data-driven. Principal needs accurate forecasts and actionable financial inte
 ## Changelog
 
 ### 2025-11-10 - Version 1.0 (Initial Spec)
+
 - Created CFO Agent specification
 - Defined 4 financial tools (revenue, pipeline, profitability, pricing)
 - Documented financial workflows and alert thresholds

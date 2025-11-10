@@ -36,6 +36,7 @@ tags:
 ## Overview
 
 The COO Agent runs **weekly** (automated + on-demand) to ensure operational health. It:
+
 1. **Monitors utilization** (billable vs non-billable hours)
 2. **Detects scope creep** (actual vs estimated hours per engagement)
 3. **Tracks delivery quality** (client sentiment, on-time completion)
@@ -106,20 +107,20 @@ def calculate_billable_utilization(weeks: int = 4) -> str:
             MATCH (e:Note {type: 'engagement'})
             WHERE e.date >= date() - duration({weeks: $weeks})
             WITH sum(e.time_spent_hours) AS billable_hours
-            
+
             MATCH (n:Note)
             WHERE n.date >= date() - duration({weeks: $weeks})
               AND n.type IN ['research-note', 'learning-registry', 'weekly-review']
             WITH billable_hours, sum(n.time_spent_hours) AS non_billable_hours
-            
+
             RETURN billable_hours,
                    non_billable_hours,
                    billable_hours + non_billable_hours AS total_hours,
                    round(billable_hours / (billable_hours + non_billable_hours) * 100, 1) AS utilization_pct
         """, weeks=weeks)
-        
+
         data = result.single()
-        
+
         return {
             "billable_hours": data["billable_hours"],
             "non_billable_hours": data["non_billable_hours"],
@@ -160,11 +161,12 @@ def detect_scope_creep() -> str:
             ORDER BY overage_pct DESC
             LIMIT 10
         """)
-        
+
         return [dict(record) for record in result]
 ```
 
 **Example Output**:
+
 ```python
 [
     {
@@ -198,27 +200,27 @@ def assess_delivery_quality(weeks: int = 12) -> str:
             WITH avg(e.sentiment) AS avg_sentiment,
                  avg(CASE WHEN e.cta_success = true THEN 1.0 ELSE 0.0 END) AS cta_success_rate,
                  count(e) AS total_engagements
-            
+
             MATCH (t:Target)
             WHERE t.deliverable_due_date IS NOT NULL
               AND t.deliverable_due_date >= date() - duration({weeks: $weeks})
             WITH avg_sentiment, cta_success_rate, total_engagements,
-                 avg(CASE 
-                     WHEN t.deliverable_completed_date <= t.deliverable_due_date 
-                     THEN 1.0 
-                     ELSE 0.0 
+                 avg(CASE
+                     WHEN t.deliverable_completed_date <= t.deliverable_due_date
+                     THEN 1.0
+                     ELSE 0.0
                  END) AS on_time_rate,
                  count(t) AS deliverables_completed
-            
+
             RETURN round(avg_sentiment, 2) AS avg_sentiment,
                    round(cta_success_rate * 100, 1) AS cta_success_pct,
                    round(on_time_rate * 100, 1) AS on_time_pct,
                    total_engagements,
                    deliverables_completed
         """, weeks=weeks)
-        
+
         data = result.single()
-        
+
         return {
             "avg_sentiment": data["avg_sentiment"],
             "cta_success_pct": data["cta_success_pct"],
@@ -251,15 +253,15 @@ def calculate_capacity(weeks_ahead: int = 4) -> str:
             RETURN sum(t.estimated_hours - t.hours_completed) AS committed_hours,
                    count(t) AS active_projects
         """)
-        
+
         data = result.single()
         committed_hours = data["committed_hours"] or 0
         active_projects = data["active_projects"] or 0
-        
+
         # Assume 40 hours/week capacity, 70% billable target
         total_capacity = weeks_ahead * 40 * 0.7  # 112 hours over 4 weeks
         available_capacity = total_capacity - committed_hours
-        
+
         return {
             "weeks_ahead": weeks_ahead,
             "total_capacity_hours": total_capacity,
@@ -317,12 +319,14 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 ## Implementation Checklist
 
 ### Prerequisites
+
 - [ ] Neo4j graph with `time_spent_hours` field on engagement notes
 - [ ] Targets have `estimated_hours`, `contract_value`, `deliverable_due_date` fields
 - [ ] Auditor Agent operational (provides baseline metrics)
 - [ ] Firestore collection: `operational_metrics`
 
 ### Core Functionality
+
 - [ ] Billable utilization calculator
 - [ ] Scope creep detector
 - [ ] Delivery quality monitor
@@ -330,12 +334,14 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 - [ ] Alert system (Firestore + optional email)
 
 ### Integration
+
 - [ ] Weekly operational dashboard (displays metrics)
 - [ ] Alert thresholds configurable (Firestore settings)
 - [ ] Cloud Scheduler: Weekly Sunday 6 PM execution
 - [ ] Slack/email integration for alerts
 
 ### Testing & Validation
+
 - [ ] Run on 3 months historical data
 - [ ] Verify scope creep alerts match known overruns
 - [ ] Human validation: Are capacity forecasts accurate?
@@ -346,17 +352,20 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 ## Success Metrics
 
 **Quantitative**:
+
 - ✅ Utilization tracking accuracy: ±5% of manual calculation
 - ✅ Scope creep early detection: Alerts 2+ weeks before project completion
 - ✅ Capacity forecast accuracy: ±10% of actual available hours
 - ✅ Response time: <3 seconds for all operational queries
 
 **Qualitative**:
+
 - ✅ Principal reviews operational dashboard weekly (5 min)
 - ✅ Zero scope creep surprises (all overages flagged early)
 - ✅ Proactive capacity planning prevents overbooking
 
 **Cost Efficiency**:
+
 - **Monthly cost**: $15 (Gemini Flash API ~$10, Cloud Functions ~$5)
 - **Time saved**: 2 hours/week (manual utilization tracking eliminated)
 - **ROI**: 53x ($800 value / $15 cost)
@@ -368,6 +377,7 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 ### Review 1: Weekly Operations Report
 
 **Agent Output**:
+
 ```
 **Operational Status**: ⚠️ WATCH (1 alert, 1 concern)
 
@@ -408,6 +418,7 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 **User Input**: "Can we take on 2 new Initium engagements this month?"
 
 **Agent Output**:
+
 ```
 **Capacity Analysis** (Next 4 weeks):
 
@@ -452,16 +463,19 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 ## Maintenance & Governance
 
 ### Monitoring
+
 - Weekly operational dashboard review (5 min)
 - Alert log (track false positives, tune thresholds)
 - Quarterly retrospective: Did forecasts match reality?
 
 ### Tuning
+
 - Adjust utilization target (currently 70%) based on business model evolution
 - Refine scope creep threshold (currently 20%) if too noisy/quiet
 - Update capacity assumptions (e.g., if hiring contractors)
 
 ### Human Oversight
+
 - Principal reviews all scope creep alerts before client negotiation
 - Monthly: Review capacity forecast accuracy (±10% target)
 - Feedback loop: Update operational thresholds based on business growth
@@ -479,6 +493,7 @@ Be proactive. Principal needs early warnings, not post-mortems."""),
 ## Changelog
 
 ### 2025-11-10 - Version 1.0 (Initial Spec)
+
 - Created COO Agent specification
 - Defined 4 operational tools (utilization, scope creep, quality, capacity)
 - Documented alert thresholds and operational workflows

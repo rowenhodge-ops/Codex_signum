@@ -35,6 +35,7 @@ tags:
 ## Overview
 
 **PARKED** - Marketing Agent would automate:
+
 1. **Blog post generation** from engagement notes → thought leadership content
 2. **Case study creation** (anonymized client success stories)
 3. **LinkedIn content** (weekly posts, comment engagement)
@@ -49,18 +50,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: Blog Post Generator
+
 - Converts engagement learnings → SEO-optimized blog posts
 - Generates 2-3 posts/week automatically
 
 ### Tool 2: Case Study Writer
+
 - Anonymizes client engagements → compelling success stories
 - Includes metrics, testimonials, ROI data
 
 ### Tool 3: LinkedIn Content Scheduler
+
 - Weekly thought leadership posts (AI governance, higher ed trends)
 - Engages with comments (sentiment-aware responses)
 
 ### Tool 4: SEO Optimizer
+
 - Keyword research (Google Trends, search volume)
 - On-page SEO recommendations (meta descriptions, headers, internal linking)
 
