@@ -1,5 +1,116 @@
 # Template System Change Log
 
+## 2025-11-17 - Sprint 1 Week 2: Validation Metadata for Dashboard Queries
+
+### Overview
+
+Updated 4 core templates with validation metadata fields to enable the System Health Dashboard queries created in Sprint 1 Week 1. These fields support automated tracking of hypothesis validation (T2/T3), learning effectiveness, and operational efficiency.
+
+### Changes Made
+
+#### 1. TPL - Target Profile.md
+
+**Added Fields**:
+
+- `t2-validated: false` - Boolean flag for Technical validation (C2 stakeholder confirmation of technical assumptions)
+- `t3-validated: false` - Boolean flag for Operational validation (C3 stakeholder confirmation of operational assumptions)
+- `engagement-count: 0` - Integer count of Engagement Notes linked to this target
+
+**Dashboard Integration**: Enables Query 2 (Unvalidated T2/T3 Hypotheses) which surfaces targets with unconfirmed technical or operational assumptions. Critical for prioritizing validation conversations that improve win rates (95% validated vs 45% unvalidated).
+
+#### 2. TPL - Engagement Note.md
+
+**Modified Fields**:
+
+- `cta-success`: Changed from text options (Accepted/Deferred/Rejected) to boolean (true/false/null) for cleaner queries
+- `sentiment`: Changed from `sentiment-score` (-1 to +1 scale) to `sentiment` (1-5 scale) for consistency with industry standards
+- `learning-id`: Clarified as link or null (e.g., `[[L-042]]` or empty)
+
+**Added Fields**:
+
+- `time-spent-hours:` - Float for billable hours tracking (enables utilization calculations)
+
+**Dashboard Integration**:
+
+- Query 3 (Uncommitted Learnings): Surfaces engagement notes missing `learning-id` links
+- Query 6 (Weekly Billable Utilization): Aggregates `time-spent-hours` by week for utilization trending
+
+#### 3. TPL - Learning Registry.md
+
+**Added Fields**:
+
+- `last-updated:` - Date field (YYYY-MM-DD) for maintenance tracking
+- `cta-success-rate:` - Percentage field calculated after 3+ applications: `(successful CTAs / total applications) × 100`
+- `avg-sentiment:` - Float field for average sentiment score (1-5 scale) across all applications
+
+**Enhanced Comments**:
+
+- `validation-status`: Added note that learnings with 3+ applications and >70% CTA success should be marked "validated"
+
+**Dashboard Integration**: Enables Query 4 (Learning Impact Validation) which identifies learnings ready for validation status upgrade based on quantified effectiveness metrics.
+
+#### 4. TPL - Weekly Review.md
+
+**Added Fields**:
+
+- `billable-hours: 0` - Float for total client engagement hours this week
+- `non-billable-hours: 0` - Float for research, learning, admin hours this week
+- `utilization-pct: 0` - Calculated percentage: `(billable-hours / (billable-hours + non-billable-hours)) × 100`
+
+**Dashboard Integration**: Enables Query 6 (Weekly Billable Utilization Trending) with 8-week rolling view of utilization percentage. Target: 70%+ for sustainable consulting practice.
+
+### New Capabilities
+
+1. **Hypothesis Validation Tracking**: Systematic capture of T2/T3 assumption confirmation status
+2. **Learning Effectiveness Measurement**: Quantified metrics (success rate, sentiment) replace subjective validation
+3. **Billable Utilization Monitoring**: Automated calculation of weekly utilization trending
+4. **Pipeline Leak Detection**: Engagement count per target reveals distribution of effort vs value
+5. **Quality Metrics**: Sentiment and CTA success tracking at granular (engagement) and aggregate (learning) levels
+
+### Migration Notes
+
+**Backward Compatibility**:
+
+- Existing notes without new fields will default to:
+  - `t2-validated: false`, `t3-validated: false` (targets assumed unvalidated)
+  - `engagement-count: 0` (will be calculated via Dataview `length()` of backlinks)
+  - `sentiment: 3` (neutral default for 1-5 scale)
+  - `time-spent-hours:` empty (billable tracking starts from adoption)
+  - `cta-success`: null (unknown status for old engagements)
+
+**User Action Required**:
+
+- When updating existing Target Profiles after C2/C3 conversations, manually set `t2-validated: true` or `t3-validated: true`
+- When creating new Engagement Notes, estimate `time-spent-hours` for billable work
+- When updating Learning Registry entries with 3+ applications, calculate `cta-success-rate` and `avg-sentiment` from linked engagement notes
+
+### Rationale
+
+The System Health Dashboard (Sprint 1 Week 1) created 6 queries for operational intelligence, but required corresponding metadata in templates to function. This update completes the bidirectional link:
+
+**Templates → Notes → Dashboard → Insights**
+
+Without these fields, dashboard queries would return empty results or require manual calculation. With them, the system becomes self-monitoring: every engagement note captures billable hours, every learning tracks effectiveness, every target profile records validation status.
+
+**Design Decision**: Chose 1-5 sentiment scale over -1 to +1 for:
+
+- Alignment with industry standards (5-star ratings, NPS detractors/passives/promoters mapping)
+- Clearer semantic meaning (1=very negative, 3=neutral, 5=very positive)
+- Easier mental model for users (5 distinct levels vs continuous scale)
+
+**Alternative Considered**: Could have used Dataview queries to calculate fields like `engagement-count` dynamically from backlinks. Rejected because:
+
+- Performance: Calculating on every dashboard load is slower than storing once
+- Reliability: Explicit counts are more predictable than link parsing
+- Auditability: Stored values can be verified against manual counts
+
+### Related Documents
+
+- `Codex Signum - System Health Dashboard.md` - The 6 queries enabled by these metadata additions
+- `USER_GUIDE.md` - Usage instructions for new fields in daily workflows
+
+---
+
 ## 2025-11-10 - Phase 2C: User-Friendly Template Enhancements
 
 ### Overview
