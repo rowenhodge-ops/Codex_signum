@@ -35,6 +35,7 @@ tags:
 ## Overview
 
 **PARKED** - Compliance Agent would handle:
+
 1. **GDPR Article 22 compliance** (automated decision-making with human oversight)
 2. **HIPAA Privacy Rule** for AI systems handling PHI
 3. **FERPA compliance** for student data in AI applications
@@ -47,18 +48,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: Compliance Gap Analyzer
+
 - Maps AI system to applicable regulations (GDPR, HIPAA, FERPA)
 - Identifies missing controls (consent mechanisms, data minimization)
 
 ### Tool 2: Data Protection Impact Assessment (DPIA) Generator
+
 - Automated DPIA for high-risk AI processing (GDPR Article 35)
 - Risk scoring and mitigation recommendations
 
 ### Tool 3: Consent Management Reviewer
+
 - Evaluates opt-in/opt-out mechanisms for AI systems
 - Recommends improvements for GDPR Article 6/7 compliance
 
 ### Tool 4: Audit Trail Validator
+
 - Checks AI system logs for regulatory audit requirements
 - Flags missing provenance, explainability, or human oversight records
 

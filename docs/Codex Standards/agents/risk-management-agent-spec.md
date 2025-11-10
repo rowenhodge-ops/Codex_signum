@@ -35,6 +35,7 @@ tags:
 ## Overview
 
 **PARKED** - Risk Management Agent would provide:
+
 1. **SR 11-7 compliance** (model validation, governance, backtesting)
 2. **AI risk taxonomy** (NIST AI RMF categories)
 3. **High-stakes decision oversight** (healthcare diagnoses, financial lending)
@@ -47,18 +48,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: SR 11-7 Model Validator
+
 - Independent model validation for financial institutions
 - Backtesting, sensitivity analysis, stress testing
 
 ### Tool 2: AI Risk Taxonomy Mapper
+
 - Maps AI system to NIST AI RMF risk categories
 - Prioritizes risks by impact and likelihood
 
 ### Tool 3: High-Stakes Decision Auditor
+
 - Reviews AI decisions requiring human oversight (GDPR Article 22)
 - Flags decisions exceeding risk thresholds
 
 ### Tool 4: Model Monitoring Dashboard
+
 - Real-time drift detection (data drift, concept drift)
 - Performance alerts (accuracy degradation, bias emergence)
 

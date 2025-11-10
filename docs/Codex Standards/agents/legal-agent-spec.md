@@ -35,6 +35,7 @@ tags:
 ## Overview
 
 **PARKED** - Legal Agent would handle:
+
 1. **AI contract review** (SaaS agreements, vendor contracts, consulting SOWs)
 2. **IP ownership clauses** (model weights, training data, fine-tuned models)
 3. **Liability limitations** (AI errors, model bias, unintended consequences)
@@ -49,18 +50,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: AI Contract Analyzer
+
 - Reviews vendor agreements for AI-specific clauses
 - Flags missing provisions (IP ownership, liability caps, audit rights)
 
 ### Tool 2: IP Ownership Mapper
+
 - Identifies who owns model weights, training data, outputs
 - Recommends protective clauses for client contracts
 
 ### Tool 3: Liability Risk Highlighter
+
 - Assesses liability exposure (model errors, bias, security breaches)
 - Suggests limitation of liability clauses
 
 ### Tool 4: Indemnification Checker
+
 - Evaluates vendor indemnification provisions
 - Flags inadequate protections (e.g., "AI system failures excluded")
 

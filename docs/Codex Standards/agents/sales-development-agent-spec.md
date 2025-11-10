@@ -36,6 +36,7 @@ tags:
 ## Overview
 
 **PARKED** - Sales Development Agent would automate:
+
 1. **Lead qualification** (ICP fit scoring, firmographic analysis)
 2. **Email sequence generation** (personalized cold outreach)
 3. **Follow-up automation** (multi-touch sequences, engagement tracking)
@@ -50,18 +51,22 @@ tags:
 ## Anticipated Capabilities
 
 ### Tool 1: ICP Fit Scorer
+
 - Analyzes target org against ideal customer profile
 - Scores 0-100 (prioritizes best-fit prospects)
 
 ### Tool 2: Personalized Email Generator
+
 - Researches target org (news, pain points, initiatives)
 - Generates personalized cold emails (not generic templates)
 
 ### Tool 3: Multi-Touch Sequencer
+
 - 7-touch sequence (email → LinkedIn → phone → email)
 - A/B tests subject lines, CTAs
 
 ### Tool 4: Meeting Scheduler
+
 - Automated calendar booking (Calendly integration)
 - Timezone conversion, confirmation emails
 

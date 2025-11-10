@@ -36,6 +36,7 @@ tags:
 ## Overview
 
 The Researcher Agent is invoked **on-demand** via chat interface or API call. It combines:
+
 1. **Semantic search** (Pinecone): Find conceptually similar notes via embeddings
 2. **Graph traversal** (Neo4j): Follow relationships (e.g., Stakeholder → Engagement → Target)
 3. **Hybrid ranking**: Merge results using RRF (Reciprocal Rank Fusion)
@@ -66,7 +67,7 @@ class HierarchicalRouter:
     def __init__(self):
         self.gemini_flash = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
         self.gemini_pro = ChatGoogleGenerativeAI(model="gemini-1.5-pro-002", temperature=0.2)
-        
+
     def route(self, query_complexity: str):
         # Simple lookups → Flash ($0.075/1M tokens)
         # Complex synthesis → Pro ($1.25/1M tokens)
@@ -109,10 +110,10 @@ def semantic_search(query: str, top_k: int = 10) -> str:
     """
     pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
     index = pc.Index("codex-signum-notes")
-    
+
     # Generate embedding for query (using Gemini embeddings)
     embedding = generate_embedding(query)  # 768-dim vector
-    
+
     # Query Pinecone
     results = index.query(
         vector=embedding,
@@ -120,7 +121,7 @@ def semantic_search(query: str, top_k: int = 10) -> str:
         include_metadata=True,
         filter={"status": "active"}  # Exclude archived notes
     )
-    
+
     # Format results for LLM
     chunks = []
     for match in results['matches']:
@@ -132,11 +133,12 @@ def semantic_search(query: str, top_k: int = 10) -> str:
             "score": match.score,
             "note_id": match.id
         })
-    
+
     return chunks
 ```
 
 **Example Query**:
+
 ```python
 # User: "What have we learned about negotiating with procurement teams?"
 semantic_search("procurement negotiation techniques", top_k=5)
@@ -164,7 +166,7 @@ def graph_traverse(entity_name: str, relationship_types: list[str], max_hops: in
             RETURN start, relationships(path) AS rels, end
             LIMIT 50
         """, entity_name=entity_name, rel_types=relationship_types, max_hops=max_hops)
-        
+
         paths = []
         for record in result:
             paths.append({
@@ -172,11 +174,12 @@ def graph_traverse(entity_name: str, relationship_types: list[str], max_hops: in
                 "relationships": [dict(r) for r in record["rels"]],
                 "end_node": dict(record["end"])
             })
-        
+
         return paths
 ```
 
 **Example Query**:
+
 ```python
 # User: "Show me everything about Acme Corp"
 graph_traverse("Acme Corp", ["WORKS_AT", "VALIDATES", "REFERENCES"], max_hops=2)
@@ -198,32 +201,32 @@ def hybrid_search(query: str, entity_hint: str = None, top_k: int = 10) -> str:
     """
     # 1. Semantic search
     semantic_results = semantic_search(query, top_k=top_k * 2)  # Get 2x candidates
-    
+
     # 2. Graph search (if entity hint provided)
     graph_results = []
     if entity_hint:
         graph_results = graph_traverse(entity_hint, ["VALIDATES", "REFERENCES"], max_hops=2)
-    
+
     # 3. RRF Fusion (weights: 60% semantic, 40% graph)
     def rrf_score(rank, k=60):
         return 1 / (k + rank)
-    
+
     merged_scores = {}
-    
+
     # Score semantic results
     for rank, result in enumerate(semantic_results, start=1):
         note_id = result["note_id"]
         merged_scores[note_id] = merged_scores.get(note_id, 0) + 0.6 * rrf_score(rank)
-    
+
     # Score graph results (add boost for connected nodes)
     for rank, path in enumerate(graph_results, start=1):
         note_id = path["end_node"].get("id")
         if note_id:
             merged_scores[note_id] = merged_scores.get(note_id, 0) + 0.4 * rrf_score(rank)
-    
+
     # 4. Re-rank and return top-K
     ranked_notes = sorted(merged_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
-    
+
     # Fetch full note content from Firestore
     db = firestore.client()
     final_results = []
@@ -236,11 +239,12 @@ def hybrid_search(query: str, entity_hint: str = None, top_k: int = 10) -> str:
                 "rrf_score": score,
                 "note_id": note_id
             })
-    
+
     return final_results
 ```
 
 **Example Query**:
+
 ```python
 # User: "What pricing objections have we faced at enterprise clients?"
 hybrid_search("pricing objections enterprise", entity_hint=None, top_k=5)
@@ -264,7 +268,7 @@ Available tools:
 
 Query classification:
 - Semantic queries: "What have we learned about X?" → Use semantic_search
-- Relational queries: "Show me everything about Y organization" → Use graph_traverse  
+- Relational queries: "Show me everything about Y organization" → Use graph_traverse
 - Complex queries: "How do pricing objections differ by industry?" → Use hybrid_search
 
 Response format:
@@ -284,6 +288,7 @@ Be concise. Principal needs fast answers with clear attribution."""),
 ## Implementation Checklist
 
 ### Prerequisites
+
 - [ ] Pinecone index created (`codex-signum-notes`, 768-dim)
 - [ ] 50+ notes embedded and uploaded to Pinecone
 - [ ] Neo4j graph fully populated (nodes + relationships)
@@ -291,6 +296,7 @@ Be concise. Principal needs fast answers with clear attribution."""),
 - [ ] Gemini API key configured (Flash + Pro)
 
 ### Core Functionality
+
 - [ ] `semantic_search` tool functional (Pinecone queries < 200ms)
 - [ ] `graph_traverse` tool functional (Neo4j queries < 500ms)
 - [ ] `hybrid_search` RRF fusion implemented and tested
@@ -298,12 +304,14 @@ Be concise. Principal needs fast answers with clear attribution."""),
 - [ ] Router logic (Flash vs Pro based on complexity)
 
 ### Integration
+
 - [ ] Chat interface deployed (Next.js frontend)
 - [ ] API endpoint: `/api/agents/researcher`
 - [ ] Real-time streaming responses (SSE)
 - [ ] Citation links clickable (navigate to source note)
 
 ### Testing & Validation
+
 - [ ] Test 20 queries across semantic/relational/hybrid categories
 - [ ] Human validation: 85%+ answer accuracy
 - [ ] Response time: <3 seconds (p95) for simple queries
@@ -314,17 +322,20 @@ Be concise. Principal needs fast answers with clear attribution."""),
 ## Success Metrics
 
 **Quantitative**:
+
 - ✅ Answer accuracy: 85%+ (human validation)
 - ✅ Response time: <3 seconds (p95) for simple queries, <8 seconds for complex
 - ✅ Citation rate: 90%+ answers include [[wiki-link]] sources
 - ✅ Tool selection accuracy: 80%+ queries use optimal tool (semantic/graph/hybrid)
 
 **Qualitative**:
+
 - ✅ Principal uses Researcher Agent 5+ times/week (vs manual note search)
 - ✅ Reduces "lost knowledge" incidents (answers surface forgotten insights)
 - ✅ Sources always verifiable (citation links work 100% of time)
 
 **Cost Efficiency**:
+
 - **Monthly cost**: $30 (Gemini API ~$20, Pinecone ~$10 allocated)
 - **Time saved**: 3 hours/week (manual note searching eliminated)
 - **ROI**: 12x ($360 value / $30 cost)
@@ -334,11 +345,13 @@ Be concise. Principal needs fast answers with clear attribution."""),
 ## Example Queries & Expected Behavior
 
 ### Query 1: Semantic Search
+
 **User**: "What have we learned about negotiating with procurement teams?"
 
 **Tool Selection**: `semantic_search("procurement negotiation", top_k=5)`
 
 **Expected Response**:
+
 ```
 We've learned 3 key principles:
 
@@ -354,11 +367,13 @@ Related: [[TPL - Learning Registry]], [[Stakeholder - Jane Doe (Procurement Lead
 ---
 
 ### Query 2: Graph Traversal
+
 **User**: "Show me everything about Acme Corp"
 
 **Tool Selection**: `graph_traverse("Acme Corp", ["WORKS_AT", "VALIDATES"], max_hops=2)`
 
 **Expected Response**:
+
 ```
 **Acme Corp** (Target Profile: [[TPL - Target Profile - Acme Corp]])
 
@@ -381,11 +396,13 @@ Related: [[TPL - Learning Registry]], [[Stakeholder - Jane Doe (Procurement Lead
 ---
 
 ### Query 3: Hybrid RAG
+
 **User**: "How do pricing objections differ by industry?"
 
 **Tool Selection**: `hybrid_search("pricing objections by industry", top_k=10)`
 
 **Expected Response**:
+
 ```
 Pricing objections vary significantly by industry:
 
@@ -409,16 +426,19 @@ Pattern: Enterprise clients (regardless of industry) accept premium pricing when
 ## Maintenance & Governance
 
 ### Monitoring
+
 - LangSmith traces for query execution debugging
 - Firestore analytics: Query type distribution, response times
 - Weekly review: Are tool selections optimal?
 
 ### Tuning
+
 - Adjust RRF weights (currently 60/40 semantic/graph) based on user feedback
 - Fine-tune Pinecone top-K thresholds (balance recall vs latency)
 - Update agent prompt if responses too verbose/concise
 
 ### Human Oversight
+
 - Principal reviews flagged queries (low confidence, hallucination risk)
 - Quarterly: Audit citation accuracy (manual spot-check 20 responses)
 
@@ -436,6 +456,7 @@ Pattern: Enterprise clients (regardless of industry) accept premium pricing when
 ## Changelog
 
 ### 2025-11-10 - Version 1.0 (Initial Spec)
+
 - Created comprehensive Researcher Agent specification
 - Defined hybrid RAG architecture (Pinecone + Neo4j + RRF)
 - Documented 3 core tools (semantic_search, graph_traverse, hybrid_search)
