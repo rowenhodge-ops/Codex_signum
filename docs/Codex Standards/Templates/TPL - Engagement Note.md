@@ -11,11 +11,12 @@ engagement-time: <% tp.date.now("HH:mm") %>
 engagement-type: call # Options: call, meeting, email, linkedin-dm, video-call, in-person
 status: completed # Options: pending, completed, requires-follow-up
 response-time-hours: # Time from your outreach to their response (number of hours, for performance tracking)
-cta-success: # Your call-to-action result. Options: Accepted, Deferred, Rejected
-sentiment-score: # Their engagement level. Scale: -1 (Negative/Resistant) to +1 (Highly Positive/Engaged)
+cta-success: # Your call-to-action result. Options: true (Accepted), false (Rejected), null (Deferred/Unclear)
+sentiment: 3 # Their engagement level. Scale: 1 (Negative/Resistant) to 5 (Highly Positive/Engaged)
 edit-distance-score: # How much you edited your notes. Scale: 1 (Sent as-is, clear capture) to 5 (Total rewrite, poor capture)
-learning-id: # Link to Learning Registry entries created from this engagement
-  -  # Example: "[[L-042 - Two-sentence openers]]"
+time-spent-hours: # Billable hours for this engagement (for utilization tracking). Example: 1.5
+learning-id: # Link to Learning Registry entries created from this engagement (null if none yet)
+  # Example: "[[L-042 - Two-sentence openers]]"
 key-language: # Their exact words/phrases (copy verbatim for future messaging)
   -  # Example: "We're data-rich but insight-poor"
 messy-problems: # Pain points they mentioned (their words, not your interpretation)

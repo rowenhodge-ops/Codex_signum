@@ -9,6 +9,9 @@ year: <% tp.date.now("YYYY") %>
 total-engagements: 0 # Count of all interactions this week (C1/C2/C3/C4)
 cta-success-rate: 0% # Percentage of CTAs that were Accepted (not Deferred/Rejected)
 avg-edit-distance: 0 # Average edit-distance-score across all engagement notes (target: ≤2.0)
+billable-hours: 0 # Total billable hours this week (client engagements, deliverables)
+non-billable-hours: 0 # Total non-billable hours this week (research, learning, admin)
+utilization-pct: 0 # Calculated: (billable-hours / (billable-hours + non-billable-hours)) × 100. Target: 70%+
 new-learnings: 0 # Count of Learning Registry entries created this week
 new-contacts: 0 # Count of new Stakeholder Profiles created this week
 status: draft # Options: draft (in progress), complete (finalized)

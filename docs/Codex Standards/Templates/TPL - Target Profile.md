@@ -14,6 +14,9 @@ economic-buyer: # Link to the decision-maker. Example: "[[Jane Smith - CFO]]"
 priority: medium # Options: low (opportunistic), medium (solid prospect), high (hot lead), strategic (game-changing opportunity)
 estimated-value: # Expected contract value. Examples: $50k, $100-200k, $500k+
 decision-timeline: # Expected timeframe. Examples: Q1 2026, 6-12 months, Unknown
+t2-validated: false # Technical assumptions confirmed with C2 stakeholders (IT Directors, CTOs)
+t3-validated: false # Operational assumptions confirmed with C3 stakeholders (Operations, Procurement)
+engagement-count: 0 # Number of engagement notes linked to this target (update manually or via Dataview)
 messy-problems: # Key pain points you've identified (their language)
   -  # Example: "Manual compliance reporting takes 40 hours/month"
 killer-question:
