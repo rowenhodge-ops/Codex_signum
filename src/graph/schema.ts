@@ -74,6 +74,11 @@ const SCHEMA_STATEMENTS: string[] = [
   // Agents by status (for Thompson Sampling — active agents)
   "CREATE INDEX agent_status IF NOT EXISTS FOR (a:Agent) ON (a.status)",
 
+  // Agents by provider / model family / probe freshness
+  "CREATE INDEX agent_provider IF NOT EXISTS FOR (a:Agent) ON (a.provider)",
+  "CREATE INDEX agent_base_model IF NOT EXISTS FOR (a:Agent) ON (a.baseModelId)",
+  "CREATE INDEX agent_last_probed IF NOT EXISTS FOR (a:Agent) ON (a.lastProbed)",
+
   // Patterns by state (integration lifecycle)
   "CREATE INDEX pattern_state IF NOT EXISTS FOR (p:Pattern) ON (p.state)",
 

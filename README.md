@@ -24,13 +24,17 @@ Ten axioms constrain behavior. Five grammar rules govern composition. Six morphe
 
 ```
 src/
-├── types/           # Morphemes, state dimensions, constitutional, memory
-├── computation/     # ΦL, ΨH, εR, maturity, dampening, signal conditioning
-├── graph/           # Neo4j client, schema, queries, health check, migration
-├── memory/          # 4-strata memory system (ephemeral → institutional)
-├── constitutional/  # Axiom evaluation, rule engine, ADR creation
-├── patterns/        # Thompson router, dev-agent pipeline, observer
-└── index.ts         # Public API exports
+├── types/              # Morphemes, state dimensions, constitutional, memory
+├── computation/        # ΦL, ΨH, εR, maturity, dampening, signal conditioning
+├── graph/              # Neo4j client, schema, queries, health check, migration
+├── memory/             # 4-strata memory system (ephemeral → institutional)
+├── constitutional/     # Axiom evaluation, rule engine, ADR creation
+├── patterns/
+│   ├── thompson-router/ # Model routing (sampler, router, selectModel, cost)
+│   ├── dev-agent/       # Pipeline (SCOPE→EXECUTE→REVIEW→VALIDATE)
+│   └── observer/        # Validation, feedback, hypothesis evaluation
+├── bootstrap.ts         # Agent arm seeding + informed priors
+└── index.ts             # Public API exports
 
 tests/
 └── conformance/     # 115 tests verifying spec compliance

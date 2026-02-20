@@ -22,3 +22,6 @@ export * from "./constitutional/index.js";
 
 // ── Patterns ──
 export * from "./patterns/index.js";
+
+// ── Bootstrap ──
+export { ALL_ARMS, bootstrapAgents, seedInformedPriors } from "./bootstrap.js";

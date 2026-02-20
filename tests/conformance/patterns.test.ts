@@ -13,7 +13,7 @@ import {
   sampleBeta,
   type RoutableModel,
   type RoutingContext,
-} from "../../src/patterns/thompson-router.js";
+} from "../../src/patterns/thompson-router/index.js";
 
 // ============ THOMPSON SAMPLING ============
 
@@ -57,6 +57,8 @@ const testModels: RoutableModel[] = [
     id: "gemini-flash",
     name: "Gemini 2.5 Flash",
     provider: "vertex-ai",
+    baseModelId: "gemini-2.5-flash",
+    thinkingMode: "default",
     avgLatencyMs: 3000,
     costPer1kTokens: 0.001,
     capabilities: ["code_generation", "review"],
@@ -66,6 +68,8 @@ const testModels: RoutableModel[] = [
     id: "claude-haiku",
     name: "Claude Haiku 3.5",
     provider: "anthropic",
+    baseModelId: "claude-haiku-3-5",
+    thinkingMode: "extended",
     avgLatencyMs: 7000,
     costPer1kTokens: 0.002,
     capabilities: ["code_generation", "review"],
@@ -75,6 +79,8 @@ const testModels: RoutableModel[] = [
     id: "mistral-medium",
     name: "Mistral Medium 3",
     provider: "vertex-ai",
+    baseModelId: "mistral-medium-3",
+    thinkingMode: "default",
     avgLatencyMs: 2700,
     costPer1kTokens: 0.001,
     capabilities: ["code_generation"],
@@ -220,7 +226,7 @@ describe("PIPELINE_PRESETS", () => {
   // Dynamic import to avoid pulling in complex dependencies
   it("exports pipeline presets from dev-agent", async () => {
     const { PIPELINE_PRESETS } =
-      await import("../../src/patterns/dev-agent.js");
+      await import("../../src/patterns/dev-agent/index.js");
     expect(PIPELINE_PRESETS).toBeDefined();
     expect(typeof PIPELINE_PRESETS).toBe("object");
 
