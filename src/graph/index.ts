@@ -23,6 +23,7 @@ export {
   createAgent,
   getAgent,
   listActiveAgents,
+  listActiveAgentsByCapability,
   // Patterns
   createPattern,
   getPattern,

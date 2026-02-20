@@ -14,14 +14,48 @@ import { runQuery, writeTransaction } from "./client.js";
 
 /** Properties for creating an Agent node */
 export interface AgentProps {
+  // === Identity ===
   id: string;
   name: string;
   provider: string;
   model: string;
+  baseModelId: string;
+
+  // === Configuration Arm ===
+  thinkingMode: "adaptive" | "extended" | "none" | "default";
+  thinkingParameter?: string;
+
+  // === Capabilities ===
+  capabilities?: string[];
+  supportsAdaptiveThinking?: boolean;
+  supportsExtendedThinking?: boolean;
+  supportsInterleavedThinking?: boolean;
+  supportsPrefilling?: boolean;
+  supportsStructuredOutputs?: boolean;
+  supportsWebSearch?: boolean;
+  supportsComputerUse?: boolean;
+
+  // === Context Limits ===
+  maxContextWindow?: number;
+  maxOutputTokens?: number;
+
+  // === Cost ===
+  costPer1kInput?: number;
+  costPer1kOutput?: number;
   avgLatencyMs?: number;
   costPer1kTokens?: number;
-  status?: "active" | "inactive" | "degraded";
-  capabilities?: string[];
+
+  // === Performance ===
+  status?: "active" | "inactive" | "degraded" | "retired";
+
+  // === Infrastructure ===
+  region?: string;
+  endpoint?: string;
+
+  // === Sentinel ===
+  lastProbed?: string;
+  lastUsed?: string;
+  probeFailures?: number;
 }
 
 /** Properties for creating/updating a Pattern node */
@@ -55,6 +89,9 @@ export interface DecisionOutcomeProps {
   qualityScore: number;
   durationMs: number;
   cost?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  thinkingTokens?: number;
   errorType?: string;
   notes?: string;
 }
@@ -95,6 +132,8 @@ export interface ArmStats {
   totalTrials: number;
   avgQuality: number;
   avgLatencyMs: number;
+  avgCost: number;
+  totalCost: number;
 }
 
 // ============ AGENT QUERIES ============
@@ -107,26 +146,83 @@ export async function createAgent(props: AgentProps): Promise<void> {
          a.name = $name,
          a.provider = $provider,
          a.model = $model,
+         a.baseModelId = $baseModelId,
+         a.thinkingMode = $thinkingMode,
+         a.thinkingParameter = $thinkingParameter,
+         a.capabilities = $capabilities,
+         a.supportsAdaptiveThinking = $supportsAdaptiveThinking,
+         a.supportsExtendedThinking = $supportsExtendedThinking,
+         a.supportsInterleavedThinking = $supportsInterleavedThinking,
+         a.supportsPrefilling = $supportsPrefilling,
+         a.supportsStructuredOutputs = $supportsStructuredOutputs,
+         a.supportsWebSearch = $supportsWebSearch,
+         a.supportsComputerUse = $supportsComputerUse,
+         a.maxContextWindow = $maxContextWindow,
+         a.maxOutputTokens = $maxOutputTokens,
+         a.costPer1kInput = $costPer1kInput,
+         a.costPer1kOutput = $costPer1kOutput,
          a.avgLatencyMs = $avgLatencyMs,
          a.costPer1kTokens = $costPer1kTokens,
          a.status = $status,
-         a.capabilities = $capabilities,
+         a.region = $region,
+         a.endpoint = $endpoint,
+         a.lastProbed = $lastProbed,
+         a.lastUsed = $lastUsed,
+         a.probeFailures = 0,
          a.createdAt = datetime()
        ON MATCH SET
          a.name = $name,
          a.provider = $provider,
          a.model = $model,
-         a.avgLatencyMs = $avgLatencyMs,
-         a.costPer1kTokens = $costPer1kTokens,
-         a.status = $status,
-         a.capabilities = $capabilities,
+         a.baseModelId = $baseModelId,
+         a.thinkingMode = $thinkingMode,
+         a.thinkingParameter = COALESCE($thinkingParameter, a.thinkingParameter),
+         a.capabilities = COALESCE($capabilities, a.capabilities),
+         a.supportsAdaptiveThinking = COALESCE($supportsAdaptiveThinking, a.supportsAdaptiveThinking),
+         a.supportsExtendedThinking = COALESCE($supportsExtendedThinking, a.supportsExtendedThinking),
+         a.supportsInterleavedThinking = COALESCE($supportsInterleavedThinking, a.supportsInterleavedThinking),
+         a.supportsPrefilling = COALESCE($supportsPrefilling, a.supportsPrefilling),
+         a.supportsStructuredOutputs = COALESCE($supportsStructuredOutputs, a.supportsStructuredOutputs),
+         a.supportsWebSearch = COALESCE($supportsWebSearch, a.supportsWebSearch),
+         a.supportsComputerUse = COALESCE($supportsComputerUse, a.supportsComputerUse),
+         a.maxContextWindow = COALESCE($maxContextWindow, a.maxContextWindow),
+         a.maxOutputTokens = COALESCE($maxOutputTokens, a.maxOutputTokens),
+         a.costPer1kInput = COALESCE($costPer1kInput, a.costPer1kInput),
+         a.costPer1kOutput = COALESCE($costPer1kOutput, a.costPer1kOutput),
+         a.avgLatencyMs = COALESCE($avgLatencyMs, a.avgLatencyMs),
+         a.costPer1kTokens = COALESCE($costPer1kTokens, a.costPer1kTokens),
+         a.status = COALESCE($status, a.status),
+         a.region = COALESCE($region, a.region),
+         a.endpoint = COALESCE($endpoint, a.endpoint),
+         a.lastProbed = COALESCE($lastProbed, a.lastProbed),
+         a.lastUsed = COALESCE($lastUsed, a.lastUsed),
+         a.probeFailures = COALESCE($probeFailures, a.probeFailures),
          a.updatedAt = datetime()`,
       {
         ...props,
+        baseModelId: props.baseModelId,
+        thinkingMode: props.thinkingMode,
+        thinkingParameter: props.thinkingParameter ?? null,
+        supportsAdaptiveThinking: props.supportsAdaptiveThinking ?? null,
+        supportsExtendedThinking: props.supportsExtendedThinking ?? null,
+        supportsInterleavedThinking: props.supportsInterleavedThinking ?? null,
+        supportsPrefilling: props.supportsPrefilling ?? null,
+        supportsStructuredOutputs: props.supportsStructuredOutputs ?? null,
+        supportsWebSearch: props.supportsWebSearch ?? null,
+        supportsComputerUse: props.supportsComputerUse ?? null,
+        maxContextWindow: props.maxContextWindow ?? null,
+        maxOutputTokens: props.maxOutputTokens ?? null,
+        costPer1kInput: props.costPer1kInput ?? null,
+        costPer1kOutput: props.costPer1kOutput ?? null,
         avgLatencyMs: props.avgLatencyMs ?? null,
         costPer1kTokens: props.costPer1kTokens ?? null,
         status: props.status ?? "active",
         capabilities: props.capabilities ?? [],
+        region: props.region ?? null,
+        endpoint: props.endpoint ?? null,
+        lastProbed: props.lastProbed ?? null,
+        lastUsed: props.lastUsed ?? null,
+        probeFailures: props.probeFailures ?? null,
       },
     );
   });
@@ -145,6 +241,41 @@ export async function listActiveAgents(): Promise<Neo4jRecord[]> {
   const result = await runQuery(
     "MATCH (a:Agent) WHERE a.status = 'active' RETURN a ORDER BY a.avgLatencyMs ASC",
     {},
+    "READ",
+  );
+  return result.records;
+}
+
+export async function listActiveAgentsByCapability(requirements: {
+  supportsAdaptiveThinking?: boolean;
+  supportsExtendedThinking?: boolean;
+  supportsInterleavedThinking?: boolean;
+  supportsStructuredOutputs?: boolean;
+  maxCostPer1kOutput?: number;
+}): Promise<Neo4jRecord[]> {
+  const conditions = ["a.status = 'active'"];
+  const params: Record<string, unknown> = {};
+
+  if (requirements.supportsAdaptiveThinking) {
+    conditions.push("a.supportsAdaptiveThinking = true");
+  }
+  if (requirements.supportsExtendedThinking) {
+    conditions.push("a.supportsExtendedThinking = true");
+  }
+  if (requirements.supportsInterleavedThinking) {
+    conditions.push("a.supportsInterleavedThinking = true");
+  }
+  if (requirements.supportsStructuredOutputs) {
+    conditions.push("a.supportsStructuredOutputs = true");
+  }
+  if (requirements.maxCostPer1kOutput !== undefined) {
+    conditions.push("a.costPer1kOutput <= $maxCost");
+    params.maxCost = requirements.maxCostPer1kOutput;
+  }
+
+  const result = await runQuery(
+    `MATCH (a:Agent) WHERE ${conditions.join(" AND ")} RETURN a ORDER BY a.avgLatencyMs ASC`,
+    params,
     "READ",
   );
   return result.records;
@@ -285,12 +416,18 @@ export async function recordDecisionOutcome(
            d.qualityScore = $qualityScore,
            d.durationMs = $durationMs,
            d.cost = $cost,
+           d.inputTokens = $inputTokens,
+           d.outputTokens = $outputTokens,
+           d.thinkingTokens = $thinkingTokens,
            d.errorType = $errorType,
            d.notes = $notes,
            d.completedAt = datetime()`,
       {
         ...props,
         cost: props.cost ?? null,
+        inputTokens: props.inputTokens ?? null,
+        outputTokens: props.outputTokens ?? null,
+        thinkingTokens: props.thinkingTokens ?? null,
         errorType: props.errorType ?? null,
         notes: props.notes ?? null,
       },
@@ -329,13 +466,17 @@ export async function getArmStatsForCluster(
           sum(CASE WHEN d.success THEN 1 ELSE 0 END) AS successes,
           sum(CASE WHEN NOT d.success THEN 1 ELSE 0 END) AS failures,
           avg(d.qualityScore) AS avgQuality,
-          avg(d.durationMs) AS avgLatencyMs
+         avg(d.durationMs) AS avgLatencyMs,
+         avg(COALESCE(d.cost, 0)) AS avgCost,
+         sum(COALESCE(d.cost, 0)) AS totalCost
      RETURN a.id AS agentId,
             successes + 1 AS alpha,
             failures + 1 AS beta,
             totalTrials,
             avgQuality,
-            avgLatencyMs
+           avgLatencyMs,
+           avgCost,
+           totalCost
      ORDER BY avgQuality DESC`,
     { clusterId },
     "READ",
@@ -347,6 +488,8 @@ export async function getArmStatsForCluster(
     totalTrials: r.get("totalTrials"),
     avgQuality: r.get("avgQuality"),
     avgLatencyMs: r.get("avgLatencyMs"),
+    avgCost: r.get("avgCost"),
+    totalCost: r.get("totalCost"),
   }));
 }
 

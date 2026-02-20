@@ -5,24 +5,30 @@
 
 // Thompson Router
 export {
+  computeCostAdjustedReward,
   DEFAULT_ROUTER_CONFIG,
   buildContextClusterId,
   route,
   sampleBeta,
-} from "./thompson-router.js";
+  selectModel,
+  TASK_COST_DEFAULTS,
+} from "./thompson-router/index.js";
 export type {
   RoutableModel,
   RoutingContext,
   RoutingDecision,
+  SelectModelRequest,
+  SelectModelResult,
+  TaskCostConfig,
   ThompsonRouterConfig,
-} from "./thompson-router.js";
+} from "./thompson-router/index.js";
 
 // DevAgent Pipeline
 export {
   DEFAULT_DEVAGENT_CONFIG,
   DevAgent,
   PIPELINE_PRESETS,
-} from "./dev-agent.js";
+} from "./dev-agent/index.js";
 export type {
   AgentTask,
   DevAgentConfig,
@@ -31,12 +37,12 @@ export type {
   PipelineStage,
   QualityAssessor,
   StageResult,
-} from "./dev-agent.js";
+} from "./dev-agent/index.js";
 
 // Observer
-export { Observer } from "./observer.js";
+export { Observer } from "./observer/index.js";
 export type {
   FeedbackRecommendation,
   ObservableEvent,
   ObserverState,
-} from "./observer.js";
+} from "./observer/index.js";
