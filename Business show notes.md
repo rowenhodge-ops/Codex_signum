@@ -1,2 +1,0 @@
-# Business show notes
-- 

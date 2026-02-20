@@ -1,0 +1,39 @@
+{
+  "name": "@codex-signum/core",
+  "version": "0.1.0",
+  "description": "Codex Signum v3.0 — A semantic encoding where state is structural. Graph-native state dimensions, constitutional rules, and compositional patterns.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rowenhodge-ops/Codex_signum.git"
+  },
+  "keywords": [
+    "codex-signum",
+    "semantic-encoding",
+    "graph-native",
+    "compositional-patterns",
+    "neo4j",
+    "state-dimensions"
+  ],
+  "author": "rowenhodge-ops",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:conformance": "vitest run --reporter=verbose tests/conformance/",
+    "graph:check": "npx tsx src/graph/healthCheck.ts",
+    "graph:migrate": "npx tsx src/graph/migrate.ts"
+  },
+  "dependencies": {
+    "neo4j-driver": "^6.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "license": "MIT"
+}
