@@ -446,7 +446,7 @@ export async function getDecisionsForCluster(
      MATCH (d)-[:SELECTED]->(a:Agent)
      RETURN d, a
      ORDER BY d.timestamp DESC
-     LIMIT $limit`,
+     LIMIT toInteger($limit)`,
     { clusterId, limit },
     "READ",
   );
