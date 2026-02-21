@@ -1,0 +1,138 @@
+/**
+ * Codex Signum — Maturity Index Computation
+ *
+ * Maturity modulates EVERYTHING. A young network with ΦL=0.6 is healthy.
+ * A mature network at ΦL=0.6 is sick. This module computes the maturity
+ * factor and classifies the network.
+ *
+ * Maturity factor formula:
+ *   m = (1 - e^(-k₁ × observations)) × (1 - e^(-k₂ × connections))
+ *
+ * Where k₁ = 0.05, k₂ = 0.5 (spec defaults)
+ * At 50+ observations and 3+ connections, m approaches 1.0.
+ * At 0 observations or 0 connections, m approaches 0.
+ *
+ * @see engineering-bridge-v2.0.md §Part 2 "Maturity factor"
+ * @module codex-signum-core/computation/maturity
+ */
+import { MATURITY_THRESHOLDS } from "../types/state-dimensions.js";
+// ============ CONSTANTS ============
+/** Decay constant for observation depth */
+const K1_OBSERVATION = 0.05;
+/** Decay constant for connection count */
+const K2_CONNECTION = 0.5;
+/** Maturity classification boundaries */
+const MATURITY_YOUNG_THRESHOLD = 0.4;
+const MATURITY_MATURE_THRESHOLD = 0.75;
+// ============ CORE COMPUTATION ============
+/**
+ * Compute the maturity factor for a single pattern.
+ *
+ * m = (1 - e^(-k₁ × observations)) × (1 - e^(-k₂ × connections))
+ *
+ * @param observationCount — Number of retained observations
+ * @param connectionCount — Number of active graph edges
+ * @returns Maturity factor in [0, 1]
+ */
+export function computeMaturityFactor(observationCount, connectionCount) {
+    const observationComponent = 1 - Math.exp(-K1_OBSERVATION * Math.max(0, observationCount));
+    const connectionComponent = 1 - Math.exp(-K2_CONNECTION * Math.max(0, connectionCount));
+    return observationComponent * connectionComponent;
+}
+/**
+ * Compute the full maturity index for the network.
+ *
+ * @param patterns — Array of { observationCount, connectionCount, age, phiL }
+ */
+export function computeMaturityIndex(patterns) {
+    if (patterns.length === 0) {
+        return emptyMaturityIndex();
+    }
+    // Compute factor components
+    const meanObservationDepth = normalizeObservationDepth(mean(patterns.map((p) => p.observationCount)));
+    const connectionDensity = normalizeConnectionDensity(mean(patterns.map((p) => p.connectionCount)), patterns.length);
+    const meanComponentAge = normalizeAge(mean(patterns.map((p) => p.ageMs)));
+    const meanPhiLEcosystem = mean(patterns.map((p) => p.phiL));
+    // Composite value — weighted average of factors
+    const value = 0.3 * meanObservationDepth +
+        0.25 * connectionDensity +
+        0.25 * meanComponentAge +
+        0.2 * meanPhiLEcosystem;
+    // Classification
+    const classification = classifyMaturity(value);
+    // Get maturity-indexed thresholds
+    const thresholds = MATURITY_THRESHOLDS[classification];
+    return {
+        value,
+        classification,
+        factors: {
+            meanObservationDepth,
+            connectionDensity,
+            meanComponentAge,
+            meanPhiLEcosystem,
+        },
+        thresholds,
+    };
+}
+// ============ CLASSIFICATION ============
+/**
+ * Classify maturity value into a category.
+ */
+export function classifyMaturity(value) {
+    if (value < MATURITY_YOUNG_THRESHOLD)
+        return "young";
+    if (value >= MATURITY_MATURE_THRESHOLD)
+        return "mature";
+    return "maturing";
+}
+// ============ NORMALIZATION HELPERS ============
+/**
+ * Normalize mean observation count to [0, 1].
+ * Uses same exponential curve as maturity factor.
+ * At 100 observations, approaches ~0.99.
+ */
+function normalizeObservationDepth(meanObservations) {
+    return 1 - Math.exp(-0.03 * meanObservations);
+}
+/**
+ * Normalize connection density relative to pattern count.
+ * density = meanConnections / (patternCount - 1) for graphs,
+ * clamped to [0, 1].
+ */
+function normalizeConnectionDensity(meanConnections, patternCount) {
+    if (patternCount <= 1)
+        return 0;
+    const density = meanConnections / (patternCount - 1);
+    return Math.min(1, density);
+}
+/**
+ * Normalize mean age.
+ * Uses asymptotic approach: at 30 days, ~0.95.
+ */
+function normalizeAge(meanAgeMs) {
+    const days = meanAgeMs / (1000 * 60 * 60 * 24);
+    return 1 - Math.exp(-0.1 * days);
+}
+/** Simple mean of number array */
+function mean(values) {
+    if (values.length === 0)
+        return 0;
+    return values.reduce((acc, v) => acc + v, 0) / values.length;
+}
+/**
+ * Return an empty/default maturity index for networks with no patterns.
+ */
+function emptyMaturityIndex() {
+    return {
+        value: 0,
+        classification: "young",
+        factors: {
+            meanObservationDepth: 0,
+            connectionDensity: 0,
+            meanComponentAge: 0,
+            meanPhiLEcosystem: 0,
+        },
+        thresholds: MATURITY_THRESHOLDS.young,
+    };
+}
+//# sourceMappingURL=maturity.js.map
