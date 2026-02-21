@@ -371,6 +371,7 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
     await tx.run(
       `CREATE (d:Decision {
          id: $id,
+        selectedAgentId: $selectedAgentId,
          taskType: $taskType,
          complexity: $complexity,
          domain: $domain,
