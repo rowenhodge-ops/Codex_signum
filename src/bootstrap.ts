@@ -5,8 +5,10 @@ import {
   ensureContextCluster,
   getDecisionsForCluster,
   listActiveAgents,
+  migrateSchema,
   recordDecision,
   recordDecisionOutcome,
+  seedConstitutionalRules,
 } from "./graph/index.js";
 import type { AgentProps } from "./graph/queries.js";
 
@@ -34,7 +36,13 @@ export const ALL_ARMS: AgentProps[] = [
     status: "active",
     region: "direct",
     endpoint: "messages",
-    capabilities: ["code_generation", "review", "planning", "strategic", "extended_thinking"],
+    capabilities: [
+      "code_generation",
+      "review",
+      "planning",
+      "strategic",
+      "extended_thinking",
+    ],
   },
   {
     id: "claude-opus-4-6:adaptive:high",
@@ -762,7 +770,9 @@ export async function bootstrapAgents(force: boolean = false): Promise<number> {
       seeded++;
       console.log(`  ✅ ${arm.id} (${arm.status})`);
     } catch (err) {
-      console.error(`  ❌ ${arm.id}: ${err instanceof Error ? err.message : err}`);
+      console.error(
+        `  ❌ ${arm.id}: ${err instanceof Error ? err.message : err}`,
+      );
     }
   }
 
@@ -785,7 +795,8 @@ export async function seedInformedPriors(): Promise<number> {
       if (taskType === "strategic") {
         syntheticSuccessRate = hasCapability ? 0.8 : 0.3;
       } else if (taskType === "routine") {
-        syntheticSuccessRate = !isExpensive && (arm.avgLatencyMs ?? 5000) < 5000 ? 0.8 : 0.4;
+        syntheticSuccessRate =
+          !isExpensive && (arm.avgLatencyMs ?? 5000) < 5000 ? 0.8 : 0.4;
       } else {
         syntheticSuccessRate = hasCapability ? 0.6 : 0.4;
       }
@@ -794,7 +805,11 @@ export async function seedInformedPriors(): Promise<number> {
       const failures = 5 - successes;
 
       const clusterId = `${taskType}:moderate:general`;
-      await ensureContextCluster({ id: clusterId, taskType, complexity: "moderate" });
+      await ensureContextCluster({
+        id: clusterId,
+        taskType,
+        complexity: "moderate",
+      });
 
       for (let i = 0; i < successes + failures; i++) {
         const isSuccess = i < successes;
@@ -810,7 +825,9 @@ export async function seedInformedPriors(): Promise<number> {
         await recordDecisionOutcome({
           decisionId: decId,
           success: isSuccess,
-          qualityScore: isSuccess ? 0.7 + Math.random() * 0.2 : 0.2 + Math.random() * 0.3,
+          qualityScore: isSuccess
+            ? 0.7 + Math.random() * 0.2
+            : 0.2 + Math.random() * 0.3,
           durationMs: arm.avgLatencyMs ?? 5000,
           cost: (arm.costPer1kOutput ?? 0.01) * 2,
         });
@@ -828,10 +845,20 @@ async function main() {
   const force = process.argv.includes("--force");
 
   try {
+    const schema = await migrateSchema();
+    if (schema.errors.length > 0) {
+      throw new Error(`Schema migration errors: ${schema.errors.join(" | ")}`);
+    }
+    console.log(`Applied schema statements: ${schema.applied}`);
+
+    const seededRules = await seedConstitutionalRules();
+    console.log(`Seeded constitutional rules: ${seededRules}`);
+
     await bootstrapAgents(force);
     if (
       force ||
-      (await getDecisionsForCluster("strategic:moderate:general", 1)).length === 0
+      (await getDecisionsForCluster("strategic:moderate:general", 1)).length ===
+        0
     ) {
       await seedInformedPriors();
     }

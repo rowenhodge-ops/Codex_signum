@@ -57,6 +57,9 @@ const SCHEMA_STATEMENTS: string[] = [
   // Context Clusters (for Thompson Sampling)
   "CREATE CONSTRAINT context_cluster_id_unique IF NOT EXISTS FOR (cc:ContextCluster) REQUIRE cc.id IS UNIQUE",
 
+  // Decision lifecycle integrity
+  "CREATE CONSTRAINT decision_timestamp_required IF NOT EXISTS FOR (d:Decision) REQUIRE d.timestamp IS NOT NULL",
+
   // ── Indexes for Common Queries ──
 
   // Observations by timestamp (time-range queries for ΦL computation)
@@ -222,6 +225,39 @@ export async function seedConstitutionalRules(): Promise<number> {
       value: 0.3,
       priority: "advisory",
       rationale: "Minimum provenance clarity for pattern health computation.",
+    },
+    {
+      id: "rule-routing-confidence-threshold",
+      name: "Minimum Routing Confidence",
+      tier: 1,
+      target: "routing_confidence",
+      constraint: "min",
+      value: 0.45,
+      priority: "preferred",
+      rationale:
+        "Routing decisions should meet a minimum confidence threshold before execution.",
+    },
+    {
+      id: "rule-max-latency-ms",
+      name: "Maximum Decision Latency",
+      tier: 2,
+      target: "max_decision_latency_ms",
+      constraint: "max",
+      value: 30000,
+      priority: "advisory",
+      rationale:
+        "Excessive routing latency degrades operational usefulness and should be bounded.",
+    },
+    {
+      id: "rule-outcome-required",
+      name: "Outcome Recording Required",
+      tier: 1,
+      target: "decision_outcome_required",
+      constraint: "boolean",
+      value: true,
+      priority: "mandatory",
+      rationale:
+        "Completed decisions must record outcomes so learning and governance remain stateful.",
     },
     {
       id: "rule-review-model-differs",
