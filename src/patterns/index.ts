@@ -46,3 +46,13 @@ export type {
   ObservableEvent,
   ObserverState,
 } from "./observer/index.js";
+
+// Architect Pattern
+export { survey } from "./architect/index.js";
+export type {
+  BlindSpot,
+  GapItem,
+  SpecAssertion,
+  SurveyInput,
+  SurveyOutput,
+} from "./architect/index.js";
