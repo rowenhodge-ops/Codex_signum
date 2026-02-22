@@ -9,23 +9,63 @@
  *
  * @module codex-signum-core/patterns/architect
  */
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
 // ── Known core exports that consumer repos sometimes reimplement ────────────
 const KNOWN_CORE_FUNCTIONS = [
-    { name: "computePhiL", aliases: ["HealthComputer", "computeHealth", "computePhiL"], category: "computation" },
-    { name: "computeEpsilonR", aliases: ["ExplorationTracker", "computeEpsilonR", "computeExploration"], category: "computation" },
-    { name: "computePsiH", aliases: ["HarmonicResonance", "computePsiH", "computeHarmonic"], category: "computation" },
-    { name: "computeDampening", aliases: ["DampeningEngine", "computeDampening"], category: "computation" },
-    { name: "propagateDegradation", aliases: ["propagateDegradation", "DegradationCascade"], category: "computation" },
-    { name: "DevAgent", aliases: ["hybridAgent", "PipelineOrchestrator"], category: "pipeline" },
-    { name: "selectModel", aliases: ["ModelRouter", "selectModel"], category: "routing" },
+    {
+        name: "computePhiL",
+        aliases: ["HealthComputer", "computeHealth", "computePhiL"],
+        category: "computation",
+    },
+    {
+        name: "computeEpsilonR",
+        aliases: ["ExplorationTracker", "computeEpsilonR", "computeExploration"],
+        category: "computation",
+    },
+    {
+        name: "computePsiH",
+        aliases: ["HarmonicResonance", "computePsiH", "computeHarmonic"],
+        category: "computation",
+    },
+    {
+        name: "computeDampening",
+        aliases: ["DampeningEngine", "computeDampening"],
+        category: "computation",
+    },
+    {
+        name: "propagateDegradation",
+        aliases: ["propagateDegradation", "DegradationCascade"],
+        category: "computation",
+    },
+    {
+        name: "DevAgent",
+        aliases: ["hybridAgent", "PipelineOrchestrator"],
+        category: "pipeline",
+    },
+    {
+        name: "selectModel",
+        aliases: ["ModelRouter", "selectModel"],
+        category: "routing",
+    },
     { name: "route", aliases: ["ThompsonRouter", "route"], category: "routing" },
-    { name: "evaluateConstitution", aliases: ["ConstitutionalEngine", "evaluateConstitution"], category: "constitutional" },
+    {
+        name: "evaluateConstitution",
+        aliases: ["ConstitutionalEngine", "evaluateConstitution"],
+        category: "constitutional",
+    },
 ];
 // ── Directories to skip during tree walk ────────────────────────────────────
-const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", "coverage", ".next", ".turbo"]);
+const SKIP_DIRS = new Set([
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    "coverage",
+    ".next",
+    ".turbo",
+]);
 // ── File extensions to include in analysis ──────────────────────────────────
 const CODE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".mjs"]);
 // ────────────────────────────────────────────────────────────────────────────
@@ -164,7 +204,8 @@ function readKeyFiles(rootPath, blindSpots) {
     try {
         const srcPath = path.join(rootPath, "src");
         if (fs.existsSync(srcPath)) {
-            const srcDirs = fs.readdirSync(srcPath, { withFileTypes: true })
+            const srcDirs = fs
+                .readdirSync(srcPath, { withFileTypes: true })
                 .filter((e) => e.isDirectory())
                 .map((e) => e.name);
             for (const dir of srcDirs.slice(0, 10)) {
@@ -224,7 +265,10 @@ function findCoreImports(rootPath, blindSpots) {
                 for (const match of blockMatches) {
                     const symbols = match[1]
                         .split(",")
-                        .map((s) => s.trim().replace(/\s+as\s+\w+/, "").trim())
+                        .map((s) => s
+                        .trim()
+                        .replace(/\s+as\s+\w+/, "")
+                        .trim())
                         .filter(Boolean);
                     importedSymbols.push(...symbols);
                 }
@@ -370,7 +414,13 @@ function findEntryPoints(rootPath, keyFiles, blindSpots) {
         }
     }
     // Scan for CLI-style files
-    const cliCandidates = ["agent/cli.ts", "cli.ts", "index.ts", "src/index.ts", "agent/tools/copilotBridge.ts"];
+    const cliCandidates = [
+        "agent/cli.ts",
+        "cli.ts",
+        "index.ts",
+        "src/index.ts",
+        "agent/tools/copilotBridge.ts",
+    ];
     for (const candidate of cliCandidates) {
         const fullPath = path.join(rootPath, candidate);
         if (fs.existsSync(fullPath)) {
@@ -661,7 +711,9 @@ function crossReferenceParameter(assertion, repoPath) {
     const expectedNumeric = parseFloat(expectedValue.replace(/[×x]/, " ").split(/\s+/)[0] ?? "0");
     for (const found of matches) {
         const foundNumeric = parseFloat(found.foundValue);
-        if (!isNaN(foundNumeric) && !isNaN(expectedNumeric) && Math.abs(foundNumeric - expectedNumeric) > 0.001) {
+        if (!isNaN(foundNumeric) &&
+            !isNaN(expectedNumeric) &&
+            Math.abs(foundNumeric - expectedNumeric) > 0.001) {
             return {
                 id: `mismatch-${constantName.toLowerCase()}`,
                 description: `Specification '${source}' specifies ${constantName}=${expectedValue}, but code has ${found.foundValue} in ${found.file}`,

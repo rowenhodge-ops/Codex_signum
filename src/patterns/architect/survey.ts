@@ -10,26 +10,66 @@
  * @module codex-signum-core/patterns/architect
  */
 
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
-import type { SurveyInput, SurveyOutput, GapItem, BlindSpot } from "./types.js";
+import type { BlindSpot, GapItem, SurveyInput, SurveyOutput } from "./types.js";
 
 // ── Known core exports that consumer repos sometimes reimplement ────────────
 const KNOWN_CORE_FUNCTIONS = [
-  { name: "computePhiL", aliases: ["HealthComputer", "computeHealth", "computePhiL"], category: "computation" },
-  { name: "computeEpsilonR", aliases: ["ExplorationTracker", "computeEpsilonR", "computeExploration"], category: "computation" },
-  { name: "computePsiH", aliases: ["HarmonicResonance", "computePsiH", "computeHarmonic"], category: "computation" },
-  { name: "computeDampening", aliases: ["DampeningEngine", "computeDampening"], category: "computation" },
-  { name: "propagateDegradation", aliases: ["propagateDegradation", "DegradationCascade"], category: "computation" },
-  { name: "DevAgent", aliases: ["hybridAgent", "PipelineOrchestrator"], category: "pipeline" },
-  { name: "selectModel", aliases: ["ModelRouter", "selectModel"], category: "routing" },
+  {
+    name: "computePhiL",
+    aliases: ["HealthComputer", "computeHealth", "computePhiL"],
+    category: "computation",
+  },
+  {
+    name: "computeEpsilonR",
+    aliases: ["ExplorationTracker", "computeEpsilonR", "computeExploration"],
+    category: "computation",
+  },
+  {
+    name: "computePsiH",
+    aliases: ["HarmonicResonance", "computePsiH", "computeHarmonic"],
+    category: "computation",
+  },
+  {
+    name: "computeDampening",
+    aliases: ["DampeningEngine", "computeDampening"],
+    category: "computation",
+  },
+  {
+    name: "propagateDegradation",
+    aliases: ["propagateDegradation", "DegradationCascade"],
+    category: "computation",
+  },
+  {
+    name: "DevAgent",
+    aliases: ["hybridAgent", "PipelineOrchestrator"],
+    category: "pipeline",
+  },
+  {
+    name: "selectModel",
+    aliases: ["ModelRouter", "selectModel"],
+    category: "routing",
+  },
   { name: "route", aliases: ["ThompsonRouter", "route"], category: "routing" },
-  { name: "evaluateConstitution", aliases: ["ConstitutionalEngine", "evaluateConstitution"], category: "constitutional" },
+  {
+    name: "evaluateConstitution",
+    aliases: ["ConstitutionalEngine", "evaluateConstitution"],
+    category: "constitutional",
+  },
 ];
 
 // ── Directories to skip during tree walk ────────────────────────────────────
-const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", "coverage", ".next", ".turbo"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  "coverage",
+  ".next",
+  ".turbo",
+]);
 
 // ── File extensions to include in analysis ──────────────────────────────────
 const CODE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".mjs"]);
@@ -60,7 +100,11 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   const coreImports = findCoreImports(input.repoPath, blindSpots);
 
   // ── 5. Duplication detection ─────────────────────────────────────────────
-  const duplications = detectDuplications(input.repoPath, coreImports, blindSpots);
+  const duplications = detectDuplications(
+    input.repoPath,
+    coreImports,
+    blindSpots,
+  );
 
   // ── 6. Entry points ──────────────────────────────────────────────────────
   const entryPoints = findEntryPoints(input.repoPath, keyFiles, blindSpots);
@@ -73,10 +117,18 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   );
 
   // ── 8. Graph state inspection ────────────────────────────────────────────
-  const graphState = await inspectGraphState(input.graphClient ?? null, blindSpots);
+  const graphState = await inspectGraphState(
+    input.graphClient ?? null,
+    blindSpots,
+  );
 
   // ── 8. Gap analysis from codebase state ─────────────────────────────────
-  const codebaseGaps: GapItem[] = buildCodebaseGaps(duplications, coreImports, input.repoPath, blindSpots);
+  const codebaseGaps: GapItem[] = buildCodebaseGaps(
+    duplications,
+    coreImports,
+    input.repoPath,
+    blindSpots,
+  );
   const gaps: GapItem[] = [...codebaseGaps, ...specGaps];
 
   // ── 9. Confidence score ──────────────────────────────────────────────────
@@ -84,7 +136,8 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   if (!keyFiles["package.json"]) confidence -= 0.2;
   if (recentCommits.length === 0) confidence -= 0.1;
   if (coreImports && Object.keys(coreImports).length === 0) confidence -= 0.1;
-  if (input.specificationRefs.length > 0 && specGaps.length === 0) confidence -= 0.05; // Spec refs given but no assertions extracted
+  if (input.specificationRefs.length > 0 && specGaps.length === 0)
+    confidence -= 0.05; // Spec refs given but no assertions extracted
   confidence -= blindSpots.length * 0.03;
   confidence = Math.max(0.1, Math.min(1.0, confidence));
 
@@ -210,7 +263,8 @@ function readKeyFiles(
   try {
     const srcPath = path.join(rootPath, "src");
     if (fs.existsSync(srcPath)) {
-      const srcDirs = fs.readdirSync(srcPath, { withFileTypes: true })
+      const srcDirs = fs
+        .readdirSync(srcPath, { withFileTypes: true })
         .filter((e) => e.isDirectory())
         .map((e) => e.name);
 
@@ -289,7 +343,12 @@ function findCoreImports(
         for (const match of blockMatches) {
           const symbols = match[1]
             .split(",")
-            .map((s) => s.trim().replace(/\s+as\s+\w+/, "").trim())
+            .map((s) =>
+              s
+                .trim()
+                .replace(/\s+as\s+\w+/, "")
+                .trim(),
+            )
             .filter(Boolean);
           importedSymbols.push(...symbols);
         }
@@ -354,7 +413,11 @@ function detectDuplications(
   rootPath: string,
   coreImports: Record<string, string[]>,
   blindSpots: BlindSpot[],
-): Array<{ localFile: string; duplicates: string; confidence: "high" | "medium" | "low" }> {
+): Array<{
+  localFile: string;
+  duplicates: string;
+  confidence: "high" | "medium" | "low";
+}> {
   const results: Array<{
     localFile: string;
     duplicates: string;
@@ -435,7 +498,8 @@ function detectDuplications(
       if (!alreadyReported) {
         results.push({
           localFile: relPath,
-          duplicates: "core:DevAgent (large monolith with pipeline stage keywords)",
+          duplicates:
+            "core:DevAgent (large monolith with pipeline stage keywords)",
           confidence: "medium",
         });
       }
@@ -477,7 +541,13 @@ function findEntryPoints(
   }
 
   // Scan for CLI-style files
-  const cliCandidates = ["agent/cli.ts", "cli.ts", "index.ts", "src/index.ts", "agent/tools/copilotBridge.ts"];
+  const cliCandidates = [
+    "agent/cli.ts",
+    "cli.ts",
+    "index.ts",
+    "src/index.ts",
+    "agent/tools/copilotBridge.ts",
+  ];
   for (const candidate of cliCandidates) {
     const fullPath = path.join(rootPath, candidate);
     if (fs.existsSync(fullPath)) {
@@ -505,7 +575,11 @@ function findEntryPoints(
 // ── Gap builders ─────────────────────────────────────────────────────────────
 
 function buildCodebaseGaps(
-  duplications: Array<{ localFile: string; duplicates: string; confidence: "high" | "medium" | "low" }>,
+  duplications: Array<{
+    localFile: string;
+    duplicates: string;
+    confidence: "high" | "medium" | "low";
+  }>,
   coreImports: Record<string, string[]>,
   rootPath: string,
   _blindSpots: BlindSpot[],
@@ -529,8 +603,12 @@ function buildCodebaseGaps(
   const bridges = Object.keys(coreImports).filter(
     (f) => f.includes("bridge") || f.includes("Bridge"),
   );
-  const hybridAgentExists = fs.existsSync(path.join(rootPath, "agent/hybridAgent.ts"));
-  const codexBridgeExists = fs.existsSync(path.join(rootPath, "agent/codex-bridge.ts"));
+  const hybridAgentExists = fs.existsSync(
+    path.join(rootPath, "agent/hybridAgent.ts"),
+  );
+  const codexBridgeExists = fs.existsSync(
+    path.join(rootPath, "agent/codex-bridge.ts"),
+  );
 
   if (hybridAgentExists && codexBridgeExists && bridges.length > 0) {
     gaps.push({
@@ -564,7 +642,9 @@ function buildWhatExists(coreImports: Record<string, string[]>): string[] {
 
   for (const func of KNOWN_CORE_FUNCTIONS) {
     if (func.aliases.some((a) => allImported.has(a))) {
-      existing.push(`${func.name} (imported from core in ${Object.keys(coreImports).length} file(s))`);
+      existing.push(
+        `${func.name} (imported from core in ${Object.keys(coreImports).length} file(s))`,
+      );
     }
   }
 
@@ -578,11 +658,17 @@ function buildWhatExists(coreImports: Record<string, string[]>): string[] {
 }
 
 function buildWhatNeedsFixing(
-  duplications: Array<{ localFile: string; duplicates: string; confidence: "high" | "medium" | "low" }>,
+  duplications: Array<{
+    localFile: string;
+    duplicates: string;
+    confidence: "high" | "medium" | "low";
+  }>,
 ): string[] {
   return duplications
     .filter((d) => d.confidence !== "low")
-    .map((d) => `Replace local ${d.localFile} with core import of ${d.duplicates}`);
+    .map(
+      (d) => `Replace local ${d.localFile} with core import of ${d.duplicates}`,
+    );
 }
 
 // ── Graph state inspection ───────────────────────────────────────────────────
@@ -599,7 +685,8 @@ async function inspectGraphState(
 ): Promise<SurveyOutput["graphState"]> {
   if (!session) {
     blindSpots.push({
-      description: "Neo4j graph state unavailable — cannot assess pattern health or cascade status",
+      description:
+        "Neo4j graph state unavailable — cannot assess pattern health or cascade status",
       resolution: "Provide a graphClient (neo4j-driver Session) in SurveyInput",
     });
     return null;
@@ -683,7 +770,8 @@ async function inspectGraphState(
   } catch (err) {
     blindSpots.push({
       description: `Graph query failed for constitutional alerts: ${String(err)}`,
-      resolution: "Check if Pattern nodes have constitutional_violations property",
+      resolution:
+        "Check if Pattern nodes have constitutional_violations property",
     });
   }
 
@@ -747,7 +835,11 @@ async function crossReferenceSpecs(
     whatNeedsBuilding.push(...missingItems);
 
     // Check for architectural requirements
-    const archGaps = checkArchitecturalRequirements(specContent, specName, repoPath);
+    const archGaps = checkArchitecturalRequirements(
+      specContent,
+      specName,
+      repoPath,
+    );
     specGaps.push(...archGaps);
   }
 
@@ -766,11 +858,15 @@ interface ParsedAssertion {
 }
 
 /** Extract CONSTANT = value style assertions from markdown */
-function extractParameterAssertions(content: string, sourceName: string): ParsedAssertion[] {
+function extractParameterAssertions(
+  content: string,
+  sourceName: string,
+): ParsedAssertion[] {
   const assertions: ParsedAssertion[] = [];
 
   // Pattern 1: UPPER_SNAKE_CASE = numeric_value
-  const constPattern = /\b([A-Z][A-Z0-9_]{2,})\s*[=:]\s*([\d.]+(?:×|\*|\s*x\s*)?[\d.]*)\b/g;
+  const constPattern =
+    /\b([A-Z][A-Z0-9_]{2,})\s*[=:]\s*([\d.]+(?:×|\*|\s*x\s*)?[\d.]*)\b/g;
   for (const match of content.matchAll(constPattern)) {
     const value = match[2].replace(/\s*x\s*/i, "×");
     assertions.push({
@@ -782,7 +878,8 @@ function extractParameterAssertions(content: string, sourceName: string): Parsed
   }
 
   // Pattern 2: Named ratio/factor assertions (e.g., "hysteresis.*2.5", "ratio.*1.5")
-  const ratioPattern = /(?:hysteresis|cascade|dampening|threshold|factor)\s+(?:ratio|limit|value|=|is|of)\s+([0-9.]+(?:×)?[0-9.]*)/gi;
+  const ratioPattern =
+    /(?:hysteresis|cascade|dampening|threshold|factor)\s+(?:ratio|limit|value|=|is|of)\s+([0-9.]+(?:×)?[0-9.]*)/gi;
   for (const match of content.matchAll(ratioPattern)) {
     assertions.push({
       constantName: `INFERRED_${match[0].replace(/\s+/g, "_").toUpperCase().slice(0, 30)}`,
@@ -850,11 +947,17 @@ function crossReferenceParameter(
   if (matches.length === 0) return null; // Constant not found in code — not necessarily a gap
 
   // Check if any found value differs from expected
-  const expectedNumeric = parseFloat(expectedValue.replace(/[×x]/, " ").split(/\s+/)[0] ?? "0");
+  const expectedNumeric = parseFloat(
+    expectedValue.replace(/[×x]/, " ").split(/\s+/)[0] ?? "0",
+  );
 
   for (const found of matches) {
     const foundNumeric = parseFloat(found.foundValue);
-    if (!isNaN(foundNumeric) && !isNaN(expectedNumeric) && Math.abs(foundNumeric - expectedNumeric) > 0.001) {
+    if (
+      !isNaN(foundNumeric) &&
+      !isNaN(expectedNumeric) &&
+      Math.abs(foundNumeric - expectedNumeric) > 0.001
+    ) {
       return {
         id: `mismatch-${constantName.toLowerCase()}`,
         description: `Specification '${source}' specifies ${constantName}=${expectedValue}, but code has ${found.foundValue} in ${found.file}`,
@@ -897,7 +1000,8 @@ function extractMissingItems(content: string, _sourceName: string): string[] {
   const items: string[] = [];
 
   // Look for "Not implemented" or similar indicators in spec
-  const notImplPattern = /[-*]\s+([^:\n]+):\s*(?:not implemented|pending|missing|todo)/gi;
+  const notImplPattern =
+    /[-*]\s+([^:\n]+):\s*(?:not implemented|pending|missing|todo)/gi;
   for (const match of content.matchAll(notImplPattern)) {
     items.push(match[1].trim());
   }
@@ -920,7 +1024,9 @@ function checkArchitecturalRequirements(
   const gaps: GapItem[] = [];
 
   // Check: degradation cascade wiring
-  if (/propagat.*degradation|cascade.*wir|degradation.*cascade/i.test(specContent)) {
+  if (
+    /propagat.*degradation|cascade.*wir|degradation.*cascade/i.test(specContent)
+  ) {
     const tsFiles = findTsFilesSync(repoPath);
     const hasCascadeWiring = tsFiles.some((f) => {
       try {

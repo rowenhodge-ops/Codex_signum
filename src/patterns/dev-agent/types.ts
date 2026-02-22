@@ -85,7 +85,11 @@ export interface DevAgentConfig {
   routerConfig: ThompsonRouterConfig;
   constitutionalRules: ConstitutionalRule[];
   /** Called after each pipeline stage completes. Errors are caught and logged, not propagated. */
-  afterStage?: (stage: PipelineStage, result: StageResult, task: AgentTask) => Promise<void>;
+  afterStage?: (
+    stage: PipelineStage,
+    result: StageResult,
+    task: AgentTask,
+  ) => Promise<void>;
   /** Called after the full pipeline completes, before returning the result. Errors are caught and logged. */
   afterPipeline?: (result: PipelineResult, task: AgentTask) => Promise<void>;
 }
