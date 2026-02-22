@@ -15,6 +15,11 @@ export interface AgentTask {
     qualityRequirement?: number;
     latencyBudgetMs?: number;
     costCeiling?: number;
+    /** Original acceptance criteria from the source requirement (e.g., from a plan document).
+     *  Used by VALIDATE to check provenance — did we build what was originally asked for? */
+    sourceAcceptanceCriteria?: string[];
+    /** Reference to where the original requirement came from (e.g., "phase-b-plan.md#B-4") */
+    sourceReference?: string;
 }
 /** Result from a single pipeline stage */
 export interface StageResult {
@@ -37,6 +42,20 @@ export interface PipelineResult {
     correctionCount: number;
     constitutionalCompliance: ConstitutionalEvaluation | null;
     decisions: Decision[];
+    /** Source requirement provenance tracking.
+     *  Present when task included sourceAcceptanceCriteria. */
+    provenanceCheck?: {
+        sourceReference?: string;
+        /** Acceptance criteria from the source that were satisfied */
+        sourceCriteriaMet: string[];
+        /** Criteria that were intentionally waived with rationale */
+        sourceCriteriaWaived: Array<{
+            criterion: string;
+            rationale: string;
+        }>;
+        /** True if SCOPE reframed the task in a way that diverges from the original source */
+        scopeDiverged: boolean;
+    };
 }
 /** Model executor — the actual model invocation function */
 export type ModelExecutor = (modelId: string, prompt: string, stage: PipelineStage) => Promise<{
@@ -53,6 +72,10 @@ export interface DevAgentConfig {
     qualityThreshold: number;
     routerConfig: ThompsonRouterConfig;
     constitutionalRules: ConstitutionalRule[];
+    /** Called after each pipeline stage completes. Errors are caught and logged, not propagated. */
+    afterStage?: (stage: PipelineStage, result: StageResult, task: AgentTask) => Promise<void>;
+    /** Called after the full pipeline completes, before returning the result. Errors are caught and logged. */
+    afterPipeline?: (result: PipelineResult, task: AgentTask) => Promise<void>;
 }
 /** Default DevAgent configuration */
 export declare const DEFAULT_DEVAGENT_CONFIG: DevAgentConfig;

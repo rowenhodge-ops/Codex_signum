@@ -8,4 +8,6 @@ export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agen
 export type { AgentTask, DevAgentConfig, ModelExecutor, PipelineResult, PipelineStage, QualityAssessor, StageResult, } from "./dev-agent/index.js";
 export { Observer } from "./observer/index.js";
 export type { FeedbackRecommendation, ObservableEvent, ObserverState, } from "./observer/index.js";
+export { survey } from "./architect/index.js";
+export type { BlindSpot, GapItem, SpecAssertion, SurveyInput, SurveyOutput, } from "./architect/index.js";
 //# sourceMappingURL=index.d.ts.map
