@@ -10,7 +10,11 @@ import {
   createDecision,
   createObservation,
 } from "../../memory/index.js";
-import type { Decision, DecisionContext, DecisionOutcome } from "../../types/memory.js";
+import type {
+  Decision,
+  DecisionContext,
+  DecisionOutcome,
+} from "../../types/memory.js";
 import type { RoutingContext } from "../thompson-router/index.js";
 import { route } from "../thompson-router/index.js";
 import { buildStagePrompt } from "./prompts.js";
@@ -69,7 +73,12 @@ export class DevAgent {
 
     let previousOutput = task.prompt;
     for (const stage of this.config.stages) {
-      const stageResult = await this.runStage(stage, previousOutput, task, decisions);
+      const stageResult = await this.runStage(
+        stage,
+        previousOutput,
+        task,
+        decisions,
+      );
       stages.push(stageResult);
       totalCost += 0;
       correctionCount += stageResult.correctionIteration;
