@@ -8,4 +8,6 @@ export { computeCostAdjustedReward, DEFAULT_ROUTER_CONFIG, buildContextClusterId
 export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agent/index.js";
 // Observer
 export { Observer } from "./observer/index.js";
+// Architect Pattern
+export { survey } from "./architect/index.js";
 //# sourceMappingURL=index.js.map

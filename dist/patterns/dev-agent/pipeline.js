@@ -42,6 +42,14 @@ export class DevAgent {
             totalCost += 0;
             correctionCount += stageResult.correctionIteration;
             previousOutput = stageResult.output;
+            if (this.config.afterStage) {
+                try {
+                    await this.config.afterStage(stage, stageResult, task);
+                }
+                catch (err) {
+                    console.warn(`[DevAgent] afterStage hook error (${stage}):`, err);
+                }
+            }
         }
         const overallQuality = stages.length > 0 ? stages[stages.length - 1].qualityScore : 0;
         let constitutionalCompliance = null;
@@ -51,7 +59,7 @@ export class DevAgent {
             };
             constitutionalCompliance = evaluateConstitution(this.config.constitutionalRules, complianceContext);
         }
-        return {
+        const result = {
             taskId: task.id,
             stages,
             finalOutput: previousOutput,
@@ -62,6 +70,15 @@ export class DevAgent {
             constitutionalCompliance,
             decisions,
         };
+        if (this.config.afterPipeline) {
+            try {
+                await this.config.afterPipeline(result, task);
+            }
+            catch (err) {
+                console.warn(`[DevAgent] afterPipeline hook error:`, err);
+            }
+        }
+        return result;
     }
     async runStage(stage, input, task, decisions) {
         let bestResult = null;

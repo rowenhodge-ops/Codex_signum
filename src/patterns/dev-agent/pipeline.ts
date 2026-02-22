@@ -74,6 +74,14 @@ export class DevAgent {
       totalCost += 0;
       correctionCount += stageResult.correctionIteration;
       previousOutput = stageResult.output;
+
+      if (this.config.afterStage) {
+        try {
+          await this.config.afterStage(stage, stageResult, task);
+        } catch (err) {
+          console.warn(`[DevAgent] afterStage hook error (${stage}):`, err);
+        }
+      }
     }
 
     const overallQuality =
@@ -90,7 +98,7 @@ export class DevAgent {
       );
     }
 
-    return {
+    const result: PipelineResult = {
       taskId: task.id,
       stages,
       finalOutput: previousOutput,
@@ -101,6 +109,16 @@ export class DevAgent {
       constitutionalCompliance,
       decisions,
     };
+
+    if (this.config.afterPipeline) {
+      try {
+        await this.config.afterPipeline(result, task);
+      } catch (err) {
+        console.warn(`[DevAgent] afterPipeline hook error:`, err);
+      }
+    }
+
+    return result;
   }
 
   private async runStage(
