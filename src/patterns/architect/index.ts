@@ -4,9 +4,9 @@
  */
 
 export type {
+  BlindSpot,
+  GapItem,
+  SpecAssertion,
   SurveyInput,
   SurveyOutput,
-  GapItem,
-  BlindSpot,
-  SpecAssertion,
 } from "./types.js";
