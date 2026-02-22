@@ -65,14 +65,23 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   // ── 6. Entry points ──────────────────────────────────────────────────────
   const entryPoints = findEntryPoints(input.repoPath, keyFiles, blindSpots);
 
-  // ── 7. Gap analysis from codebase state ─────────────────────────────────
-  const gaps: GapItem[] = buildCodebaseGaps(duplications, coreImports, input.repoPath, blindSpots);
+  // ── 7. Specification cross-reference ────────────────────────────────────
+  const { specGaps, whatNeedsBuilding } = await crossReferenceSpecs(
+    input.specificationRefs,
+    input.repoPath,
+    blindSpots,
+  );
 
-  // ── 8. Confidence score ──────────────────────────────────────────────────
+  // ── 8. Gap analysis from codebase state ─────────────────────────────────
+  const codebaseGaps: GapItem[] = buildCodebaseGaps(duplications, coreImports, input.repoPath, blindSpots);
+  const gaps: GapItem[] = [...codebaseGaps, ...specGaps];
+
+  // ── 9. Confidence score ──────────────────────────────────────────────────
   let confidence = 1.0;
   if (!keyFiles["package.json"]) confidence -= 0.2;
   if (recentCommits.length === 0) confidence -= 0.1;
   if (coreImports && Object.keys(coreImports).length === 0) confidence -= 0.1;
+  if (input.specificationRefs.length > 0 && specGaps.length === 0) confidence -= 0.05; // Spec refs given but no assertions extracted
   confidence -= blindSpots.length * 0.03;
   confidence = Math.max(0.1, Math.min(1.0, confidence));
 
@@ -91,7 +100,7 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
     graphState: null, // Task 1.6 will populate this
     gapAnalysis: {
       whatExists: buildWhatExists(coreImports),
-      whatNeedsBuilding: [],  // Task 1.5 spec cross-reference will populate
+      whatNeedsBuilding,
       whatNeedsFixing: buildWhatNeedsFixing(duplications),
       gaps,
     },
@@ -571,4 +580,305 @@ function buildWhatNeedsFixing(
   return duplications
     .filter((d) => d.confidence !== "low")
     .map((d) => `Replace local ${d.localFile} with core import of ${d.duplicates}`);
+}
+
+// ── Specification cross-reference ────────────────────────────────────────────
+
+interface SpecCrossRefResult {
+  specGaps: GapItem[];
+  whatNeedsBuilding: string[];
+}
+
+/**
+ * Load specification markdown files and extract testable assertions.
+ * Cross-references them against the codebase to find mismatches.
+ */
+async function crossReferenceSpecs(
+  specPaths: string[],
+  repoPath: string,
+  blindSpots: BlindSpot[],
+): Promise<SpecCrossRefResult> {
+  const specGaps: GapItem[] = [];
+  const whatNeedsBuilding: string[] = [];
+
+  for (const specPath of specPaths) {
+    // Resolve relative paths against repo root
+    const absPath = path.isAbsolute(specPath)
+      ? specPath
+      : path.join(repoPath, specPath);
+
+    let specContent: string;
+    try {
+      if (!fs.existsSync(absPath)) {
+        blindSpots.push({
+          description: `Specification file not found: ${specPath}`,
+          resolution: `Ensure the file exists at ${absPath}`,
+        });
+        continue;
+      }
+      specContent = fs.readFileSync(absPath, "utf-8");
+    } catch (err) {
+      blindSpots.push({
+        description: `Could not read specification file ${specPath}: ${String(err)}`,
+        resolution: "Check file permissions",
+      });
+      continue;
+    }
+
+    const specName = path.basename(specPath);
+
+    // Extract parameter assertions (e.g., CONSTANT_NAME = value)
+    const paramAssertions = extractParameterAssertions(specContent, specName);
+    for (const assertion of paramAssertions) {
+      const gapItem = crossReferenceParameter(assertion, repoPath);
+      if (gapItem) specGaps.push(gapItem);
+    }
+
+    // Extract "missing" items from acceptance criteria and what needs building
+    const missingItems = extractMissingItems(specContent, specName);
+    whatNeedsBuilding.push(...missingItems);
+
+    // Check for architectural requirements
+    const archGaps = checkArchitecturalRequirements(specContent, specName, repoPath);
+    specGaps.push(...archGaps);
+  }
+
+  // Deduplicate whatNeedsBuilding
+  return {
+    specGaps,
+    whatNeedsBuilding: [...new Set(whatNeedsBuilding)],
+  };
+}
+
+interface ParsedAssertion {
+  constantName: string;
+  expectedValue: string;
+  source: string;
+  context: string;
+}
+
+/** Extract CONSTANT = value style assertions from markdown */
+function extractParameterAssertions(content: string, sourceName: string): ParsedAssertion[] {
+  const assertions: ParsedAssertion[] = [];
+
+  // Pattern 1: UPPER_SNAKE_CASE = numeric_value
+  const constPattern = /\b([A-Z][A-Z0-9_]{2,})\s*[=:]\s*([\d.]+(?:×|\*|\s*x\s*)?[\d.]*)\b/g;
+  for (const match of content.matchAll(constPattern)) {
+    const value = match[2].replace(/\s*x\s*/i, "×");
+    assertions.push({
+      constantName: match[1],
+      expectedValue: value,
+      source: sourceName,
+      context: extractContext(content, match.index ?? 0, 100),
+    });
+  }
+
+  // Pattern 2: Named ratio/factor assertions (e.g., "hysteresis.*2.5", "ratio.*1.5")
+  const ratioPattern = /(?:hysteresis|cascade|dampening|threshold|factor)\s+(?:ratio|limit|value|=|is|of)\s+([0-9.]+(?:×)?[0-9.]*)/gi;
+  for (const match of content.matchAll(ratioPattern)) {
+    assertions.push({
+      constantName: `INFERRED_${match[0].replace(/\s+/g, "_").toUpperCase().slice(0, 30)}`,
+      expectedValue: match[1],
+      source: sourceName,
+      context: extractContext(content, match.index ?? 0, 120),
+    });
+  }
+
+  // Pattern 3: Weight assignments (e.g., "weight: 0.4", "0.4 weight")
+  const weightPattern = /(?:weight|weights?|factor)\s*[=:]\s*(0\.[0-9]+)/gi;
+  for (const match of content.matchAll(weightPattern)) {
+    assertions.push({
+      constantName: "PHI_L_WEIGHT",
+      expectedValue: match[1],
+      source: sourceName,
+      context: extractContext(content, match.index ?? 0, 80),
+    });
+  }
+
+  return assertions;
+}
+
+function extractContext(content: string, index: number, chars: number): string {
+  const start = Math.max(0, index - 20);
+  const end = Math.min(content.length, index + chars);
+  return content.slice(start, end).replace(/\n/g, " ").trim();
+}
+
+/** Cross-reference a parameter assertion against codebase constants */
+function crossReferenceParameter(
+  assertion: ParsedAssertion,
+  repoPath: string,
+): GapItem | null {
+  const { constantName, expectedValue, source } = assertion;
+
+  // Skip very generic names
+  if (constantName.length < 4 || constantName === "PHI_L_WEIGHT") return null;
+
+  const tsFiles = findTsFilesSync(repoPath);
+  const matches: Array<{ file: string; foundValue: string }> = [];
+
+  for (const filePath of tsFiles) {
+    try {
+      const content = fs.readFileSync(filePath, "utf-8");
+      const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+
+      // Skip dist/build files
+      if (relPath.startsWith("dist/") || relPath.startsWith("build/")) continue;
+
+      // Look for the constant name with a value assignment
+      const pattern = new RegExp(
+        `${constantName}\\s*[=:]\\s*([0-9.]+(?:[×x][0-9.]+)?)`,
+        "i",
+      );
+      const match = content.match(pattern);
+      if (match) {
+        matches.push({ file: relPath, foundValue: match[1] });
+      }
+    } catch {
+      // Skip unreadable
+    }
+  }
+
+  if (matches.length === 0) return null; // Constant not found in code — not necessarily a gap
+
+  // Check if any found value differs from expected
+  const expectedNumeric = parseFloat(expectedValue.replace(/[×x]/, " ").split(/\s+/)[0] ?? "0");
+
+  for (const found of matches) {
+    const foundNumeric = parseFloat(found.foundValue);
+    if (!isNaN(foundNumeric) && !isNaN(expectedNumeric) && Math.abs(foundNumeric - expectedNumeric) > 0.001) {
+      return {
+        id: `mismatch-${constantName.toLowerCase()}`,
+        description: `Specification '${source}' specifies ${constantName}=${expectedValue}, but code has ${found.foundValue} in ${found.file}`,
+        severity: "warning",
+        specRef: source,
+        codeRef: [found.file],
+        category: "mismatch",
+      };
+    }
+  }
+
+  return null;
+}
+
+function findTsFilesSync(rootPath: string): string[] {
+  const files: string[] = [];
+  function recurse(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (SKIP_DIRS.has(entry.name)) continue;
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        recurse(fullPath);
+      } else if (CODE_EXTENSIONS.has(path.extname(entry.name))) {
+        files.push(fullPath);
+      }
+    }
+  }
+  recurse(rootPath);
+  return files;
+}
+
+/** Extract "what needs building" items from spec acceptance criteria */
+function extractMissingItems(content: string, _sourceName: string): string[] {
+  const items: string[] = [];
+
+  // Look for "Not implemented" or similar indicators in spec
+  const notImplPattern = /[-*]\s+([^:\n]+):\s*(?:not implemented|pending|missing|todo)/gi;
+  for (const match of content.matchAll(notImplPattern)) {
+    items.push(match[1].trim());
+  }
+
+  // Look for ❌ or 🔜 markers indicating not-yet-done items
+  const markerPattern = /(?:❌|🔜|⬜)\s*\*?\*?([^*\n]+)\*?\*?/g;
+  for (const match of content.matchAll(markerPattern)) {
+    items.push(match[1].trim());
+  }
+
+  return items;
+}
+
+/** Check for architectural requirements (cascade wiring, circuit breaker, debouncing) */
+function checkArchitecturalRequirements(
+  specContent: string,
+  specName: string,
+  repoPath: string,
+): GapItem[] {
+  const gaps: GapItem[] = [];
+
+  // Check: degradation cascade wiring
+  if (/propagat.*degradation|cascade.*wir|degradation.*cascade/i.test(specContent)) {
+    const tsFiles = findTsFilesSync(repoPath);
+    const hasCascadeWiring = tsFiles.some((f) => {
+      try {
+        const content = fs.readFileSync(f, "utf-8");
+        return /propagateDegradation/.test(content);
+      } catch {
+        return false;
+      }
+    });
+
+    if (!hasCascadeWiring) {
+      gaps.push({
+        id: "missing-cascade-wiring",
+        description: `Specification '${specName}' requires degradation cascade wiring (propagateDegradation), but no consumer code calls it.`,
+        severity: "critical",
+        specRef: specName,
+        category: "missing",
+      });
+    }
+  }
+
+  // Check: threshold event debouncing
+  if (/debounce|threshold.*event|N=\d/i.test(specContent)) {
+    const tsFiles = findTsFilesSync(repoPath);
+    const hasDebouncing = tsFiles.some((f) => {
+      try {
+        const content = fs.readFileSync(f, "utf-8");
+        return /debounce|ThresholdEvent|DEBOUNCE/i.test(content);
+      } catch {
+        return false;
+      }
+    });
+
+    if (!hasDebouncing) {
+      gaps.push({
+        id: "missing-debouncing",
+        description: `Specification '${specName}' requires threshold event debouncing, but no implementation found.`,
+        severity: "warning",
+        specRef: specName,
+        category: "missing",
+      });
+    }
+  }
+
+  // Check: circuit breaker
+  if (/circuit.?breaker/i.test(specContent)) {
+    const tsFiles = findTsFilesSync(repoPath);
+    const hasCircuitBreaker = tsFiles.some((f) => {
+      try {
+        const content = fs.readFileSync(f, "utf-8");
+        return /circuit.?breaker|CircuitBreaker/i.test(content);
+      } catch {
+        return false;
+      }
+    });
+
+    if (!hasCircuitBreaker) {
+      gaps.push({
+        id: "missing-circuit-breaker",
+        description: `Specification '${specName}' requires a circuit breaker mechanism, but none is implemented.`,
+        severity: "critical",
+        specRef: specName,
+        category: "missing",
+      });
+    }
+  }
+
+  return gaps;
 }
