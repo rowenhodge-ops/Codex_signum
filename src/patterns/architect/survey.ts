@@ -65,12 +65,15 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   // ── 6. Entry points ──────────────────────────────────────────────────────
   const entryPoints = findEntryPoints(input.repoPath, keyFiles, blindSpots);
 
-  // ── 7. Specification cross-reference ────────────────────────────────────
+  // ── 7. Specification cross-reference ──────────────────────────────────────
   const { specGaps, whatNeedsBuilding } = await crossReferenceSpecs(
     input.specificationRefs,
     input.repoPath,
     blindSpots,
   );
+
+  // ── 8. Graph state inspection ────────────────────────────────────────────
+  const graphState = await inspectGraphState(input.graphClient ?? null, blindSpots);
 
   // ── 8. Gap analysis from codebase state ─────────────────────────────────
   const codebaseGaps: GapItem[] = buildCodebaseGaps(duplications, coreImports, input.repoPath, blindSpots);
@@ -97,7 +100,7 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
       duplications,
       entryPoints,
     },
-    graphState: null, // Task 1.6 will populate this
+    graphState: graphState,
     gapAnalysis: {
       whatExists: buildWhatExists(coreImports),
       whatNeedsBuilding,
@@ -580,6 +583,111 @@ function buildWhatNeedsFixing(
   return duplications
     .filter((d) => d.confidence !== "low")
     .map((d) => `Replace local ${d.localFile} with core import of ${d.duplicates}`);
+}
+
+// ── Graph state inspection ───────────────────────────────────────────────────
+
+type GraphState = NonNullable<SurveyOutput["graphState"]>;
+
+/**
+ * Query Neo4j for live system health.
+ * Gracefully degrades if graph is unavailable.
+ */
+async function inspectGraphState(
+  session: import("neo4j-driver").Session | null | undefined,
+  blindSpots: BlindSpot[],
+): Promise<SurveyOutput["graphState"]> {
+  if (!session) {
+    blindSpots.push({
+      description: "Neo4j graph state unavailable — cannot assess pattern health or cascade status",
+      resolution: "Provide a graphClient (neo4j-driver Session) in SurveyInput",
+    });
+    return null;
+  }
+
+  const state: GraphState = {
+    patternHealth: {},
+    activeCascades: 0,
+    thresholdEvents: [],
+    constitutionalAlerts: [],
+  };
+
+  // Query pattern health (ΦL values)
+  try {
+    const result = await session.run(
+      "MATCH (p:Pattern) RETURN p.id AS id, p.phi_l AS phiL",
+    );
+    for (const record of result.records) {
+      const id = record.get("id") as string;
+      const phiL = record.get("phiL") as number | null;
+      if (id && phiL !== null && phiL !== undefined) {
+        state.patternHealth[id] = phiL;
+      }
+    }
+  } catch (err) {
+    blindSpots.push({
+      description: `Graph query failed for pattern health: ${String(err)}`,
+      resolution: "Check Neo4j connectivity and Pattern node schema",
+    });
+  }
+
+  // Query active cascade events
+  try {
+    const result = await session.run(
+      "MATCH (c:CascadeEvent) WHERE c.resolved = false RETURN count(c) AS cnt",
+    );
+    const cnt = result.records[0]?.get("cnt");
+    state.activeCascades = typeof cnt === "number" ? cnt : 0;
+  } catch (err) {
+    blindSpots.push({
+      description: `Graph query failed for cascade events: ${String(err)}`,
+      resolution: "Check if CascadeEvent nodes exist in graph schema",
+    });
+  }
+
+  // Query recent threshold events (last 7 days)
+  try {
+    const result = await session.run(
+      `MATCH (t:ThresholdEvent)
+       WHERE t.timestamp > datetime() - duration('P7D')
+       RETURN t.patternId AS pid, t.dimension AS dim, t.direction AS dir, t.timestamp AS ts
+       ORDER BY t.timestamp DESC LIMIT 20`,
+    );
+    for (const record of result.records) {
+      const pid = record.get("pid") as string;
+      const dim = record.get("dim") as string;
+      const dir = record.get("dir") as string;
+      state.thresholdEvents.push(`${pid}: ${dim} ${dir}`);
+    }
+  } catch (err) {
+    blindSpots.push({
+      description: `Graph query failed for threshold events: ${String(err)}`,
+      resolution: "Check if ThresholdEvent nodes exist in graph schema",
+    });
+  }
+
+  // Query constitutional alerts (Patterns with constitutional violations)
+  try {
+    const result = await session.run(
+      `MATCH (p:Pattern)
+       WHERE p.constitutional_violations IS NOT NULL AND size(p.constitutional_violations) > 0
+       RETURN p.id AS id, p.constitutional_violations AS violations`,
+    );
+    for (const record of result.records) {
+      const id = record.get("id") as string;
+      const violations = record.get("violations") as string[];
+      if (Array.isArray(violations)) {
+        state.constitutionalAlerts.push(`${id}: ${violations.join(", ")}`);
+      }
+    }
+  } catch (err) {
+    blindSpots.push({
+      description: `Graph query failed for constitutional alerts: ${String(err)}`,
+      resolution: "Check if Pattern nodes have constitutional_violations property",
+    });
+  }
+
+  return state;
 }
 
 // ── Specification cross-reference ────────────────────────────────────────────
