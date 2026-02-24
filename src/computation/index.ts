@@ -63,3 +63,10 @@ export type {
   PatternSignalInput,
   PatternStateResult,
 } from "./signal-conditioning.js";
+
+// Aggregation
+export { aggregateHealth, weightedMean } from "./aggregation.js";
+export type { AggregateHealth, ChildHealth, SubgraphInput } from "./aggregation.js";
+
+// Hierarchical health
+export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
