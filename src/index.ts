@@ -20,6 +20,9 @@ export * from "./memory/index.js";
 // ── Constitutional ──
 export * from "./constitutional/index.js";
 
+// ── Signals ──
+export * from "./signals/index.js";
+
 // ── Patterns ──
 export * from "./patterns/index.js";
 
