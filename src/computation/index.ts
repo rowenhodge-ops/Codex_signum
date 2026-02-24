@@ -70,3 +70,34 @@ export type { AggregateHealth, ChildHealth, SubgraphInput } from "./aggregation.
 
 // Hierarchical health
 export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
+
+// Structural triggers
+export {
+  checkStructuralTriggers,
+  checkLambda2Drop,
+  checkFrictionSpike,
+  checkCascadeActivation,
+  checkEpsilonRSpike,
+  checkPhiLVelocityAnomaly,
+  checkOmegaGradientInversion,
+} from "./structural-triggers.js";
+export type { TriggerInputState, TriggeredEvent } from "./structural-triggers.js";
+
+// Structural review
+export {
+  runStructuralReview,
+  computeGlobalLambda2,
+  computeSpectralGap,
+  computeHubDependencies,
+  computeFrictionDistribution,
+  assessDampening,
+} from "./structural-review.js";
+export type {
+  StructuralReviewResult,
+  HubDependency,
+  FrictionDistribution,
+  DampeningAssessment,
+} from "./structural-review.js";
+
+// Immune response
+export { evaluateAndReviewIfNeeded } from "./immune-response.js";
