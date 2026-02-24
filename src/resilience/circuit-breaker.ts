@@ -6,8 +6,15 @@
  * States:
  *   CLOSED    — Normal operation. Requests pass through.
  *   OPEN      — N consecutive failures. All requests rejected immediately.
- *   HALF_OPEN — Cooldown elapsed. One probe request allowed.
- *               Success → CLOSED. Failure → OPEN (reset timer).
+ *   HALF_OPEN — Cooldown elapsed. Trial probes allowed (5-10 successes to close).
+ *               All successes → CLOSED. Any failure → OPEN (increment trip count).
+ *
+ * Backoff (Engineering Bridge §Part 3):
+ *   actual_delay = random(0, min(base × 1.5^tripCount, cooldownMaxMs))
+ *   Full jitter prevents thundering-herd when multiple circuits recover.
+ *
+ * Half-open probes (Engineering Bridge §Part 3):
+ *   5-10 trial successes required before closing.  Not just 1.
  *
  * Thompson Sampling already adapts to model quality over time, but it can't
  * react fast enough to prevent hammering a down provider (e.g. outage,
@@ -31,25 +38,59 @@ export interface CircuitState {
   consecutiveFailures: number;
   lastFailure: Date | null;
   openedAt: Date | null;
+  /** How many times this circuit has tripped open. Drives exponential backoff. */
+  tripCount: number;
+  /** Successful probes accumulated during half-open state. */
+  halfOpenSuccesses: number;
 }
 
 export interface CircuitBreakerConfig {
   /** Consecutive failures before opening the circuit (default 3) */
   failureThreshold: number;
-  /** Cooldown before half-open probe (ms, default 5 minutes) */
-  cooldownMs: number;
+  /** Base cooldown before half-open probe (ms, default 60_000 = 1 min) */
+  cooldownBaseMs: number;
+  /** Maximum cooldown cap (ms, default 300_000 = 5 min) */
+  cooldownMaxMs: number;
+  /** Exponential base for backoff (default 1.5) */
+  backoffFactor: number;
+  /** Successes needed in half-open to close the circuit (default 5, spec: 5-10) */
+  halfOpenProbes: number;
 }
 
 const DEFAULT_CONFIG: CircuitBreakerConfig = {
   failureThreshold: 3,
-  cooldownMs: 5 * 60 * 1000,
+  cooldownBaseMs: 60_000,
+  cooldownMaxMs: 300_000,
+  backoffFactor: 1.5,
+  halfOpenProbes: 5,
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Exponential backoff with full jitter per Engineering Bridge §Part 3:
+ *   actual_delay = random(0, min(base × 1.5^tripCount, cooldownMaxMs))
+ *
+ * `randomFn` is injectable for deterministic testing.
+ */
+export function computeCooldown(
+  tripCount: number,
+  config: CircuitBreakerConfig,
+  randomFn: () => number = Math.random,
+): number {
+  const exponential =
+    config.cooldownBaseMs * Math.pow(config.backoffFactor, tripCount);
+  const capped = Math.min(exponential, config.cooldownMaxMs);
+  return randomFn() * capped;
+}
 
 // ─── ProviderCircuitBreaker ───────────────────────────────────────────────
 
 export class ProviderCircuitBreaker {
   private readonly circuits = new Map<string, CircuitState>();
   private readonly config: CircuitBreakerConfig;
+  /** Per-provider cooldown computed at open time (jitter applied once). */
+  private readonly activeCooldowns = new Map<string, number>();
 
   constructor(config: Partial<CircuitBreakerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -67,47 +108,80 @@ export class ProviderCircuitBreaker {
     if (!circuit || circuit.state === "closed") return true;
 
     if (circuit.state === "open") {
+      const cooldown =
+        this.activeCooldowns.get(provider) ??
+        computeCooldown(circuit.tripCount, this.config);
       const elapsed = circuit.openedAt
         ? Date.now() - circuit.openedAt.getTime()
         : Infinity;
-      if (elapsed >= this.config.cooldownMs) {
+      if (elapsed >= cooldown) {
         circuit.state = "half_open";
+        circuit.halfOpenSuccesses = 0;
         return true;
       }
       return false;
     }
 
-    // HALF_OPEN: allow the probe
+    // HALF_OPEN: allow probes
     return true;
   }
 
-  /** Record a successful call. Resets the circuit to CLOSED. */
+  /**
+   * Record a successful call.
+   *
+   * - CLOSED/unknown → full reset to closed.
+   * - HALF_OPEN → increment halfOpenSuccesses.
+   *   When halfOpenSuccesses >= halfOpenProbes → transition to CLOSED,
+   *   reset tripCount.
+   */
   recordSuccess(provider: string): void {
-    this.circuits.set(provider, {
-      provider,
-      state: "closed",
-      consecutiveFailures: 0,
-      lastFailure: null,
-      openedAt: null,
-    });
+    const existing = this.circuits.get(provider);
+
+    if (existing && existing.state === "half_open") {
+      existing.halfOpenSuccesses += 1;
+      if (existing.halfOpenSuccesses >= this.config.halfOpenProbes) {
+        // Fully recovered — reset everything including trip count
+        this.circuits.set(provider, freshClosed(provider));
+        this.activeCooldowns.delete(provider);
+      }
+      return;
+    }
+
+    // Not half-open (or unknown) — simple reset
+    this.circuits.set(provider, freshClosed(provider));
+    this.activeCooldowns.delete(provider);
   }
 
   /**
    * Record an infrastructure failure.
    *
    * If consecutive failures reach failureThreshold, opens the circuit.
+   * In half-open state, any failure immediately re-opens and increments tripCount.
+   *
    * Should only be called for infrastructure errors,
    * not for model quality failures (e.g. low quality scores).
    */
   recordFailure(provider: string): void {
-    const existing = this.circuits.get(provider) ?? {
-      provider,
-      state: "closed" as const,
-      consecutiveFailures: 0,
-      lastFailure: null,
-      openedAt: null,
-    };
+    const existing = this.circuits.get(provider) ?? freshClosed(provider);
 
+    // Half-open failure: re-open immediately, bump trip count
+    if (existing.state === "half_open") {
+      existing.state = "open";
+      existing.tripCount += 1;
+      existing.halfOpenSuccesses = 0;
+      existing.openedAt = new Date();
+      existing.consecutiveFailures += 1;
+      existing.lastFailure = new Date();
+      // Recompute cooldown with new trip count
+      this.activeCooldowns.set(
+        provider,
+        computeCooldown(existing.tripCount, this.config),
+      );
+      this.circuits.set(provider, existing);
+      return;
+    }
+
+    // Closed state: accumulate failures
     const updated: CircuitState = {
       ...existing,
       consecutiveFailures: existing.consecutiveFailures + 1,
@@ -116,7 +190,14 @@ export class ProviderCircuitBreaker {
 
     if (updated.consecutiveFailures >= this.config.failureThreshold) {
       updated.state = "open";
-      updated.openedAt = updated.openedAt ?? new Date();
+      updated.tripCount += 1;
+      updated.openedAt = new Date();
+      updated.halfOpenSuccesses = 0;
+      // Compute jittered cooldown once at open time
+      this.activeCooldowns.set(
+        provider,
+        computeCooldown(updated.tripCount, this.config),
+      );
     }
 
     this.circuits.set(provider, updated);
@@ -144,5 +225,20 @@ export class ProviderCircuitBreaker {
   /** Reset all circuits. */
   resetAll(): void {
     this.circuits.clear();
+    this.activeCooldowns.clear();
   }
+}
+
+// ─── Internal helpers ─────────────────────────────────────────────────────
+
+function freshClosed(provider: string): CircuitState {
+  return {
+    provider,
+    state: "closed",
+    consecutiveFailures: 0,
+    lastFailure: null,
+    openedAt: null,
+    tripCount: 0,
+    halfOpenSuccesses: 0,
+  };
 }

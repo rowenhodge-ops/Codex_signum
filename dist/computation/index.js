@@ -4,11 +4,11 @@
  * @module codex-signum-core/computation
  */
 // ΦL — Health
-export { computeAxiomComplianceFactor, computePhiL, computeRawPhiL, computeTemporalStability, computeTrend, computeUsageSuccessRate, } from "./phi-l.js";
+export { computeAxiomComplianceFactor, computePhiL, computePhiLWithState, computeRawPhiL, computeTemporalStability, computeTemporalStabilityFromState, computeTrend, computeUsageSuccessRate, } from "./phi-l.js";
 // Maturity
 export { classifyMaturity, computeMaturityFactor, computeMaturityIndex, } from "./maturity.js";
 // ΨH — Harmonic Signature
-export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, } from "./psi-h.js";
+export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, decomposePsiH, } from "./psi-h.js";
 // εR — Exploration Rate
 export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, } from "./epsilon-r.js";
 // Dampening

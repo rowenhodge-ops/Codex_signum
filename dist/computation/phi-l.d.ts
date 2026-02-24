@@ -13,7 +13,7 @@
  * @see codex-signum-v3.0.md §State Dimensions
  * @module codex-signum-core/computation/phi-l
  */
-import type { PhiL, PhiLFactors, PhiLTrend, PhiLWeights } from "../types/state-dimensions.js";
+import type { PhiL, PhiLFactors, PhiLState, PhiLTrend, PhiLWeights } from "../types/state-dimensions.js";
 /**
  * Compute ΦL from raw factors.
  *
@@ -61,4 +61,45 @@ export declare function computeUsageSuccessRate(successCount: number, totalCount
  * If fewer than 3 observations, assume moderate stability (0.5).
  */
 export declare function computeTemporalStability(recentPhiLValues: number[]): number;
+/**
+ * Compute temporal stability from a PhiLState ring buffer.
+ *
+ * Uses variance-based approach: stability = 1 - min(1, variance / MAX_EXPECTED_VARIANCE)
+ * Low variance → high stability. High variance → low stability.
+ *
+ * This is the stateless equivalent of DND-Manager's HealthComputer ring buffer.
+ * The caller owns and persists the PhiLState between runs.
+ *
+ * @param state — Current PhiLState (ring buffer)
+ * @param latestPhiL — Most recent ΦL effective value to push into buffer
+ * @returns { stability, updatedState } — the computed stability and new state
+ */
+export declare function computeTemporalStabilityFromState(state: PhiLState, latestPhiL: number): {
+    stability: number;
+    updatedState: PhiLState;
+};
+/**
+ * Compute ΦL with integrated state management.
+ *
+ * Wraps `computePhiL` with ring buffer temporal stability tracking.
+ * The caller provides a PhiLState; the function returns the updated state
+ * alongside the PhiL result. Core remains stateless — no module-level Maps.
+ *
+ * Flow:
+ * 1. Compute raw ΦL using provided factors (temporalStability from state)
+ * 2. Push effective ΦL into ring buffer
+ * 3. Recompute temporal stability from updated buffer for next cycle
+ * 4. Return both the PhiL result and updated state
+ *
+ * @param factors — The three non-stability factors (stability is computed from state)
+ * @param observationCount — Number of retained observations
+ * @param connectionCount — Number of active graph connections
+ * @param state — Current PhiLState (ring buffer for temporal stability)
+ * @param previousPhiL — Previous ΦL effective value (for trend)
+ * @param weights — Factor weights (defaults to spec recommendation)
+ */
+export declare function computePhiLWithState(factors: Omit<PhiLFactors, "temporalStability">, observationCount: number, connectionCount: number, state: PhiLState, previousPhiL?: number, weights?: PhiLWeights): {
+    phiL: PhiL;
+    updatedState: PhiLState;
+};
 //# sourceMappingURL=phi-l.d.ts.map

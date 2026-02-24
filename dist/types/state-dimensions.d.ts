@@ -78,6 +78,26 @@ export interface PhiL {
     computedAt: Date;
 }
 /**
+ * External state for ΦL temporal stability computation.
+ *
+ * Core is stateless — callers own and persist this state between runs.
+ * Pass it into `computePhiLWithState()` and store the returned updated state.
+ *
+ * @see HealthComputer.ts in DND-Manager for the original stateful version.
+ */
+export interface PhiLState {
+    /** Ring buffer of recent ΦL effective values (most recent last) */
+    ringBuffer: number[];
+    /** Maximum buffer capacity (default 20) */
+    maxSize: number;
+}
+/**
+ * Create a fresh PhiLState with default settings.
+ *
+ * @param maxSize — Ring buffer capacity (default 20, matching DND convention)
+ */
+export declare function createPhiLState(maxSize?: number): PhiLState;
+/**
  * ΨH — Harmonic Signature
  *
  * Two-component metric grounded in the graph's own properties.
@@ -124,6 +144,47 @@ export declare const PSI_H_FRICTION_THRESHOLDS: {
     /** Above 0.8 = dissonant — composition is fighting itself */
     readonly dissonant: 1;
 };
+/**
+ * Temporal decomposition of ΨH into transient and durable friction.
+ *
+ * - psiH_instant: point-in-time combined value
+ * - psiH_trend: EWMA-smoothed trend
+ * - friction_transient: short-term deviation from trend
+ * - friction_durable: trend drift from established baseline
+ */
+export interface PsiHDecomposition {
+    psiH_instant: number;
+    psiH_trend: number;
+    friction_transient: number;
+    friction_durable: number;
+}
+/**
+ * External state for ΨH temporal decomposition.
+ *
+ * Core is stateless — callers own and persist this state between runs.
+ * Pass it into `computePsiHWithState()` and store the returned updated state.
+ *
+ * @see HarmonicResonance.ts in DND-Manager for the original stateful version.
+ */
+export interface PsiHState {
+    /** Ring buffer of recent ΨH combined values (most recent last) */
+    ringBuffer: number[];
+    /** Maximum buffer capacity (default 20) */
+    maxSize: number;
+    /** EWMA smoothing factor (default 0.15) */
+    alpha: number;
+    /** Current EWMA trend value (undefined until first observation) */
+    trend: number | undefined;
+    /** Baseline trend value (set after ≥5 observations) */
+    baseline: number | undefined;
+}
+/**
+ * Create a fresh PsiHState with default settings.
+ *
+ * @param maxSize — Ring buffer capacity (default 20)
+ * @param alpha — EWMA smoothing factor (default 0.15)
+ */
+export declare function createPsiHState(maxSize?: number, alpha?: number): PsiHState;
 /**
  * εR range classification.
  */
