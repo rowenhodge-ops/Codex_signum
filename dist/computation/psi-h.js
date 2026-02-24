@@ -219,4 +219,74 @@ export function computeGraphTotalVariation(edges, nodeIndex, nodeHealths) {
     // Normalise: max possible variation is 1.0 per edge (if ΦL range is [0,1])
     return Math.min(1, totalVariation / edgeCount);
 }
+// ============ STATEFUL TEMPORAL DECOMPOSITION ============
+/** Minimum observations before baseline is established */
+const BASELINE_MIN_OBSERVATIONS = 5;
+/**
+ * Decompose ΨH into transient and durable friction components.
+ *
+ * Stateless equivalent of DND-Manager's HarmonicResonance EWMA decomposition.
+ * The caller owns and persists the PsiHState between runs.
+ *
+ * - psiH_instant: current point-in-time combined value
+ * - psiH_trend: EWMA-smoothed trend (α=state.alpha, default 0.15)
+ * - friction_transient: |instant - trend| (short-term deviation)
+ * - friction_durable: |trend - baseline| (long-term drift)
+ *
+ * @param state — Current PsiHState
+ * @param psiH_instant — Current ΨH combined value
+ * @returns { decomposition, updatedState }
+ */
+export function decomposePsiH(state, psiH_instant) {
+    // Clone ring buffer (immutable update)
+    const ringBuffer = [...state.ringBuffer, psiH_instant];
+    if (ringBuffer.length > state.maxSize) {
+        ringBuffer.shift();
+    }
+    // Compute EWMA trend
+    const prevTrend = state.trend ?? psiH_instant;
+    const psiH_trend = state.alpha * psiH_instant + (1 - state.alpha) * prevTrend;
+    // Transient friction: deviation of instant from trend
+    const friction_transient = Math.abs(psiH_instant - psiH_trend);
+    // Durable friction: how far the trend has shifted from baseline
+    let baseline = state.baseline;
+    if (baseline === undefined && ringBuffer.length >= BASELINE_MIN_OBSERVATIONS) {
+        baseline = psiH_trend;
+    }
+    const friction_durable = baseline !== undefined
+        ? Math.abs(psiH_trend - baseline)
+        : 0;
+    const updatedState = {
+        ...state,
+        ringBuffer,
+        trend: psiH_trend,
+        baseline,
+    };
+    return {
+        decomposition: {
+            psiH_instant,
+            psiH_trend,
+            friction_transient,
+            friction_durable,
+        },
+        updatedState,
+    };
+}
+/**
+ * Compute ΨH with integrated temporal decomposition state management.
+ *
+ * Wraps `computePsiH` with EWMA trend tracking and friction classification.
+ * The caller provides a PsiHState; the function returns the updated state
+ * alongside both the raw PsiH and its temporal decomposition.
+ *
+ * @param edges — Graph adjacency
+ * @param nodeHealths — ΦL values for each node
+ * @param state — Current PsiHState for temporal decomposition
+ * @returns { psiH, decomposition, updatedState }
+ */
+export function computePsiHWithState(edges, nodeHealths, state) {
+    const psiH = computePsiH(edges, nodeHealths);
+    const { decomposition, updatedState } = decomposePsiH(state, psiH.combined);
+    return { psiH, decomposition, updatedState };
+}
 //# sourceMappingURL=psi-h.js.map

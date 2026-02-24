@@ -19,6 +19,14 @@ export const DEFAULT_PHI_L_WEIGHTS = {
     usageSuccessRate: 0.2,
     temporalStability: 0.2,
 };
+/**
+ * Create a fresh PhiLState with default settings.
+ *
+ * @param maxSize — Ring buffer capacity (default 20, matching DND convention)
+ */
+export function createPhiLState(maxSize = 20) {
+    return { ringBuffer: [], maxSize };
+}
 /** Recommended ΨH component weights per Engineering Bridge v2.0 */
 export const PSI_H_WEIGHTS = {
     structural: 0.4,
@@ -32,6 +40,21 @@ export const PSI_H_FRICTION_THRESHOLDS = {
     /** Above 0.8 = dissonant — composition is fighting itself */
     dissonant: 1.0,
 };
+/**
+ * Create a fresh PsiHState with default settings.
+ *
+ * @param maxSize — Ring buffer capacity (default 20)
+ * @param alpha — EWMA smoothing factor (default 0.15)
+ */
+export function createPsiHState(maxSize = 20, alpha = 0.15) {
+    return {
+        ringBuffer: [],
+        maxSize,
+        alpha,
+        trend: undefined,
+        baseline: undefined,
+    };
+}
 /**
  * εR range thresholds per v3.0 spec.
  */

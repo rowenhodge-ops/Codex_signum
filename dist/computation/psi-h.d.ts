@@ -17,7 +17,7 @@
  * @see engineering-bridge-v2.0.md §Part 2 "ΨH"
  * @module codex-signum-core/computation/psi-h
  */
-import type { PsiH } from "../types/state-dimensions.js";
+import type { PsiH, PsiHDecomposition, PsiHState } from "../types/state-dimensions.js";
 /** An edge in the adjacency representation */
 export interface GraphEdge {
     from: string;
@@ -80,4 +80,40 @@ export declare function computeAllEigenvalues(matrix: Float64Array, n: number, m
  * High TV_G (>0.8) = dissonant — neighbors disagree on health.
  */
 export declare function computeGraphTotalVariation(edges: GraphEdge[], nodeIndex: Map<string, number>, nodeHealths: NodeHealth[]): number;
+/**
+ * Decompose ΨH into transient and durable friction components.
+ *
+ * Stateless equivalent of DND-Manager's HarmonicResonance EWMA decomposition.
+ * The caller owns and persists the PsiHState between runs.
+ *
+ * - psiH_instant: current point-in-time combined value
+ * - psiH_trend: EWMA-smoothed trend (α=state.alpha, default 0.15)
+ * - friction_transient: |instant - trend| (short-term deviation)
+ * - friction_durable: |trend - baseline| (long-term drift)
+ *
+ * @param state — Current PsiHState
+ * @param psiH_instant — Current ΨH combined value
+ * @returns { decomposition, updatedState }
+ */
+export declare function decomposePsiH(state: PsiHState, psiH_instant: number): {
+    decomposition: PsiHDecomposition;
+    updatedState: PsiHState;
+};
+/**
+ * Compute ΨH with integrated temporal decomposition state management.
+ *
+ * Wraps `computePsiH` with EWMA trend tracking and friction classification.
+ * The caller provides a PsiHState; the function returns the updated state
+ * alongside both the raw PsiH and its temporal decomposition.
+ *
+ * @param edges — Graph adjacency
+ * @param nodeHealths — ΦL values for each node
+ * @param state — Current PsiHState for temporal decomposition
+ * @returns { psiH, decomposition, updatedState }
+ */
+export declare function computePsiHWithState(edges: GraphEdge[], nodeHealths: NodeHealth[], state: PsiHState): {
+    psiH: PsiH;
+    decomposition: PsiHDecomposition;
+    updatedState: PsiHState;
+};
 //# sourceMappingURL=psi-h.d.ts.map
