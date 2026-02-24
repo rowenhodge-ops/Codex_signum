@@ -335,9 +335,13 @@ describe("Maturity Factor", () => {
     expect(m).toBeCloseTo(expected, 4);
   });
 
-  it("classifyMaturity returns correct stages", () => {
+  it("classifyMaturity returns correct stages (spec: 0.3/0.7 boundaries)", () => {
     expect(classifyMaturity(0.2)).toBe("young");
+    expect(classifyMaturity(0.29)).toBe("young");
+    expect(classifyMaturity(0.3)).toBe("maturing");
     expect(classifyMaturity(0.5)).toBe("maturing");
+    expect(classifyMaturity(0.69)).toBe("maturing");
+    expect(classifyMaturity(0.7)).toBe("mature");
     expect(classifyMaturity(0.9)).toBe("mature");
   });
 

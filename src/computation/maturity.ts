@@ -27,9 +27,9 @@ const K1_OBSERVATION = 0.05;
 /** Decay constant for connection count */
 const K2_CONNECTION = 0.5;
 
-/** Maturity classification boundaries */
-const MATURITY_YOUNG_THRESHOLD = 0.4;
-const MATURITY_MATURE_THRESHOLD = 0.75;
+/** Maturity classification boundaries (spec: Young < 0.3, Maturing 0.3–0.7, Mature > 0.7) */
+const MATURITY_YOUNG_THRESHOLD = 0.3;
+const MATURITY_MATURE_THRESHOLD = 0.7;
 
 // ============ CORE COMPUTATION ============
 
@@ -81,12 +81,12 @@ export function computeMaturityIndex(
   const meanComponentAge = normalizeAge(mean(patterns.map((p) => p.ageMs)));
   const meanPhiLEcosystem = mean(patterns.map((p) => p.phiL));
 
-  // Composite value — weighted average of factors
+  // Composite value — equal-weighted average of factors (spec: 0.25 × 4)
   const value =
-    0.3 * meanObservationDepth +
+    0.25 * meanObservationDepth +
     0.25 * connectionDensity +
     0.25 * meanComponentAge +
-    0.2 * meanPhiLEcosystem;
+    0.25 * meanPhiLEcosystem;
 
   // Classification
   const classification = classifyMaturity(value);
