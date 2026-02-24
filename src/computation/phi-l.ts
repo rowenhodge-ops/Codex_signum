@@ -17,11 +17,20 @@
 import type {
   PhiL,
   PhiLFactors,
+  PhiLState,
   PhiLTrend,
   PhiLWeights,
 } from "../types/state-dimensions.js";
 import { DEFAULT_PHI_L_WEIGHTS } from "../types/state-dimensions.js";
 import { computeMaturityFactor } from "./maturity.js";
+
+// ============ CONSTANTS ============
+
+/**
+ * Maximum expected inter-run ΦL variance for temporal stability.
+ * stddev ≈ 0.2 normalised. Matches DND-Manager convention.
+ */
+const MAX_EXPECTED_VARIANCE = 0.04;
 
 // ============ CORE COMPUTATION ============
 
@@ -164,6 +173,100 @@ export function computeTemporalStability(recentPhiLValues: number[]): number {
 
   // Stability = 1 - cv, clamped to [0, 1]
   return Math.max(0, Math.min(1, 1 - cv));
+}
+
+// ============ STATEFUL COMPUTATION ============
+
+/**
+ * Compute temporal stability from a PhiLState ring buffer.
+ *
+ * Uses variance-based approach: stability = 1 - min(1, variance / MAX_EXPECTED_VARIANCE)
+ * Low variance → high stability. High variance → low stability.
+ *
+ * This is the stateless equivalent of DND-Manager's HealthComputer ring buffer.
+ * The caller owns and persists the PhiLState between runs.
+ *
+ * @param state — Current PhiLState (ring buffer)
+ * @param latestPhiL — Most recent ΦL effective value to push into buffer
+ * @returns { stability, updatedState } — the computed stability and new state
+ */
+export function computeTemporalStabilityFromState(
+  state: PhiLState,
+  latestPhiL: number,
+): { stability: number; updatedState: PhiLState } {
+  // Clone ring buffer (immutable update)
+  const ringBuffer = [...state.ringBuffer, latestPhiL];
+  if (ringBuffer.length > state.maxSize) {
+    ringBuffer.shift();
+  }
+
+  const updatedState: PhiLState = { ...state, ringBuffer };
+
+  // Need at least 2 values to compute variance
+  if (ringBuffer.length < 2) {
+    return { stability: 0.5, updatedState };
+  }
+
+  const mean = ringBuffer.reduce((a, b) => a + b, 0) / ringBuffer.length;
+  const variance =
+    ringBuffer.reduce((sum, v) => sum + (v - mean) ** 2, 0) / ringBuffer.length;
+
+  const stability = Math.max(0, Math.min(1, 1 - variance / MAX_EXPECTED_VARIANCE));
+  return { stability, updatedState };
+}
+
+/**
+ * Compute ΦL with integrated state management.
+ *
+ * Wraps `computePhiL` with ring buffer temporal stability tracking.
+ * The caller provides a PhiLState; the function returns the updated state
+ * alongside the PhiL result. Core remains stateless — no module-level Maps.
+ *
+ * Flow:
+ * 1. Compute raw ΦL using provided factors (temporalStability from state)
+ * 2. Push effective ΦL into ring buffer
+ * 3. Recompute temporal stability from updated buffer for next cycle
+ * 4. Return both the PhiL result and updated state
+ *
+ * @param factors — The three non-stability factors (stability is computed from state)
+ * @param observationCount — Number of retained observations
+ * @param connectionCount — Number of active graph connections
+ * @param state — Current PhiLState (ring buffer for temporal stability)
+ * @param previousPhiL — Previous ΦL effective value (for trend)
+ * @param weights — Factor weights (defaults to spec recommendation)
+ */
+export function computePhiLWithState(
+  factors: Omit<PhiLFactors, "temporalStability">,
+  observationCount: number,
+  connectionCount: number,
+  state: PhiLState,
+  previousPhiL?: number,
+  weights: PhiLWeights = DEFAULT_PHI_L_WEIGHTS,
+): { phiL: PhiL; updatedState: PhiLState } {
+  // Compute temporal stability from current ring buffer state
+  // Use previousPhiL as the latest observation to push
+  const phiLForBuffer = previousPhiL ?? 0.5;
+  const { stability, updatedState } = computeTemporalStabilityFromState(
+    state,
+    phiLForBuffer,
+  );
+
+  // Build full factors including computed stability
+  const fullFactors: PhiLFactors = {
+    ...factors,
+    temporalStability: stability,
+  };
+
+  // Delegate to existing computePhiL (backward compatible)
+  const phiL = computePhiL(
+    fullFactors,
+    observationCount,
+    connectionCount,
+    previousPhiL,
+    weights,
+  );
+
+  return { phiL, updatedState };
 }
 
 // ============ VALIDATION ============

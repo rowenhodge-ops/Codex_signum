@@ -26,12 +26,16 @@ import {
 import {
   computeAxiomComplianceFactor,
   computePhiL,
+  computePhiLWithState,
   computeRawPhiL,
   computeTemporalStability,
+  computeTemporalStabilityFromState,
   computeUsageSuccessRate,
 } from "../../src/computation/phi-l.js";
 import {
   computePsiH,
+  computePsiHWithState,
+  decomposePsiH,
   type GraphEdge,
   type NodeHealth,
 } from "../../src/computation/psi-h.js";
@@ -40,6 +44,8 @@ import {
   DEFAULT_PHI_L_WEIGHTS,
   EPSILON_R_THRESHOLDS,
   classifyEpsilonR,
+  createPhiLState,
+  createPsiHState,
 } from "../../src/types/state-dimensions.js";
 
 describe("ΦL (Pattern Health)", () => {
@@ -112,6 +118,202 @@ describe("ΦL (Pattern Health)", () => {
   it("computes temporal stability", () => {
     expect(computeTemporalStability([0.8, 0.8, 0.8, 0.8])).toBeGreaterThan(0.9);
     expect(computeTemporalStability([0.8, 0.9])).toBe(0.5);
+  });
+});
+
+describe("ΦL Stateful Computation (Ring Buffer)", () => {
+  it("createPhiLState returns empty buffer with default maxSize", () => {
+    const state = createPhiLState();
+    expect(state.ringBuffer).toEqual([]);
+    expect(state.maxSize).toBe(20);
+  });
+
+  it("createPhiLState accepts custom maxSize", () => {
+    const state = createPhiLState(10);
+    expect(state.maxSize).toBe(10);
+  });
+
+  it("returns 0.5 stability with fewer than 2 observations", () => {
+    const state = createPhiLState();
+    const { stability, updatedState } = computeTemporalStabilityFromState(state, 0.8);
+    expect(stability).toBe(0.5);
+    expect(updatedState.ringBuffer).toEqual([0.8]);
+  });
+
+  it("returns high stability for constant values", () => {
+    let state = createPhiLState();
+    // Push 5 identical values
+    for (let i = 0; i < 5; i++) {
+      const result = computeTemporalStabilityFromState(state, 0.8);
+      state = result.updatedState;
+    }
+    const { stability } = computeTemporalStabilityFromState(state, 0.8);
+    expect(stability).toBeGreaterThan(0.99);
+  });
+
+  it("returns low stability for high-variance values", () => {
+    let state = createPhiLState();
+    // Alternate between extremes
+    const values = [0.1, 0.9, 0.1, 0.9, 0.1, 0.9];
+    for (const v of values) {
+      const result = computeTemporalStabilityFromState(state, v);
+      state = result.updatedState;
+    }
+    const { stability } = computeTemporalStabilityFromState(state, 0.1);
+    expect(stability).toBeLessThan(0.1);
+  });
+
+  it("respects maxSize — ring buffer does not grow beyond limit", () => {
+    let state = createPhiLState(5);
+    for (let i = 0; i < 10; i++) {
+      const result = computeTemporalStabilityFromState(state, 0.5 + i * 0.01);
+      state = result.updatedState;
+    }
+    expect(state.ringBuffer.length).toBe(5);
+  });
+
+  it("does not mutate input state (immutable update)", () => {
+    const state = createPhiLState();
+    const original = { ...state, ringBuffer: [...state.ringBuffer] };
+    computeTemporalStabilityFromState(state, 0.8);
+    expect(state.ringBuffer).toEqual(original.ringBuffer);
+  });
+
+  it("computePhiLWithState integrates stability from state", () => {
+    let state = createPhiLState();
+    // Build up a buffer with stable values
+    for (let i = 0; i < 5; i++) {
+      const result = computePhiLWithState(
+        { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 },
+        100, 5, state, 0.8,
+      );
+      state = result.updatedState;
+    }
+    const { phiL, updatedState } = computePhiLWithState(
+      { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 },
+      100, 5, state, 0.8,
+    );
+    expect(phiL.factors.temporalStability).toBeGreaterThan(0.9);
+    expect(phiL.effective).toBeGreaterThan(0);
+    expect(updatedState.ringBuffer.length).toBeGreaterThan(0);
+  });
+
+  it("computePhiLWithState does not break existing computePhiL", () => {
+    // Existing function still works identically
+    const phiL = computePhiL(
+      { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85, temporalStability: 0.95 },
+      100, 5,
+    );
+    expect(phiL.effective).toBeGreaterThan(0);
+    expect(phiL.trend).toBe("stable");
+  });
+});
+
+describe("ΨH Temporal Decomposition (Stateless)", () => {
+  it("createPsiHState returns default values", () => {
+    const state = createPsiHState();
+    expect(state.ringBuffer).toEqual([]);
+    expect(state.maxSize).toBe(20);
+    expect(state.alpha).toBe(0.15);
+    expect(state.trend).toBeUndefined();
+    expect(state.baseline).toBeUndefined();
+  });
+
+  it("first decomposition sets trend to instant value", () => {
+    const state = createPsiHState();
+    const { decomposition, updatedState } = decomposePsiH(state, 0.7);
+    expect(decomposition.psiH_instant).toBe(0.7);
+    expect(decomposition.psiH_trend).toBe(0.7);
+    expect(decomposition.friction_transient).toBe(0);
+    expect(decomposition.friction_durable).toBe(0);
+    expect(updatedState.trend).toBe(0.7);
+    expect(updatedState.baseline).toBeUndefined(); // <5 observations
+  });
+
+  it("EWMA trend converges toward repeated values", () => {
+    let state = createPsiHState();
+    // Push 10 values at 0.8
+    for (let i = 0; i < 10; i++) {
+      const result = decomposePsiH(state, 0.8);
+      state = result.updatedState;
+    }
+    expect(state.trend).toBeCloseTo(0.8, 2);
+  });
+
+  it("baseline is established after 5 observations", () => {
+    let state = createPsiHState();
+    for (let i = 0; i < 4; i++) {
+      const result = decomposePsiH(state, 0.7);
+      state = result.updatedState;
+    }
+    expect(state.baseline).toBeUndefined();
+
+    const { updatedState } = decomposePsiH(state, 0.7);
+    expect(updatedState.baseline).toBeDefined();
+    expect(updatedState.baseline).toBeCloseTo(0.7, 2);
+  });
+
+  it("friction_transient reflects sudden change", () => {
+    let state = createPsiHState();
+    // Establish stable trend
+    for (let i = 0; i < 10; i++) {
+      const result = decomposePsiH(state, 0.8);
+      state = result.updatedState;
+    }
+    // Sudden spike
+    const { decomposition } = decomposePsiH(state, 0.3);
+    expect(decomposition.friction_transient).toBeGreaterThan(0.3);
+  });
+
+  it("friction_durable reflects trend drift from baseline", () => {
+    let state = createPsiHState();
+    // Establish baseline at ~0.8
+    for (let i = 0; i < 10; i++) {
+      const result = decomposePsiH(state, 0.8);
+      state = result.updatedState;
+    }
+    // Now shift to 0.4 for many cycles
+    for (let i = 0; i < 20; i++) {
+      const result = decomposePsiH(state, 0.4);
+      state = result.updatedState;
+    }
+    const { decomposition } = decomposePsiH(state, 0.4);
+    expect(decomposition.friction_durable).toBeGreaterThan(0.2);
+  });
+
+  it("ring buffer respects maxSize", () => {
+    let state = createPsiHState(5);
+    for (let i = 0; i < 10; i++) {
+      const result = decomposePsiH(state, 0.5 + i * 0.01);
+      state = result.updatedState;
+    }
+    expect(state.ringBuffer.length).toBe(5);
+  });
+
+  it("does not mutate input state (immutable update)", () => {
+    const state = createPsiHState();
+    const originalRingBuffer = [...state.ringBuffer];
+    decomposePsiH(state, 0.7);
+    expect(state.ringBuffer).toEqual(originalRingBuffer);
+    expect(state.trend).toBeUndefined();
+  });
+
+  it("computePsiHWithState integrates decomposition", () => {
+    const edges: GraphEdge[] = [
+      { from: "a", to: "b", weight: 1 },
+      { from: "b", to: "c", weight: 1 },
+    ];
+    const nodeHealths: NodeHealth[] = [
+      { id: "a", phiL: 0.8 },
+      { id: "b", phiL: 0.85 },
+      { id: "c", phiL: 0.9 },
+    ];
+    let state = createPsiHState();
+
+    const { psiH, decomposition, updatedState } = computePsiHWithState(edges, nodeHealths, state);
+    expect(psiH.combined).toBeGreaterThan(0);
+    expect(decomposition.psiH_instant).toBe(psiH.combined);
+    expect(updatedState.ringBuffer.length).toBe(1);
   });
 });
 

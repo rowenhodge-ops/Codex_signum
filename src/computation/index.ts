@@ -8,8 +8,10 @@
 export {
   computeAxiomComplianceFactor,
   computePhiL,
+  computePhiLWithState,
   computeRawPhiL,
   computeTemporalStability,
+  computeTemporalStabilityFromState,
   computeTrend,
   computeUsageSuccessRate,
 } from "./phi-l.js";
@@ -28,6 +30,8 @@ export {
   computeFiedlerEigenvalue,
   computeGraphTotalVariation,
   computePsiH,
+  computePsiHWithState,
+  decomposePsiH,
 } from "./psi-h.js";
 export type { GraphEdge, NodeHealth } from "./psi-h.js";
 
