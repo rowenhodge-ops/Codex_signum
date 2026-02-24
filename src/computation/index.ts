@@ -101,3 +101,11 @@ export type {
 
 // Immune response
 export { evaluateAndReviewIfNeeded } from "./immune-response.js";
+
+// Adaptive thresholds
+export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonant } from "./adaptive-thresholds.js";
+export type { ThresholdSet } from "./adaptive-thresholds.js";
+
+// Threshold learning
+export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
+export type { ThresholdOutcome, ThresholdOutcomeType, ThresholdType } from "./threshold-learning.js";
