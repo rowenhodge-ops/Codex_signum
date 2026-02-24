@@ -23,6 +23,12 @@ export * from "./constitutional/index.js";
 // ── Signals ──
 export * from "./signals/index.js";
 
+// ── Resilience ──
+export * from "./resilience/index.js";
+
+// ── Metrics ──
+export * from "./metrics/index.js";
+
 // ── Patterns ──
 export * from "./patterns/index.js";
 
