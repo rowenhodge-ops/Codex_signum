@@ -31,9 +31,12 @@ export type {
   MaturityIndex,
   PhiL,
   PhiLFactors,
+  PhiLState,
   PhiLTrend,
   PhiLWeights,
   PsiH,
+  PsiHDecomposition,
+  PsiHState,
   StateDimensions,
 } from "./state-dimensions.js";
 
@@ -44,6 +47,8 @@ export {
   PSI_H_FRICTION_THRESHOLDS,
   PSI_H_WEIGHTS,
   classifyEpsilonR,
+  createPhiLState,
+  createPsiHState,
 } from "./state-dimensions.js";
 
 // Constitutional types — rules, axioms, ADRs
