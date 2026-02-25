@@ -1,0 +1,296 @@
+# Codex Signum — Core Library
+
+## For Claude Code (and any coding agent)
+
+This is the core library for the Codex Signum protocol — a semantic encoding where **state is structural**. Consumer applications (like DND-Manager) import from this package. This repo is the single source of truth for all grammar-level infrastructure.
+
+---
+
+## Architecture
+
+```
+src/
+├── computation/           # State dimension calculators
+│   ├── phi-l.ts           # ΦL — health score (4-factor: axiom_compliance, provenance, success_rate, temporal_stability)
+│   ├── psi-h.ts           # ΨH — harmonic signature (λ₂ structural coherence + TV_G runtime friction)
+│   ├── epsilon-r.ts       # εR — exploration rate with imperative gradient + spectral calibration
+│   ├── dampening.ts       # Topology-aware cascade dampening: γ_effective = min(0.7, 0.8/(k-1))
+│   ├── maturity.ts        # Network maturity index (4 normalized factors, each weighted 0.25)
+│   ├── aggregation.ts     # Hierarchical health aggregation (node → pattern → bloom → system)
+│   ├── hierarchical-health.ts  # Recursive bottom-up health walk
+│   ├── adaptive-thresholds.ts  # Maturity-indexed thresholds (Young/Maturing/Mature bands)
+│   ├── structural-review.ts    # 5 diagnostic computations (global λ₂, spectral gap, hub dependency, friction, dampening)
+│   ├── structural-triggers.ts  # 6 event triggers for structural review
+│   ├── immune-response.ts      # Wire triggers → review (event-driven, not scheduled)
+│   ├── signals/           # 7-stage signal conditioning pipeline
+│   │   ├── SignalPipeline.ts   # Orchestrator
+│   │   ├── Debounce.ts         # Stage 1: 100ms, 2-3 event persistence
+│   │   ├── HampelFilter.ts     # Stage 2: 7-point window, k=3
+│   │   ├── EWMASmoother.ts     # Stage 3: α=0.25 leaves, 0.15 default, 0.08 hubs
+│   │   ├── CUSUMMonitor.ts     # Stage 4: h ≈ 4-5
+│   │   ├── MACDDetector.ts     # Stage 5: fast α=0.25, slow α=0.04
+│   │   ├── HysteresisGate.ts   # Stage 6: band ≥ 2× V_pp
+│   │   ├── TrendRegression.ts  # Stage 7: Theil-Sen, 30-50 events
+│   │   ├── NelsonRules.ts      # Rules 1, 2, 7
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── metrics/           # OpEx metrics (RTY, feedback effectiveness)
+│
+├── patterns/              # Reference patterns
+│   ├── architect/         # 7-stage planning pipeline (SURVEY→DECOMPOSE→CLASSIFY→SEQUENCE→GATE→DISPATCH→ADAPT)
+│   │   ├── types.ts       # Full pipeline types + ModelExecutor + TaskExecutor interfaces
+│   │   ├── survey.ts      # SURVEY (35KB, spec cross-reference, pure filesystem)
+│   │   ├── decompose.ts   # DECOMPOSE (LLM via ModelExecutor interface)
+│   │   ├── classify.ts    # CLASSIFY (mechanical vs generative, pure computation)
+│   │   ├── sequence.ts    # SEQUENCE (topological sort + critical path)
+│   │   ├── gate.ts        # GATE (human approval — mandatory in V1)
+│   │   ├── dispatch.ts    # DISPATCH (calls TaskExecutor per task)
+│   │   ├── adapt.ts       # ADAPT (failure classification + replanning)
+│   │   ├── architect.ts   # executePlan() orchestrator
+│   │   └── index.ts
+│   ├── dev-agent/         # SCOPE → EXECUTE → REVIEW → VALIDATE pipeline
+│   │   ├── types.ts       # AgentTask, PipelineResult, DevAgentModelExecutor
+│   │   ├── pipeline.ts    # Pipeline with lifecycle hooks (afterStage, afterPipeline)
+│   │   └── index.ts
+│   ├── thompson-router/   # Thompson sampling model selection
+│   └── observer/          # Validation & testing (may be stub)
+│
+├── resilience/            # Circuit breaker, retry logic
+│   └── circuit-breaker.ts # MUST use: exponential backoff + full jitter + 5-10 half-open probes
+│
+├── constitutional/        # Governance layer
+│   ├── rule-engine.ts     # Constitutional rule evaluation
+│   ├── evolution.ts       # Amendment mechanism (may be stub — Tier 1/2/3 taxonomy)
+│   └── cascade-prevention.ts  # propagateDegradation() with topology-aware dampening
+│
+├── memory/                # Four-stratum memory operations
+│   ├── compaction.ts      # Stratum 2: continuous exponential decay, weight = e^(-λ × age)
+│   ├── distillation.ts    # Stratum 3: performance profiles, routing hints, threshold calibration
+│   └── flow-coordinator.ts # Upward compression + downward enrichment
+│
+├── graph/                 # Neo4j connection, schema, queries
+│   ├── client.ts
+│   ├── schema.ts
+│   └── queries.ts
+│
+├── types/                 # Core type definitions
+│   ├── morphemes.ts       # Seed, Line, Bloom, Resonator, Grid, Helix
+│   ├── state-dimensions.ts # ΦL, ΨH, εR composite types
+│   ├── constitutional.ts  # Rule types, amendment taxonomy
+│   └── memory.ts          # Four-stratum memory types
+│
+└── index.ts               # Barrel export — EVERYTHING public goes through here
+
+tests/                     # All tests
+dist/                      # Compiled output — COMMITTED to repo
+```
+
+---
+
+## Non-Negotiable Rules
+
+### 1. This is a LIBRARY, not an application
+
+Core is substrate-agnostic. It does NOT know about:
+- DND-Manager, D&D, character sheets
+- Specific LLM providers (Anthropic, OpenAI, Mistral, Google)
+- Specific databases beyond abstract graph interfaces
+- Any consumer application's business logic
+
+If you find yourself importing from a consumer app — **STOP. You are going the wrong direction.**
+
+### 2. dist/ is committed. There is NO prepare script.
+
+```bash
+npm run build       # Compiles to dist/
+git add dist/       # ALWAYS commit dist/ after building
+git commit          # Consumers install from GitHub and use committed dist/
+```
+
+**DO NOT** add a `prepare` script to package.json. npm runs `prepare` automatically when a consumer installs a GitHub dependency, which would rebuild dist/ from source during install and overwrite the committed files. This bug cost hours to diagnose. See commit `4cd0ecc`.
+
+### 3. State Is Structural
+
+The graph is the single source of truth. Do NOT create:
+- Separate health databases or JSON caches
+- SQLite tables for monitoring data
+- Log files as state stores
+- Any parallel state outside the graph
+
+### 4. ΦL Is ALWAYS a Composite
+
+ΦL is never `health: number`. It is always a structured object with raw factors, weights, maturity_factor, and effective score. If you see a bare number being passed as health, it's wrong.
+
+### 5. Dampening Is NEVER Fixed
+
+`γ = 0.7` everywhere is WRONG. Always compute from topology:
+```
+γ_effective = min(0.7, 0.8 / (k - 1))    for k > 1
+```
+Hub dampening uses `γ_base / √k` (NOT `γ_base / degree`).
+
+### 6. Hysteresis = 2.5×
+
+Recovery is 2.5× slower than degradation. Not 1.5×. This was corrected by research validation.
+
+### 7. Cascade Limit = 2
+
+Degradation propagates at most 2 containment levels. This is the primary safety mechanism. Never increase without a foundational amendment.
+
+### 8. Signal Pipeline Is Complete — Don't Modify
+
+The 7-stage signal conditioning pipeline in `src/computation/signals/` was built across 15 carefully audited commits, verified against Engineering Bridge §Part 4. Do not modify it unless fixing a specific documented bug.
+
+### 9. .js Extensions on ALL Relative Imports
+
+Every relative import MUST use `.js` extension:
+```typescript
+// CORRECT
+import { computePhiL } from "./phi-l.js";
+
+// WRONG — will fail at runtime
+import { computePhiL } from "./phi-l";
+```
+
+### 10. Commit + Push After Every Task
+
+Every discrete task produces a commit with a descriptive message and pushes to remote. Never accumulate uncommitted work across tasks.
+
+---
+
+## Specification References
+
+When in doubt about how something should be computed:
+
+| Question | Reference |
+|---|---|
+| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` |
+| How to compute ΦL, ΨH, εR? | Engineering Bridge v2.0 §Part 2 |
+| Dampening, cascade, hysteresis parameters? | Engineering Bridge v2.0 §Part 3 |
+| Signal conditioning pipeline? | Engineering Bridge v2.0 §Part 4 |
+| Visual encoding safety? | Engineering Bridge v2.0 §Part 5 |
+| CAS vulnerability watchpoints? | Engineering Bridge v2.0 §Part 6 |
+| Memory sizing? | Engineering Bridge v2.0 §Part 7 |
+| Structural review triggers + diagnostics? | Engineering Bridge v2.0 §Part 8 |
+| Adversarial resilience? | Engineering Bridge v2.0 §Part 9 |
+| RTY, error classification, failure modes? | Engineering Bridge v2.0 §Part 10 |
+| Architect pattern design? | `codex-signum-architect-pattern-design.md` |
+
+**The Engineering Bridge is the implementation authority.** If you need to know *what* to build, read the Bridge. If you need to know *why*, read the Codex v3.0.
+
+---
+
+## Key Parameters (from Engineering Bridge)
+
+### ΦL Weights
+```
+axiom_compliance:    0.4
+provenance_clarity:  0.2
+usage_success_rate:  0.2
+temporal_stability:  0.2
+```
+
+### ΨH Composite
+```
+ΨH = 0.4 × normalize(λ₂) + 0.6 × (1 - friction)
+```
+
+### εR Spectral Calibration
+| Spectral Ratio | Minimum εR |
+|---|---|
+| > 0.9 | 0.05 |
+| 0.7–0.9 | 0.02 |
+| 0.5–0.7 | 0.01 |
+| < 0.5 | 0.0 |
+
+### Adaptive Thresholds (Maturity-Indexed)
+| Threshold | Young (MI < 0.3) | Maturing (0.3–0.7) | Mature (MI > 0.7) |
+|---|---|---|---|
+| ΦL healthy | > 0.6 | > 0.7 | > 0.8 |
+| ΦL degraded | < 0.4 | < 0.5 | < 0.6 |
+| εR stable range | 0.10–0.40 | 0.05–0.30 | 0.01–0.15 |
+| ΨH dissonance | > 0.25 | > 0.20 | > 0.15 |
+
+### Circuit Breaker
+```
+cooldown = random(0, min(base × 1.5^tripCount, 300_000ms))   # Full jitter
+halfOpenProbes = 5-10                                          # Successes to close
+```
+
+### Recovery Model
+```
+recovery_delay = base_delay × (1 + 0.2 × failure_count)
+capped at: 10 × base_delay
+```
+
+### Algedonic Bypass
+```
+if (ΦL < 0.1) → γ = 1.0   # Emergency escalation, bypass all dampening
+```
+
+---
+
+## Files That DO NOT EXIST — Never Reference These
+
+- ~~`src/health/`~~ → Health computation is in `src/computation/`
+- ~~`src/agent/`~~ → There is no agent directory, patterns are in `src/patterns/`
+- ~~`src/config/`~~ → No config directory
+- ~~`src/utils/firebase.ts`~~ → Firebase does not exist in this project
+- ~~`src/monitoring/`~~ → Monitoring is structural, not separate
+- ~~`src/services/`~~ → No services directory
+- ~~`core/` at repo root~~ → Source is in `src/`, not `core/`
+
+If you need to find where something lives:
+```bash
+find src -name "*.ts" -type f | sort
+grep -rn "export.*functionName" src/ --include="*.ts"
+```
+
+---
+
+## Build & Verification
+
+```bash
+# Type check (run after every edit)
+npx tsc --noEmit
+
+# Run tests
+npm test
+
+# Build (ALWAYS do before committing)
+npm run build
+
+# Commit dist (ALWAYS after build)
+git add dist/
+git commit -m "build: description"
+
+# Verify barrel exports
+node -e "const c = require('./dist'); console.log(Object.keys(c).length, 'exports')"
+```
+
+---
+
+## What NOT to Change
+
+- **Morphemes, axioms, grammar rules** — these are immutable (v3.0 §Semantic Stability)
+- **Signal conditioning pipeline** — 15 audited commits, verified against spec
+- **Graph schema** — stable, extend only if adding new node types
+- **Existing test expectations** — unless a fix changes behavior to match spec
+- **package.json `prepare` script** — DO NOT ADD ONE (see rule #2)
+
+---
+
+## Anti-Patterns This Repo Has Encountered
+
+These are real bugs that have occurred in past sessions. Hooks exist to catch them.
+
+| Anti-Pattern | What Went Wrong | Prevention |
+|---|---|---|
+| Fixed dampening γ=0.7 | Supercritical for branching factor ≥ 2 | Always compute γ_effective from topology |
+| Fixed circuit breaker cooldown | Spec requires exponential backoff + jitter | Use `computeCooldown(tripCount, config)` |
+| ModelExecutor name collision | Both dev-agent and architect exported same name | dev-agent uses `DevAgentModelExecutor` |
+| `prepare` script in package.json | Rebuilt dist/ during consumer `npm install` | Removed in `4cd0ecc`, never re-add |
+| Averaging children's ΨH | ΨH is relational — compute from subgraph λ₂ | `aggregateHealth` computes ΨH from graph |
+| Static retention window for compaction | Spec uses continuous exponential decay | `weight = e^(-λ × age)`, not fixed window |
+| Hysteresis ratio 1.5× | Below Schmitt trigger engineering standards | Corrected to 2.5× per research validation |
+| Bare `number` as health score | ΦL must always be composite structure | Use `PhiLOutput` type, never bare number |

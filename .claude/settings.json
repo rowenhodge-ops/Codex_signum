@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hook": ".claude/hooks/pre-edit-guard.sh"
+      },
+      {
+        "matcher": "Bash(git commit:*)",
+        "hook": ".claude/hooks/pre-commit-gate.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hook": ".claude/hooks/post-edit-typecheck.sh"
+      }
+    ],
+    "Stop": [
+      {
+        "hook": ".claude/hooks/on-stop-summary.sh"
+      }
+    ]
+  }
+}
