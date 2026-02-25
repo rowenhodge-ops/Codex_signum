@@ -54,22 +54,59 @@ export function computeEpsilonR(
 }
 
 /**
- * Compute the εR floor from imperative gradients.
+ * Spectral calibration table (Engineering Bridge §Part 2).
+ *
+ * Maps spectral ratio to minimum εR floor.
+ * Higher spectral concentration → more mandatory exploration.
+ *
+ * | Spectral Ratio | Minimum εR |
+ * |     > 0.9      |    0.05    |
+ * |   0.7 – 0.9    |    0.02    |
+ * |   0.5 – 0.7    |    0.01    |
+ * |     < 0.5      |    0.0     |
+ */
+export function minEpsilonRForSpectralState(spectralRatio: number): number {
+  if (spectralRatio > 0.9) return 0.05;
+  if (spectralRatio >= 0.7) return 0.02;
+  if (spectralRatio >= 0.5) return 0.01;
+  return 0.0;
+}
+
+/**
+ * Compute the εR floor from imperative gradients and spectral calibration.
  *
  * The floor prevents εR from collapsing to zero even when
  * the Thompson Router is exploiting a dominant arm.
  *
- * εR_floor = max(0.01, baseFloor × imperativeGradient)
+ * εR_floor = max(
+ *   base_εR + (gradient_sensitivity × max(0, -Ω_aggregate_gradient)),
+ *   min_εR_for_spectral_state(spectral_ratio)
+ * )
  *
  * @param baseFloor — Default minimum (0.01 per spec)
- * @param imperativeGradient — How strongly meta-imperatives are pushing for exploration
+ * @param imperativeGradient — Ω_aggregate_gradient. Negative = declining health → more exploration.
  *   (1.0 = normal, >1.0 = increased pressure from Ω₃ Increase Understanding)
+ * @param spectralRatio — Optional spectral concentration ratio (0-1). Higher = more concentrated.
+ * @param gradientSensitivity — How strongly negative gradients inflate the floor (default 0.1)
  */
 export function computeEpsilonRFloor(
   baseFloor: number = 0.01,
   imperativeGradient: number = 1.0,
+  spectralRatio?: number,
+  gradientSensitivity: number = 0.1,
 ): number {
-  return Math.max(0.01, baseFloor * Math.max(0, imperativeGradient));
+  // Gradient-based floor: base + sensitivity × max(0, -gradient)
+  const gradientFloor =
+    baseFloor +
+    gradientSensitivity * Math.max(0, -imperativeGradient);
+
+  // Spectral calibration floor (if ratio provided)
+  const spectralFloor =
+    spectralRatio !== undefined
+      ? minEpsilonRForSpectralState(spectralRatio)
+      : 0;
+
+  return Math.max(gradientFloor, spectralFloor);
 }
 
 /**

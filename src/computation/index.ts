@@ -40,6 +40,7 @@ export {
   checkEpsilonRWarnings,
   computeEpsilonR,
   computeEpsilonRFloor,
+  minEpsilonRForSpectralState,
 } from "./epsilon-r.js";
 
 // Dampening
