@@ -15,4 +15,18 @@ export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, } from ".
 export { CASCADE_LIMIT, HYSTERESIS_RATIO, computeDampening, computeDegradationImpact, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
 // Signal Conditioning Pipeline
 export { computeNetworkState, computePatternState, } from "./signal-conditioning.js";
+// Aggregation
+export { aggregateHealth, weightedMean } from "./aggregation.js";
+// Hierarchical health
+export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
+// Structural triggers
+export { checkStructuralTriggers, checkLambda2Drop, checkFrictionSpike, checkCascadeActivation, checkEpsilonRSpike, checkPhiLVelocityAnomaly, checkOmegaGradientInversion, } from "./structural-triggers.js";
+// Structural review
+export { runStructuralReview, computeGlobalLambda2, computeSpectralGap, computeHubDependencies, computeFrictionDistribution, assessDampening, } from "./structural-review.js";
+// Immune response
+export { evaluateAndReviewIfNeeded } from "./immune-response.js";
+// Adaptive thresholds
+export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonant } from "./adaptive-thresholds.js";
+// Threshold learning
+export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
 //# sourceMappingURL=index.js.map
