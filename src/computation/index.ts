@@ -44,10 +44,15 @@ export {
 
 // Dampening
 export {
+  ALGEDONIC_THRESHOLD,
   CASCADE_LIMIT,
   HYSTERESIS_RATIO,
+  checkAlgedonicBypass,
   computeDampening,
   computeDegradationImpact,
+  computeGammaEffective,
+  computeHubDampening,
+  computeRecoveryDelay,
   computeRecoveryRate,
   propagateDegradation,
 } from "./dampening.js";
