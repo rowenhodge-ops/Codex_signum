@@ -3,12 +3,12 @@
  *
  * @module codex-signum-core/computation
  */
-export { computeAxiomComplianceFactor, computePhiL, computePhiLWithState, computeRawPhiL, computeTemporalStability, computeTemporalStabilityFromState, computeTrend, computeUsageSuccessRate, } from "./phi-l.js";
+export { PHI_L_WINDOW_SIZES, computeAxiomComplianceFactor, computePhiL, computePhiLWithState, computeRawPhiL, computeTemporalStability, computeTemporalStabilityFromState, computeTrend, computeUsageSuccessRate, } from "./phi-l.js";
 export { classifyMaturity, computeMaturityFactor, computeMaturityIndex, } from "./maturity.js";
 export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, decomposePsiH, } from "./psi-h.js";
 export type { GraphEdge, NodeHealth } from "./psi-h.js";
-export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, } from "./epsilon-r.js";
-export { CASCADE_LIMIT, HYSTERESIS_RATIO, computeDampening, computeDegradationImpact, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
+export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, minEpsilonRForSpectralState, } from "./epsilon-r.js";
+export { ALGEDONIC_THRESHOLD, CASCADE_LIMIT, HYSTERESIS_RATIO, checkAlgedonicBypass, computeDampening, computeDegradationImpact, computeGammaEffective, computeHubDampening, computeRecoveryDelay, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
 export type { PropagationNode, PropagationResult } from "./dampening.js";
 export { computeNetworkState, computePatternState, } from "./signal-conditioning.js";
 export type { NetworkStateResult, PatternSignalInput, PatternStateResult, } from "./signal-conditioning.js";

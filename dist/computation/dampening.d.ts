@@ -20,6 +20,8 @@
 export declare const CASCADE_LIMIT = 2;
 /** Recovery is this many times slower than degradation */
 export declare const HYSTERESIS_RATIO = 2.5;
+/** ΦL threshold for algedonic bypass — existential threat escalation */
+export declare const ALGEDONIC_THRESHOLD = 0.1;
 /**
  * Compute the effective dampening factor for a node.
  *
@@ -29,6 +31,57 @@ export declare const HYSTERESIS_RATIO = 2.5;
  * @returns Dampening factor in [0, MAX_GAMMA]
  */
 export declare function computeDampening(degree: number): number;
+/**
+ * Hub dampening: γ_base / √k (Engineering Bridge §Part 3).
+ *
+ * Hubs (high-degree nodes) use √k instead of (k-1) to prevent
+ * over-dampening that would mask genuine problems.
+ *
+ * | Hub degree | γ_base/degree (wrong) | γ_base/√k (correct) |
+ * |     5      |       0.14            |        0.31          |
+ * |    10      |       0.07            |        0.22          |
+ * |    20      |       0.035           |        0.16          |
+ *
+ * @param degree — Number of connections (k)
+ * @param gammaBase — Base dampening factor (default MAX_GAMMA = 0.7)
+ * @returns Hub-specific dampening factor
+ */
+export declare function computeHubDampening(degree: number, gammaBase?: number): number;
+/**
+ * Compute effective dampening, selecting hub or standard formula.
+ *
+ * Standard nodes use min(0.7, 0.8/(k-1)).
+ * Hub nodes (degree > hubThreshold) use γ_base/√k to avoid over-dampening.
+ *
+ * @param degree — Number of connections (k)
+ * @param hubThreshold — Degree above which hub dampening applies (default 4)
+ * @returns Effective dampening factor
+ */
+export declare function computeGammaEffective(degree: number, hubThreshold?: number): number;
+/**
+ * Algedonic bypass check (Engineering Bridge §Part 3).
+ *
+ * Any component with ΦL < 0.1 is an existential threat.
+ * Signal propagates to root with γ = 1.0, bypassing all dampening.
+ *
+ * @param componentPhiL — The ΦL of the degrading component
+ * @returns { gamma: 1.0, bypassed: true } if bypass triggered, else { gamma, bypassed: false }
+ */
+export declare function checkAlgedonicBypass(componentPhiL: number): {
+    gamma: number;
+    bypassed: boolean;
+};
+/**
+ * Recovery delay model (Engineering Bridge §Part 3).
+ *
+ * recovery_delay = base_delay × (1 + 0.2 × failure_count)
+ * capped at: 10 × base_delay
+ *
+ * @param baseDelayMs — Base delay in milliseconds
+ * @param failureCount — Number of prior failures
+ * @returns Recovery delay in milliseconds
+ */
+export declare function computeRecoveryDelay(baseDelayMs: number, failureCount: number): number;
 /**
  * Compute the ΦL impact on a neighbor from a degradation event.
  *
@@ -69,6 +122,8 @@ export interface PropagationResult {
     maxCascadeDepth: number;
     /** Whether cascade limit was hit */
     cascadeLimitReached: boolean;
+    /** Whether algedonic bypass was triggered (ΦL < 0.1) */
+    algedonicBypass: boolean;
 }
 /**
  * Propagate a degradation event through the graph.
