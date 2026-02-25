@@ -47,12 +47,54 @@ export type {
   ObserverState,
 } from "./observer/index.js";
 
-// Architect Pattern
-export { survey } from "./architect/index.js";
+// Architect Pattern — SURVEY + Pipeline stages
+export {
+  survey,
+  classify,
+  sequence,
+  gate,
+  adapt,
+  decompose,
+  buildDecomposePrompt,
+  dispatch,
+  executePlan,
+  MAX_ADAPTATIONS_PER_PLAN,
+  MAX_TASKS_PER_PLAN,
+  MANDATORY_HUMAN_GATE,
+} from "./architect/index.js";
 export type {
+  // Survey types (core's rich types)
   BlindSpot,
   GapItem,
   SpecAssertion,
   SurveyInput,
   SurveyOutput,
+  // Pipeline types
+  AdaptationScope,
+  ComplexityEstimate,
+  Dependency,
+  EffortEstimate,
+  ExecutionPlan,
+  GateDecision,
+  GateResponse,
+  ModelExecutorContext,
+  ModelExecutorResult,
+  Phase,
+  PipelineSurveyOutput,
+  PlanQualityMetrics,
+  PlanState,
+  PlanStatus,
+  Task,
+  TaskExecutionContext,
+  TaskExecutor,
+  TaskGraph,
+  TaskOutcome,
+  TaskType,
+  // Stage results
+  AdaptationResult,
+  GateOptions,
+  ArchitectConfig,
 } from "./architect/index.js";
+// Note: ModelExecutor from architect is NOT re-exported here to avoid
+// conflict with the function-typed ModelExecutor from dev-agent.
+// Import it directly from "@codex-signum/core/patterns/architect" if needed.
