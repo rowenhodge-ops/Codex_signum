@@ -25,6 +25,12 @@ export const HYSTERESIS_RATIO = 2.5;
 const MAX_GAMMA = 0.7;
 /** Numerator for degree-based dampening */
 const GAMMA_NUMERATOR = 0.8;
+/** ΦL threshold for algedonic bypass — existential threat escalation */
+export const ALGEDONIC_THRESHOLD = 0.1;
+/** Recovery delay linear scaling factor per failure */
+const RECOVERY_DELAY_FACTOR = 0.2;
+/** Maximum recovery delay multiplier (cap) */
+const RECOVERY_DELAY_CAP_MULTIPLIER = 10;
 // ============ CORE COMPUTATION ============
 /**
  * Compute the effective dampening factor for a node.
@@ -38,6 +44,71 @@ export function computeDampening(degree) {
     if (degree <= 1)
         return MAX_GAMMA; // Leaf node — max impact
     return Math.min(MAX_GAMMA, GAMMA_NUMERATOR / (degree - 1));
+}
+/**
+ * Hub dampening: γ_base / √k (Engineering Bridge §Part 3).
+ *
+ * Hubs (high-degree nodes) use √k instead of (k-1) to prevent
+ * over-dampening that would mask genuine problems.
+ *
+ * | Hub degree | γ_base/degree (wrong) | γ_base/√k (correct) |
+ * |     5      |       0.14            |        0.31          |
+ * |    10      |       0.07            |        0.22          |
+ * |    20      |       0.035           |        0.16          |
+ *
+ * @param degree — Number of connections (k)
+ * @param gammaBase — Base dampening factor (default MAX_GAMMA = 0.7)
+ * @returns Hub-specific dampening factor
+ */
+export function computeHubDampening(degree, gammaBase = MAX_GAMMA) {
+    if (degree <= 1)
+        return gammaBase;
+    return gammaBase / Math.sqrt(degree);
+}
+/**
+ * Compute effective dampening, selecting hub or standard formula.
+ *
+ * Standard nodes use min(0.7, 0.8/(k-1)).
+ * Hub nodes (degree > hubThreshold) use γ_base/√k to avoid over-dampening.
+ *
+ * @param degree — Number of connections (k)
+ * @param hubThreshold — Degree above which hub dampening applies (default 4)
+ * @returns Effective dampening factor
+ */
+export function computeGammaEffective(degree, hubThreshold = 4) {
+    if (degree > hubThreshold) {
+        return computeHubDampening(degree);
+    }
+    return computeDampening(degree);
+}
+/**
+ * Algedonic bypass check (Engineering Bridge §Part 3).
+ *
+ * Any component with ΦL < 0.1 is an existential threat.
+ * Signal propagates to root with γ = 1.0, bypassing all dampening.
+ *
+ * @param componentPhiL — The ΦL of the degrading component
+ * @returns { gamma: 1.0, bypassed: true } if bypass triggered, else { gamma, bypassed: false }
+ */
+export function checkAlgedonicBypass(componentPhiL) {
+    if (componentPhiL < ALGEDONIC_THRESHOLD) {
+        return { gamma: 1.0, bypassed: true };
+    }
+    return { gamma: 0, bypassed: false };
+}
+/**
+ * Recovery delay model (Engineering Bridge §Part 3).
+ *
+ * recovery_delay = base_delay × (1 + 0.2 × failure_count)
+ * capped at: 10 × base_delay
+ *
+ * @param baseDelayMs — Base delay in milliseconds
+ * @param failureCount — Number of prior failures
+ * @returns Recovery delay in milliseconds
+ */
+export function computeRecoveryDelay(baseDelayMs, failureCount) {
+    const scaled = baseDelayMs * (1 + RECOVERY_DELAY_FACTOR * Math.max(0, failureCount));
+    return Math.min(scaled, RECOVERY_DELAY_CAP_MULTIPLIER * baseDelayMs);
 }
 /**
  * Compute the ΦL impact on a neighbor from a degradation event.
@@ -85,6 +156,7 @@ export function propagateDegradation(sourceId, severity, nodes) {
     let nodesAffected = 0;
     let maxCascadeDepth = 0;
     let cascadeLimitReached = false;
+    let algedonicBypass = false;
     // BFS with cascade tracking
     const queue = [];
     const visited = new Set();
@@ -92,10 +164,21 @@ export function propagateDegradation(sourceId, severity, nodes) {
     // The source node itself
     const source = nodes.get(sourceId);
     if (!source)
-        return { updatedPhiL, nodesAffected, maxCascadeDepth, cascadeLimitReached };
+        return {
+            updatedPhiL,
+            nodesAffected,
+            maxCascadeDepth,
+            cascadeLimitReached,
+            algedonicBypass,
+        };
     const newSourcePhiL = Math.max(0, source.phiL - severity);
     updatedPhiL.set(sourceId, newSourcePhiL);
     nodesAffected++;
+    // Algedonic bypass: ΦL < 0.1 → emergency escalation, γ = 1.0
+    const bypass = checkAlgedonicBypass(newSourcePhiL);
+    if (bypass.bypassed) {
+        algedonicBypass = true;
+    }
     // Seed neighbors
     for (const neighborId of source.neighbors) {
         if (!visited.has(neighborId)) {
@@ -111,7 +194,8 @@ export function propagateDegradation(sourceId, severity, nodes) {
         if (visited.has(nodeId))
             continue;
         visited.add(nodeId);
-        if (cascadeLevel > CASCADE_LIMIT) {
+        // Algedonic bypass ignores cascade limit — emergency signals reach root
+        if (!algedonicBypass && cascadeLevel > CASCADE_LIMIT) {
             cascadeLimitReached = true;
             continue;
         }
@@ -119,7 +203,16 @@ export function propagateDegradation(sourceId, severity, nodes) {
         if (!node)
             continue;
         // Compute dampened impact
-        const impact = computeDegradationImpact(node.degree, incomingSeverity, cascadeLevel);
+        let impact;
+        if (algedonicBypass) {
+            // Emergency: γ = 1.0, no dampening
+            impact = Math.max(0, incomingSeverity);
+        }
+        else {
+            // Use hub dampening for high-degree nodes
+            const gamma = computeGammaEffective(node.degree);
+            impact = gamma * Math.max(0, incomingSeverity);
+        }
         if (impact < 0.001)
             continue; // Below noise threshold
         const newPhiL = Math.max(0, node.phiL - impact);
@@ -127,13 +220,14 @@ export function propagateDegradation(sourceId, severity, nodes) {
         nodesAffected++;
         maxCascadeDepth = Math.max(maxCascadeDepth, cascadeLevel);
         // Propagate to this node's neighbors (next cascade level)
-        if (cascadeLevel < CASCADE_LIMIT) {
+        // Algedonic bypass: no cascade limit; normal: respect limit
+        if (algedonicBypass || cascadeLevel < CASCADE_LIMIT) {
             for (const next of node.neighbors) {
                 if (!visited.has(next)) {
                     queue.push({
                         nodeId: next,
                         cascadeLevel: cascadeLevel + 1,
-                        incomingSeverity: impact, // dampened severity for next hop
+                        incomingSeverity: impact,
                     });
                 }
             }
@@ -144,6 +238,7 @@ export function propagateDegradation(sourceId, severity, nodes) {
         nodesAffected,
         maxCascadeDepth,
         cascadeLimitReached,
+        algedonicBypass,
     };
 }
 //# sourceMappingURL=dampening.js.map
