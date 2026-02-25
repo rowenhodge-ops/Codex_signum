@@ -10,7 +10,4 @@ export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agen
 export { Observer } from "./observer/index.js";
 // Architect Pattern — SURVEY + Pipeline stages
 export { survey, classify, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, executePlan, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, } from "./architect/index.js";
-// Note: ModelExecutor from architect is NOT re-exported here to avoid
-// conflict with the function-typed ModelExecutor from dev-agent.
-// Import it directly from "@codex-signum/core/patterns/architect" if needed.
 //# sourceMappingURL=index.js.map

@@ -20,18 +20,36 @@ import type { EpsilonR } from "../types/state-dimensions.js";
  */
 export declare function computeEpsilonR(exploratoryDecisions: number, totalDecisions: number, floor?: number): EpsilonR;
 /**
- * Compute the εR floor from imperative gradients.
+ * Spectral calibration table (Engineering Bridge §Part 2).
+ *
+ * Maps spectral ratio to minimum εR floor.
+ * Higher spectral concentration → more mandatory exploration.
+ *
+ * | Spectral Ratio | Minimum εR |
+ * |     > 0.9      |    0.05    |
+ * |   0.7 – 0.9    |    0.02    |
+ * |   0.5 – 0.7    |    0.01    |
+ * |     < 0.5      |    0.0     |
+ */
+export declare function minEpsilonRForSpectralState(spectralRatio: number): number;
+/**
+ * Compute the εR floor from imperative gradients and spectral calibration.
  *
  * The floor prevents εR from collapsing to zero even when
  * the Thompson Router is exploiting a dominant arm.
  *
- * εR_floor = max(0.01, baseFloor × imperativeGradient)
+ * εR_floor = max(
+ *   base_εR + (gradient_sensitivity × max(0, -Ω_aggregate_gradient)),
+ *   min_εR_for_spectral_state(spectral_ratio)
+ * )
  *
  * @param baseFloor — Default minimum (0.01 per spec)
- * @param imperativeGradient — How strongly meta-imperatives are pushing for exploration
+ * @param imperativeGradient — Ω_aggregate_gradient. Negative = declining health → more exploration.
  *   (1.0 = normal, >1.0 = increased pressure from Ω₃ Increase Understanding)
+ * @param spectralRatio — Optional spectral concentration ratio (0-1). Higher = more concentrated.
+ * @param gradientSensitivity — How strongly negative gradients inflate the floor (default 0.1)
  */
-export declare function computeEpsilonRFloor(baseFloor?: number, imperativeGradient?: number): number;
+export declare function computeEpsilonRFloor(baseFloor?: number, imperativeGradient?: number, spectralRatio?: number, gradientSensitivity?: number): number;
 /**
  * Check if εR is in a warning state.
  *
