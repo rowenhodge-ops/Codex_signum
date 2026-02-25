@@ -91,4 +91,152 @@ export interface SpecAssertion {
     /** Category: parameter value, interface requirement, architectural rule */
     category: "parameter" | "interface" | "architecture" | "behaviour";
 }
+export type TaskType = "mechanical" | "generative";
+export type EffortEstimate = "small" | "medium" | "large" | "epic";
+export type ComplexityEstimate = "trivial" | "low" | "medium" | "high";
+export type GateDecision = "approve" | "modify" | "abort";
+export type AdaptationScope = "task" | "phase" | "plan";
+export type PlanStatus = "surveying" | "decomposing" | "classifying" | "sequencing" | "gated" | "executing" | "adapting" | "completed" | "aborted";
+export interface Task {
+    task_id: string;
+    title: string;
+    description: string;
+    acceptance_criteria: string[];
+    type: TaskType;
+    phase: string;
+    estimated_complexity: ComplexityEstimate;
+    files_affected: string[];
+    specification_refs: string[];
+    verification: string;
+    commit_message: string;
+}
+export interface Dependency {
+    from: string;
+    to: string;
+    type: "hard" | "soft";
+}
+export interface Phase {
+    phase_id: string;
+    title: string;
+    description: string;
+    tasks: string[];
+    gate: "auto" | "human";
+    gate_criteria: string;
+}
+export interface TaskGraph {
+    intent_id: string;
+    tasks: Task[];
+    dependencies: Dependency[];
+    phases: Phase[];
+    estimated_total_effort: EffortEstimate;
+    decomposition_confidence: number;
+    assumptions: string[];
+}
+/**
+ * Pipeline-specific survey output — simpler than core's SurveyOutput.
+ * Used by DECOMPOSE and other pipeline stages that don't need
+ * the full spec cross-reference capabilities of core's survey.
+ */
+export interface PipelineSurveyOutput {
+    intent_id: string;
+    codebase_state: {
+        structure: string;
+        recent_changes: string[];
+        test_status: "passing" | "failing" | "unknown";
+        open_issues: string[];
+    };
+    graph_state: {
+        pattern_health: Record<string, number>;
+        active_cascades: number;
+        constitutional_alerts: string[];
+    };
+    gap_analysis: {
+        what_exists: string[];
+        what_needs_building: string[];
+        what_needs_changing: string[];
+        risks: string[];
+    };
+    confidence: number;
+    blind_spots: string[];
+}
+export interface ExecutionPlan {
+    intent_id: string;
+    ordered_tasks: string[];
+    phase_boundaries: Record<string, number>;
+    critical_path: string[];
+    estimated_duration: string;
+}
+export interface GateResponse {
+    decision: GateDecision;
+    modifications?: string;
+    reason?: string;
+}
+export interface TaskOutcome {
+    task_id: string;
+    success: boolean;
+    output?: string;
+    error?: string;
+    adaptations_applied: number;
+}
+export interface PlanState {
+    plan_id: string;
+    intent: string;
+    status: PlanStatus;
+    survey?: PipelineSurveyOutput;
+    task_graph?: TaskGraph;
+    execution_plan?: ExecutionPlan;
+    task_outcomes: TaskOutcome[];
+    adaptations_count: number;
+    created_at: string;
+    updated_at: string;
+}
+export interface PlanQualityMetrics {
+    plan_success_rate: number;
+    adaptation_rate: number;
+    task_first_pass_rate: number;
+    dependency_accuracy: number;
+    missing_dependency_rate: number;
+}
+export declare const MAX_ADAPTATIONS_PER_PLAN = 5;
+export declare const MAX_TASKS_PER_PLAN = 30;
+export declare const MANDATORY_HUMAN_GATE = true;
+/**
+ * ModelExecutor — substrate-agnostic LLM calling interface.
+ * Consumers inject their own implementation (which models, which providers,
+ * how to call them). Core's Architect stages call this for any LLM interaction.
+ */
+export interface ModelExecutor {
+    execute(prompt: string, context?: ModelExecutorContext): Promise<ModelExecutorResult>;
+}
+export interface ModelExecutorContext {
+    /** What type of task this is for (routing hint) */
+    taskType?: "planning" | "coding" | "review" | "general";
+    /** Complexity hint for model selection */
+    complexity?: "simple" | "moderate" | "complex";
+    /** Quality requirement (0-1) */
+    qualityRequirement?: number;
+}
+export interface ModelExecutorResult {
+    text: string;
+    modelId: string;
+    durationMs: number;
+    wasExploratory?: boolean;
+}
+/**
+ * TaskExecutor — substrate-agnostic task execution interface.
+ * Consumers provide how tasks actually get done (file edits, git commits, etc.).
+ * Core's DISPATCH stage calls this for each task.
+ */
+export interface TaskExecutor {
+    execute(task: Task, context: TaskExecutionContext): Promise<TaskOutcome>;
+}
+export interface TaskExecutionContext {
+    repoPath: string;
+    dryRun: boolean;
+    /** Previous task outcomes (for dependency context) */
+    previousOutcomes: TaskOutcome[];
+    /** Plan-level context */
+    planId: string;
+    intent: string;
+}
 //# sourceMappingURL=types.d.ts.map
