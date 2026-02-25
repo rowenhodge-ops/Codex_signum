@@ -8,6 +8,7 @@
 
 export {
   ProviderCircuitBreaker,
+  computeCooldown,
 } from "./circuit-breaker.js";
 export type {
   CircuitBreakerConfig,
