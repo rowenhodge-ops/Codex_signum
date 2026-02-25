@@ -6,6 +6,7 @@
 
 // ΦL — Health
 export {
+  PHI_L_WINDOW_SIZES,
   computeAxiomComplianceFactor,
   computePhiL,
   computePhiLWithState,
