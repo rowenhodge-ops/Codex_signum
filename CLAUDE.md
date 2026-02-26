@@ -41,12 +41,18 @@ src/
 │   │   ├── types.ts       # Full pipeline types + ModelExecutor + TaskExecutor interfaces
 │   │   ├── survey.ts      # SURVEY (35KB, spec cross-reference, pure filesystem)
 │   │   ├── decompose.ts   # DECOMPOSE (LLM via ModelExecutor interface)
+│   │   ├── decompose-prompt.ts # Prompt builder for DECOMPOSE
+│   │   ├── parallel-decompose.ts  # Best-of-N decompose + scorePlan() (Self-MoA, log(N) quality)
 │   │   ├── classify.ts    # CLASSIFY (mechanical vs generative, pure computation)
 │   │   ├── sequence.ts    # SEQUENCE (topological sort + critical path)
 │   │   ├── gate.ts        # GATE (human approval — mandatory in V1)
 │   │   ├── dispatch.ts    # DISPATCH (calls TaskExecutor per task)
 │   │   ├── adapt.ts       # ADAPT (failure classification + replanning)
-│   │   ├── architect.ts   # executePlan() orchestrator
+│   │   ├── architect.ts   # executePlan() orchestrator (supports Best-of-N via ArchitectConfig)
+│   │   ├── reasoning-tiers.ts     # selectReasoningTier() — RTR framework (deep/moderate/light)
+│   │   ├── mock-model-executor.ts # Generic mock ModelExecutor for testing
+│   │   ├── mock-task-executor.ts  # Generic mock TaskExecutor for testing
+│   │   ├── RULES.md       # Architect constitutional rules
 │   │   └── index.ts
 │   ├── dev-agent/         # SCOPE → EXECUTE → REVIEW → VALIDATE pipeline
 │   │   ├── types.ts       # AgentTask, PipelineResult, DevAgentModelExecutor
@@ -109,13 +115,22 @@ git commit          # Consumers install from GitHub and use committed dist/
 
 **DO NOT** add a `prepare` script to package.json. npm runs `prepare` automatically when a consumer installs a GitHub dependency, which would rebuild dist/ from source during install and overwrite the committed files. This bug cost hours to diagnose. See commit `4cd0ecc`.
 
-### 3. State Is Structural
+### 3. State Is Structural — No Monitoring Overlays
 
 The graph is the single source of truth. Do NOT create:
 - Separate health databases or JSON caches
 - SQLite tables for monitoring data
 - Log files as state stores
 - Any parallel state outside the graph
+
+**DO NOT PROPOSE** any of the following — these are recurring LLM paradigm violations that directly contradict "state is structural":
+- Observation pipelines or monitoring overlays (Prometheus, Grafana, DataDog patterns)
+- Dashboard wrapper functions that read from the graph and present via a separate layer
+- Computed views or aggregation functions that sit between the graph and consumers
+- "codexStats" grammar sections or health snapshot utilities
+- Any system where you query the graph, transform the result, and store/present it separately
+
+The graph IS the monitoring infrastructure. Observations flow through execution, not through a separate instrumentation layer. If you need to know system state, write a Cypher query. If the Cypher query is complex, it's still a Cypher query — not a wrapper function.
 
 ### 4. ΦL Is ALWAYS a Composite
 
@@ -155,6 +170,35 @@ import { computePhiL } from "./phi-l";
 ### 10. Commit + Push After Every Task
 
 Every discrete task produces a commit with a descriptive message and pushes to remote. Never accumulate uncommitted work across tasks.
+
+### 11. Substrate-Agnostic Logic Belongs in Core
+
+If a function uses only core types (`TaskGraph`, `PipelineSurveyOutput`, `ModelExecutor`, etc.) and any consumer would benefit from it, it belongs here — not in a consumer repo. The test: does the function import anything from outside `@codex-signum/core`? If no, it's core infrastructure.
+
+This rule exists because the most expensive architectural mistake in the project's history was placing `parallelDecompose()` and `scorePlan()` in DND-Manager instead of core. The correction required a two-repo, two-session refactor. When in doubt, put it in core.
+
+Conversely, if a function constructs provider-specific clients (Thompson router instances, native SDK wrappers), checks consumer-specific state (git remotes, working directories), or uses consumer-specific types — it stays in the consumer.
+
+---
+
+## Architect Pattern — executePlan() Configuration
+
+The `executePlan()` orchestrator accepts an `ArchitectConfig` with these options:
+
+```typescript
+interface ArchitectConfig {
+  modelExecutor: ModelExecutor;     // Consumer provides: how to call LLMs
+  taskExecutor: TaskExecutor;       // Consumer provides: how to execute tasks
+  autoGate?: boolean;               // Skip human approval (default: false)
+  decomposeAttempts?: number;       // Best-of-N decompose attempts (default: 1)
+  parallelDecompose?: boolean;      // Run attempts concurrently (default: false)
+  dryRun?: boolean;                 // Tasks execute but make no real changes (default: false)
+}
+```
+
+When `decomposeAttempts > 1`, core runs decompose N times, scores each plan on confidence, task count reasonableness, gap coverage, and internal consistency, then selects the best. Research basis: Best-of-N gives log(N) quality improvement; Self-MoA shows same strong model N times outperforms mixing different models.
+
+Consumers call `executePlan(intent, repoPath, config, surveyOutput?)` — core owns the full orchestration loop (SURVEY → DECOMPOSE → CLASSIFY → SEQUENCE → GATE → DISPATCH → ADAPT). Consumers should **never re-implement the stage sequence** — inject behavior through executors and config, not by calling individual stages.
 
 ---
 
@@ -344,3 +388,5 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Static retention window for compaction | Spec uses continuous exponential decay | `weight = e^(-λ × age)`, not fixed window |
 | Hysteresis ratio 1.5× | Below Schmitt trigger engineering standards | Corrected to 2.5× per research validation |
 | Bare `number` as health score | ΦL must always be composite structure | Use `PhiLOutput` type, never bare number |
+| Consumer re-implements core orchestration | DND called classify/sequence/gate/dispatch/adapt individually instead of `executePlan()` | Consumers call `executePlan()` with config — inject behavior through executors, not by re-implementing the stage loop |
+| Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
