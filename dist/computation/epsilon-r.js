@@ -85,7 +85,8 @@ export function computeEpsilonRFloor(baseFloor = 0.01, imperativeGradient = 1.0,
     const spectralFloor = spectralRatio !== undefined
         ? minEpsilonRForSpectralState(spectralRatio)
         : 0;
-    return Math.max(gradientFloor, spectralFloor);
+    // Absolute minimum floor of 0.01 — εR must never fully collapse for active patterns
+    return Math.max(gradientFloor, spectralFloor, 0.01);
 }
 /**
  * Check if εR is in a warning state.
