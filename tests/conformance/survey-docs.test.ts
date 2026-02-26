@@ -243,14 +243,14 @@ describe("discoverDocumentSources", () => {
     expect(sources[0].title).toBe("no-heading");
   });
 
-  it("caps content at 8000 chars", () => {
-    const longContent = "# Big Doc\n\n" + "x ".repeat(5000);
+  it("caps content at 16000 chars", () => {
+    const longContent = "# Big Doc\n\n" + "x ".repeat(10000);
     writeTmpFile("docs/big.md", longContent);
 
     const blindSpots: { description: string; resolution: string }[] = [];
     const sources = discoverDocumentSources(tmpDir, ["docs/"], blindSpots);
 
-    expect(sources[0].content.length).toBeLessThanOrEqual(8000);
+    expect(sources[0].content.length).toBeLessThanOrEqual(16000);
   });
 
   it("runs claim extraction on each document", () => {

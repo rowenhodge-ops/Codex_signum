@@ -1290,11 +1290,42 @@ export function extractClaims(
     }
   }
 
+  // ── Multi-line critical term pair extraction ─────────────────────────────
+  // If two critical terms appear within 500 characters of each other anywhere
+  // in the document (including across lines), extract as a warning claim.
+  const criticalTermPairs: [string, string][] = [
+    ["hub", "√k"],
+    ["hub", "sqrt(k)"],
+    ["supercritical", "dampening"],
+    ["cascade", "probability"],
+  ];
+
+  for (const [termA, termB] of criticalTermPairs) {
+    const idxA = content.toLowerCase().indexOf(termA.toLowerCase());
+    if (idxA === -1) continue;
+    const idxB = content.toLowerCase().indexOf(termB.toLowerCase());
+    if (idxB === -1) continue;
+
+    const distance = Math.abs(idxA - idxB);
+    if (distance <= 500) {
+      const start = Math.max(0, Math.min(idxA, idxB) - 50);
+      const end = Math.min(content.length, Math.max(idxA, idxB) + 200);
+      const excerpt = content.slice(start, end).replace(/\n/g, " ").trim();
+      const approxLine =
+        content.slice(0, Math.min(idxA, idxB)).split("\n").length;
+      claims.push({
+        text: excerpt,
+        type: "warning",
+        lineNumber: approxLine,
+      });
+    }
+  }
+
   return claims;
 }
 
 /**
- * Discover all .md files under the given docs paths, read them (capped at 8000 chars),
+ * Discover all .md files under the given docs paths, read them (capped at 16000 chars),
  * extract a title, and run claim extraction on each.
  */
 export function discoverDocumentSources(
@@ -1327,7 +1358,7 @@ export function discoverDocumentSources(
 
       try {
         const rawContent = fs.readFileSync(mdFile, "utf-8");
-        const content = rawContent.slice(0, 8000);
+        const content = rawContent.slice(0, 16000);
 
         // Extract title from first # heading, fall back to filename
         const titleMatch = content.match(/^#\s+(.+)/m);
