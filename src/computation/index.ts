@@ -49,6 +49,7 @@ export {
   ALGEDONIC_THRESHOLD,
   CASCADE_LIMIT,
   HYSTERESIS_RATIO,
+  SAFETY_BUDGET,
   checkAlgedonicBypass,
   computeDampening,
   computeDegradationImpact,
