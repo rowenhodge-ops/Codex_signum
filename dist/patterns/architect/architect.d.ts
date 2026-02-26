@@ -17,6 +17,12 @@ export interface ArchitectConfig {
     taskExecutor: TaskExecutor;
     /** If true, auto-approve at GATE stage */
     autoGate?: boolean;
+    /** Number of decompose attempts for Best-of-N (default: 1 = single decompose) */
+    decomposeAttempts?: number;
+    /** Run decompose attempts in parallel (default: false) */
+    parallelDecompose?: boolean;
+    /** Dry run mode — tasks execute but make no real changes (default: false) */
+    dryRun?: boolean;
 }
 /**
  * Execute a full architect plan.
