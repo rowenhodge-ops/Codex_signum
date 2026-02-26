@@ -62,6 +62,11 @@ export {
   buildDecomposePrompt,
   dispatch,
   executePlan,
+  parallelDecompose,
+  scorePlan,
+  selectReasoningTier,
+  createMockModelExecutor,
+  createMockTaskExecutor,
   MAX_ADAPTATIONS_PER_PLAN,
   MAX_TASKS_PER_PLAN,
   MANDATORY_HUMAN_GATE,
@@ -101,4 +106,12 @@ export type {
   AdaptationResult,
   GateOptions,
   ArchitectConfig,
+  // Parallel decompose
+  ParallelDecomposeOptions,
+  ScoredPlan,
+  // Reasoning tiers
+  ReasoningTier,
+  // Mock executors
+  MockModelExecutorOptions,
+  MockTaskExecutorOptions,
 } from "./architect/index.js";
