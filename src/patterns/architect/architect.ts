@@ -19,6 +19,7 @@ import type {
   TaskExecutor,
 } from "./types.js";
 import { decompose } from "./decompose.js";
+import { parallelDecompose } from "./parallel-decompose.js";
 import { classify } from "./classify.js";
 import { sequence } from "./sequence.js";
 import { gate } from "./gate.js";
@@ -30,6 +31,12 @@ export interface ArchitectConfig {
   taskExecutor: TaskExecutor;
   /** If true, auto-approve at GATE stage */
   autoGate?: boolean;
+  /** Number of decompose attempts for Best-of-N (default: 1 = single decompose) */
+  decomposeAttempts?: number;
+  /** Run decompose attempts in parallel (default: false) */
+  parallelDecompose?: boolean;
+  /** Dry run mode — tasks execute but make no real changes (default: false) */
+  dryRun?: boolean;
 }
 
 /**
@@ -68,11 +75,21 @@ export async function executePlan(
   planState.updated_at = new Date().toISOString();
 
   // 2. DECOMPOSE
-  planState.task_graph = await decompose(
-    intent,
-    planState.survey,
-    config.modelExecutor,
-  );
+  const decomposeAttempts = config.decomposeAttempts ?? 1;
+  if (decomposeAttempts > 1) {
+    planState.task_graph = await parallelDecompose(
+      intent,
+      planState.survey,
+      config.modelExecutor,
+      { n: decomposeAttempts, parallel: config.parallelDecompose ?? false },
+    );
+  } else {
+    planState.task_graph = await decompose(
+      intent,
+      planState.survey,
+      config.modelExecutor,
+    );
+  }
   planState.status = "classifying";
   planState.updated_at = new Date().toISOString();
 

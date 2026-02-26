@@ -16,6 +16,13 @@ export { decompose } from "./decompose.js";
 export { buildDecomposePrompt } from "./decompose-prompt.js";
 export { dispatch } from "./dispatch.js";
 export { executePlan } from "./architect.js";
+// Parallel decompose (Best-of-N strategy)
+export { parallelDecompose, scorePlan } from "./parallel-decompose.js";
+// Reasoning tier selection (RTR framework)
+export { selectReasoningTier } from "./reasoning-tiers.js";
+// Mock executors for testing
+export { createMockModelExecutor } from "./mock-model-executor.js";
+export { createMockTaskExecutor } from "./mock-task-executor.js";
 // Constants
 export { MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, } from "./types.js";
 //# sourceMappingURL=index.js.map

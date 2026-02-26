@@ -19,6 +19,20 @@ export { buildDecomposePrompt } from "./decompose-prompt.js";
 export { dispatch } from "./dispatch.js";
 export { executePlan } from "./architect.js";
 
+// Parallel decompose (Best-of-N strategy)
+export { parallelDecompose, scorePlan } from "./parallel-decompose.js";
+export type { ParallelDecomposeOptions, ScoredPlan } from "./parallel-decompose.js";
+
+// Reasoning tier selection (RTR framework)
+export { selectReasoningTier } from "./reasoning-tiers.js";
+export type { ReasoningTier } from "./reasoning-tiers.js";
+
+// Mock executors for testing
+export { createMockModelExecutor } from "./mock-model-executor.js";
+export type { MockModelExecutorOptions } from "./mock-model-executor.js";
+export { createMockTaskExecutor } from "./mock-task-executor.js";
+export type { MockTaskExecutorOptions } from "./mock-task-executor.js";
+
 // Types — SURVEY (core's rich types)
 export type {
   BlindSpot,
