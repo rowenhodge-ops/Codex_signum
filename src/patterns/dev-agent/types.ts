@@ -63,8 +63,8 @@ export interface PipelineResult {
   };
 }
 
-/** Model executor — the actual model invocation function */
-export type ModelExecutor = (
+/** Model executor — the actual model invocation function (dev-agent pipeline) */
+export type DevAgentModelExecutor = (
   modelId: string,
   prompt: string,
   stage: PipelineStage,

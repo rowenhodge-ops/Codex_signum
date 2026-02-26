@@ -5,6 +5,6 @@
  *
  * @module codex-signum-core/resilience
  */
-export { ProviderCircuitBreaker, } from "./circuit-breaker.js";
+export { ProviderCircuitBreaker, computeCooldown, } from "./circuit-breaker.js";
 export type { CircuitBreakerConfig, CircuitBreakerState, CircuitState, } from "./circuit-breaker.js";
 //# sourceMappingURL=index.d.ts.map

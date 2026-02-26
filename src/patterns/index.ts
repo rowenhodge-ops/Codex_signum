@@ -32,7 +32,7 @@ export {
 export type {
   AgentTask,
   DevAgentConfig,
-  ModelExecutor,
+  DevAgentModelExecutor,
   PipelineResult,
   PipelineStage,
   QualityAssessor,
@@ -81,6 +81,7 @@ export type {
   ExecutionPlan,
   GateDecision,
   GateResponse,
+  ModelExecutor,
   ModelExecutorContext,
   ModelExecutorResult,
   Phase,
@@ -99,6 +100,3 @@ export type {
   GateOptions,
   ArchitectConfig,
 } from "./architect/index.js";
-// Note: ModelExecutor from architect is NOT re-exported here to avoid
-// conflict with the function-typed ModelExecutor from dev-agent.
-// Import it directly from "@codex-signum/core/patterns/architect" if needed.

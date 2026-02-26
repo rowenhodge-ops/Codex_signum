@@ -6,6 +6,7 @@
 
 // ΦL — Health
 export {
+  PHI_L_WINDOW_SIZES,
   computeAxiomComplianceFactor,
   computePhiL,
   computePhiLWithState,
@@ -40,14 +41,20 @@ export {
   checkEpsilonRWarnings,
   computeEpsilonR,
   computeEpsilonRFloor,
+  minEpsilonRForSpectralState,
 } from "./epsilon-r.js";
 
 // Dampening
 export {
+  ALGEDONIC_THRESHOLD,
   CASCADE_LIMIT,
   HYSTERESIS_RATIO,
+  checkAlgedonicBypass,
   computeDampening,
   computeDegradationImpact,
+  computeGammaEffective,
+  computeHubDampening,
+  computeRecoveryDelay,
   computeRecoveryRate,
   propagateDegradation,
 } from "./dampening.js";

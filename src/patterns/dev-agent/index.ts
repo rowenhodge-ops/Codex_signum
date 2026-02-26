@@ -10,7 +10,7 @@ export type {
   AgentTask,
   StageResult,
   PipelineResult,
-  ModelExecutor,
+  DevAgentModelExecutor,
   QualityAssessor,
   DevAgentConfig,
 } from "./types.js";

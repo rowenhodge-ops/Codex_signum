@@ -15,6 +15,34 @@
  */
 import type { PhiL, PhiLFactors, PhiLState, PhiLTrend, PhiLWeights } from "../types/state-dimensions.js";
 /**
+ * Recommended ΦL ring buffer (window) sizes by node type.
+ * Engineering Bridge §Part 2: "ΦL window sizes must match hierarchy."
+ *
+ * | Node type              | Window size N |
+ * | Leaf / function        | 10–20         |
+ * | Intermediate / pattern | 30–50         |
+ * | Root / coordinator     | 50–100        |
+ *
+ * Pass these to createPhiLState(maxSize) for the appropriate node type.
+ */
+export declare const PHI_L_WINDOW_SIZES: {
+    readonly leaf: {
+        readonly min: 10;
+        readonly max: 20;
+        readonly default: 20;
+    };
+    readonly intermediate: {
+        readonly min: 30;
+        readonly max: 50;
+        readonly default: 40;
+    };
+    readonly root: {
+        readonly min: 50;
+        readonly max: 100;
+        readonly default: 75;
+    };
+};
+/**
  * Compute ΦL from raw factors.
  *
  * This is the primary entry point. All ΦL in the system flows through here.
