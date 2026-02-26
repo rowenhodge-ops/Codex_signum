@@ -13,7 +13,10 @@
  * Source: Engineering Bridge v2.0 §Part 3 "Topology-Aware Dampening"
  */
 import { describe, expect, it } from "vitest";
-import { computeDampening } from "../../src/computation/dampening.js";
+import {
+  computeDampening,
+  computeGammaEffective,
+} from "../../src/computation/dampening.js";
 
 describe("SAFETY: γ_effective ≤ 0.7 for all degrees (subcriticality invariant)", () => {
   const MAX_GAMMA = 0.7;
@@ -62,5 +65,47 @@ describe("SAFETY: γ_effective ≤ 0.7 for all degrees (subcriticality invariant
       const actual = computeDampening(k);
       expect(actual).toBeCloseTo(expected, 10);
     }
+  });
+});
+
+// ── computeGammaEffective — budget-capped subcriticality ─────────────────
+
+describe("SAFETY: computeGammaEffective — budget-capped min(γ_base, 0.8/k)", () => {
+  it("FORMULA: degree k → γ = min(0.7, 0.8/k)", () => {
+    for (let k = 1; k <= 20; k++) {
+      const expected = Math.min(0.7, 0.8 / k);
+      const actual = computeGammaEffective(k);
+      expect(actual).toBeCloseTo(expected, 10);
+    }
+  });
+
+  it("γ is always ≤ 0.7 (never exceeds cap)", () => {
+    for (let k = 1; k <= 100; k++) {
+      expect(computeGammaEffective(k)).toBeLessThanOrEqual(0.7);
+    }
+  });
+
+  it("guarantees μ < 1 for all practical branching factors", () => {
+    for (let k = 1; k <= 20; k++) {
+      const gamma = computeGammaEffective(k, 0.7);
+      const spectralRadius = k * gamma;
+      expect(spectralRadius).toBeLessThan(1.0);
+    }
+  });
+
+  it("handles k=1 (leaf) → γ = 0.7 (at cap)", () => {
+    expect(computeGammaEffective(1)).toBeCloseTo(0.7, 6);
+  });
+
+  it("handles k=2 → γ = min(0.7, 0.4) = 0.4", () => {
+    expect(computeGammaEffective(2)).toBeCloseTo(0.4, 6);
+  });
+
+  it("handles k=10 → γ = 0.08", () => {
+    expect(computeGammaEffective(10)).toBeCloseTo(0.08, 6);
+  });
+
+  it("custom gammaBase respected", () => {
+    expect(computeGammaEffective(5, 0.5)).toBeCloseTo(Math.min(0.5, 0.8 / 5), 10);
   });
 });

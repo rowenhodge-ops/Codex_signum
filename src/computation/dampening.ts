@@ -28,8 +28,15 @@ export const HYSTERESIS_RATIO = 2.5;
 /** Maximum dampening factor (cap from spec) */
 const MAX_GAMMA = 0.7;
 
-/** Numerator for degree-based dampening */
+/** Numerator for degree-based dampening (standard formula k-1) */
 const GAMMA_NUMERATOR = 0.8;
+
+/**
+ * Safety budget for budget-capped dampening.
+ * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
+ * Guarantees μ = k × γ ≤ SAFETY_BUDGET < 1 for all k ≥ 1.
+ */
+export const SAFETY_BUDGET = 0.8;
 
 /** ΦL threshold for algedonic bypass — existential threat escalation */
 export const ALGEDONIC_THRESHOLD = 0.1;
@@ -56,46 +63,44 @@ export function computeDampening(degree: number): number {
 }
 
 /**
- * Hub dampening: γ_base / √k (Engineering Bridge §Part 3).
+ * Budget-capped effective dampening (Engineering Bridge §Part 3, Phase 3 correction).
  *
- * Hubs (high-degree nodes) use √k instead of (k-1) to prevent
- * over-dampening that would mask genuine problems.
+ * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
  *
- * | Hub degree | γ_base/degree (wrong) | γ_base/√k (correct) |
- * |     5      |       0.14            |        0.31          |
- * |    10      |       0.07            |        0.22          |
- * |    20      |       0.035           |        0.16          |
+ * This replaces the previous √k hub formula, which produced supercritical cascades
+ * (spectral radius μ = k × γ > 1) for branching factor k ≥ 3.
  *
- * @param degree — Number of connections (k)
- * @param gammaBase — Base dampening factor (default MAX_GAMMA = 0.7)
- * @returns Hub-specific dampening factor
+ * Budget-capped guarantees μ ≤ SAFETY_BUDGET = 0.8 < 1 for ALL k ≥ 1:
+ *   k=1:  min(0.7, 0.8/1)  = 0.7   μ = 0.7
+ *   k=2:  min(0.7, 0.8/2)  = 0.4   μ = 0.8
+ *   k=5:  min(0.7, 0.8/5)  = 0.16  μ = 0.8
+ *   k=10: min(0.7, 0.8/10) = 0.08  μ = 0.8
+ *
+ * @param k — Number of connections (degree)
+ * @param gammaBase — Base dampening cap (default MAX_GAMMA = 0.7)
+ * @returns Effective dampening factor
+ */
+export function computeGammaEffective(
+  k: number,
+  gammaBase: number = MAX_GAMMA,
+): number {
+  const safek = Math.max(1, k);
+  return Math.min(gammaBase, SAFETY_BUDGET / safek);
+}
+
+/**
+ * Hub dampening — deprecated, routes to computeGammaEffective.
+ *
+ * The √k formula caused supercritical cascades for k ≥ 3.
+ * Use computeGammaEffective() directly.
+ *
+ * @deprecated Use computeGammaEffective(degree, gammaBase) instead.
  */
 export function computeHubDampening(
   degree: number,
   gammaBase: number = MAX_GAMMA,
 ): number {
-  if (degree <= 1) return gammaBase;
-  return gammaBase / Math.sqrt(degree);
-}
-
-/**
- * Compute effective dampening, selecting hub or standard formula.
- *
- * Standard nodes use min(0.7, 0.8/(k-1)).
- * Hub nodes (degree > hubThreshold) use γ_base/√k to avoid over-dampening.
- *
- * @param degree — Number of connections (k)
- * @param hubThreshold — Degree above which hub dampening applies (default 4)
- * @returns Effective dampening factor
- */
-export function computeGammaEffective(
-  degree: number,
-  hubThreshold: number = 4,
-): number {
-  if (degree > hubThreshold) {
-    return computeHubDampening(degree);
-  }
-  return computeDampening(degree);
+  return computeGammaEffective(degree, gammaBase);
 }
 
 /**
@@ -219,10 +224,12 @@ export function propagateDegradation(
   let algedonicBypass = false;
 
   // BFS with cascade tracking
+  // senderDegree: degree of the node that emitted this signal (used for γ computation)
   const queue: Array<{
     nodeId: string;
     cascadeLevel: number;
     incomingSeverity: number;
+    senderDegree: number;
   }> = [];
   const visited = new Set<string>();
   visited.add(sourceId);
@@ -242,25 +249,28 @@ export function propagateDegradation(
   updatedPhiL.set(sourceId, newSourcePhiL);
   nodesAffected++;
 
-  // Algedonic bypass: ΦL < 0.1 → emergency escalation, γ = 1.0
-  const bypass = checkAlgedonicBypass(newSourcePhiL);
+  // Algedonic bypass: check ORIGINAL ΦL (before this degradation event).
+  // A node already at ΦL < 0.1 is an existential threat — signal bypasses all dampening.
+  const bypass = checkAlgedonicBypass(source.phiL);
   if (bypass.bypassed) {
     algedonicBypass = true;
   }
 
-  // Seed neighbors
+  // Seed neighbors — source is the sender, so use source.degree for γ
   for (const neighborId of source.neighbors) {
     if (!visited.has(neighborId)) {
       queue.push({
         nodeId: neighborId,
         cascadeLevel: 1,
         incomingSeverity: severity,
+        senderDegree: source.degree,
       });
     }
   }
 
   while (queue.length > 0) {
-    const { nodeId, cascadeLevel, incomingSeverity } = queue.shift()!;
+    const { nodeId, cascadeLevel, incomingSeverity, senderDegree } =
+      queue.shift()!;
 
     if (visited.has(nodeId)) continue;
     visited.add(nodeId);
@@ -274,14 +284,15 @@ export function propagateDegradation(
     const node = nodes.get(nodeId);
     if (!node) continue;
 
-    // Compute dampened impact
+    // Compute dampened impact.
+    // γ is computed from the SENDER's degree: a hub distributes energy across
+    // many connections, so each receives a proportionally smaller fraction.
     let impact: number;
     if (algedonicBypass) {
       // Emergency: γ = 1.0, no dampening
       impact = Math.max(0, incomingSeverity);
     } else {
-      // Use hub dampening for high-degree nodes
-      const gamma = computeGammaEffective(node.degree);
+      const gamma = computeGammaEffective(senderDegree);
       impact = gamma * Math.max(0, incomingSeverity);
     }
 
@@ -301,6 +312,7 @@ export function propagateDegradation(
             nodeId: next,
             cascadeLevel: cascadeLevel + 1,
             incomingSeverity: impact,
+            senderDegree: node.degree, // this node is now the sender
           });
         }
       }
