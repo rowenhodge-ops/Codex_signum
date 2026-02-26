@@ -7,7 +7,7 @@
  */
 
 // Existing survey (core's rich spec cross-reference version)
-export { survey } from "./survey.js";
+export { survey, extractClaims, discoverDocumentSources } from "./survey.js";
 
 // Pipeline stages
 export { classify } from "./classify.js";
@@ -22,6 +22,8 @@ export { executePlan } from "./architect.js";
 // Types — SURVEY (core's rich types)
 export type {
   BlindSpot,
+  DocumentSource,
+  ExtractedClaim,
   GapItem,
   SpecAssertion,
   SurveyInput,

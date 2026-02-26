@@ -2,6 +2,26 @@
  * Codex Signum — Architect Pattern Types
  * @module codex-signum-core/patterns/architect
  */
+/** A specific claim extracted from a document */
+export interface ExtractedClaim {
+    /** The claim text (surrounding context, ~200 chars) */
+    text: string;
+    /** What type of claim */
+    type: "formula" | "threshold" | "architectural" | "recommendation" | "warning";
+    /** Approximate line number in source */
+    lineNumber: number;
+}
+/** A documentation source discovered by SURVEY */
+export interface DocumentSource {
+    /** Relative path from repo root */
+    path: string;
+    /** Document title (first heading or filename) */
+    title: string;
+    /** Full content (capped at ~8000 chars) */
+    content: string;
+    /** Extracted claims: formulas, thresholds, architectural assertions */
+    extractedClaims: ExtractedClaim[];
+}
 /** Input to the SURVEY stage */
 export interface SurveyInput {
     /** Absolute path to the repository root */
@@ -12,6 +32,8 @@ export interface SurveyInput {
     intent?: string;
     /** Optional: Neo4j driver session for graph state inspection */
     graphClient?: import("neo4j-driver").Session | null;
+    /** Paths to scan for documentation (defaults to ['docs/specs/', 'docs/research/'] relative to repoPath) */
+    docsPaths?: string[];
 }
 /** A single gap between specification and implementation */
 export interface GapItem {
@@ -23,7 +45,7 @@ export interface GapItem {
     /** Which code file(s) this gap relates to */
     codeRef?: string[];
     /** Category for grouping */
-    category: "duplication" | "missing" | "mismatch" | "drift" | "structural";
+    category: "duplication" | "missing" | "mismatch" | "drift" | "structural" | "research-divergence";
 }
 /** Something SURVEY couldn't determine */
 export interface BlindSpot {
@@ -77,6 +99,8 @@ export interface SurveyOutput {
         /** Structured gap items with references */
         gaps: GapItem[];
     };
+    /** All documentation sources discovered and parsed */
+    documentSources: DocumentSource[];
     /** 0.0-1.0: how confident SURVEY is in its assessment */
     confidence: number;
     /** What SURVEY couldn't determine */
