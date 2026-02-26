@@ -57,8 +57,8 @@ export interface PipelineResult {
         scopeDiverged: boolean;
     };
 }
-/** Model executor — the actual model invocation function */
-export type ModelExecutor = (modelId: string, prompt: string, stage: PipelineStage) => Promise<{
+/** Model executor — the actual model invocation function (dev-agent pipeline) */
+export type DevAgentModelExecutor = (modelId: string, prompt: string, stage: PipelineStage) => Promise<{
     output: string;
     durationMs: number;
     cost: number;

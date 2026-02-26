@@ -1,6 +1,6 @@
 import type { ArmStats } from "../../graph/queries.js";
 import { EphemeralStore } from "../../memory/index.js";
-import { type AgentTask, type DevAgentConfig, type ModelExecutor, type PipelineResult, type QualityAssessor, type RoutableModel } from "./types.js";
+import { type AgentTask, type DevAgentConfig, type DevAgentModelExecutor, type PipelineResult, type QualityAssessor, type RoutableModel } from "./types.js";
 /**
  * The DevAgent — runs tasks through a staged pipeline
  * with Thompson Sampling routing and Correction Helix.
@@ -13,7 +13,7 @@ export declare class DevAgent {
     private decisionCount;
     private executor;
     private assessor;
-    constructor(models: RoutableModel[], executor: ModelExecutor, assessor: QualityAssessor, config?: Partial<DevAgentConfig>);
+    constructor(models: RoutableModel[], executor: DevAgentModelExecutor, assessor: QualityAssessor, config?: Partial<DevAgentConfig>);
     run(task: AgentTask): Promise<PipelineResult>;
     private runStage;
     loadArmStats(clusterId: string, stats: ArmStats[]): void;

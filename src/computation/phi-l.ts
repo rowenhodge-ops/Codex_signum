@@ -32,6 +32,23 @@ import { computeMaturityFactor } from "./maturity.js";
  */
 const MAX_EXPECTED_VARIANCE = 0.04;
 
+/**
+ * Recommended ΦL ring buffer (window) sizes by node type.
+ * Engineering Bridge §Part 2: "ΦL window sizes must match hierarchy."
+ *
+ * | Node type              | Window size N |
+ * | Leaf / function        | 10–20         |
+ * | Intermediate / pattern | 30–50         |
+ * | Root / coordinator     | 50–100        |
+ *
+ * Pass these to createPhiLState(maxSize) for the appropriate node type.
+ */
+export const PHI_L_WINDOW_SIZES = {
+  leaf: { min: 10, max: 20, default: 20 },
+  intermediate: { min: 30, max: 50, default: 40 },
+  root: { min: 50, max: 100, default: 75 },
+} as const;
+
 // ============ CORE COMPUTATION ============
 
 /**

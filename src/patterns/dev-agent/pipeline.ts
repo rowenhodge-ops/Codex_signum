@@ -23,7 +23,7 @@ import {
   mapComplexity,
   type AgentTask,
   type DevAgentConfig,
-  type ModelExecutor,
+  type DevAgentModelExecutor,
   type PipelineResult,
   type QualityAssessor,
   type RoutableModel,
@@ -40,12 +40,12 @@ export class DevAgent {
   private models: RoutableModel[];
   private armStats: Map<string, ArmStats[]>;
   private decisionCount: number;
-  private executor: ModelExecutor;
+  private executor: DevAgentModelExecutor;
   private assessor: QualityAssessor;
 
   constructor(
     models: RoutableModel[],
-    executor: ModelExecutor,
+    executor: DevAgentModelExecutor,
     assessor: QualityAssessor,
     config: Partial<DevAgentConfig> = {},
   ) {
