@@ -5,7 +5,9 @@ export {
   checkEvolutionaryScale,
 } from "./feedback.js";
 export type {
-  ObservableEvent,
   FeedbackRecommendation,
+  GraphObserver,
+  ObservableEvent,
+  ObserverMode,
   ObserverState,
 } from "./types.js";

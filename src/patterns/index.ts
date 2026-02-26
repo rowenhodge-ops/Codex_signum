@@ -43,7 +43,9 @@ export type {
 export { Observer } from "./observer/index.js";
 export type {
   FeedbackRecommendation,
+  GraphObserver,
   ObservableEvent,
+  ObserverMode,
   ObserverState,
 } from "./observer/index.js";
 
