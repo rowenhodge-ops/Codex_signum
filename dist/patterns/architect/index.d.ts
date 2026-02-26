@@ -5,7 +5,7 @@
  *
  * @module codex-signum-core/patterns/architect
  */
-export { survey } from "./survey.js";
+export { survey, extractClaims, discoverDocumentSources } from "./survey.js";
 export { classify } from "./classify.js";
 export { sequence } from "./sequence.js";
 export { gate } from "./gate.js";
@@ -14,7 +14,7 @@ export { decompose } from "./decompose.js";
 export { buildDecomposePrompt } from "./decompose-prompt.js";
 export { dispatch } from "./dispatch.js";
 export { executePlan } from "./architect.js";
-export type { BlindSpot, GapItem, SpecAssertion, SurveyInput, SurveyOutput, } from "./types.js";
+export type { BlindSpot, DocumentSource, ExtractedClaim, GapItem, SpecAssertion, SurveyInput, SurveyOutput, } from "./types.js";
 export type { AdaptationScope, ComplexityEstimate, Dependency, EffortEstimate, ExecutionPlan, GateDecision, GateResponse, ModelExecutor, ModelExecutorContext, ModelExecutorResult, Phase, PipelineSurveyOutput, PlanQualityMetrics, PlanState, PlanStatus, Task, TaskExecutionContext, TaskExecutor, TaskGraph, TaskOutcome, TaskType, } from "./types.js";
 export type { AdaptationResult } from "./adapt.js";
 export type { GateOptions } from "./gate.js";

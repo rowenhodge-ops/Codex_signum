@@ -6,7 +6,7 @@
  * @module codex-signum-core/patterns/architect
  */
 // Existing survey (core's rich spec cross-reference version)
-export { survey } from "./survey.js";
+export { survey, extractClaims, discoverDocumentSources } from "./survey.js";
 // Pipeline stages
 export { classify } from "./classify.js";
 export { sequence } from "./sequence.js";

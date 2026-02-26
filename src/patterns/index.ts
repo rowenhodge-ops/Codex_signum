@@ -50,6 +50,8 @@ export type {
 // Architect Pattern — SURVEY + Pipeline stages
 export {
   survey,
+  extractClaims,
+  discoverDocumentSources,
   classify,
   sequence,
   gate,
@@ -65,6 +67,8 @@ export {
 export type {
   // Survey types (core's rich types)
   BlindSpot,
+  DocumentSource,
+  ExtractedClaim,
   GapItem,
   SpecAssertion,
   SurveyInput,

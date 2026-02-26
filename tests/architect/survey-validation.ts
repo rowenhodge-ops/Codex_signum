@@ -31,7 +31,7 @@ interface ExpectedFinding {
   description: string;
   /** Which gap categories to look for */
   matchCategories: Array<
-    "duplication" | "missing" | "mismatch" | "drift" | "structural"
+    "duplication" | "missing" | "mismatch" | "drift" | "structural" | "research-divergence"
   >;
   /** Keywords that should appear in the gap description */
   matchKeywords: string[];

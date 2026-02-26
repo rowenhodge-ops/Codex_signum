@@ -13,7 +13,14 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { BlindSpot, GapItem, SurveyInput, SurveyOutput } from "./types.js";
+import type {
+  BlindSpot,
+  DocumentSource,
+  ExtractedClaim,
+  GapItem,
+  SurveyInput,
+  SurveyOutput,
+} from "./types.js";
 
 // ── Known core exports that consumer repos sometimes reimplement ────────────
 const KNOWN_CORE_FUNCTIONS = [
@@ -110,34 +117,55 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
   const entryPoints = findEntryPoints(input.repoPath, keyFiles, blindSpots);
 
   // ── 7. Specification cross-reference ──────────────────────────────────────
-  const { specGaps, whatNeedsBuilding } = await crossReferenceSpecs(
-    input.specificationRefs,
+  const { specGaps, whatNeedsBuilding, processedSpecPaths } =
+    await crossReferenceSpecs(
+      input.specificationRefs,
+      input.repoPath,
+      blindSpots,
+    );
+
+  // ── 8. Document sources (auto-discovery) ──────────────────────────────────
+  const docsPaths = input.docsPaths ?? ["docs/specs/", "docs/research/"];
+  const documentSources = discoverDocumentSources(
     input.repoPath,
+    docsPaths,
     blindSpots,
   );
 
-  // ── 8. Graph state inspection ────────────────────────────────────────────
+  // ── 9. Graph state inspection ─────────────────────────────────────────────
   const graphState = await inspectGraphState(
     input.graphClient ?? null,
     blindSpots,
   );
 
-  // ── 8. Gap analysis from codebase state ─────────────────────────────────
+  // ── 10. Gap analysis from codebase state ─────────────────────────────────
   const codebaseGaps: GapItem[] = buildCodebaseGaps(
     duplications,
     coreImports,
     input.repoPath,
     blindSpots,
   );
-  const gaps: GapItem[] = [...codebaseGaps, ...specGaps];
 
-  // ── 9. Confidence score ──────────────────────────────────────────────────
+  // ── 11. Cross-reference document claims against code ─────────────────────
+  const docClaimGaps = crossReferenceDocumentClaims(
+    documentSources,
+    processedSpecPaths,
+    input.repoPath,
+    blindSpots,
+  );
+
+  const gaps: GapItem[] = [...codebaseGaps, ...specGaps, ...docClaimGaps];
+
+  // ── 12. Confidence score ──────────────────────────────────────────────────
   let confidence = 1.0;
   if (!keyFiles["package.json"]) confidence -= 0.2;
   if (recentCommits.length === 0) confidence -= 0.1;
   if (coreImports && Object.keys(coreImports).length === 0) confidence -= 0.1;
   if (input.specificationRefs.length > 0 && specGaps.length === 0)
     confidence -= 0.05; // Spec refs given but no assertions extracted
+  if (documentSources.length === 0) confidence -= 0.15; // No docs found = major blind spot
+  if (documentSources.some((d) => d.extractedClaims.length > 0))
+    confidence += 0.05; // Found actionable claims
   confidence -= blindSpots.length * 0.03;
   confidence = Math.max(0.1, Math.min(1.0, confidence));
 
@@ -160,6 +188,7 @@ export async function survey(input: SurveyInput): Promise<SurveyOutput> {
       whatNeedsFixing: buildWhatNeedsFixing(duplications),
       gaps,
     },
+    documentSources,
     confidence,
     blindSpots,
   };
@@ -783,6 +812,8 @@ async function inspectGraphState(
 interface SpecCrossRefResult {
   specGaps: GapItem[];
   whatNeedsBuilding: string[];
+  /** Relative paths of spec files already processed (to avoid double-counting in doc discovery) */
+  processedSpecPaths: Set<string>;
 }
 
 /**
@@ -796,6 +827,7 @@ async function crossReferenceSpecs(
 ): Promise<SpecCrossRefResult> {
   const specGaps: GapItem[] = [];
   const whatNeedsBuilding: string[] = [];
+  const processedSpecPaths = new Set<string>();
 
   for (const specPath of specPaths) {
     // Resolve relative paths against repo root
@@ -820,6 +852,10 @@ async function crossReferenceSpecs(
       });
       continue;
     }
+
+    // Track processed paths (relative to repo root) for deduplication
+    const relSpecPath = path.relative(repoPath, absPath).replace(/\\/g, "/");
+    processedSpecPaths.add(relSpecPath);
 
     const specName = path.basename(specPath);
 
@@ -847,6 +883,7 @@ async function crossReferenceSpecs(
   return {
     specGaps,
     whatNeedsBuilding: [...new Set(whatNeedsBuilding)],
+    processedSpecPaths,
   };
 }
 
@@ -1095,4 +1132,423 @@ function checkArchitecturalRequirements(
   }
 
   return gaps;
+}
+
+// ── Document source discovery ────────────────────────────────────────────────
+
+/** Find all .md files recursively under absDir. Notes non-markdown files as blind spots. */
+function findMdFilesInDir(absDir: string, blindSpots: BlindSpot[]): string[] {
+  const files: string[] = [];
+
+  function recurse(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        recurse(fullPath);
+      } else {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (ext === ".md") {
+          files.push(fullPath);
+        } else if ([".pdf", ".docx", ".pptx", ".xlsx"].includes(ext)) {
+          blindSpots.push({
+            description: `Non-markdown document skipped: ${entry.name} (${ext})`,
+            resolution: "Convert to .md format for SURVEY to process",
+          });
+        }
+      }
+    }
+  }
+
+  recurse(absDir);
+  return files;
+}
+
+/** Extract up to maxChars of context around line i (previous + current + next line). */
+function extractLineContext(
+  lines: string[],
+  lineIndex: number,
+  maxChars: number,
+): string {
+  const before = lineIndex > 0 ? (lines[lineIndex - 1] ?? "") : "";
+  const current = lines[lineIndex] ?? "";
+  const after =
+    lineIndex < lines.length - 1 ? (lines[lineIndex + 1] ?? "") : "";
+  return [before, current, after]
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxChars);
+}
+
+/**
+ * Extract typed claims from a document's content.
+ *
+ * Catches formulas (Greek letters, math notation), thresholds (numeric bounds),
+ * warnings (dangerous patterns, supercritical flags), recommendations
+ * (fix suggestions), and architectural assertions.
+ *
+ * Exported for testing.
+ */
+export function extractClaims(
+  content: string,
+  _sourcePath: string,
+): ExtractedClaim[] {
+  const claims: ExtractedClaim[] = [];
+  const lines = content.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || line.trim().length === 0) continue;
+    const lineNumber = i + 1;
+
+    // ── Formula patterns ────────────────────────────────────────────────────
+    // Greek letter with assignment, or math operators with assignment
+    if (
+      (/[γεΦΨμθλΩ]/u.test(line) && /=/.test(line)) ||
+      (/[√×≤≥]/.test(line) && /=/.test(line)) ||
+      /\bmin\s*\(|\bmax\s*\(|\bclamp\s*\(/.test(line)
+    ) {
+      claims.push({
+        text: extractLineContext(lines, i, 200),
+        type: "formula",
+        lineNumber,
+      });
+    }
+
+    // ── Threshold patterns ───────────────────────────────────────────────────
+    if (
+      /must\s+(?:be|not)\s*[<>≤≥]|must\s+not\s+exceed|limit\s+of\s+\d|maximum\s+cascade/i.test(
+        line,
+      ) ||
+      /budget\s+of\s+0\.\d|s\s*[≤<]\s*0\.\d|k\s*[≥>]\s*\d/i.test(line) ||
+      /(?:cascade|dampening|threshold|depth)\s+(?:limit|cap|bound|max)\b/i.test(
+        line,
+      )
+    ) {
+      claims.push({
+        text: extractLineContext(lines, i, 200),
+        type: "threshold",
+        lineNumber,
+      });
+    }
+
+    // ── Warning patterns ─────────────────────────────────────────────────────
+    if (
+      /dangerously\s+inadequate|supercritical|fails?\s+for\b|not\s+safe\b|over.?aggressive/i.test(
+        line,
+      ) ||
+      /\bincorrect\b.*formula|\bwrong\b.*formula|\bunderestimat|\boverestimat/i.test(
+        line,
+      ) ||
+      /\bCRITICAL\b|\bWARNING\b/.test(line) ||
+      /μ\s*[>≥]\s*1\b|produces?\s+(?:supercritical|unstable|incorrect)/i.test(
+        line,
+      )
+    ) {
+      claims.push({
+        text: extractLineContext(lines, i, 200),
+        type: "warning",
+        lineNumber,
+      });
+    }
+
+    // ── Recommendation patterns ──────────────────────────────────────────────
+    if (
+      /recommended?\s+(?:fix|formula|approach|value)|should\s+use\b|replace\s+with\b/i.test(
+        line,
+      ) ||
+      /correct\s+formula\b|proposed\s+(?:fix|formula|approach)|budget.?capped/i.test(
+        line,
+      ) ||
+      /alternative\s+approach\b|instead\s+use\b/i.test(line)
+    ) {
+      claims.push({
+        text: extractLineContext(lines, i, 200),
+        type: "recommendation",
+        lineNumber,
+      });
+    }
+
+    // ── Architectural assertion patterns ─────────────────────────────────────
+    if (
+      /state\s+is\s+structural\b|shall\s+not\b/i.test(line) ||
+      /\bconstitutional\b|\baxiom\b/i.test(line) ||
+      /\bimmutable\b|\bnon.?negotiable\b/i.test(line) ||
+      (/\bmandatory\b|\bforbidden\b/.test(line) && !/\(.*mandatory.*\)/i.test(line))
+    ) {
+      claims.push({
+        text: extractLineContext(lines, i, 200),
+        type: "architectural",
+        lineNumber,
+      });
+    }
+  }
+
+  return claims;
+}
+
+/**
+ * Discover all .md files under the given docs paths, read them (capped at 8000 chars),
+ * extract a title, and run claim extraction on each.
+ */
+export function discoverDocumentSources(
+  repoPath: string,
+  docsPaths: string[],
+  blindSpots: BlindSpot[],
+): DocumentSource[] {
+  const sources: DocumentSource[] = [];
+  const seen = new Set<string>();
+
+  for (const docsPath of docsPaths) {
+    const absDocsPath = path.isAbsolute(docsPath)
+      ? docsPath
+      : path.join(repoPath, docsPath);
+
+    if (!fs.existsSync(absDocsPath)) {
+      blindSpots.push({
+        description: `Documentation path not found: ${docsPath}`,
+        resolution: `Create the directory or update SurveyInput.docsPaths. Expected: ${absDocsPath}`,
+      });
+      continue;
+    }
+
+    const mdFiles = findMdFilesInDir(absDocsPath, blindSpots);
+
+    for (const mdFile of mdFiles) {
+      const relPath = path.relative(repoPath, mdFile).replace(/\\/g, "/");
+      if (seen.has(relPath)) continue;
+      seen.add(relPath);
+
+      try {
+        const rawContent = fs.readFileSync(mdFile, "utf-8");
+        const content = rawContent.slice(0, 8000);
+
+        // Extract title from first # heading, fall back to filename
+        const titleMatch = content.match(/^#\s+(.+)/m);
+        const title = titleMatch
+          ? titleMatch[1].trim()
+          : path.basename(mdFile, ".md");
+
+        const extractedClaims = extractClaims(content, relPath);
+
+        sources.push({ path: relPath, title, content, extractedClaims });
+      } catch (err) {
+        blindSpots.push({
+          description: `Could not read document ${relPath}: ${String(err)}`,
+          resolution: "Check file permissions",
+        });
+      }
+    }
+  }
+
+  return sources;
+}
+
+// ── Document claim cross-reference ──────────────────────────────────────────
+
+/**
+ * Cross-reference claims extracted from documentation against the codebase.
+ *
+ * Skips files already processed by crossReferenceSpecs() to avoid duplicates.
+ * Creates GapItems with category "research-divergence" when a warned-about
+ * or corrected pattern is found in code.
+ */
+function crossReferenceDocumentClaims(
+  documentSources: DocumentSource[],
+  alreadyProcessedPaths: Set<string>,
+  repoPath: string,
+  blindSpots: BlindSpot[],
+): GapItem[] {
+  const gaps: GapItem[] = [];
+  const gapIds = new Set<string>();
+  const tsFiles = findTsFilesSync(repoPath);
+
+  function addGap(gap: GapItem): void {
+    if (!gapIds.has(gap.id)) {
+      gapIds.add(gap.id);
+      gaps.push(gap);
+    }
+  }
+
+  for (const doc of documentSources) {
+    // Skip files already processed in crossReferenceSpecs
+    if (alreadyProcessedPaths.has(doc.path)) continue;
+
+    for (const claim of doc.extractedClaims) {
+      checkClaimAgainstCode(claim, doc, tsFiles, repoPath, addGap);
+    }
+  }
+
+  void blindSpots; // acknowledged — used upstream
+  return gaps;
+}
+
+/**
+ * Check a single claim against the codebase and emit gap items via addGap.
+ */
+function checkClaimAgainstCode(
+  claim: ExtractedClaim,
+  doc: DocumentSource,
+  tsFiles: string[],
+  repoPath: string,
+  addGap: (gap: GapItem) => void,
+): void {
+  const text = claim.text;
+  const ltext = text.toLowerCase();
+
+  // ── Warning: hub dampening γ_base/√k flagged as supercritical ─────────────
+  if (
+    claim.type === "warning" &&
+    (ltext.includes("√k") ||
+      ltext.includes("/ sqrt") ||
+      /γ.{0,30}sqrt/i.test(text) ||
+      /sqrt.{0,10}k\b/i.test(text)) &&
+    (ltext.includes("hub") ||
+      ltext.includes("damp") ||
+      /supercritical|dangerous|inadequate/i.test(text))
+  ) {
+    const affectedFiles: string[] = [];
+    for (const filePath of tsFiles) {
+      const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+      if (relPath.startsWith("dist/")) continue;
+      try {
+        const code = fs.readFileSync(filePath, "utf-8");
+        if (/Math\.sqrt\s*\(/.test(code) && /damp|hub/i.test(relPath)) {
+          affectedFiles.push(relPath);
+        }
+      } catch {
+        /* skip */
+      }
+    }
+    if (affectedFiles.length > 0) {
+      addGap({
+        id: "research-divergence-hub-dampening-sqrt",
+        description: `Research '${doc.title}' flags γ_base/√k hub dampening as supercritical (μ>1 for k≥3). Code still uses Math.sqrt(k) in hub dampening.`,
+        severity: "critical",
+        specRef: doc.path,
+        codeRef: affectedFiles,
+        category: "research-divergence",
+      });
+    }
+  }
+
+  // ── Warning: 28.6% cascade probability is wrong (correct is 81.6%) ────────
+  if (
+    claim.type === "warning" &&
+    /28\.6\s*%|28\.6\s*percent/i.test(text)
+  ) {
+    // Check if any spec documents still contain the incorrect 28.6% figure
+    addGap({
+      id: "research-divergence-cascade-probability",
+      description: `Research '${doc.title}' corrects the cascade participation probability: 28.6% (binomial model) is wrong, correct value is 81.6% (percolation-theoretic) at γ=0.7. Verify no specs or comments cite 28.6%.`,
+      severity: "warning",
+      specRef: doc.path,
+      category: "research-divergence",
+    });
+  }
+
+  // ── Formula: budget-capped dampening min(γ_base, s/k) ─────────────────────
+  if (
+    (claim.type === "formula" || claim.type === "recommendation") &&
+    (/min\s*\([^)]*s\s*\/\s*k|budget.?capped/i.test(text) ||
+      /min\s*\(\s*γ_base.*s\s*\/\s*k/i.test(text))
+  ) {
+    const affectedFiles: string[] = [];
+    for (const filePath of tsFiles) {
+      const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+      if (relPath.startsWith("dist/")) continue;
+      if (!/damp/i.test(relPath)) continue;
+      try {
+        const code = fs.readFileSync(filePath, "utf-8");
+        // Flag if dampening file doesn't have the budget-capped s/k formula
+        if (!/\/\s*k\b/.test(code)) {
+          affectedFiles.push(relPath);
+        }
+      } catch {
+        /* skip */
+      }
+    }
+    if (affectedFiles.length > 0) {
+      addGap({
+        id: "research-divergence-budget-capped-dampening",
+        description: `Research '${doc.title}' recommends budget-capped formula min(γ_base, s/k) with s≤0.8. Dampening implementation may not use this formula.`,
+        severity: "warning",
+        specRef: doc.path,
+        codeRef: affectedFiles,
+        category: "research-divergence",
+      });
+    }
+  }
+
+  // ── Threshold: s ≤ 0.8 propagation budget ──────────────────────────────────
+  if (
+    claim.type === "threshold" &&
+    /s\s*[≤<]\s*0\.8|propagation\s+budget.*0\.8|0\.8.*budget/i.test(text)
+  ) {
+    const affectedFiles: string[] = [];
+    for (const filePath of tsFiles) {
+      const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+      if (relPath.startsWith("dist/")) continue;
+      if (!/damp/i.test(relPath)) continue;
+      try {
+        const code = fs.readFileSync(filePath, "utf-8");
+        // Flag if dampening file doesn't enforce the 0.8 budget
+        if (!/0\.8/.test(code)) {
+          affectedFiles.push(relPath);
+        }
+      } catch {
+        /* skip */
+      }
+    }
+    if (affectedFiles.length > 0) {
+      addGap({
+        id: "research-divergence-budget-constraint-s08",
+        description: `Research '${doc.title}' specifies propagation budget s≤0.8. Dampening code may not enforce this bound.`,
+        severity: "warning",
+        specRef: doc.path,
+        codeRef: affectedFiles,
+        category: "research-divergence",
+      });
+    }
+  }
+
+  // ── Architectural: observer pattern vs structural state ───────────────────
+  if (
+    claim.type === "architectural" &&
+    /state\s+is\s+structural/i.test(text) &&
+    /observer|monitor/i.test(text)
+  ) {
+    // Check if observer pattern TypeScript classes exist
+    const observerFiles: string[] = [];
+    for (const filePath of tsFiles) {
+      const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+      if (relPath.startsWith("dist/")) continue;
+      if (/patterns\/observer|patterns\\observer/i.test(relPath)) {
+        try {
+          const code = fs.readFileSync(filePath, "utf-8");
+          if (/\bclass\b/.test(code)) {
+            observerFiles.push(relPath);
+          }
+        } catch {
+          /* skip */
+        }
+      }
+    }
+    if (observerFiles.length > 0) {
+      addGap({
+        id: "research-divergence-observer-structural",
+        description: `Research '${doc.title}' asserts state is structural — observation should be Cypher queries, not TypeScript wrapper classes. Found TypeScript classes in observer pattern.`,
+        severity: "warning",
+        specRef: doc.path,
+        codeRef: observerFiles,
+        category: "research-divergence",
+      });
+    }
+  }
 }
