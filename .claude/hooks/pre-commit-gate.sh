@@ -47,5 +47,15 @@ if [ -n "$SRC_CHANGED" ] && [ -z "$DIST_STAGED" ]; then
   echo "⚠ WARNING: src/ files changed but dist/ not staged. Run: npm run build && git add dist/"
 fi
 
+# 4. Check pipeline test coverage if src/signals/ was modified
+SIGNALS_CHANGED=$(echo "$STAGED" | grep "^src/signals/" | head -1)
+if [ -n "$SIGNALS_CHANGED" ]; then
+  PIPELINE_TESTS=$(find tests/pipeline -name "*.test.ts" 2>/dev/null | head -1)
+  if [ -z "$PIPELINE_TESTS" ]; then
+    echo "⚠ WARNING: src/signals/ modified but tests/pipeline/ has no *.test.ts files."
+    echo "  Pipeline tests are Level 3 (Engineering Bridge §Part 4). See tests/pipeline/signal-conditioning.test.ts"
+  fi
+fi
+
 echo "=== GATE PASSED ==="
 exit 0

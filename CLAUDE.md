@@ -280,6 +280,56 @@ node -e "const c = require('./dist'); console.log(Object.keys(c).length, 'export
 
 ---
 
+## Test Governance
+
+### Test Levels
+
+| Level | Name | Scope | Location |
+| --- | --- | --- | --- |
+| 1 | Unit | Single function, deterministic, pure computation | `tests/conformance/` |
+| 2 | Contract | Module API shape, type safety, export completeness | `tests/conformance/` |
+| 3 | Pipeline | Multi-stage sequential flow, data propagation | `tests/pipeline/` |
+| 4 | Outcome | End-to-end behavioral correctness with realistic inputs | `tests/conformance/` |
+| 5 | Safety | Invariants that must never be violated, spec-encoded | `tests/safety/` |
+
+Level 5 tests encode what the **spec requires**, not what the code currently does. If the implementation is wrong, safety tests FAIL — this is correct behavior. Tests-before-fix is the right order.
+
+### Safety Invariants (Level 5)
+
+| Invariant | Test File | Spec Source |
+| --- | --- | --- |
+| Subcriticality: γ_effective ≤ 0.7 for all degree ≥ 1 | `tests/safety/subcriticality.test.ts` | Engineering Bridge §Part 3 |
+| Cascade limit: propagation stops at depth 2 | `tests/safety/cascade-limit.test.ts` | Engineering Bridge §Part 3 |
+| Hysteresis: recovery rate = degradation rate / 2.5 | `tests/safety/hysteresis.test.ts` | Engineering Bridge §Part 3 |
+| Algedonic bypass: ΦL < 0.1 forces γ = 1.0 | `tests/safety/algedonic-bypass.test.ts` | Engineering Bridge §Part 3 |
+
+### Codex Conformance Coverage
+
+Conformance tests (`tests/conformance/`) must cover these Codex dimensions:
+
+- **State dimensions**: ΦL composite structure (never bare number), ΨH relational computation, εR spectral calibration
+- **Morphemes**: Seed, Line, Bloom, Resonator, Grid, Helix — type shape and axiom compliance
+- **Adaptive thresholds**: Young/Maturing/Mature bands with smooth interpolation
+- **Signal pipeline**: All 7 stages spec-compliant (Debounce → Hampel → EWMA → CUSUM → MACD → Hysteresis → Trend)
+- **Memory operations**: Exponential decay compaction (not fixed window), distillation, flow
+- **Constitutional engine**: Rule evaluation, cascade prevention, amendment taxonomy
+- **Resilience**: Circuit breaker with exponential backoff + jitter (not fixed cooldown)
+- **Patterns**: Architect 7-stage pipeline, dev-agent pipeline, Thompson router
+
+### Data Provenance Rule
+
+All numbers cited in documentation, comments, code, or reports MUST:
+
+- Cite their source (spec section, test output, or system measurement)
+- Be marked `[estimated]` if produced by approximation rather than system output
+- Never be presented as system output if they were estimated by inspection
+
+### Pipeline Test Coverage Gate
+
+The pre-commit gate warns (not blocks) if `src/signals/` was modified but `tests/pipeline/` has no `*.test.ts` files.
+
+---
+
 ## Anti-Patterns This Repo Has Encountered
 
 These are real bugs that have occurred in past sessions. Hooks exist to catch them.
