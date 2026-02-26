@@ -11,3 +11,17 @@ export {
   evaluateRules,
 } from "./engine.js";
 export type { ComplianceContext, ConstitutionalEvaluation } from "./engine.js";
+
+// Amendment lifecycle
+export {
+  TIER_CONFIG,
+  checkConsensus,
+  evaluateAmendment,
+  proposeAmendment,
+  transitionAmendment,
+} from "./evolution.js";
+export type {
+  Amendment,
+  AmendmentLifecycleState,
+  Vote,
+} from "./evolution.js";
