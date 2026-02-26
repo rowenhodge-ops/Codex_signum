@@ -143,6 +143,21 @@ async function main(): Promise<void> {
   );
   const researchDivergences = (byCategory["research-divergence"] ?? []).length;
 
+  // Aggregate claim counts by type across all documents
+  const claimTotals: Record<string, number> = {};
+  for (const doc of result.documentSources) {
+    for (const claim of doc.extractedClaims) {
+      claimTotals[claim.type] = (claimTotals[claim.type] ?? 0) + 1;
+    }
+  }
+  const claimBreakdown =
+    Object.keys(claimTotals).length > 0
+      ? Object.entries(claimTotals)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t, n]) => `${t}:${n}`)
+          .join("  ")
+      : "none";
+
   console.log("\n\n" + SEP);
   console.log(
     `  GAPS:       ${totalGaps} total  (${criticalGaps} critical, ${warningGaps} warning)`,
@@ -151,6 +166,7 @@ async function main(): Promise<void> {
   console.log(
     `  DOCUMENTS:  ${result.documentSources.length} sources, ${totalClaims} total claims`,
   );
+  console.log(`  CLAIMS:     ${claimBreakdown}`);
   console.log(
     `  CONFIDENCE: ${(result.confidence * 100).toFixed(0)}%  (blind spots: ${result.blindSpots.length})`,
   );
