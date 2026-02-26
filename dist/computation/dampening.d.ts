@@ -20,6 +20,12 @@
 export declare const CASCADE_LIMIT = 2;
 /** Recovery is this many times slower than degradation */
 export declare const HYSTERESIS_RATIO = 2.5;
+/**
+ * Safety budget for budget-capped dampening.
+ * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
+ * Guarantees μ = k × γ ≤ SAFETY_BUDGET < 1 for all k ≥ 1.
+ */
+export declare const SAFETY_BUDGET = 0.8;
 /** ΦL threshold for algedonic bypass — existential threat escalation */
 export declare const ALGEDONIC_THRESHOLD = 0.1;
 /**
@@ -32,32 +38,33 @@ export declare const ALGEDONIC_THRESHOLD = 0.1;
  */
 export declare function computeDampening(degree: number): number;
 /**
- * Hub dampening: γ_base / √k (Engineering Bridge §Part 3).
+ * Budget-capped effective dampening (Engineering Bridge §Part 3, Phase 3 correction).
  *
- * Hubs (high-degree nodes) use √k instead of (k-1) to prevent
- * over-dampening that would mask genuine problems.
+ * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
  *
- * | Hub degree | γ_base/degree (wrong) | γ_base/√k (correct) |
- * |     5      |       0.14            |        0.31          |
- * |    10      |       0.07            |        0.22          |
- * |    20      |       0.035           |        0.16          |
+ * This replaces the previous √k hub formula, which produced supercritical cascades
+ * (spectral radius μ = k × γ > 1) for branching factor k ≥ 3.
  *
- * @param degree — Number of connections (k)
- * @param gammaBase — Base dampening factor (default MAX_GAMMA = 0.7)
- * @returns Hub-specific dampening factor
- */
-export declare function computeHubDampening(degree: number, gammaBase?: number): number;
-/**
- * Compute effective dampening, selecting hub or standard formula.
+ * Budget-capped guarantees μ ≤ SAFETY_BUDGET = 0.8 < 1 for ALL k ≥ 1:
+ *   k=1:  min(0.7, 0.8/1)  = 0.7   μ = 0.7
+ *   k=2:  min(0.7, 0.8/2)  = 0.4   μ = 0.8
+ *   k=5:  min(0.7, 0.8/5)  = 0.16  μ = 0.8
+ *   k=10: min(0.7, 0.8/10) = 0.08  μ = 0.8
  *
- * Standard nodes use min(0.7, 0.8/(k-1)).
- * Hub nodes (degree > hubThreshold) use γ_base/√k to avoid over-dampening.
- *
- * @param degree — Number of connections (k)
- * @param hubThreshold — Degree above which hub dampening applies (default 4)
+ * @param k — Number of connections (degree)
+ * @param gammaBase — Base dampening cap (default MAX_GAMMA = 0.7)
  * @returns Effective dampening factor
  */
-export declare function computeGammaEffective(degree: number, hubThreshold?: number): number;
+export declare function computeGammaEffective(k: number, gammaBase?: number): number;
+/**
+ * Hub dampening — deprecated, routes to computeGammaEffective.
+ *
+ * The √k formula caused supercritical cascades for k ≥ 3.
+ * Use computeGammaEffective() directly.
+ *
+ * @deprecated Use computeGammaEffective(degree, gammaBase) instead.
+ */
+export declare function computeHubDampening(degree: number, gammaBase?: number): number;
 /**
  * Algedonic bypass check (Engineering Bridge §Part 3).
  *

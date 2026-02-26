@@ -29,7 +29,7 @@ export declare function survey(input: SurveyInput): Promise<SurveyOutput>;
  */
 export declare function extractClaims(content: string, _sourcePath: string): ExtractedClaim[];
 /**
- * Discover all .md files under the given docs paths, read them (capped at 8000 chars),
+ * Discover all .md files under the given docs paths, read them (capped at 16000 chars),
  * extract a title, and run claim extraction on each.
  */
 export declare function discoverDocumentSources(repoPath: string, docsPaths: string[], blindSpots: BlindSpot[]): DocumentSource[];
