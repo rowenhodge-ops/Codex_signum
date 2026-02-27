@@ -118,3 +118,17 @@ export type {
   MockModelExecutorOptions,
   MockTaskExecutorOptions,
 } from "./architect/index.js";
+
+// Retrospective — deterministic graph queries, no LLM
+export {
+  runRetrospective,
+  deriveConvergenceStatus,
+  worstBand,
+} from "./retrospective/index.js";
+export type {
+  RetrospectiveOptions,
+  RetrospectiveInsights,
+  ConvergenceReading,
+  StageReading,
+  DegradationReading,
+} from "./retrospective/index.js";
