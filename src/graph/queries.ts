@@ -675,7 +675,7 @@ export async function getPatternsWithHealth(): Promise<
 export async function updatePatternPhiL(
   patternId: string,
   phiL: number,
-  trend: "improving" | "stable" | "degrading",
+  trend: "improving" | "stable" | "declining",
 ): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(

@@ -20,4 +20,6 @@ createDistillation,
 ensureContextCluster, 
 // Topology
 getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
+// Inline conditioning write path
+export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map

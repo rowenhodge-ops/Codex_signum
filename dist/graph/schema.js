@@ -64,6 +64,10 @@ const SCHEMA_STATEMENTS = [
     "CREATE INDEX rule_status IF NOT EXISTS FOR (r:ConstitutionalRule) ON (r.status)",
     // Context Clusters by task type (Thompson routing)
     "CREATE INDEX cluster_task_type IF NOT EXISTS FOR (cc:ContextCluster) ON (cc.taskType)",
+    // ThresholdEvent (immutable band crossing records)
+    "CREATE CONSTRAINT threshold_event_id_unique IF NOT EXISTS FOR (te:ThresholdEvent) REQUIRE te.id IS UNIQUE",
+    "CREATE INDEX threshold_event_pattern IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.patternId)",
+    "CREATE INDEX threshold_event_timestamp IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.timestamp)",
 ];
 // ============ SCHEMA MIGRATION ============
 /**
