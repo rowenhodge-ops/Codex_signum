@@ -5,7 +5,9 @@ import {
   listActiveAgents,
   listActiveAgentsByCapability,
   recordDecision,
+  recordDecisionOutcome,
 } from "../../graph/index.js";
+import type { OutcomeRecord } from "./arm-stats.js";
 import { buildContextClusterId, route } from "./router.js";
 import { DEFAULT_ROUTER_CONFIG } from "./types.js";
 import type {
@@ -100,6 +102,24 @@ export async function selectModel(
   );
   const agentProps = selectedAgent?.get("a").properties ?? {};
 
+  // Idempotency flag — prevents double-recording in the same session.
+  let outcomeRecorded = false;
+
+  const recordOutcome = async (outcome: OutcomeRecord): Promise<void> => {
+    if (outcomeRecorded) return;
+    outcomeRecorded = true;
+
+    await recordDecisionOutcome({
+      decisionId,
+      success: outcome.success,
+      qualityScore: outcome.qualityScore ?? (outcome.success ? 0.5 : 0.0),
+      durationMs: outcome.durationMs,
+      cost: outcome.cost,
+      errorType: outcome.errorType,
+      notes: outcome.notes,
+    });
+  };
+
   return {
     selectedAgentId: decision.selectedModelId,
     baseModelId:
@@ -119,5 +139,6 @@ export async function selectModel(
     decisionId,
     contextClusterId: decision.contextClusterId,
     reasoning: decision.reasoning,
+    recordOutcome,
   };
 }

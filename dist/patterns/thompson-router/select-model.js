@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { ensureContextCluster, getArmStatsForCluster, listActiveAgents, listActiveAgentsByCapability, recordDecision, } from "../../graph/index.js";
+import { ensureContextCluster, getArmStatsForCluster, listActiveAgents, listActiveAgentsByCapability, recordDecision, recordDecisionOutcome, } from "../../graph/index.js";
 import { buildContextClusterId, route } from "./router.js";
 import { DEFAULT_ROUTER_CONFIG } from "./types.js";
 /**
@@ -72,6 +72,22 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
     });
     const selectedAgent = agentRecords.find((record) => String(record.get("a").properties.id) === decision.selectedModelId);
     const agentProps = selectedAgent?.get("a").properties ?? {};
+    // Idempotency flag — prevents double-recording in the same session.
+    let outcomeRecorded = false;
+    const recordOutcome = async (outcome) => {
+        if (outcomeRecorded)
+            return;
+        outcomeRecorded = true;
+        await recordDecisionOutcome({
+            decisionId,
+            success: outcome.success,
+            qualityScore: outcome.qualityScore ?? (outcome.success ? 0.5 : 0.0),
+            durationMs: outcome.durationMs,
+            cost: outcome.cost,
+            errorType: outcome.errorType,
+            notes: outcome.notes,
+        });
+    };
     return {
         selectedAgentId: decision.selectedModelId,
         baseModelId: String(agentProps.baseModelId ?? "") || String(agentProps.model ?? "") || decision.selectedModelId,
@@ -88,6 +104,7 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
         decisionId,
         contextClusterId: decision.contextClusterId,
         reasoning: decision.reasoning,
+        recordOutcome,
     };
 }
 //# sourceMappingURL=select-model.js.map

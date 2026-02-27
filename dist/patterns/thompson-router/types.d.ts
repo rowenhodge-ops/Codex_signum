@@ -64,5 +64,11 @@ export interface SelectModelResult {
     decisionId: string;
     contextClusterId: string;
     reasoning: string;
+    /**
+     * Record the outcome of executing against the selected agent.
+     * Updates the Decision node with outcome metrics and is idempotent
+     * (calling twice is safe — second call is a no-op).
+     */
+    recordOutcome: (outcome: import("./arm-stats.js").OutcomeRecord) => Promise<void>;
 }
 //# sourceMappingURL=types.d.ts.map
