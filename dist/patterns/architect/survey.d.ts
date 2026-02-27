@@ -9,7 +9,7 @@
  *
  * @module codex-signum-core/patterns/architect
  */
-import type { BlindSpot, DocumentSource, ExtractedClaim, SurveyInput, SurveyOutput } from "./types.js";
+import type { BlindSpot, DocumentSource, ExtractedClaim, SurveyInput, SurveyOutput, TrackedHypothesis } from "./types.js";
 /**
  * SURVEY — The Architect's reconnaissance stage.
  *
@@ -33,4 +33,11 @@ export declare function extractClaims(content: string, _sourcePath: string): Ext
  * extract a title, and run claim extraction on each.
  */
 export declare function discoverDocumentSources(repoPath: string, docsPaths: string[], blindSpots: BlindSpot[]): DocumentSource[];
+/**
+ * Parse hypothesis files from docs/hypotheses/.
+ * Returns structured hypothesis records for gap analysis.
+ *
+ * Exported for testing.
+ */
+export declare function parseHypotheses(repoPath: string, hypothesesPath: string): TrackedHypothesis[];
 //# sourceMappingURL=survey.d.ts.map

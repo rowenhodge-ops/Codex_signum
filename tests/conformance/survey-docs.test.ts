@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   discoverDocumentSources,
   extractClaims,
+  parseHypotheses,
   survey,
 } from "../../src/patterns/architect/index.js";
 
@@ -403,5 +404,160 @@ describe("survey() — document source integration", () => {
     });
 
     expect(resultNoDocs.confidence).toBeLessThan(resultWithDocs.confidence);
+  });
+});
+
+// ── parseHypotheses() ──────────────────────────────────────────────────────
+
+describe("parseHypotheses", () => {
+  it("extracts hypothesis ID, source, claim, and status from markdown", () => {
+    writeTmpFile(
+      "docs/hypotheses/test.md",
+      [
+        "# Test Hypotheses",
+        "",
+        "## H-001: Subcriticality Check",
+        "",
+        "- **Source:** Safety Analysis §4",
+        "- **Claim:** γ_eff ensures subcriticality for all k",
+        "- **Status:** validated",
+        "- **Evidence:** tests exist",
+        "",
+        "## H-002: Depth Limit",
+        "",
+        "- **Source:** Engineering Bridge v2.0",
+        "- **Claim:** Cascade depth limited to 2",
+        "- **Status:** proposed",
+        "- **Evidence:** not yet tested",
+      ].join("\n"),
+    );
+
+    const hypotheses = parseHypotheses(tmpDir, "docs/hypotheses/");
+    expect(hypotheses.length).toBe(2);
+
+    const h1 = hypotheses.find((h) => h.id === "H-001");
+    expect(h1).toBeDefined();
+    expect(h1!.source).toBe("Safety Analysis §4");
+    expect(h1!.claim).toContain("subcriticality");
+    expect(h1!.status).toBe("validated");
+
+    const h2 = hypotheses.find((h) => h.id === "H-002");
+    expect(h2).toBeDefined();
+    expect(h2!.status).toBe("proposed");
+  });
+
+  it("returns empty array when directory does not exist (no crash)", () => {
+    const hypotheses = parseHypotheses(tmpDir, "docs/hypotheses/nonexistent/");
+    expect(hypotheses).toEqual([]);
+  });
+
+  it("skips README.md", () => {
+    writeTmpFile(
+      "docs/hypotheses/README.md",
+      "# Hypothesis Registry\n\n## H-999: Should Be Skipped\n\n- **Source:** test\n- **Claim:** test\n- **Status:** proposed\n",
+    );
+    writeTmpFile(
+      "docs/hypotheses/real.md",
+      "# Real\n\n## H-100: Real One\n\n- **Source:** test\n- **Claim:** real claim\n- **Status:** validated\n",
+    );
+
+    const hypotheses = parseHypotheses(tmpDir, "docs/hypotheses/");
+    expect(hypotheses.length).toBe(1);
+    expect(hypotheses[0].id).toBe("H-100");
+  });
+
+  it("handles all valid status values", () => {
+    const statuses = [
+      "proposed",
+      "validated",
+      "partially-validated",
+      "invalidated",
+      "superseded",
+      "deferred",
+    ];
+    const blocks = statuses
+      .map(
+        (s, i) =>
+          `## H-${String(i).padStart(3, "0")}: Status ${s}\n\n- **Source:** test\n- **Claim:** testing ${s}\n- **Status:** ${s}\n`,
+      )
+      .join("\n");
+    writeTmpFile("docs/hypotheses/statuses.md", `# Statuses\n\n${blocks}`);
+
+    const hypotheses = parseHypotheses(tmpDir, "docs/hypotheses/");
+    expect(hypotheses.length).toBe(statuses.length);
+    for (const s of statuses) {
+      expect(hypotheses.some((h) => h.status === s)).toBe(true);
+    }
+  });
+
+  it("defaults unknown status to proposed", () => {
+    writeTmpFile(
+      "docs/hypotheses/bad-status.md",
+      "# Bad\n\n## H-050: Unknown Status\n\n- **Source:** test\n- **Claim:** test\n- **Status:** banana\n",
+    );
+
+    const hypotheses = parseHypotheses(tmpDir, "docs/hypotheses/");
+    expect(hypotheses.length).toBe(1);
+    expect(hypotheses[0].status).toBe("proposed");
+  });
+});
+
+// ── survey() hypothesis integration ───────────────────────────────────────
+
+describe("survey() — hypothesis integration", () => {
+  it("includes hypotheses in output when docs/hypotheses/ exists", async () => {
+    writeTmpFile("package.json", JSON.stringify({ name: "test" }));
+    writeTmpFile(
+      "docs/hypotheses/test.md",
+      "# Test\n\n## H-001: Test\n\n- **Source:** test\n- **Claim:** test\n- **Status:** validated\n",
+    );
+
+    const result = await survey({
+      repoPath: tmpDir,
+      specificationRefs: [],
+      hypothesesPath: "docs/hypotheses/",
+    });
+
+    expect(result.hypotheses).toBeDefined();
+    expect(result.hypotheses.length).toBe(1);
+    expect(result.hypotheses[0].id).toBe("H-001");
+  });
+
+  it("returns empty hypotheses (no crash) when directory does not exist", async () => {
+    writeTmpFile("package.json", JSON.stringify({ name: "test" }));
+
+    const result = await survey({
+      repoPath: tmpDir,
+      specificationRefs: [],
+      hypothesesPath: "docs/hypotheses/nonexistent/",
+    });
+
+    expect(result.hypotheses).toBeDefined();
+    expect(result.hypotheses).toEqual([]);
+  });
+
+  it("confidence is lower when proposed hypotheses exist", async () => {
+    writeTmpFile("package.json", JSON.stringify({ name: "test" }));
+
+    // Without hypotheses
+    const resultNoHyp = await survey({
+      repoPath: tmpDir,
+      specificationRefs: [],
+      hypothesesPath: "docs/hypotheses/nonexistent/",
+    });
+
+    // With proposed hypotheses
+    writeTmpFile(
+      "docs/hypotheses/test.md",
+      "# Test\n\n## H-001: Untested\n\n- **Source:** test\n- **Claim:** untested claim\n- **Status:** proposed\n",
+    );
+
+    const resultWithProposed = await survey({
+      repoPath: tmpDir,
+      specificationRefs: [],
+      hypothesesPath: "docs/hypotheses/",
+    });
+
+    expect(resultWithProposed.confidence).toBeLessThan(resultNoHyp.confidence);
   });
 });
