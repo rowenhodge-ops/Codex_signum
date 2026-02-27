@@ -1,5 +1,5 @@
 import { pathToFileURL } from "node:url";
-import { closeDriver, createAgent, ensureContextCluster, getDecisionsForCluster, listActiveAgents, migrateSchema, recordDecision, recordDecisionOutcome, seedConstitutionalRules, } from "./graph/index.js";
+import { closeDriver, createAgent, createPattern, ensureContextCluster, getDecisionsForCluster, listActiveAgents, migrateSchema, recordDecision, recordDecisionOutcome, runQuery, seedConstitutionalRules, } from "./graph/index.js";
 export const ALL_ARMS = [
     {
         id: "claude-opus-4-6:adaptive:max",
@@ -760,6 +760,61 @@ export async function bootstrapAgents(force = false) {
     console.log(`\nSeeded ${seeded}/${ALL_ARMS.length} agents.`);
     return seeded;
 }
+export const CORE_PATTERNS = [
+    {
+        id: "thompson-router",
+        name: "Thompson Router",
+        description: "Bayesian model selection via Thompson Sampling",
+        morphemeKinds: ["resonator"],
+        domain: "core",
+    },
+    {
+        id: "dev-agent",
+        name: "DevAgent Pipeline",
+        description: "4-stage coding pipeline with correction helix",
+        morphemeKinds: ["bloom", "helix"],
+        domain: "core",
+    },
+    {
+        id: "architect",
+        name: "Architect Pipeline",
+        description: "7-stage intent-to-execution planning",
+        morphemeKinds: ["bloom"],
+        domain: "core",
+    },
+    {
+        id: "model-sentinel",
+        name: "Model Sentinel",
+        description: "Provider API probing and model discovery",
+        morphemeKinds: ["resonator"],
+        domain: "core",
+        state: "design",
+    },
+];
+export async function bootstrapPatterns(force = false) {
+    if (!force) {
+        const result = await runQuery("MATCH (p:Pattern) RETURN count(p) AS count", {}, "READ");
+        const existing = result.records[0]?.get("count") ?? 0;
+        if (existing >= CORE_PATTERNS.length) {
+            console.log(`Graph already has ${existing} patterns. Use force=true to re-seed.`);
+            return existing;
+        }
+    }
+    console.log(`Seeding ${CORE_PATTERNS.length} core patterns...`);
+    let seeded = 0;
+    for (const pattern of CORE_PATTERNS) {
+        try {
+            await createPattern(pattern);
+            seeded++;
+            console.log(`  ✅ ${pattern.id} (${pattern.state ?? "created"})`);
+        }
+        catch (err) {
+            console.error(`  ❌ ${pattern.id}: ${err instanceof Error ? err.message : err}`);
+        }
+    }
+    console.log(`\nSeeded ${seeded}/${CORE_PATTERNS.length} patterns.`);
+    return seeded;
+}
 export async function seedInformedPriors() {
     const taskCategories = ["strategic", "analytical", "generative", "routine"];
     let created = 0;
@@ -827,6 +882,7 @@ async function main() {
         const seededRules = await seedConstitutionalRules();
         console.log(`Seeded constitutional rules: ${seededRules}`);
         await bootstrapAgents(force);
+        await bootstrapPatterns(force);
         if (force ||
             (await getDecisionsForCluster("strategic:moderate:general", 1)).length ===
                 0) {

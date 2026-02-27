@@ -390,3 +390,4 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Bare `number` as health score | ΦL must always be composite structure | Use `PhiLOutput` type, never bare number |
 | Consumer re-implements core orchestration | DND called classify/sequence/gate/dispatch/adapt individually instead of `executePlan()` | Consumers call `executePlan()` with config — inject behavior through executors, not by re-implementing the stage loop |
 | Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
+| Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts |
