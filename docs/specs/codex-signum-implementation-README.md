@@ -403,6 +403,13 @@ SCOPE (Opus) → EXECUTE (Routed via Thompson) → REVIEW (Sonnet) → VALIDATE 
 
 ---
 
+> **SUPERSEDED:** The Observer Pattern described below has been eliminated.
+> Observation, signal conditioning, and health computation are inline functions
+> in the graph write path, not a separate pattern. See `lean-process-maps-audit.md`
+> for the full analysis. The Retrospective pattern (§2.4 of lean-process-maps-v2.md)
+> replaces the evaluator/auditor functions. The collector function is handled by
+> the consumer's graph-feeder hook.
+
 ### TASK 5: Observer Pattern (Week 4–5)
 
 **Goal:** Pattern that monitors the graph, collects validation data, and evaluates hypotheses.
