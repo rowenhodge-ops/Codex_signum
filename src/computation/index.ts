@@ -117,3 +117,9 @@ export type { ThresholdSet } from "./adaptive-thresholds.js";
 // Threshold learning
 export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
 export type { ThresholdOutcome, ThresholdOutcomeType, ThresholdType } from "./threshold-learning.js";
+
+// Health band classification (6-band)
+export { healthBand, bandOrdinal } from "./health-band.js";
+
+// Observation value conditioning
+export { conditionValue } from "./condition-value.js";
