@@ -33,4 +33,10 @@ export * from "./metrics/index.js";
 export * from "./patterns/index.js";
 
 // ── Bootstrap ──
-export { ALL_ARMS, bootstrapAgents, seedInformedPriors } from "./bootstrap.js";
+export {
+  ALL_ARMS,
+  CORE_PATTERNS,
+  bootstrapAgents,
+  bootstrapPatterns,
+  seedInformedPriors,
+} from "./bootstrap.js";
