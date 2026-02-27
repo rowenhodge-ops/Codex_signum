@@ -8,12 +8,15 @@ export {
   computeCostAdjustedReward,
   DEFAULT_ROUTER_CONFIG,
   buildContextClusterId,
+  freshArmStats,
   route,
   sampleBeta,
   selectModel,
   TASK_COST_DEFAULTS,
+  updateArmStats,
 } from "./thompson-router/index.js";
 export type {
+  OutcomeRecord,
   RoutableModel,
   RoutingContext,
   RoutingDecision,

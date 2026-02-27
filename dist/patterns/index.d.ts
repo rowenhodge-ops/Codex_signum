@@ -2,8 +2,8 @@
  * Codex Signum — Patterns Module Barrel Export
  * @module codex-signum-core/patterns
  */
-export { computeCostAdjustedReward, DEFAULT_ROUTER_CONFIG, buildContextClusterId, route, sampleBeta, selectModel, TASK_COST_DEFAULTS, } from "./thompson-router/index.js";
-export type { RoutableModel, RoutingContext, RoutingDecision, SelectModelRequest, SelectModelResult, TaskCostConfig, ThompsonRouterConfig, } from "./thompson-router/index.js";
+export { computeCostAdjustedReward, DEFAULT_ROUTER_CONFIG, buildContextClusterId, freshArmStats, route, sampleBeta, selectModel, TASK_COST_DEFAULTS, updateArmStats, } from "./thompson-router/index.js";
+export type { OutcomeRecord, RoutableModel, RoutingContext, RoutingDecision, SelectModelRequest, SelectModelResult, TaskCostConfig, ThompsonRouterConfig, } from "./thompson-router/index.js";
 export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agent/index.js";
 export type { AgentTask, DevAgentConfig, DevAgentModelExecutor, PipelineResult, PipelineStage, QualityAssessor, StageResult, } from "./dev-agent/index.js";
 export { Observer } from "./observer/index.js";
