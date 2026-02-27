@@ -10,4 +10,6 @@ export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agen
 export { Observer } from "./observer/index.js";
 // Architect Pattern — SURVEY + Pipeline stages
 export { survey, extractClaims, discoverDocumentSources, classify, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, executePlan, parallelDecompose, scorePlan, selectReasoningTier, createMockModelExecutor, createMockTaskExecutor, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, } from "./architect/index.js";
+// Retrospective — deterministic graph queries, no LLM
+export { runRetrospective, deriveConvergenceStatus, worstBand, } from "./retrospective/index.js";
 //# sourceMappingURL=index.js.map
