@@ -9,4 +9,5 @@ export { DEFAULT_PHI_L_WEIGHTS, EPSILON_R_THRESHOLDS, MATURITY_THRESHOLDS, PSI_H
 export type { AmendmentStatus, AmendmentTier, ArchitectureDecisionRecord, AxiomCompliance, ConstitutionalRule, RuleConstraint, RuleEvaluation, RuleExpression, RuleStatus, RuleTarget, } from "./constitutional.js";
 export { computeAxiomComplianceFraction } from "./constitutional.js";
 export type { Decision, DecisionContext, DecisionOutcome, Distillation, DistillationCategory, EphemeralMemory, InstitutionalKnowledge, InstitutionalKnowledgeType, MemoryStratum, Observation, ObservationData, ObservationType, } from "./memory.js";
+export type { HealthBand, ThresholdEvent } from "./threshold-event.js";
 //# sourceMappingURL=index.d.ts.map

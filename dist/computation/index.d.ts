@@ -24,4 +24,6 @@ export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonan
 export type { ThresholdSet } from "./adaptive-thresholds.js";
 export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
 export type { ThresholdOutcome, ThresholdOutcomeType, ThresholdType } from "./threshold-learning.js";
+export { healthBand, bandOrdinal } from "./health-band.js";
+export { conditionValue } from "./condition-value.js";
 //# sourceMappingURL=index.d.ts.map

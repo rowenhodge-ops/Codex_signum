@@ -60,3 +60,13 @@ export type {
   ContextClusterProps,
   ArmStats,
 } from "./queries.js";
+
+// Inline conditioning write path
+export {
+  writeObservation,
+  writeThresholdEvent,
+} from "./write-observation.js";
+export type {
+  PatternHealthContext,
+  WriteObservationResult,
+} from "./write-observation.js";

@@ -82,3 +82,6 @@ export type {
   ObservationData,
   ObservationType,
 } from "./memory.js";
+
+// Threshold event types — health band crossings
+export type { HealthBand, ThresholdEvent } from "./threshold-event.js";

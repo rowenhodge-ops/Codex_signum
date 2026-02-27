@@ -163,7 +163,7 @@ export declare function getPatternsWithHealth(): Promise<Array<{
 /**
  * Store computed ΦL on a pattern node.
  */
-export declare function updatePatternPhiL(patternId: string, phiL: number, trend: "improving" | "stable" | "degrading"): Promise<void>;
+export declare function updatePatternPhiL(patternId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
 /**
  * Get immediate children of a container node.
  * Returns child IDs with their stored ΦL, connection count, observation count, and degree.

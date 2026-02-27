@@ -29,4 +29,8 @@ export { evaluateAndReviewIfNeeded } from "./immune-response.js";
 export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonant } from "./adaptive-thresholds.js";
 // Threshold learning
 export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
+// Health band classification (6-band)
+export { healthBand, bandOrdinal } from "./health-band.js";
+// Observation value conditioning
+export { conditionValue } from "./condition-value.js";
 //# sourceMappingURL=index.js.map
