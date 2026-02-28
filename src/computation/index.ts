@@ -54,7 +54,6 @@ export {
   computeDampening,
   computeDegradationImpact,
   computeGammaEffective,
-  computeHubDampening,
   computeRecoveryDelay,
   computeRecoveryRate,
   propagateDegradation,

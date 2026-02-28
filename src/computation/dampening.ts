@@ -90,21 +90,6 @@ export function computeGammaEffective(
 }
 
 /**
- * Hub dampening — deprecated, routes to computeGammaEffective.
- *
- * The √k formula caused supercritical cascades for k ≥ 3.
- * Use computeGammaEffective() directly.
- *
- * @deprecated Use computeGammaEffective(degree, gammaBase) instead.
- */
-export function computeHubDampening(
-  degree: number,
-  gammaBase: number = MAX_GAMMA,
-): number {
-  return computeGammaEffective(degree, gammaBase);
-}
-
-/**
  * Algedonic bypass check (Engineering Bridge §Part 3).
  *
  * Any component with ΦL < 0.1 is an existential threat.
