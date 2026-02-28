@@ -35,13 +35,11 @@ async function callAnthropic(
     messages,
   };
 
-  // Adaptive thinking (4.5+) uses the thinking parameter
-  if (thinkingMode === "adaptive" && thinkingParameter) {
-    body.thinking = {
-      type: "enabled",
-      budget_tokens: parseBudget(thinkingParameter),
-    };
+  // Adaptive thinking (4.6 models) — no budget_tokens, just type: "adaptive"
+  if (thinkingMode === "adaptive") {
+    body.thinking = { type: "adaptive" };
   } else if (thinkingMode === "extended" && thinkingParameter) {
+    // Extended thinking (older models) — requires budget_tokens
     body.thinking = {
       type: "enabled",
       budget_tokens: parseBudget(thinkingParameter),
@@ -54,7 +52,7 @@ async function callAnthropic(
     headers: {
       "Content-Type": "application/json",
       "x-api-key": apiKey,
-      "anthropic-version": "2025-04-15",
+      "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify(body),
   });
