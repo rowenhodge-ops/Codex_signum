@@ -245,10 +245,13 @@ When adding new research papers: create a short-named copy (e.g., `new-topic.md`
 
 Core runs the Architect pattern on itself via scripts in `scripts/`. These are NOT part of the library — they are consumer-grade tooling that demonstrates self-hosting.
 
+**Pipeline Status: OPERATIONAL.** The full 7-stage pipeline (SURVEY → DECOMPOSE → CLASSIFY → SEQUENCE → GATE → DISPATCH → ADAPT) is validated and live. Thompson sampling routes model selection at DECOMPOSE and DISPATCH. The pipeline has been validated with both simple (1-task) and complex (19-task) intents. Analytical work on this repo MUST go through the pipeline — not be performed manually by an agent.
+
 ### Running the Architect
 
 ```bash
 # Full pipeline: survey + decompose + classify + sequence + gate + dispatch + adapt
+# This is the canonical way to run analytical work on this repo.
 npx tsx scripts/architect.ts plan "<intent>"
 
 # With options
@@ -502,6 +505,15 @@ All numbers cited in documentation, comments, code, or reports MUST:
 - Be marked `[estimated]` if produced by approximation rather than system output
 - Never be presented as system output if they were estimated by inspection
 
+### Regression Baselines
+
+These are the current baselines. Test counts must only go up. Export counts may change with legitimate additions.
+
+| Metric | Baseline | Source |
+|---|---|---|
+| Tests passing | 763 | `npm test` at HEAD `f371da9` |
+| Barrel exports | 193 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+
 ### Pipeline Test Coverage Gate
 
 The pre-commit gate warns (not blocks) if `src/signals/` was modified but `tests/pipeline/` has no `*.test.ts` files.
@@ -526,3 +538,4 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
+| Manual analysis bypass | Agent does analytical work itself when the Architect pipeline exists and is operational | Fix the failing pipeline stage, then retry. The Architect does analytical work. If DECOMPOSE fails, fix DECOMPOSE — don't write the analysis manually. This is the single most important anti-pattern for this repo. |
