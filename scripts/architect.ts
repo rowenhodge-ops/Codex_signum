@@ -50,7 +50,7 @@ function loadEnvFile(filePath: string): number {
       const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
       if (!match) continue;
       const [, key, value] = match;
-      const normalizedValue = value.replace(/^["']|["']$/g, "");
+      const normalizedValue = value.replace(/^["']|["']$/g, "").trim();
 
       if (key === "NEO4J_USERNAME" && !process.env.NEO4J_USER) {
         process.env.NEO4J_USER = normalizedValue;

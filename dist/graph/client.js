@@ -18,34 +18,29 @@ import neo4j from "neo4j-driver";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 /**
- * Load .env from multiple candidate paths.
- * Tries codex-signum-core/.env first, then parent agent/.env.
+ * Load .env from repository root.
  */
 function loadEnv() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    // Try codex-signum-core/.env
+    // Load codex-signum/.env
     config({ path: resolve(__dirname, "../../.env") });
-    // Fallback to parent agent/.env (DND-Manager bridge)
-    if (!process.env.NEO4J_URI) {
-        config({ path: resolve(__dirname, "../../../agent/.env") });
-    }
 }
 /**
  * Resolve Neo4j connection config from environment.
  */
 export function getConfig() {
     loadEnv();
-    const uri = process.env.NEO4J_URI;
-    const password = process.env.NEO4J_PASSWORD;
+    const uri = process.env.NEO4J_URI?.trim();
+    const password = process.env.NEO4J_PASSWORD?.trim();
     if (!uri || !password) {
         throw new Error("Neo4j configuration missing. Set NEO4J_URI and NEO4J_PASSWORD in .env or environment.");
     }
     return {
         uri,
-        user: process.env.NEO4J_USER || "neo4j",
+        user: process.env.NEO4J_USER?.trim() || "neo4j",
         password,
-        database: process.env.NEO4J_DATABASE || "neo4j",
+        database: process.env.NEO4J_DATABASE?.trim() || "neo4j",
     };
 }
 // ============ CONNECTION MANAGEMENT ============
