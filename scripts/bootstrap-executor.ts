@@ -163,7 +163,28 @@ function parseBudget(param: string): number {
   return budgets[param] ?? 16384;
 }
 
+// ── Provider classification ──────────────────────────────────────────────
+
+type ProviderClass = "anthropic" | "google" | "openrouter";
+
+function classifyProvider(provider: string): ProviderClass {
+  const p = provider.toLowerCase();
+  if (p === "anthropic") return "anthropic";
+  if (p.includes("vertex") || p.includes("google") || p.includes("gemini")) return "google";
+  return "openrouter";
+}
+
+function getAvailableProviders(): Set<ProviderClass> {
+  const available = new Set<ProviderClass>();
+  if (process.env.ANTHROPIC_API_KEY) available.add("anthropic");
+  if (process.env.GOOGLE_API_KEY) available.add("google");
+  if (process.env.OPENROUTER_API_KEY) available.add("openrouter");
+  return available;
+}
+
 // ── ModelExecutor implementation ──────────────────────────────────────────
+
+const MAX_SELECTION_RETRIES = 3;
 
 function mapContextToRequest(
   context?: ModelExecutorContext,
@@ -185,63 +206,89 @@ export function createBootstrapModelExecutor(): ModelExecutor {
       context?: ModelExecutorContext,
     ): Promise<ModelExecutorResult> {
       const { taskType, complexity } = mapContextToRequest(context);
+      const availableProviders = getAvailableProviders();
 
-      // Use Thompson sampling to select a model
-      const selection = await selectModel({
-        taskType,
-        complexity,
-        qualityRequirement: context?.qualityRequirement ?? 0.7,
-        callerPatternId: "architect",
-      });
-
-      console.log(
-        `  [Thompson] Selected: ${selection.selectedAgentId} (${selection.provider}, confidence: ${selection.confidence.toFixed(2)}, exploratory: ${selection.wasExploratory})`,
-      );
-
-      let result: ProviderCallResult;
-
-      try {
-        if (selection.provider === "anthropic") {
-          result = await callAnthropic(
-            selection.apiModelString,
-            selection.thinkingMode,
-            selection.thinkingParameter,
-            prompt,
-          );
-        } else if (
-          selection.provider === "vertex-ai" ||
-          selection.provider === "google"
-        ) {
-          result = await callGoogle(selection.apiModelString, prompt);
-        } else {
-          // Fallback to OpenRouter for unknown providers
-          result = await callOpenRouter(selection.apiModelString, prompt);
-        }
-
-        // Record success
-        await selection.recordOutcome({
-          success: true,
-          qualityScore: 0.7,
-          durationMs: result.durationMs,
-        });
-      } catch (err) {
-        // Record failure
-        await selection.recordOutcome({
-          success: false,
-          qualityScore: 0.0,
-          durationMs: 0,
-          errorType: "api_error",
-          notes: err instanceof Error ? err.message : String(err),
-        });
-        throw err;
+      if (availableProviders.size === 0) {
+        throw new Error(
+          "No API keys set. Set at least one of: ANTHROPIC_API_KEY, GOOGLE_API_KEY, OPENROUTER_API_KEY",
+        );
       }
 
-      return {
-        text: result.text,
-        modelId: selection.selectedAgentId,
-        durationMs: result.durationMs,
-        wasExploratory: selection.wasExploratory,
-      };
+      // Retry loop: if Thompson selects a model whose provider has no API key,
+      // record failure and re-select up to MAX_SELECTION_RETRIES times.
+      for (let attempt = 0; attempt < MAX_SELECTION_RETRIES; attempt++) {
+        const selection = await selectModel({
+          taskType,
+          complexity,
+          qualityRequirement: context?.qualityRequirement ?? 0.7,
+          callerPatternId: "architect",
+        });
+
+        const providerClass = classifyProvider(selection.provider);
+
+        console.log(
+          `  [Thompson] Selected: ${selection.selectedAgentId} (${selection.provider} → ${providerClass}, confidence: ${selection.confidence.toFixed(2)}, exploratory: ${selection.wasExploratory})`,
+        );
+
+        if (!availableProviders.has(providerClass)) {
+          console.warn(
+            `  [Thompson] No API key for ${providerClass} — recording failure, retrying (${attempt + 1}/${MAX_SELECTION_RETRIES})`,
+          );
+          await selection.recordOutcome({
+            success: false,
+            qualityScore: 0.0,
+            durationMs: 0,
+            errorType: "no_api_key",
+            notes: `No API key for provider ${providerClass} (${selection.provider})`,
+          });
+          continue;
+        }
+
+        let result: ProviderCallResult;
+
+        try {
+          if (providerClass === "anthropic") {
+            result = await callAnthropic(
+              selection.apiModelString,
+              selection.thinkingMode,
+              selection.thinkingParameter,
+              prompt,
+            );
+          } else if (providerClass === "google") {
+            result = await callGoogle(selection.apiModelString, prompt);
+          } else {
+            result = await callOpenRouter(selection.apiModelString, prompt);
+          }
+
+          // Record success
+          await selection.recordOutcome({
+            success: true,
+            qualityScore: 0.7,
+            durationMs: result.durationMs,
+          });
+
+          return {
+            text: result.text,
+            modelId: selection.selectedAgentId,
+            durationMs: result.durationMs,
+            wasExploratory: selection.wasExploratory,
+          };
+        } catch (err) {
+          // Record failure
+          await selection.recordOutcome({
+            success: false,
+            qualityScore: 0.0,
+            durationMs: 0,
+            errorType: "api_error",
+            notes: err instanceof Error ? err.message : String(err),
+          });
+          throw err;
+        }
+      }
+
+      throw new Error(
+        `All ${MAX_SELECTION_RETRIES} model selections had no API key. Available: [${[...availableProviders].join(", ")}]`,
+      );
     },
   };
 }
