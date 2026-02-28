@@ -5,7 +5,7 @@
  *
  * @module codex-signum-core/patterns/architect
  */
-export { survey, extractClaims, discoverDocumentSources } from "./survey.js";
+export { survey, extractClaims, discoverDocumentSources, parseHypotheses, } from "./survey.js";
 export { classify } from "./classify.js";
 export { sequence } from "./sequence.js";
 export { gate } from "./gate.js";
@@ -22,7 +22,7 @@ export { createMockModelExecutor } from "./mock-model-executor.js";
 export type { MockModelExecutorOptions } from "./mock-model-executor.js";
 export { createMockTaskExecutor } from "./mock-task-executor.js";
 export type { MockTaskExecutorOptions } from "./mock-task-executor.js";
-export type { BlindSpot, DocumentSource, ExtractedClaim, GapItem, SpecAssertion, SurveyInput, SurveyOutput, } from "./types.js";
+export type { BlindSpot, DocumentSource, ExtractedClaim, GapItem, SpecAssertion, SurveyInput, SurveyOutput, TrackedHypothesis, } from "./types.js";
 export type { AdaptationScope, ComplexityEstimate, Dependency, EffortEstimate, ExecutionPlan, GateDecision, GateResponse, ModelExecutor, ModelExecutorContext, ModelExecutorResult, Phase, PipelineSurveyOutput, PlanQualityMetrics, PlanState, PlanStatus, Task, TaskExecutionContext, TaskExecutor, TaskGraph, TaskOutcome, TaskType, } from "./types.js";
 export type { AdaptationResult } from "./adapt.js";
 export type { GateOptions } from "./gate.js";

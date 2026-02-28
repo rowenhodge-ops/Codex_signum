@@ -25,6 +25,26 @@ export interface DocumentSource {
   extractedClaims: ExtractedClaim[];
 }
 
+/** A tracked hypothesis from docs/hypotheses/ */
+export interface TrackedHypothesis {
+  /** Hypothesis ID (e.g., "H-001") */
+  id: string;
+  /** Source research paper and section */
+  source: string;
+  /** The claim being tracked */
+  claim: string;
+  /** Validation status */
+  status:
+    | "proposed"
+    | "validated"
+    | "partially-validated"
+    | "invalidated"
+    | "superseded"
+    | "deferred";
+  /** File path of the hypothesis document */
+  filePath: string;
+}
+
 /** Input to the SURVEY stage */
 export interface SurveyInput {
   /** Absolute path to the repository root */
@@ -37,6 +57,8 @@ export interface SurveyInput {
   graphClient?: import("neo4j-driver").Session | null;
   /** Paths to scan for documentation (defaults to ['docs/specs/', 'docs/research/'] relative to repoPath) */
   docsPaths?: string[];
+  /** Path to hypotheses directory (defaults to 'docs/hypotheses/' relative to repoPath) */
+  hypothesesPath?: string;
 }
 
 /** A single gap between specification and implementation */
@@ -111,6 +133,8 @@ export interface SurveyOutput {
 
   /** All documentation sources discovered and parsed */
   documentSources: DocumentSource[];
+  /** Tracked hypotheses from docs/hypotheses/ */
+  hypotheses: TrackedHypothesis[];
   /** 0.0-1.0: how confident SURVEY is in its assessment */
   confidence: number;
   /** What SURVEY couldn't determine */

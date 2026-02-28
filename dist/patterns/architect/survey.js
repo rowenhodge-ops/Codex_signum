@@ -96,14 +96,17 @@ export async function survey(input) {
     // ── 8. Document sources (auto-discovery) ──────────────────────────────────
     const docsPaths = input.docsPaths ?? ["docs/specs/", "docs/research/"];
     const documentSources = discoverDocumentSources(input.repoPath, docsPaths, blindSpots);
-    // ── 9. Graph state inspection ─────────────────────────────────────────────
+    // ── 9. Hypotheses ──────────────────────────────────────────────────────────
+    const hypothesesPath = input.hypothesesPath ?? "docs/hypotheses/";
+    const hypotheses = parseHypotheses(input.repoPath, hypothesesPath);
+    // ── 10. Graph state inspection ────────────────────────────────────────────
     const graphState = await inspectGraphState(input.graphClient ?? null, blindSpots);
-    // ── 10. Gap analysis from codebase state ─────────────────────────────────
+    // ── 11. Gap analysis from codebase state ─────────────────────────────────
     const codebaseGaps = buildCodebaseGaps(duplications, coreImports, input.repoPath, blindSpots);
-    // ── 11. Cross-reference document claims against code ─────────────────────
+    // ── 12. Cross-reference document claims against code ─────────────────────
     const docClaimGaps = crossReferenceDocumentClaims(documentSources, processedSpecPaths, input.repoPath, blindSpots);
     const gaps = [...codebaseGaps, ...specGaps, ...docClaimGaps];
-    // ── 12. Confidence score ──────────────────────────────────────────────────
+    // ── 13. Confidence score ──────────────────────────────────────────────────
     let confidence = 1.0;
     if (!keyFiles["package.json"])
         confidence -= 0.2;
@@ -117,6 +120,8 @@ export async function survey(input) {
         confidence -= 0.15; // No docs found = major blind spot
     if (documentSources.some((d) => d.extractedClaims.length > 0))
         confidence += 0.05; // Found actionable claims
+    if (hypotheses.length > 0 && hypotheses.some((h) => h.status === "proposed"))
+        confidence -= 0.05; // Untested hypotheses reduce confidence
     confidence -= blindSpots.length * 0.03;
     confidence = Math.max(0.1, Math.min(1.0, confidence));
     const output = {
@@ -139,6 +144,7 @@ export async function survey(input) {
             gaps,
         },
         documentSources,
+        hypotheses,
         confidence,
         blindSpots,
     };
@@ -1043,6 +1049,71 @@ export function discoverDocumentSources(repoPath, docsPaths, blindSpots) {
         }
     }
     return sources;
+}
+// ── Hypothesis parser ─────────────────────────────────────────────────────
+/**
+ * Parse hypothesis files from docs/hypotheses/.
+ * Returns structured hypothesis records for gap analysis.
+ *
+ * Exported for testing.
+ */
+export function parseHypotheses(repoPath, hypothesesPath) {
+    const absPath = path.isAbsolute(hypothesesPath)
+        ? hypothesesPath
+        : path.join(repoPath, hypothesesPath);
+    if (!fs.existsSync(absPath))
+        return [];
+    let entries;
+    try {
+        entries = fs.readdirSync(absPath, { withFileTypes: true });
+    }
+    catch {
+        return [];
+    }
+    const hypotheses = [];
+    for (const entry of entries) {
+        if (!entry.isFile())
+            continue;
+        if (!entry.name.endsWith(".md"))
+            continue;
+        if (entry.name === "README.md")
+            continue;
+        const filePath = path.join(absPath, entry.name);
+        const relPath = path.relative(repoPath, filePath).replace(/\\/g, "/");
+        let content;
+        try {
+            content = fs.readFileSync(filePath, "utf-8");
+        }
+        catch {
+            continue;
+        }
+        // Split on hypothesis headings: ## H-NNN: Title
+        const blocks = content.split(/^## (H-\d{3}):?\s*/m);
+        // blocks[0] is preamble, then alternating: [id, body, id, body, ...]
+        for (let i = 1; i < blocks.length - 1; i += 2) {
+            const id = blocks[i].trim();
+            const body = blocks[i + 1];
+            const sourceMatch = body.match(/\*\*Source:\*\*\s*(.+?)(?:\n|$)/);
+            const claimMatch = body.match(/\*\*Claim:\*\*\s*(.+?)(?:\n- \*\*|$)/s);
+            const statusMatch = body.match(/\*\*Status:\*\*\s*(\S+)/);
+            const source = sourceMatch ? sourceMatch[1].trim() : "unknown";
+            const claim = claimMatch ? claimMatch[1].trim() : "unknown";
+            const rawStatus = statusMatch ? statusMatch[1].trim() : "proposed";
+            const validStatuses = new Set([
+                "proposed",
+                "validated",
+                "partially-validated",
+                "invalidated",
+                "superseded",
+                "deferred",
+            ]);
+            const status = validStatuses.has(rawStatus)
+                ? rawStatus
+                : "proposed";
+            hypotheses.push({ id, source, claim, status, filePath: relPath });
+        }
+    }
+    return hypotheses;
 }
 // ── Document claim cross-reference ──────────────────────────────────────────
 /**

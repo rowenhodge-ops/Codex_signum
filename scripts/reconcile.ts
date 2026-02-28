@@ -18,6 +18,7 @@ async function main(): Promise<void> {
       "docs/specs/codex-signum-implementation-README.md",
     ],
     docsPaths: ["docs/specs/", "docs/research/"],
+    hypothesesPath: "docs/hypotheses/",
     intent:
       "Research reconciliation: audit all research claims against implementation",
   });
@@ -54,6 +55,49 @@ async function main(): Promise<void> {
       console.log(`\n  📄 ${doc.title}`);
       console.log(`     Path:   ${doc.path}`);
       console.log(`     Claims: ${doc.extractedClaims.length}  (${breakdown})`);
+    }
+  }
+
+  // ── Hypotheses ────────────────────────────────────────────────────────────
+  if (result.hypotheses.length > 0) {
+    console.log("\n\n🧪 HYPOTHESES");
+    console.log(HR);
+
+    const byStatus: Record<string, typeof result.hypotheses> = {};
+    for (const h of result.hypotheses) {
+      (byStatus[h.status] ??= []).push(h);
+    }
+
+    const statusOrder = [
+      "proposed",
+      "partially-validated",
+      "deferred",
+      "validated",
+      "invalidated",
+      "superseded",
+    ];
+
+    for (const status of statusOrder) {
+      const hyps = byStatus[status];
+      if (!hyps || hyps.length === 0) continue;
+
+      const icon =
+        status === "validated"
+          ? "✅"
+          : status === "proposed"
+            ? "❓"
+            : status === "deferred"
+              ? "⏳"
+              : status === "partially-validated"
+                ? "🔶"
+                : status === "invalidated"
+                  ? "❌"
+                  : "♻️";
+
+      console.log(`\n  ${icon} ${status.toUpperCase()} (${hyps.length})`);
+      for (const h of hyps) {
+        console.log(`     ${h.id}: ${h.claim.slice(0, 80)}`);
+      }
     }
   }
 
@@ -163,6 +207,11 @@ async function main(): Promise<void> {
     `  GAPS:       ${totalGaps} total  (${criticalGaps} critical, ${warningGaps} warning)`,
   );
   console.log(`  DIVERGENCES: ${researchDivergences} research-divergence gaps`);
+  const validatedH = result.hypotheses.filter((h) => h.status === "validated").length;
+  const proposedH = result.hypotheses.filter((h) => h.status === "proposed").length;
+  console.log(
+    `  HYPOTHESES: ${result.hypotheses.length} total  (${validatedH} validated, ${proposedH} proposed)`,
+  );
   console.log(
     `  DOCUMENTS:  ${result.documentSources.length} sources, ${totalClaims} total claims`,
   );

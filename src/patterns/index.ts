@@ -57,6 +57,7 @@ export {
   survey,
   extractClaims,
   discoverDocumentSources,
+  parseHypotheses,
   classify,
   sequence,
   gate,
@@ -83,6 +84,7 @@ export type {
   SpecAssertion,
   SurveyInput,
   SurveyOutput,
+  TrackedHypothesis,
   // Pipeline types
   AdaptationScope,
   ComplexityEstimate,

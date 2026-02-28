@@ -7,7 +7,12 @@
  */
 
 // Existing survey (core's rich spec cross-reference version)
-export { survey, extractClaims, discoverDocumentSources } from "./survey.js";
+export {
+  survey,
+  extractClaims,
+  discoverDocumentSources,
+  parseHypotheses,
+} from "./survey.js";
 
 // Pipeline stages
 export { classify } from "./classify.js";
@@ -42,6 +47,7 @@ export type {
   SpecAssertion,
   SurveyInput,
   SurveyOutput,
+  TrackedHypothesis,
 } from "./types.js";
 
 // Types — Pipeline
