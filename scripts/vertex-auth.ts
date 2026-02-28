@@ -16,7 +16,12 @@ import { platform } from "node:os";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-export const GCP_PROJECT = process.env.GOOGLE_CLOUD_PROJECT ?? (() => { throw new Error("GOOGLE_CLOUD_PROJECT not set"); })();
+/** Lazily read GCP_PROJECT — env may not be loaded at import time. */
+export function getGcpProject(): string {
+  const project = process.env.GOOGLE_CLOUD_PROJECT;
+  if (!project) throw new Error("GOOGLE_CLOUD_PROJECT not set");
+  return project;
+}
 export const VERTEX_REGION = "us-central1";
 
 const TOKEN_TIMEOUT_MS = 10_000;

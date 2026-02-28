@@ -14,7 +14,7 @@ import type {
   ModelExecutorContext,
   ModelExecutorResult,
 } from "../src/patterns/architect/types.js";
-import { getVertexToken, GCP_PROJECT, VERTEX_REGION } from "./vertex-auth.js";
+import { getVertexToken, getGcpProject, VERTEX_REGION } from "./vertex-auth.js";
 
 // ── Provider dispatch ─────────────────────────────────────────────────────
 
@@ -381,7 +381,7 @@ async function callVertexGemini(
   };
 
   // Streaming: streamGenerateContent with alt=sse for single-line JSON events
-  const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent?alt=sse`;
+  const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent?alt=sse`;
 
   const start = Date.now();
 
@@ -414,7 +414,7 @@ async function callVertexGemini(
     const refreshedToken = await getVertexToken();
     if (!refreshedToken) throw streamErr;
 
-    const fallbackUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:generateContent`;
+    const fallbackUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:generateContent`;
     const response = await fetch(fallbackUrl, {
       method: "POST",
       headers: {
@@ -456,7 +456,7 @@ async function callVertexMistral(
     throw err;
   }
 
-  const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/mistralai/models/${apiModelString}:rawPredict`;
+  const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/mistralai/models/${apiModelString}:rawPredict`;
 
   const requestBody = {
     model: apiModelString,
