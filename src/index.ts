@@ -42,5 +42,6 @@ export {
   CORE_PATTERNS,
   bootstrapAgents,
   bootstrapPatterns,
+  seedAnalyticalPriors,
   seedInformedPriors,
 } from "./bootstrap.js";

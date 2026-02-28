@@ -1018,6 +1018,90 @@ export async function seedInformedPriors(): Promise<number> {
   return created;
 }
 
+/**
+ * Seed strong informed priors for the analytical context cluster.
+ *
+ * Target: Opus 4.6 arms dominate analytical task selection (~70-80%),
+ * Opus 4.5 arms fill ~15-20%, everything else ~2-5% combined.
+ *
+ * Uses synthetic Decision nodes with IDs prefixed "analytical_prior_"
+ * to distinguish from baseline bootstrap decisions. Idempotent: clears
+ * old analytical_prior_ decisions before reseeding.
+ */
+export async function seedAnalyticalPriors(): Promise<number> {
+  interface PriorConfig {
+    armPattern: RegExp;
+    alpha: number;
+    beta: number;
+  }
+
+  const ANALYTICAL_PRIORS: PriorConfig[] = [
+    { armPattern: /^claude-opus-4-6:/i, alpha: 12, beta: 1 },
+    { armPattern: /^claude-opus-4-5:/i, alpha: 8, beta: 1 },
+    { armPattern: /^claude-sonnet-4-6:/i, alpha: 2, beta: 3 },
+    { armPattern: /^claude-sonnet-4-5:|^claude-sonnet-4:/i, alpha: 1, beta: 4 },
+    { armPattern: /haiku/i, alpha: 1, beta: 6 },
+    { armPattern: /gemini/i, alpha: 1, beta: 5 },
+    { armPattern: /mistral|codestral/i, alpha: 1, beta: 6 },
+    { armPattern: /^claude-opus-4-1:|^claude-opus-4:/i, alpha: 4, beta: 2 },
+  ];
+
+  const ANALYTICAL_COMPLEXITIES = ["trivial", "moderate", "complex", "critical"] as const;
+
+  // Clear old analytical_prior_ decisions
+  await runQuery(
+    `MATCH (d:Decision) WHERE d.id STARTS WITH 'analytical_prior_' DETACH DELETE d`,
+  );
+
+  let created = 0;
+
+  for (const arm of ALL_ARMS) {
+    if (arm.status === "retired") continue;
+
+    // Find matching prior config
+    const config = ANALYTICAL_PRIORS.find((p) => p.armPattern.test(arm.id));
+    if (!config) continue; // No prior config for this arm pattern
+
+    const successes = config.alpha - 1; // α = successes + 1 (from getArmStatsForCluster)
+    const failures = config.beta - 1; // β = failures + 1
+
+    for (const complexity of ANALYTICAL_COMPLEXITIES) {
+      const clusterId = `analytical:${complexity}:general`;
+      await ensureContextCluster({
+        id: clusterId,
+        taskType: "analytical",
+        complexity,
+      });
+
+      for (let i = 0; i < successes + failures; i++) {
+        const isSuccess = i < successes;
+        const decId = `analytical_prior_${arm.id}_${complexity}_${i}`;
+        await recordDecision({
+          id: decId,
+          taskType: "analytical",
+          complexity,
+          selectedAgentId: arm.id,
+          wasExploratory: false,
+          contextClusterId: clusterId,
+        });
+        await recordDecisionOutcome({
+          decisionId: decId,
+          success: isSuccess,
+          qualityScore: isSuccess
+            ? 0.8 + Math.random() * 0.15
+            : 0.15 + Math.random() * 0.2,
+          durationMs: arm.avgLatencyMs ?? 5000,
+          cost: (arm.costPer1kOutput ?? 0.01) * 2,
+        });
+      }
+      created += successes + failures;
+    }
+  }
+
+  console.log(`Seeded ${created} analytical prior decisions.`);
+  return created;
+}
+
 async function main() {
   console.log("🌱 Codex Signum — Agent Bootstrap\n");
   const force = process.argv.includes("--force");

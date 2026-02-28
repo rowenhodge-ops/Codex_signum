@@ -656,6 +656,9 @@ export function createBootstrapModelExecutor(
             modelId: selection.selectedAgentId,
             durationMs: result.durationMs,
             wasExploratory: selection.wasExploratory,
+            provider: selection.provider,
+            thinkingMode: selection.thinkingMode,
+            thinkingParameter: selection.thinkingParameter,
           };
         } catch (err) {
           // Record failure and continue to next retry instead of killing the task.

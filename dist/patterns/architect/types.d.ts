@@ -251,7 +251,7 @@ export interface ModelExecutor {
 }
 export interface ModelExecutorContext {
     /** What type of task this is for (routing hint) */
-    taskType?: "planning" | "coding" | "review" | "general";
+    taskType?: "planning" | "coding" | "review" | "analytical" | "general";
     /** Complexity hint for model selection */
     complexity?: "simple" | "moderate" | "complex";
     /** Quality requirement (0-1) */
@@ -262,6 +262,9 @@ export interface ModelExecutorResult {
     modelId: string;
     durationMs: number;
     wasExploratory?: boolean;
+    provider?: string;
+    thinkingMode?: string;
+    thinkingParameter?: string;
 }
 /**
  * TaskExecutor — substrate-agnostic task execution interface.

@@ -17,6 +17,7 @@
  *   - API keys in environment (ANTHROPIC_API_KEY, etc.)
  *   - Agent nodes seeded (run: npx tsx src/bootstrap.ts)
  */
+import { execSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { closeDriver } from "../src/graph/index.js";
@@ -259,19 +260,63 @@ async function main(): Promise<void> {
   }, pipelineSurvey);
 
   // Write manifest after dispatch completes
-  writeManifest();
+  const manifest = writeManifest();
 
   // Results
   const succeeded = planState.task_outcomes.filter((t) => t.success).length;
   const failed = planState.task_outcomes.filter((t) => !t.success).length;
 
   console.log("\n" + SEP);
-  console.log("  RESULTS");
+  console.log("  DISPATCH COMPLETE");
   console.log(SEP);
   console.log(`  Status: ${planState.status}`);
   console.log(`  Tasks:  ${planState.task_outcomes.length} total (${succeeded} succeeded, ${failed} failed)`);
   console.log(`  Adaptations: ${planState.adaptations_count}`);
-  console.log(SEP + "\n");
+
+  if (manifest) {
+    console.log(`  Run ID: ${manifest.runId}`);
+    console.log(`  Output: docs/pipeline-output/${manifest.runId}/`);
+    console.log(`  Total output: ${manifest.summary.totalOutputChars.toLocaleString()} chars`);
+    console.log(`  Total duration: ${(manifest.summary.totalDurationMs / 1000).toFixed(1)}s`);
+    console.log("");
+    console.log("  Task outputs:");
+    for (const task of manifest.tasks) {
+      const icon = task.status === "succeeded" ? "+" : "x";
+      console.log(`    [${icon}] ${task.taskId}: ${task.title}`);
+      console.log(`        Model: ${task.model} (${task.provider}, ${task.thinkingMode}${task.thinkingParameter ? ":" + task.thinkingParameter : ""})`);
+      console.log(`        ${task.outputChars.toLocaleString()} chars, ${(task.durationMs / 1000).toFixed(1)}s`);
+      if (task.outputFile) {
+        console.log(`        -> ${task.outputFile}`);
+      }
+    }
+    console.log("");
+    console.log(`  Models used: ${manifest.summary.modelsUsed.join(", ")}`);
+  }
+
+  console.log(SEP);
+
+  // Auto-commit pipeline output
+  if (manifest && succeeded > 0) {
+    console.log("\n── Auto-commit pipeline output ──────────────────────────────");
+    try {
+      execSync("git add docs/pipeline-output/", {
+        cwd: repoPath,
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      const commitMsg = `pipeline: M-7B run ${manifest.runId} — ${succeeded}/${manifest.summary.total} tasks`;
+      execSync(`git commit -m "${commitMsg}"`, {
+        cwd: repoPath,
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      console.log(`  Committed: ${commitMsg}`);
+    } catch {
+      console.log("  No new pipeline output to commit (or already committed).");
+    }
+  }
+
+  console.log("");
 
   if (planState.status === "completed") {
     process.exit(0);

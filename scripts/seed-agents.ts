@@ -18,6 +18,7 @@
 import {
   bootstrapAgents,
   bootstrapPatterns,
+  seedAnalyticalPriors,
   seedInformedPriors,
 } from "../src/bootstrap.js";
 import {
@@ -52,6 +53,9 @@ async function main(): Promise<void> {
     ) {
       await seedInformedPriors();
     }
+
+    // Always seed analytical priors (idempotent — clears old ones first)
+    await seedAnalyticalPriors();
 
     console.log("\n✅ Seeding complete.");
   } catch (err) {

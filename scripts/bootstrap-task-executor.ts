@@ -123,18 +123,21 @@ function readFileContext(task: Task, repoPath: string): string {
 
 // ── Run manifest ────────────────────────────────────────────────────────────
 
-interface ManifestTask {
+export interface ManifestTask {
   taskId: string;
   title: string;
   type: string;
   model: string;
+  provider: string;
+  thinkingMode: string;
+  thinkingParameter: string | undefined;
   status: "succeeded" | "failed";
   durationMs: number;
   outputFile: string;
   outputChars: number;
 }
 
-interface RunManifest {
+export interface RunManifest {
   runId: string;
   intent: string;
   startedAt: string;
@@ -154,8 +157,8 @@ interface RunManifest {
 
 export interface BootstrapTaskExecutorBundle {
   executor: TaskExecutor;
-  /** Write the run manifest after all tasks complete */
-  writeManifest(): void;
+  /** Write the run manifest after all tasks complete and return it */
+  writeManifest(): RunManifest | null;
 }
 
 export function createBootstrapTaskExecutor(
@@ -201,7 +204,7 @@ export function createBootstrapTaskExecutor(
         // Generate analysis via LLM
         const prompt = buildTaskPrompt(task, context);
         const result = await modelExecutor.execute(prompt, {
-          taskType: task.type === "mechanical" ? "coding" : "coding",
+          taskType: task.type === "mechanical" ? "coding" : "analytical",
           complexity:
             task.estimated_complexity === "trivial"
               ? "simple"
@@ -253,6 +256,9 @@ export function createBootstrapTaskExecutor(
           title: task.title,
           type: task.type,
           model: result.modelId,
+          provider: result.provider ?? "unknown",
+          thinkingMode: result.thinkingMode ?? "default",
+          thinkingParameter: result.thinkingParameter,
           status: "succeeded",
           durationMs: result.durationMs,
           outputFile: outputPath.replace(repoPath + "/", "").replace(repoPath + "\\", ""),
@@ -276,6 +282,9 @@ export function createBootstrapTaskExecutor(
           title: task.title,
           type: task.type,
           model: "unknown",
+          provider: "unknown",
+          thinkingMode: "unknown",
+          thinkingParameter: undefined,
           status: "failed",
           durationMs: 0,
           outputFile: "",
@@ -292,8 +301,8 @@ export function createBootstrapTaskExecutor(
     },
   };
 
-  function writeManifest(): void {
-    if (!currentRunId || !currentRepoPath) return;
+  function writeManifest(): RunManifest | null {
+    if (!currentRunId || !currentRepoPath) return null;
 
     const outputDir = join(currentRepoPath, "docs", "pipeline-output", currentRunId);
     mkdirSync(outputDir, { recursive: true });
@@ -319,6 +328,7 @@ export function createBootstrapTaskExecutor(
     const manifestPath = join(outputDir, "_manifest.json");
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
     console.log(`  [DISPATCH] Manifest written to: ${manifestPath}`);
+    return manifest;
   }
 
   return { executor, writeManifest };
