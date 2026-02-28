@@ -12,7 +12,7 @@ export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, comput
 // εR — Exploration Rate
 export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, minEpsilonRForSpectralState, } from "./epsilon-r.js";
 // Dampening
-export { ALGEDONIC_THRESHOLD, CASCADE_LIMIT, HYSTERESIS_RATIO, SAFETY_BUDGET, checkAlgedonicBypass, computeDampening, computeDegradationImpact, computeGammaEffective, computeHubDampening, computeRecoveryDelay, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
+export { ALGEDONIC_THRESHOLD, CASCADE_LIMIT, HYSTERESIS_RATIO, SAFETY_BUDGET, checkAlgedonicBypass, computeDampening, computeDegradationImpact, computeGammaEffective, computeRecoveryDelay, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
 // Signal Conditioning Pipeline
 export { computeNetworkState, computePatternState, } from "./signal-conditioning.js";
 // Aggregation

@@ -24,8 +24,6 @@ export const CASCADE_LIMIT = 2;
 export const HYSTERESIS_RATIO = 2.5;
 /** Maximum dampening factor (cap from spec) */
 const MAX_GAMMA = 0.7;
-/** @deprecated Legacy numerator — use SAFETY_BUDGET with computeGammaEffective instead */
-const GAMMA_NUMERATOR = 0.8;
 /**
  * Safety budget for budget-capped dampening.
  * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
@@ -75,17 +73,6 @@ export function computeDampening(degree) {
 export function computeGammaEffective(k, gammaBase = MAX_GAMMA) {
     const safek = Math.max(1, k);
     return Math.min(gammaBase, SAFETY_BUDGET / safek);
-}
-/**
- * Hub dampening — deprecated, routes to computeGammaEffective.
- *
- * The √k formula caused supercritical cascades for k ≥ 3.
- * Use computeGammaEffective() directly.
- *
- * @deprecated Use computeGammaEffective(degree, gammaBase) instead.
- */
-export function computeHubDampening(degree, gammaBase = MAX_GAMMA) {
-    return computeGammaEffective(degree, gammaBase);
 }
 /**
  * Algedonic bypass check (Engineering Bridge §Part 3).
