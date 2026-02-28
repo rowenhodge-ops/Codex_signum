@@ -8,7 +8,7 @@
  * @module codex-signum-core/computation/structural-review
  */
 import { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, } from "./psi-h.js";
-import { computeDampening } from "./dampening.js";
+import { computeGammaEffective, SAFETY_BUDGET } from "./dampening.js";
 // ============ DIAGNOSTICS ============
 /**
  * Diagnostic 1: Global λ₂ — algebraic connectivity.
@@ -124,12 +124,11 @@ export function assessDampening(edges, nodeIds) {
     let totalGamma = 0;
     for (const nodeId of nodeIds) {
         const degree = degreeMap.get(nodeId) ?? 0;
-        const currentGamma = computeDampening(degree);
+        const currentGamma = computeGammaEffective(degree);
         totalGamma += currentGamma;
         // Risk: high γ on a well-connected node can over-propagate
         if (currentGamma > 0.5 && degree > 3) {
-            // Recommended: scale down more aggressively for high-degree nodes
-            const recommendedGamma = Math.min(0.5, 0.8 / (degree - 1));
+            const recommendedGamma = Math.min(0.5, SAFETY_BUDGET / degree);
             riskNodes.push({ nodeId, degree, currentGamma, recommendedGamma });
         }
     }

@@ -1,4 +1,3 @@
-export { Observer } from "./observer.js";
 export {
   checkCorrectionScale,
   checkLearningScale,

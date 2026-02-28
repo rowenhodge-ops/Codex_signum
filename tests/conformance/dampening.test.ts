@@ -31,25 +31,25 @@ describe("Dampening spec constants", () => {
 
 // ── computeDampening ──────────────────────────────────────────────────────
 
-describe("computeDampening — formula γ = min(0.7, 0.8/(k-1))", () => {
-  it("degree 1 (leaf) → γ = 0.7 (max)", () => {
+describe("computeDampening — delegates to budget-capped γ = min(0.7, 0.8/k)", () => {
+  it("degree 1 (leaf) → γ = 0.7 (cap, 0.8/1=0.8 capped)", () => {
     expect(computeDampening(1)).toBeCloseTo(0.7, 6);
   });
 
-  it("degree 2 → γ = min(0.7, 0.8/1) = 0.7 (cap)", () => {
-    expect(computeDampening(2)).toBeCloseTo(0.7, 6);
+  it("degree 2 → γ = min(0.7, 0.8/2) = 0.4", () => {
+    expect(computeDampening(2)).toBeCloseTo(0.4, 6);
   });
 
-  it("degree 3 → γ = 0.8/2 = 0.4", () => {
-    expect(computeDampening(3)).toBeCloseTo(0.4, 6);
+  it("degree 3 → γ = 0.8/3 ≈ 0.2667", () => {
+    expect(computeDampening(3)).toBeCloseTo(0.8 / 3, 6);
   });
 
-  it("degree 5 → γ = 0.8/4 = 0.2", () => {
-    expect(computeDampening(5)).toBeCloseTo(0.2, 6);
+  it("degree 5 → γ = 0.8/5 = 0.16", () => {
+    expect(computeDampening(5)).toBeCloseTo(0.16, 6);
   });
 
-  it("degree 9 → γ = 0.8/8 = 0.1", () => {
-    expect(computeDampening(9)).toBeCloseTo(0.1, 6);
+  it("degree 9 → γ = 0.8/9 ≈ 0.0889", () => {
+    expect(computeDampening(9)).toBeCloseTo(0.8 / 9, 6);
   });
 
   it("γ is always ≤ 0.7 (never exceeds cap)", () => {
@@ -69,8 +69,8 @@ describe("computeDampening — formula γ = min(0.7, 0.8/(k-1))", () => {
 describe("computeDegradationImpact", () => {
   it("cascade level 1 → applies dampening", () => {
     const impact = computeDegradationImpact(3, 0.5, 1);
-    // degree 3 → γ = 0.4; impact = 0.4 × 0.5 = 0.2
-    expect(impact).toBeCloseTo(0.2, 6);
+    // degree 3 → γ = 0.8/3 ≈ 0.2667; impact ≈ 0.2667 × 0.5 ≈ 0.1333
+    expect(impact).toBeCloseTo((0.8 / 3) * 0.5, 6);
   });
 
   it("cascade level 2 (limit) → still applies", () => {

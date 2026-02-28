@@ -4,16 +4,17 @@
  * When a morpheme degrades, the degradation signal propagates
  * through the graph — but DAMPENED by topology.
  *
- * Formula:
- *   γ_effective = min(0.7, 0.8 / (k - 1))
+ * Budget-capped formula (Phase 3 correction):
+ *   γ_effective = min(γ_base, 0.8 / k)
  *
  * Where k = degree of the receiving node.
- * Highly-connected nodes dampen more (they have more context to absorb shocks).
+ * Guarantees spectral radius μ = k × γ ≤ 0.8 < 1 for ALL k ≥ 1.
  *
  * Constitutional constraint: cascade limit = 2 levels max.
  * Recovery is 2.5× slower than degradation (hysteresis).
  *
  * @see engineering-bridge-v2.0.md §Part 3 "Topology-Aware Dampening"
+ * @see parameter-validation.md — budget-capped min(γ_base, s/k) with s≤0.8
  * @module codex-signum-core/computation/dampening
  */
 /** Maximum propagation depth (constitutional constraint) */
@@ -31,7 +32,11 @@ export declare const ALGEDONIC_THRESHOLD = 0.1;
 /**
  * Compute the effective dampening factor for a node.
  *
- * γ_effective = min(0.7, 0.8 / (k - 1))
+ * Now delegates to budget-capped formula: γ_effective = min(0.7, 0.8 / k)
+ *
+ * @deprecated Use computeGammaEffective(degree) directly. This function is
+ * retained for backward compatibility but now uses the budget-capped formula.
+ * The original 0.8/(k-1) formula was supercritical for k≥2 (μ = k×γ > 1).
  *
  * @param degree — Number of connections (k)
  * @returns Dampening factor in [0, MAX_GAMMA]

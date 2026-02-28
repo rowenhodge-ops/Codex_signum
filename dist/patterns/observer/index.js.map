@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/patterns/observer/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,eAAe,CAAC;AACzC,OAAO,EACL,oBAAoB,EACpB,kBAAkB,EAClB,sBAAsB,GACvB,MAAM,eAAe,CAAC"}
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/patterns/observer/index.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,oBAAoB,EACpB,kBAAkB,EAClB,sBAAsB,GACvB,MAAM,eAAe,CAAC"}

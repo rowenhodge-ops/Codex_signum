@@ -42,8 +42,12 @@ export type {
   StageResult,
 } from "./dev-agent/index.js";
 
-// Observer
-export { Observer } from "./observer/index.js";
+// Observer (feedback functions + types — Observer class removed per state-is-structural axiom)
+export {
+  checkCorrectionScale,
+  checkLearningScale,
+  checkEvolutionaryScale,
+} from "./observer/index.js";
 export type {
   FeedbackRecommendation,
   GraphObserver,

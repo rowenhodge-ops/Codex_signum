@@ -5,7 +5,7 @@
  * This is a CRITICAL safety constraint. Values above 0.7 cause
  * supercritical cascade propagation (amplification, not dampening).
  *
- * Formula: γ_effective = min(0.7, 0.8 / (k - 1))
+ * Formula: γ_effective = min(0.7, 0.8 / k)  [budget-capped, Phase 3 correction]
  *
  * If this test FAILS, dampening.ts has a bug that allows supercritical
  * propagation. This is a Phase 3 fix priority.
@@ -59,9 +59,9 @@ describe("SAFETY: γ_effective ≤ 0.7 for all degrees (subcriticality invariant
     }
   });
 
-  it("FORMULA: degree k → γ = min(0.7, 0.8/(k-1)) for k > 1", () => {
-    for (let k = 2; k <= 20; k++) {
-      const expected = Math.min(0.7, 0.8 / (k - 1));
+  it("FORMULA: degree k → γ = min(0.7, 0.8/k) [budget-capped]", () => {
+    for (let k = 1; k <= 20; k++) {
+      const expected = Math.min(0.7, 0.8 / k);
       const actual = computeDampening(k);
       expect(actual).toBeCloseTo(expected, 10);
     }

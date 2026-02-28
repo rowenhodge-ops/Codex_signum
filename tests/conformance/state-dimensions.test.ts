@@ -475,11 +475,11 @@ describe("εR (Exploration Rate)", () => {
 });
 
 describe("Topology-Aware Dampening", () => {
-  it("computes γ_effective = min(0.7, 0.8/(k-1))", () => {
+  it("computes γ_effective = min(0.7, 0.8/k) [budget-capped]", () => {
     expect(computeDampening(1)).toBeCloseTo(0.7, 4);
-    expect(computeDampening(2)).toBeCloseTo(0.7, 4);
-    expect(computeDampening(3)).toBeCloseTo(0.4, 4);
-    expect(computeDampening(5)).toBeCloseTo(0.2, 4);
+    expect(computeDampening(2)).toBeCloseTo(0.4, 4);
+    expect(computeDampening(3)).toBeCloseTo(0.8 / 3, 4);
+    expect(computeDampening(5)).toBeCloseTo(0.16, 4);
   });
 
   it("respects cascade limit constant", () => {

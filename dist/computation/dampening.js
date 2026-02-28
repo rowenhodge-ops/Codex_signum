@@ -4,16 +4,17 @@
  * When a morpheme degrades, the degradation signal propagates
  * through the graph — but DAMPENED by topology.
  *
- * Formula:
- *   γ_effective = min(0.7, 0.8 / (k - 1))
+ * Budget-capped formula (Phase 3 correction):
+ *   γ_effective = min(γ_base, 0.8 / k)
  *
  * Where k = degree of the receiving node.
- * Highly-connected nodes dampen more (they have more context to absorb shocks).
+ * Guarantees spectral radius μ = k × γ ≤ 0.8 < 1 for ALL k ≥ 1.
  *
  * Constitutional constraint: cascade limit = 2 levels max.
  * Recovery is 2.5× slower than degradation (hysteresis).
  *
  * @see engineering-bridge-v2.0.md §Part 3 "Topology-Aware Dampening"
+ * @see parameter-validation.md — budget-capped min(γ_base, s/k) with s≤0.8
  * @module codex-signum-core/computation/dampening
  */
 // ============ CONSTANTS ============
@@ -23,7 +24,7 @@ export const CASCADE_LIMIT = 2;
 export const HYSTERESIS_RATIO = 2.5;
 /** Maximum dampening factor (cap from spec) */
 const MAX_GAMMA = 0.7;
-/** Numerator for degree-based dampening (standard formula k-1) */
+/** @deprecated Legacy numerator — use SAFETY_BUDGET with computeGammaEffective instead */
 const GAMMA_NUMERATOR = 0.8;
 /**
  * Safety budget for budget-capped dampening.
@@ -41,15 +42,17 @@ const RECOVERY_DELAY_CAP_MULTIPLIER = 10;
 /**
  * Compute the effective dampening factor for a node.
  *
- * γ_effective = min(0.7, 0.8 / (k - 1))
+ * Now delegates to budget-capped formula: γ_effective = min(0.7, 0.8 / k)
+ *
+ * @deprecated Use computeGammaEffective(degree) directly. This function is
+ * retained for backward compatibility but now uses the budget-capped formula.
+ * The original 0.8/(k-1) formula was supercritical for k≥2 (μ = k×γ > 1).
  *
  * @param degree — Number of connections (k)
  * @returns Dampening factor in [0, MAX_GAMMA]
  */
 export function computeDampening(degree) {
-    if (degree <= 1)
-        return MAX_GAMMA; // Leaf node — max impact
-    return Math.min(MAX_GAMMA, GAMMA_NUMERATOR / (degree - 1));
+    return computeGammaEffective(degree);
 }
 /**
  * Budget-capped effective dampening (Engineering Bridge §Part 3, Phase 3 correction).
@@ -129,7 +132,7 @@ export function computeDegradationImpact(neighborDegree, degradationSeverity, ca
     // Constitutional limit: max 2 levels of cascade
     if (cascadeLevel > CASCADE_LIMIT)
         return 0;
-    const gamma = computeDampening(neighborDegree);
+    const gamma = computeGammaEffective(neighborDegree);
     return gamma * Math.max(0, degradationSeverity);
 }
 /**
