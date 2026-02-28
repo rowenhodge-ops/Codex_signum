@@ -31,6 +31,7 @@ import { checkVertexAuth } from "./vertex-auth.js";
 
 const ENV_KEYS = [
   "ANTHROPIC_API_KEY",
+  "GOOGLE_CLOUD_PROJECT",
   "GOOGLE_API_KEY",
   "OPENROUTER_API_KEY",
   "NEO4J_URI",
@@ -56,21 +57,19 @@ function loadEnvFile(filePath: string): number {
   return loaded;
 }
 
-/**
- * Auto-discover API keys from known .env locations.
- * Only sets vars that aren't already in the environment.
- */
 function loadEnv(repoPath: string): void {
-  const candidates = [
-    resolve(repoPath, ".env"),
-    resolve(repoPath, "../DND-Manager/.env"),
-  ];
-  let totalLoaded = 0;
-  for (const candidate of candidates) {
-    totalLoaded += loadEnvFile(candidate);
+  const envPath = resolve(repoPath, ".env");
+
+  if (!existsSync(envPath)) {
+    console.warn("  ⚠️  No .env file found in repository root.");
+    console.warn("     Create one with at minimum: ANTHROPIC_API_KEY=sk-...");
+    console.warn("     See .env.example for all supported variables.");
+    return;
   }
+
+  const totalLoaded = loadEnvFile(envPath);
   if (totalLoaded > 0) {
-    console.log(`  Loaded ${totalLoaded} env var(s) from .env files`);
+    console.log(`  Loaded ${totalLoaded} env var(s) from .env`);
   }
 }
 
