@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: This project is not accepting issues
+    url: https://github.com/rowenhodge-ops/Codex_signum
+    about: This repository is published as a reference implementation. Issues and feature requests are not being accepted at this time.
