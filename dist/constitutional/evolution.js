@@ -1,17 +1,6 @@
-/**
- * Codex Signum — Constitutional Amendment Lifecycle
- *
- * Implements the 8-state amendment lifecycle:
- *   proposed → experimenting → evaluating → voting → ratified → active
- *   (or rejected/reverted at any stage)
- *
- * Amendment tiers determine rate limits, cooling periods, experiment durations,
- * and consensus thresholds. Tier 3 changes require the strongest safeguards.
- *
- * @see codex-signum-v3.0.md §Constitutional Evolution
- * @see engineering-bridge-v2.0.md §Part 8
- * @module codex-signum-core/constitutional/evolution
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // ============ TIER CONFIGURATION ============
 /**
  * Per-tier constraints for the amendment lifecycle.

@@ -1,11 +1,6 @@
-/**
- * Codex Signum — Neo4j Graph Queries
- *
- * Reusable query builders for creating, reading, and relating
- * Codex entities in Neo4j. All state mutations flow through here.
- *
- * @module codex-signum-core/graph/queries
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { runQuery, writeTransaction } from "./client.js";
 // ============ AGENT QUERIES ============
 export async function createAgent(props) {

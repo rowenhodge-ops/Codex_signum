@@ -1,18 +1,6 @@
-/**
- * Codex Signum — ΦL Computation (Luminance Schema)
- *
- * ΦL is the health composite. NEVER a single number.
- * Always: weighted factors × maturity adjustment.
- *
- * Formula:
- *   raw = Σ(wᵢ × fᵢ)   where i ∈ {axiom, provenance, success, stability}
- *   maturityFactor = (1 - e^(-0.05 × observations)) × (1 - e^(-0.5 × connections))
- *   effective = raw × maturityFactor
- *
- * @see engineering-bridge-v2.0.md §Part 2 "Computing ΦL"
- * @see codex-signum-v3.0.md §State Dimensions
- * @module codex-signum-core/computation/phi-l
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { DEFAULT_PHI_L_WEIGHTS } from "../types/state-dimensions.js";
 import { computeMaturityFactor } from "./maturity.js";
 // ============ CONSTANTS ============

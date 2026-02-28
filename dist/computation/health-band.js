@@ -1,18 +1,6 @@
-/**
- * Codex Signum -- Health Band Classification (6-Band)
- *
- * Pure function: ΦL effective + maturity index --> HealthBand.
- *
- * Refines the 3-band classifyPhiLHealth() from adaptive-thresholds.ts
- * into the full 6-band operational classification required by the spec.
- *
- * Band boundaries are MATURITY-INDEXED -- not fixed constants.
- * The algedonic threshold (0.1) is fixed and constitutional.
- *
- * @see engineering-bridge-v2.0.md §Part 2 "Adaptive thresholds"
- * @see engineering-bridge-v2.0.md §Part 3 "Algedonic bypass" (ALGEDONIC_THRESHOLD = 0.1)
- * @module codex-signum-core/computation/health-band
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { getThresholds } from "./adaptive-thresholds.js";
 import { ALGEDONIC_THRESHOLD } from "./dampening.js";
 /** ΦL effective at or above this is "optimal" regardless of maturity */

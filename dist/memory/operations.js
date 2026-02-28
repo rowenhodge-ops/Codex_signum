@@ -1,20 +1,6 @@
-/**
- * Codex Signum — Memory Strata Operations
- *
- * Four strata, each with distinct retention and promotion rules:
- *
- * Stratum 1: Ephemeral  — In-session context (evaporates at session end)
- * Stratum 2: Observation — RETAINED. Raw signals that feed ΦL.
- * Stratum 3: Distillation — Extracted patterns from multiple observations
- * Stratum 4: Institutional — Permanent governance knowledge
- *
- * Promotion flows upward: 1 → 2 (on significance) → 3 (on pattern) → 4 (on consensus)
- * Stratum 2 is the INFLECTION POINT — everything below evaporates, above persists.
- *
- * @see codex-signum-v3.0.md §Memory Topology
- * @see engineering-bridge-v2.0.md §Part 4 "Memory Topology"
- * @module codex-signum-core/memory
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // Polyfill for environments without crypto.randomUUID
 const generateId = () => {
     try {

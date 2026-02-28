@@ -1,15 +1,6 @@
-/**
- * Codex Signum — Constitutional Rule Types
- *
- * Rules live in the graph as ConstitutionalRule nodes.
- * Not in YAML, not in JSON config files.
- * RULES.md files in pattern directories are documentation —
- * the rules themselves live in the graph.
- *
- * @see codex-signum-v3.0.md §Constitutional Evolution
- * @see codex-signum-implementation-README.md §Non-Negotiable Constraints
- * @module codex-signum-core/types/constitutional
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /**
  * Compute axiom compliance fraction (0.0–1.0).
  */

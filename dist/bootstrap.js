@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { pathToFileURL } from "node:url";
 import { closeDriver, createAgent, createPattern, ensureContextCluster, getDecisionsForCluster, listActiveAgents, migrateSchema, recordDecision, recordDecisionOutcome, runQuery, seedConstitutionalRules, } from "./graph/index.js";
 export const ALL_ARMS = [

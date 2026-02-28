@@ -1,12 +1,6 @@
-/**
- * SEQUENCE stage — produces an execution order via topological sort.
- *
- * Uses Kahn's algorithm for topological sorting with secondary ordering
- * by complexity (ascending). Detects circular dependencies.
- *
- * Moved from DND-Manager agent/patterns/architect/sequence.ts.
- * Verdict: GENERIC — pure computation, no DND imports.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export function sequence(taskGraph) {
     const ordered = topologicalSort(taskGraph);
     // Build phase boundaries

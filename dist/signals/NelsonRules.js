@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 const RULE_2_CONSECUTIVE = 9;
 const RULE_7_CONSECUTIVE = 15;
 export class NelsonRules {

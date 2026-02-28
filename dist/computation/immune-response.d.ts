@@ -1,12 +1,3 @@
-/**
- * Codex Signum — Immune Response Orchestration
- *
- * Wires triggers to diagnostics. This is the entry point consumers call.
- * Check triggers → if any fire → run expensive structural review.
- *
- * @see codex-signum-v3.0.md §Event-Triggered Structural Review
- * @module codex-signum-core/computation/immune-response
- */
 import type { TriggerInputState, TriggeredEvent } from "./structural-triggers.js";
 import type { StructuralReviewResult } from "./structural-review.js";
 /**

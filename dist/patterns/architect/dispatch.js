@@ -1,12 +1,6 @@
-/**
- * DISPATCH stage — feeds tasks to execution one at a time.
- *
- * Refactored from DND-Manager to accept a TaskExecutor interface
- * instead of using console.log stubs.
- *
- * Moved from DND-Manager agent/patterns/architect/dispatch.ts.
- * Verdict: GENERIC — refactored to use TaskExecutor injection.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export async function dispatch(planState, taskExecutor, options) {
     const { task_graph, execution_plan } = planState;
     if (!task_graph || !execution_plan) {

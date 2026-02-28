@@ -1,12 +1,6 @@
-/**
- * decompose-prompt.ts — Prompt construction for DECOMPOSE stage.
- *
- * Builds a structured prompt that instructs the LLM to produce a TaskGraph
- * from intent + survey output. Response format is JSON.
- *
- * Moved from DND-Manager agent/patterns/architect/decompose-prompt.ts.
- * Verdict: GENERIC — pure prompt building, no DND imports.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { MAX_TASKS_PER_PLAN } from "./types.js";
 /**
  * Build the decompose prompt from intent and survey output.

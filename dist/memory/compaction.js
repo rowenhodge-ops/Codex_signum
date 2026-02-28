@@ -1,22 +1,6 @@
-/**
- * Codex Signum — Stratum 2 Compaction
- *
- * Prune observations whose recency weight has decayed below threshold.
- * Uses continuous exponential decay: weight = e^(-λ × age)
- *
- * Safe to compact when ALL of:
- * 1. Recency weight < compactionThreshold (default: 0.01)
- * 2. The observation's signal has been processed by the signal pipeline
- * 3. The observation has been included in at least one distillation
- *
- * Key insight: compaction is SAFE because the information has already been
- * absorbed into ΦL, Thompson posteriors, and signal conditioning state.
- * Old observations whose signal has been integrated into higher-level state
- * can be pruned without information loss.
- *
- * @see codex-signum-v3.0.md §Memory Topology, Stratum 2
- * @module codex-signum-core/memory/compaction
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /**
  * Default config uses a 14-day half-life.
  * The practical observation window is ~5× half-life ≈ 70 days.

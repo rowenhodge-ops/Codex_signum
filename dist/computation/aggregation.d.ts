@@ -1,21 +1,4 @@
 /**
- * Codex Signum — Hierarchical Health Aggregation (Pure Computation)
- *
- * Computes health at every level of the containment hierarchy.
- * Node → Pattern → Bloom → System. Each level aggregates from constituents.
- *
- * Pure functions — no graph dependency. Data in, results out.
- *
- * Aggregation semantics (from v3.0 spec):
- * - ΦL at container = weighted mean of children's ΦL_effective
- * - ΨH at container = computed from the container's OWN subgraph (NOT averaged)
- * - εR at container = weighted mean of children's εR
- *
- * @see codex-signum-v3.0.md §State Dimensions, §Blooms fractal
- * @see attunement-v0.2.md §Identity
- * @module codex-signum-core/computation/aggregation
- */
-/**
  * Health state at any level — the three state dimensions.
  * Used for both leaf nodes and aggregated containers.
  */

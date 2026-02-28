@@ -1,17 +1,6 @@
-/**
- * Codex Signum — Rolled Throughput Yield (RTY) and %C&A Metrics
- *
- * RTY measures pipeline efficiency as the product of per-stage first-pass yields.
- * A RTY of 1.0 means every stage passed on the first attempt at full quality.
- * A RTY of 0.0 means at least one stage produced no usable output.
- *
- * %C&A (Percent Correct & Accurate) per stage = fraction of output accepted
- * without triggering a correction loop.
- *
- * Ported from DND-Manager agent/metrics/rty.ts.
- *
- * @module codex-signum-core/metrics/rty
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // ─── Conversion ──────────────────────────────────────────────────────────
 /**
  * Convert StageResult[] to StageAttempt[] for RTY computation.

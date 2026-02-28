@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { sampleBeta } from "./sampler.js";
 import { DEFAULT_ROUTER_CONFIG } from "./types.js";
 /**

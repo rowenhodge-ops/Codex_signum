@@ -1,20 +1,6 @@
-/**
- * Codex Signum — Threshold Learning Hooks (Pure Computation)
- *
- * "Thresholds are learnable parameters. When a 'healthy' pattern subsequently
- * fails, the threshold was too permissive. When a 'degraded' pattern recovers
- * without intervention, the threshold was too aggressive."
- *
- * This module records outcomes structurally. The actual learning algorithm
- * is future work — but data collection starts NOW so there's something to
- * learn from.
- *
- * Persistence: The consumer calls recordObservation() from graph/queries.ts
- * to persist. Core provides pure computation functions only.
- *
- * @see codex-signum-v3.0.md §State Dimensions
- * @module codex-signum-core/computation/threshold-learning
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // ============ RECORDING ============
 /**
  * Record a threshold outcome for future calibration learning.

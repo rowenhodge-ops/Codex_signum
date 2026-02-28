@@ -1,20 +1,3 @@
-/**
- * Codex Signum — Hierarchical Health Orchestration
- *
- * Wires graph queries to aggregation functions. NOT pure — calls graph/queries.
- * But still core logic that computes health at every level of the
- * containment hierarchy.
- *
- * Algorithm:
- * 1. Get all leaf nodes — their health is already computed per-execution
- * 2. Get all containers ordered bottom-up (deepest first)
- * 3. For each container, aggregate from children
- * 4. Return health at every level
- *
- * @see codex-signum-v3.0.md §Blooms fractal
- * @see attunement-v0.2.md §Identity
- * @module codex-signum-core/computation/hierarchical-health
- */
 import type { AggregateHealth } from "./aggregation.js";
 /**
  * Compute health at every level of the containment hierarchy.

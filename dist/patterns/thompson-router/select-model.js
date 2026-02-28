@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { v4 as uuid } from "uuid";
 import { ensureContextCluster, getArmStatsForCluster, listActiveAgents, listActiveAgentsByCapability, recordDecision, recordDecisionOutcome, } from "../../graph/index.js";
 import { buildContextClusterId, route } from "./router.js";

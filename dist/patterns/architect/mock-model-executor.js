@@ -1,14 +1,6 @@
-/**
- * Mock ModelExecutor — returns pre-built TaskGraph JSON for testing.
- * Enables full pipeline execution without API keys.
- *
- * The response format matches what core's decompose() parseTaskGraph() expects:
- * - tasks array with task_id, title, description, phase (minimum required)
- * - phases array with phase_id, title, tasks
- * - dependencies array
- * - estimated_total_effort string
- * - assumptions array
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export function createMockModelExecutor(options = {}) {
     const { taskCount = 3, simulateFailure = false, latencyMs = 50, customResponse, } = options;
     return {

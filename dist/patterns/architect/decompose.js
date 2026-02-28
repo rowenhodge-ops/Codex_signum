@@ -1,13 +1,6 @@
-/**
- * DECOMPOSE stage — transforms survey output + intent into a TaskGraph.
- *
- * Calls an LLM via the injected ModelExecutor to produce a real
- * task decomposition. Falls back to stub on LLM or parse failure.
- *
- * Moved from DND-Manager agent/patterns/architect/decompose.ts.
- * Verdict: SPLIT — removed DND-specific `createArchitectLLM` import,
- * refactored to accept ModelExecutor as a parameter.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { MAX_TASKS_PER_PLAN } from "./types.js";
 import { buildDecomposePrompt } from "./decompose-prompt.js";
 export async function decompose(intent, survey, modelExecutor) {

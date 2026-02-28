@@ -1,19 +1,6 @@
-/**
- * Parallel Decompose — Best-of-N strategy for plan quality.
- *
- * Research integration:
- * - Best-of-N: generate N decompositions, score each, pick best (log(N) improvement)
- * - Self-MoA: same strong model N times > mixing different models
- * - Short-m@k: take first M completions from K parallel runs (future: async race)
- *
- * Scoring heuristic evaluates:
- * - Decomposition confidence (from LLM response parse quality)
- * - Task count reasonableness (not too few, not too many)
- * - Coverage of survey gaps (do tasks address what_needs_building?)
- * - Internal consistency (no orphaned tasks, dependencies make sense)
- *
- * Falls back to single decompose when N=1 or all attempts fail.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { decompose } from "./decompose.js";
 /**
  * Run decompose N times and return the best-scoring plan.

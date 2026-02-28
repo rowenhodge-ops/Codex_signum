@@ -1,9 +1,6 @@
-/**
- * Mock TaskExecutor — simulates task execution for testing.
- *
- * Records all executed tasks for test assertions and supports
- * configurable failure injection.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export function createMockTaskExecutor(options = {}) {
     const { failingTasks = [], latencyMs = 20, executionLog = [], } = options;
     return {

@@ -1,14 +1,6 @@
-/**
- * Reasoning Tier Selection — maps ModelExecutorContext to a reasoning tier.
- *
- * Research integration (RTR framework):
- * - Deep: decomposition, multi-document analysis, novel problem-solving
- * - Moderate: coding, agentic tool-use, well-defined multi-step problems
- * - Light: data extraction, summarization, classification
- *
- * Consumers use this to configure their own model pools per tier.
- * Core provides the selection logic; consumers provide the model instances.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /**
  * Map a ModelExecutorContext to a reasoning tier.
  * Planning tasks always get deep reasoning.

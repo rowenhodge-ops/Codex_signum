@@ -1,21 +1,6 @@
-/**
- * Codex Signum -- Canonical Observation Writer with Inline Conditioning
- *
- * writeObservation() is the single entry point for recording observations
- * with inline health computation. There is no Observer, no collector, no
- * pipeline. These are function calls that happen as part of the write.
- *
- * Flow:
- *   1. Record raw Observation node (with rawValue preserved)
- *   2. conditionValue() -- 7-stage signal pipeline inline
- *   3. computePhiL() -- recompute ΦL composite
- *   4. healthBand() -- classify into 6-band
- *   5. Detect band crossing --> CREATE immutable ThresholdEvent
- *   6. updatePatternPhiL() -- SET health on Pattern node
- *   7. Algedonic ΦL < 0.1 --> propagateDegradation() with dampening
- *
- * @module codex-signum-core/graph/write-observation
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { conditionValue } from "../computation/condition-value.js";
 import { healthBand, bandOrdinal } from "../computation/health-band.js";
 import { computePhiL } from "../computation/phi-l.js";

@@ -1,3 +1,7 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
+
 /**
  * Bootstrap TaskExecutor — executes tasks via LLM + file operations.
  * Uses the ModelExecutor for LLM calls, applies changes to filesystem.

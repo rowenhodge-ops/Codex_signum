@@ -1,3 +1,7 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
+
 import type { Distillation, Observation, Decision } from "../../types/memory.js";
 import type { EpsilonR } from "../../types/state-dimensions.js";
 import type { PipelineResult } from "../dev-agent/index.js";

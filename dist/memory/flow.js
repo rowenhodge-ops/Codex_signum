@@ -1,16 +1,6 @@
-/**
- * Codex Signum — Memory Flow Coordinator
- *
- * Coordinates the upward flow (lossy compression from execution → observation →
- * distillation → institutional) and downward flow (contextual enrichment from
- * institutional → distilled → better defaults).
- *
- * All functions are pure — they compute what SHOULD happen.
- * Callers (graph-feeder, bridges) are responsible for persistence.
- *
- * @see codex-signum-v3.0.md §Memory Topology
- * @module codex-signum-core/memory/flow
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // Polyfill for environments without crypto.randomUUID
 const generateId = () => {
     try {

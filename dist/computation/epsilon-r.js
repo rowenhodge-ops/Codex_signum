@@ -1,15 +1,6 @@
-/**
- * Codex Signum — εR Computation (Exploration Rate)
- *
- * εR measures the fraction of decisions that sample uncertain alternatives
- * rather than exploiting known-best options. High ΦL with zero εR is a WARNING.
- *
- * Key principle: εR must never be exactly 0 for active patterns.
- *
- * @see codex-signum-v3.0.md §εR
- * @see engineering-bridge-v2.0.md §Part 2 "εR"
- * @module codex-signum-core/computation/epsilon-r
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { classifyEpsilonR, EPSILON_R_THRESHOLDS, } from "../types/state-dimensions.js";
 // ============ CORE COMPUTATION ============
 /**

@@ -1,15 +1,3 @@
-/**
- * Codex Signum — Structural Review Trigger Detection (Pure Computation)
- *
- * Six trigger conditions for event-driven structural review.
- * Each is a pure function — takes current state, returns boolean.
- *
- * "Structural review is triggered by events the system already produces,
- * not by schedule."
- *
- * @see codex-signum-v3.0.md §Event-Triggered Structural Review
- * @module codex-signum-core/computation/structural-triggers
- */
 export interface TriggerInputState {
     /** Current λ₂ of the full active graph */
     currentLambda2: number;

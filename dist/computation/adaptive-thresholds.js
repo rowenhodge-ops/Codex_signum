@@ -1,18 +1,6 @@
-/**
- * Codex Signum — Adaptive Threshold Resolver
- *
- * Replaces fixed thresholds with maturity-driven values.
- * A young network where mean ΦL is 0.6 is healthy.
- * A mature network at ΦL 0.6 is sick.
- *
- * Uses LINEAR INTERPOLATION between band anchor points for smooth transitions.
- * Hard band boundaries cause threshold-crossing oscillation — a system at
- * MI = 0.299 and MI = 0.301 should have nearly identical thresholds.
- *
- * @see codex-signum-v3.0.md §State Dimensions
- * @see engineering-bridge-v2.0.md §Part 2 "Adaptive thresholds — maturity-indexed"
- * @module codex-signum-core/computation/adaptive-thresholds
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // ============ SPEC VALUES ============
 // From v3.0 §State Dimensions and Engineering Bridge §Part 2:
 //

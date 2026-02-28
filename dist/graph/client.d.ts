@@ -1,18 +1,3 @@
-/**
- * Codex Signum — Neo4j Graph Client
- *
- * Singleton driver, session management, and query helpers.
- * Adapted from legacy agent/config/neo4jClient.ts but decoupled
- * from DND-Manager specifics.
- *
- * Environment variables:
- *   NEO4J_URI      — bolt+s:// or neo4j+s:// URI
- *   NEO4J_USER     — Username (default: "neo4j")
- *   NEO4J_PASSWORD — Password
- *   NEO4J_DATABASE — Database name (default: "neo4j")
- *
- * @module codex-signum-core/graph/client
- */
 import neo4j, { Driver, ManagedTransaction, Session, type QueryResult, type RecordShape } from "neo4j-driver";
 export interface Neo4jConfig {
     uri: string;

@@ -1,20 +1,6 @@
-/**
- * Codex Signum — Enhanced Distillation
- *
- * Richer distillation that produces actionable insights for routing,
- * threshold calibration, and failure avoidance.
- *
- * Three distillation types:
- * 1. Performance profile — mean ΦL, trend, variance, failure modes
- * 2. Routing hints — which models work well for this pattern/context
- * 3. Threshold calibration — evidence for adaptive threshold adjustment
- *
- * These are COMPLEMENTARY to the existing distillObservations() in operations.ts.
- * They produce structured insights rather than freeform text.
- *
- * @see codex-signum-v3.0.md §Memory Topology, Stratum 3
- * @module codex-signum-core/memory/distillation
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 // ============ DISTILLATION FUNCTIONS ============
 /**
  * Extract a performance profile from observations.

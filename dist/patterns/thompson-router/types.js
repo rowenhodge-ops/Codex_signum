@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /** Default router configuration */
 export const DEFAULT_ROUTER_CONFIG = {
     epsilonFloor: 0.01,

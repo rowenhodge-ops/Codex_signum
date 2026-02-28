@@ -1,16 +1,6 @@
-/**
- * Architect Orchestrator — manages the full plan lifecycle.
- *
- * Pipeline: SURVEY → DECOMPOSE → CLASSIFY → SEQUENCE → GATE → DISPATCH → ADAPT
- *
- * Moved from DND-Manager agent/patterns/architect/architect.ts.
- * Verdict: SPLIT — refactored to accept ModelExecutor and TaskExecutor
- * as injected dependencies. Uses core's survey function.
- *
- * Note: The SURVEY stage is handled by core's existing survey.ts.
- * The orchestrator accepts a PipelineSurveyOutput to bridge between
- * core's richer SurveyOutput and the pipeline's simpler format.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { decompose } from "./decompose.js";
 import { parallelDecompose } from "./parallel-decompose.js";
 import { classify } from "./classify.js";

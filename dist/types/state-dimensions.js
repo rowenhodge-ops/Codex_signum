@@ -1,17 +1,6 @@
-/**
- * Codex Signum — State Dimension Type Definitions
- *
- * Every morpheme carries three state properties:
- * - ΦL (Luminance Schema) — Health
- * - ΨH (Harmonic Signature) — Relational coherence
- * - εR (Exploration Rate) — Adaptive capacity
- *
- * These are NEVER single numbers. They are always composite structures.
- *
- * @see codex-signum-v3.0.md §State Dimensions
- * @see engineering-bridge-v2.0.md §Part 2
- * @module codex-signum-core/types/state-dimensions
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /** Default ΦL weights per Engineering Bridge v2.0 §Part 2 */
 export const DEFAULT_PHI_L_WEIGHTS = {
     axiomCompliance: 0.4,

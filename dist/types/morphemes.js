@@ -1,12 +1,5 @@
-/**
- * Codex Signum — Morpheme Type Definitions
- *
- * The six fundamental forms from which all expressions compose.
- * These are immutable. Their meanings are fixed across all versions,
- * all implementations, all scales.
- *
- * @see codex-signum-v3.0.md §The Six Morphemes
- * @module codex-signum-core/types/morphemes
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export {};
 //# sourceMappingURL=morphemes.js.map

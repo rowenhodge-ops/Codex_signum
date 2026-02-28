@@ -1,3 +1,7 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
+
 const VPP_BUFFER_SIZE = 50;
 
 interface NoiseState {

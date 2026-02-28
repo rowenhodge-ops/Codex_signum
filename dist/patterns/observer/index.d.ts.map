@@ -1,1 +1,1 @@
-{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/patterns/observer/index.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,oBAAoB,EACpB,kBAAkB,EAClB,sBAAsB,GACvB,MAAM,eAAe,CAAC;AACvB,YAAY,EACV,sBAAsB,EACtB,aAAa,EACb,eAAe,EACf,YAAY,EACZ,aAAa,GACd,MAAM,YAAY,CAAC"}
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/patterns/observer/index.ts"],"names":[],"mappings":"AAIA,OAAO,EACL,oBAAoB,EACpB,kBAAkB,EAClB,sBAAsB,GACvB,MAAM,eAAe,CAAC;AACvB,YAAY,EACV,sBAAsB,EACtB,aAAa,EACb,eAAe,EACf,YAAY,EACZ,aAAa,GACd,MAAM,YAAY,CAAC"}

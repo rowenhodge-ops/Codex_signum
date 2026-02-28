@@ -1,3 +1,7 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
+
 /**
  * Bootstrap ModelExecutor — calls LLMs directly for self-hosting.
  * Uses Thompson routing from core, direct API calls for execution.

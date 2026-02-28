@@ -1,11 +1,5 @@
-/**
- * Retrospective types.
- *
- * runRetrospective() queries the graph and returns structured insights.
- * No LLM. No pipeline. No writes except an optional DistilledInsight node.
- * The graph already contains the answers — this just surfaces them.
- *
- * @module codex-signum-core/patterns/retrospective/types
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export {};
 //# sourceMappingURL=types.js.map

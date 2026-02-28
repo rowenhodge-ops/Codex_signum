@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /** Default threshold for health metrics — below this value triggers alarm */
 const DEFAULT_THRESHOLD = 0.5;
 export class TrendRegression {

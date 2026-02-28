@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { evaluateConstitution } from "../../constitutional/index.js";
 import { EphemeralStore, attachOutcome, createDecision, createObservation, } from "../../memory/index.js";
 import { route } from "../thompson-router/index.js";

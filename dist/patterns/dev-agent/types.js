@@ -1,3 +1,6 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { DEFAULT_ROUTER_CONFIG } from "../thompson-router/index.js";
 /** Default DevAgent configuration */
 export const DEFAULT_DEVAGENT_CONFIG = {

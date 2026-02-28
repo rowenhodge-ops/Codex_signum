@@ -1,3 +1,7 @@
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
+
 /**
  * Mock ModelExecutor — returns pre-built TaskGraph JSON for testing.
  * Enables full pipeline execution without API keys.

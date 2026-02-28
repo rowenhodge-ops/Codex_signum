@@ -1,32 +1,6 @@
-/**
- * Codex Signum — Provider Circuit Breaker
- *
- * Provider-level circuit breaker for infrastructure failure protection.
- *
- * States:
- *   CLOSED    — Normal operation. Requests pass through.
- *   OPEN      — N consecutive failures. All requests rejected immediately.
- *   HALF_OPEN — Cooldown elapsed. Trial probes allowed (5-10 successes to close).
- *               All successes → CLOSED. Any failure → OPEN (increment trip count).
- *
- * Backoff (Engineering Bridge §Part 3):
- *   actual_delay = random(0, min(base × 1.5^tripCount, cooldownMaxMs))
- *   Full jitter prevents thundering-herd when multiple circuits recover.
- *
- * Half-open probes (Engineering Bridge §Part 3):
- *   5-10 trial successes required before closing.  Not just 1.
- *
- * Thompson Sampling already adapts to model quality over time, but it can't
- * react fast enough to prevent hammering a down provider (e.g. outage,
- * expired token). The circuit breaker provides immediate protection.
- *
- * Core is stateless-ish: callers instantiate ProviderCircuitBreaker and
- * own its lifecycle. No module-level singletons.
- *
- * Ported from DND-Manager agent/adapters/circuit-breaker.ts.
- *
- * @module codex-signum-core/resilience/circuit-breaker
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 const DEFAULT_CONFIG = {
     failureThreshold: 3,
     cooldownBaseMs: 60_000,

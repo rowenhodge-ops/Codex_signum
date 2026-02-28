@@ -1,12 +1,6 @@
-/**
- * CLASSIFY stage — assigns type (mechanical vs generative) to each task.
- *
- * Heuristic classification based on keyword analysis of task descriptions.
- * Defaults to "generative" (safer — gets full pipeline validation).
- *
- * Moved from DND-Manager agent/patterns/architect/classify.ts.
- * Verdict: GENERIC — pure computation, no DND imports.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 export function classify(taskGraph) {
     const classifiedTasks = taskGraph.tasks.map((task) => ({
         ...task,

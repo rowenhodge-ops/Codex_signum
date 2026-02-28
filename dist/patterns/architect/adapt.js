@@ -1,13 +1,6 @@
-/**
- * ADAPT stage — handles failures by classifying scope and producing
- * replanning instructions.
- *
- * Foundation implementation classifies scope (task/phase/plan) but
- * does not yet trigger full replanning loops.
- *
- * Moved from DND-Manager agent/patterns/architect/adapt.ts.
- * Verdict: GENERIC — no DND imports.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { MAX_ADAPTATIONS_PER_PLAN } from "./types.js";
 export function adapt(planState, failedOutcome) {
     const adaptCount = planState.adaptations_count + 1;

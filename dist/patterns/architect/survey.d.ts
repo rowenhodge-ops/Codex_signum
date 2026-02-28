@@ -1,14 +1,3 @@
-/**
- * Codex Signum — SURVEY Stage Implementation
- *
- * A pure function that reads filesystem and git state to produce a
- * structured audit of a repository's alignment with @codex-signum/core.
- *
- * Does NOT call any LLM. Does NOT require Neo4j. Is deterministic
- * given the same filesystem state.
- *
- * @module codex-signum-core/patterns/architect
- */
 import type { BlindSpot, DocumentSource, ExtractedClaim, SurveyInput, SurveyOutput, TrackedHypothesis } from "./types.js";
 /**
  * SURVEY — The Architect's reconnaissance stage.

@@ -1,22 +1,6 @@
-/**
- * Codex Signum — ΨH Computation (Harmonic Signature)
- *
- * ΨH is relational coherence. Two components:
- *
- * 1. Structural Coherence (λ₂) — Fiedler eigenvalue of graph Laplacian
- *    Near 0 = fragile. High = robust. Computed from graph adjacency.
- *
- * 2. Runtime Friction (TV_G) — Graph Total Variation
- *    How "smooth" are ΦL values across connected nodes?
- *    Low = resonant (neighbors agree). High = dissonant (neighbors disagree).
- *
- * Combined: 0.4 × normalize(λ₂) + 0.6 × (1 - friction)
- * Runtime friction weighted higher — reflects actual operational coherence.
- *
- * @see codex-signum-v3.0.md §ΨH
- * @see engineering-bridge-v2.0.md §Part 2 "ΨH"
- * @module codex-signum-core/computation/psi-h
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { PSI_H_WEIGHTS } from "../types/state-dimensions.js";
 // ============ CORE COMPUTATION ============
 /**

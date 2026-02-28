@@ -1,15 +1,6 @@
-/**
- * GATE stage — presents the plan and collects human approval.
- *
- * Every plan requires human gate approval in V1
- * (constitutional rule: mandatory_human_gate_initial = true).
- *
- * Uses readline for terminal interaction. Supports auto-gate mode
- * for automated/testing scenarios.
- *
- * Moved from DND-Manager agent/patterns/architect/gate.ts.
- * Verdict: GENERIC — no DND imports.
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import * as readline from "readline";
 export async function gate(planState, options) {
     // Auto-gate mode: approve without interaction

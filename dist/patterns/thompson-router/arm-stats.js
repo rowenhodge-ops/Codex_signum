@@ -1,12 +1,6 @@
-/**
- * Codex Signum — Arm Stats Update (Pure Function)
- *
- * Incremental update of Thompson Sampling arm statistics
- * after an execution outcome. Handles Beta posterior update
- * and EWMA smoothing for duration/quality/cost metrics.
- *
- * @module codex-signum-core/patterns/thompson-router/arm-stats
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /**
  * Update ArmStats after an outcome (pure function).
  *

@@ -1,14 +1,6 @@
-/**
- * Codex Signum -- Observation Value Conditioning
- *
- * Wraps SignalPipeline.process() for observation values.
- * Consumers provide the pipeline instance; core remains stateless.
- *
- * conditionValue() is called INLINE during observation writes --
- * it is a function call, not a scheduled process or background task.
- *
- * @module codex-signum-core/computation/condition-value
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 /**
  * Condition a raw observation value through the 7-stage signal pipeline.
  *

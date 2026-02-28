@@ -1,31 +1,6 @@
-/**
- * Codex Signum — Constitutional Engine
- *
- * Evaluates and enforces the 10 axioms + constitutional rules.
- * The engine is a constraint solver that checks actions against
- * the governance framework before allowing them to proceed.
- *
- * Three tiers of rules:
- * - Tier 1 (Mandatory): MUST be satisfied. Violation = block action.
- * - Tier 2 (Preferred): SHOULD be satisfied. Violation = warn + log.
- * - Tier 3 (Advisory): MAY be satisfied. Violation = log only.
- *
- * The 10 Axioms:
- * A1: Every morpheme carries (ΦL, ΨH, εR)
- * A2: ΦL is a weighted composite — never a scalar
- * A3: ΨH derives from graph Laplacian eigengap + TV_G
- * A4: Every routing decision = (context, model, quality, cost)
- * A5: εR ∈ [floor, 1] — never exactly 0 for active patterns
- * A6: Degradation propagates via topology-aware dampening
- * A7: Constitutional rules are tiered (mandatory/preferred/advisory)
- * A8: Memory flows upward: ephemeral → observation → distillation → institutional
- * A9: Three feedback scales: correction (immediate), learning (session), evolutionary (cross-session)
- * A10: Meta-imperatives (Ω₁,Ω₂,Ω₃) are gradient constraints, not objectives
- *
- * @see codex-signum-v3.0.md §Constitutional Layer
- * @see engineering-bridge-v2.0.md §Part 5
- * @module codex-signum-core/constitutional
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { computeAxiomComplianceFraction } from "../types/constitutional.js";
 // ============ AXIOM EVALUATION ============
 /**

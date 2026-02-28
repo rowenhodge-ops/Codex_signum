@@ -1,18 +1,6 @@
-/**
- * Codex Signum — Signal Conditioning Pipeline
- *
- * Orchestrates the full state dimension computation cycle:
- * 1. Gather observations from Neo4j
- * 2. Compute ΦL for each pattern
- * 3. Compute ΨH from graph structure
- * 4. Compute εR from decision history
- * 5. Apply dampening for degradation events
- * 6. Write results back to graph
- *
- * This is the "heartbeat" of the Codex — run periodically or after events.
- *
- * @module codex-signum-core/computation/signal-conditioning
- */
+// Copyright 2024-2026 Rowen Hodge
+// Licensed under the Apache License, Version 2.0
+// See LICENSE file for details
 import { computeEpsilonR } from "./epsilon-r.js";
 import { computeMaturityIndex } from "./maturity.js";
 import { computeAxiomComplianceFactor, computePhiL, computeTemporalStability, computeUsageSuccessRate, } from "./phi-l.js";
