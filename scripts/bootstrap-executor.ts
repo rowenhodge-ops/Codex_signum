@@ -252,11 +252,14 @@ async function parseGoogleStream(
     buffer = lines.pop() ?? "";
 
     for (const line of lines) {
-      const trimmed = line.trim();
+      let trimmed = line.trim();
       if (!trimmed || trimmed === "[" || trimmed === "]" || trimmed === ",")
         continue;
 
       try {
+        // Strip SSE "data: " prefix (alt=sse format)
+        if (trimmed.startsWith("data: ")) trimmed = trimmed.slice(6);
+        if (trimmed === "[DONE]") continue;
         // Strip leading comma if present (array format)
         const clean = trimmed.startsWith(",") ? trimmed.slice(1) : trimmed;
         const chunk = JSON.parse(clean) as {
@@ -320,6 +323,9 @@ async function callGoogle(
     }
 
     const text = await parseGoogleStream(response, apiModelString);
+    if (!text) {
+      throw new Error("Streaming returned 0 chars — falling back to non-streaming");
+    }
     return { text, durationMs: Date.now() - start };
   } catch (streamErr) {
     // Fall back to non-streaming
@@ -407,8 +413,8 @@ async function callVertexGemini(
     generationConfig: { maxOutputTokens: 16384 },
   };
 
-  // Streaming: streamGenerateContent (no alt=sse — native JSON array format)
-  const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent`;
+  // Streaming: streamGenerateContent with alt=sse for single-line JSON events
+  const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent?alt=sse`;
 
   const start = Date.now();
 
@@ -428,6 +434,9 @@ async function callVertexGemini(
     }
 
     const text = await parseGoogleStream(response, apiModelString);
+    if (!text) {
+      throw new Error("Streaming returned 0 chars — falling back to non-streaming");
+    }
     return { text, durationMs: Date.now() - start };
   } catch (streamErr) {
     // Fall back to non-streaming generateContent
