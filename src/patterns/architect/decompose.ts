@@ -35,39 +35,91 @@ export async function decompose(
       qualityRequirement: 0.7,
     });
 
+    console.log(`  DECOMPOSE: Model ${result.modelId} returned ${result.text.length} chars (${result.durationMs}ms)`);
+
     const parsed = parseTaskGraph(result.text, intentId);
 
     if (parsed) {
+      console.log(`  DECOMPOSE: Parsed ${parsed.tasks.length} tasks in ${parsed.phases.length} phases (confidence: ${parsed.decomposition_confidence.toFixed(2)})`);
       return parsed;
     }
-  } catch {
-    // LLM decomposition failed — fall through to stub
+
+    console.error(`  DECOMPOSE: parseTaskGraph returned null. First 500 chars of response:\n${result.text.slice(0, 500)}`);
+  } catch (err) {
+    console.error(`  DECOMPOSE: LLM call failed:`, err instanceof Error ? err.message : err);
   }
 
   // Fallback: return stub
+  console.warn(`  DECOMPOSE: Falling back to stub plan.`);
   return createStubTaskGraph(intent, intentId);
 }
 
 /**
+ * Extract JSON from an LLM response that may contain preamble text,
+ * markdown code fences, or postamble text.
+ */
+function extractJSON(text: string): string {
+  const trimmed = text.trim();
+
+  // Try 1: Direct parse (pure JSON)
+  try {
+    JSON.parse(trimmed);
+    return trimmed;
+  } catch { /* not pure JSON */ }
+
+  // Try 2: Extract from markdown code fence (anywhere in text)
+  const fenceMatch = trimmed.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (fenceMatch) {
+    try {
+      JSON.parse(fenceMatch[1].trim());
+      return fenceMatch[1].trim();
+    } catch { /* fence content wasn't valid JSON */ }
+  }
+
+  // Try 3: Find the outermost JSON object
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const candidate = trimmed.slice(firstBrace, lastBrace + 1);
+    try {
+      JSON.parse(candidate);
+      return candidate;
+    } catch { /* not valid JSON between braces */ }
+  }
+
+  // Try 4: Find a bare JSON array (some models return tasks array directly)
+  const firstBracket = trimmed.indexOf("[");
+  const lastBracket = trimmed.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    const candidate = trimmed.slice(firstBracket, lastBracket + 1);
+    try {
+      const parsed = JSON.parse(candidate);
+      if (Array.isArray(parsed)) {
+        return JSON.stringify({ tasks: parsed, phases: [], dependencies: [] });
+      }
+    } catch { /* not valid JSON array */ }
+  }
+
+  throw new Error(`Could not extract JSON from LLM response (${text.length} chars). First 300 chars: ${text.slice(0, 300)}`);
+}
+
+/**
  * Parse raw LLM text into a TaskGraph.
- * Handles: raw JSON, JSON in markdown fences, and partial responses.
+ * Handles: raw JSON, JSON in markdown fences, preamble/postamble text, and partial responses.
  * Returns null if parsing fails.
  */
 function parseTaskGraph(raw: string, intentId: string): TaskGraph | null {
   try {
-    // Strip markdown code fences if present
-    let jsonStr = raw.trim();
-    if (jsonStr.startsWith("```")) {
-      jsonStr = jsonStr
-        .replace(/^```(?:json)?\s*\n?/, "")
-        .replace(/\n?```\s*$/, "");
-    }
+    const jsonStr = extractJSON(raw);
+    console.log(`  DECOMPOSE: Extracted JSON (${jsonStr.length} chars from ${raw.length} chars raw)`);
 
     const data = JSON.parse(jsonStr);
 
     // Validate required fields exist
-    if (!Array.isArray(data.tasks) || data.tasks.length === 0) return null;
-    if (!Array.isArray(data.phases) || data.phases.length === 0) return null;
+    if (!Array.isArray(data.tasks) || data.tasks.length === 0) {
+      console.error(`  DECOMPOSE: No tasks array in parsed JSON. Keys: ${Object.keys(data).join(", ")}`);
+      return null;
+    }
 
     // Enforce MAX_TASKS constraint
     if (data.tasks.length > MAX_TASKS_PER_PLAN) {
@@ -107,21 +159,35 @@ function parseTaskGraph(raw: string, intentId: string): TaskGraph | null {
 
     const validTaskIds = new Set(validTasks.map((t) => t.task_id));
 
-    // Validate phases
-    const validPhases: Phase[] = (data.phases as Record<string, unknown>[])
-      .filter((p: Record<string, unknown>) => p.phase_id && p.title)
-      .map((p: Record<string, unknown>) => ({
-        phase_id: String(p.phase_id),
-        title: String(p.title),
-        description: String(p.description ?? ""),
-        tasks: Array.isArray(p.tasks)
-          ? (p.tasks as string[]).map(String).filter((id) => validTaskIds.has(id))
-          : [],
-        gate: p.gate === "auto" ? ("auto" as const) : ("human" as const),
-        gate_criteria: String(
-          p.gate_criteria ?? "Human reviews phase output",
-        ),
-      }));
+    // Validate phases — synthesize a default if LLM omitted them
+    let validPhases: Phase[];
+    if (Array.isArray(data.phases) && data.phases.length > 0) {
+      validPhases = (data.phases as Record<string, unknown>[])
+        .filter((p: Record<string, unknown>) => p.phase_id && p.title)
+        .map((p: Record<string, unknown>) => ({
+          phase_id: String(p.phase_id),
+          title: String(p.title),
+          description: String(p.description ?? ""),
+          tasks: Array.isArray(p.tasks)
+            ? (p.tasks as string[]).map(String).filter((id) => validTaskIds.has(id))
+            : [],
+          gate: p.gate === "auto" ? ("auto" as const) : ("human" as const),
+          gate_criteria: String(
+            p.gate_criteria ?? "Human reviews phase output",
+          ),
+        }));
+    } else {
+      // Synthesize a single default phase containing all tasks
+      validPhases = [{
+        phase_id: "phase_1",
+        title: "Execution",
+        description: "Auto-generated phase (LLM did not provide phases)",
+        tasks: validTasks.map((t) => t.task_id),
+        gate: "human" as const,
+        gate_criteria: "Human reviews phase output",
+      }];
+      console.warn(`  DECOMPOSE: No phases in LLM response — synthesized default phase for ${validTasks.length} tasks`);
+    }
 
     // Validate dependencies — only keep those referencing valid tasks
     const validDeps = Array.isArray(data.dependencies)
@@ -153,7 +219,8 @@ function parseTaskGraph(raw: string, intentId: string): TaskGraph | null {
         ? (data.assumptions as string[]).map(String)
         : [],
     };
-  } catch {
+  } catch (err) {
+    console.error(`  DECOMPOSE: parseTaskGraph failed:`, err instanceof Error ? err.message : err);
     return null;
   }
 }
