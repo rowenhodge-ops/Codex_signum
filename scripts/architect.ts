@@ -35,8 +35,10 @@ const ENV_KEYS = [
   "GOOGLE_API_KEY",
   "OPENROUTER_API_KEY",
   "NEO4J_URI",
+  "NEO4J_USER",
   "NEO4J_USERNAME",
   "NEO4J_PASSWORD",
+  "NEO4J_DATABASE",
 ];
 
 function loadEnvFile(filePath: string): number {
@@ -48,8 +50,15 @@ function loadEnvFile(filePath: string): number {
       const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
       if (!match) continue;
       const [, key, value] = match;
+      const normalizedValue = value.replace(/^["']|["']$/g, "");
+
+      if (key === "NEO4J_USERNAME" && !process.env.NEO4J_USER) {
+        process.env.NEO4J_USER = normalizedValue;
+        loaded++;
+      }
+
       if (ENV_KEYS.includes(key) && !process.env[key]) {
-        process.env[key] = value.replace(/^["']|["']$/g, ""); // strip quotes
+        process.env[key] = normalizedValue;
         loaded++;
       }
     }
