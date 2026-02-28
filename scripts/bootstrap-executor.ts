@@ -10,6 +10,7 @@ import type {
   ModelExecutorContext,
   ModelExecutorResult,
 } from "../src/patterns/architect/types.js";
+import { getVertexToken, GCP_PROJECT, VERTEX_REGION } from "./vertex-auth.js";
 
 // ── Provider dispatch ─────────────────────────────────────────────────────
 
@@ -388,6 +389,137 @@ async function callOpenRouter(
   return { text, durationMs: Date.now() - start };
 }
 
+// ── Vertex AI Gemini (streaming with fallback) ───────────────────────────
+
+async function callVertexGemini(
+  apiModelString: string,
+  prompt: string,
+): Promise<ProviderCallResult> {
+  const token = await getVertexToken();
+  if (!token) {
+    const err = new Error("[INFRASTRUCTURE] Vertex AI credentials not available");
+    (err as any).isInfrastructure = true;
+    throw err;
+  }
+
+  const requestBody = {
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: 16384 },
+  };
+
+  // Streaming: streamGenerateContent (no alt=sse — native JSON array format)
+  const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent`;
+
+  const start = Date.now();
+
+  try {
+    const response = await fetch(streamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Vertex Gemini API ${response.status}: ${errText}`);
+    }
+
+    const text = await parseGoogleStream(response, apiModelString);
+    return { text, durationMs: Date.now() - start };
+  } catch (streamErr) {
+    // Fall back to non-streaming generateContent
+    console.warn(
+      `  [${apiModelString}] Vertex streaming failed, retrying non-streaming: ${streamErr}`,
+    );
+
+    const refreshedToken = await getVertexToken();
+    if (!refreshedToken) throw streamErr;
+
+    const fallbackUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:generateContent`;
+    const response = await fetch(fallbackUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshedToken}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Vertex Gemini API ${response.status}: ${errText}`);
+    }
+
+    const data = (await response.json()) as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> };
+      }>;
+    };
+    const text =
+      data.candidates?.[0]?.content?.parts
+        ?.map((p) => p.text ?? "")
+        .join("\n") ?? "";
+
+    return { text, durationMs: Date.now() - start };
+  }
+}
+
+// ── Vertex AI Mistral / Codestral (rawPredict) ──────────────────────────
+
+async function callVertexMistral(
+  apiModelString: string,
+  prompt: string,
+): Promise<ProviderCallResult> {
+  const token = await getVertexToken();
+  if (!token) {
+    const err = new Error("[INFRASTRUCTURE] Vertex AI credentials not available");
+    (err as any).isInfrastructure = true;
+    throw err;
+  }
+
+  const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${VERTEX_REGION}/publishers/mistralai/models/${apiModelString}:rawPredict`;
+
+  const requestBody = {
+    model: apiModelString,
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 16384,
+  };
+
+  const start = Date.now();
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Vertex Mistral API ${response.status}: ${errText}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const text = data.choices?.[0]?.message?.content ?? "";
+
+  return { text, durationMs: Date.now() - start };
+}
+
+/**
+ * Determine if a Vertex AI model uses rawPredict (Mistral/Codestral)
+ * vs generateContent (Gemini). Based on model ID prefix.
+ */
+function isVertexMistralModel(apiModelString: string): boolean {
+  const m = apiModelString.toLowerCase();
+  return m.startsWith("mistral") || m.startsWith("codestral");
+}
+
 function parseBudget(param: string): number {
   const budgets: Record<string, number> = {
     max: 128000,
@@ -404,18 +536,20 @@ function parseBudget(param: string): number {
 
 // ── Provider classification ──────────────────────────────────────────────
 
-type ProviderClass = "anthropic" | "google" | "openrouter";
+type ProviderClass = "anthropic" | "vertex" | "google" | "openrouter";
 
 function classifyProvider(provider: string): ProviderClass {
   const p = provider.toLowerCase();
   if (p === "anthropic") return "anthropic";
-  if (p.includes("vertex") || p.includes("google") || p.includes("gemini")) return "google";
+  if (p.includes("vertex")) return "vertex";
+  if (p.includes("google") || p.includes("gemini")) return "google";
   return "openrouter";
 }
 
-function getAvailableProviders(): Set<ProviderClass> {
+function getAvailableProviders(vertexAvailable: boolean): Set<ProviderClass> {
   const available = new Set<ProviderClass>();
   if (process.env.ANTHROPIC_API_KEY) available.add("anthropic");
+  if (vertexAvailable) available.add("vertex");
   if (process.env.GOOGLE_API_KEY) available.add("google");
   if (process.env.OPENROUTER_API_KEY) available.add("openrouter");
   return available;
@@ -438,14 +572,18 @@ function mapContextToRequest(
   return { taskType, complexity };
 }
 
-export function createBootstrapModelExecutor(): ModelExecutor {
+export function createBootstrapModelExecutor(
+  options?: { vertexAvailable?: boolean },
+): ModelExecutor {
+  const vertexReady = options?.vertexAvailable ?? false;
+
   return {
     async execute(
       prompt: string,
       context?: ModelExecutorContext,
     ): Promise<ModelExecutorResult> {
       const { taskType, complexity } = mapContextToRequest(context);
-      const availableProviders = getAvailableProviders();
+      const availableProviders = getAvailableProviders(vertexReady);
 
       if (availableProviders.size === 0) {
         throw new Error(
@@ -493,6 +631,12 @@ export function createBootstrapModelExecutor(): ModelExecutor {
               selection.thinkingParameter,
               prompt,
             );
+          } else if (providerClass === "vertex") {
+            if (isVertexMistralModel(selection.apiModelString)) {
+              result = await callVertexMistral(selection.apiModelString, prompt);
+            } else {
+              result = await callVertexGemini(selection.apiModelString, prompt);
+            }
           } else if (providerClass === "google") {
             result = await callGoogle(selection.apiModelString, prompt);
           } else {
