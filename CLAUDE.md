@@ -539,3 +539,85 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
 | Manual analysis bypass | Agent does analytical work itself when the Architect pipeline exists and is operational | Fix the failing pipeline stage, then retry. The Architect does analytical work. If DECOMPOSE fails, fix DECOMPOSE — don't write the analysis manually. This is the single most important anti-pattern for this repo. |
+
+---
+
+## Pipeline Execution Protocol
+
+When running the Architect pipeline or any long-running LLM-backed process, use asynchronous supervision — never block synchronously waiting for completion.
+
+### Launch with Output Capture
+
+Always pipe pipeline output to both console and a log file:
+
+```bash
+npx tsx scripts/architect.ts plan "<intent>" [flags] 2>&1 | tee /tmp/architect-run.log
+```
+
+Run in the background so you can monitor progress and report to the user at each stage. The log file is your diagnostic tool if a stage fails or stalls.
+
+### Progress Reporting
+
+Report to the user at each stage transition. Include key metrics:
+
+| Stage | What to Report |
+|---|---|
+| SURVEY | Doc count, hypothesis count, gap count, confidence %, blind spots |
+| DECOMPOSE | Model selected (Thompson), task count, phase count, LLM call duration |
+| CLASSIFY | Mechanical vs generative breakdown |
+| SEQUENCE | Critical path length, parallelism opportunities |
+| GATE | Full plan structure — task titles, dependencies, estimated complexity |
+| DISPATCH | Per-task: model selected, pass/fail, output summary, duration |
+| ADAPT | Failure count, adaptation strategy, retry decisions |
+
+Do NOT wait until the entire pipeline completes to report. Each stage completion is a progress checkpoint.
+
+### Stall Detection
+
+Monitor the log file size and content while waiting for LLM responses:
+
+```bash
+# Check if output is still growing
+wc -l /tmp/architect-run.log
+tail -20 /tmp/architect-run.log
+```
+
+**Normal behavior:** DECOMPOSE and DISPATCH make LLM calls that take 30-180 seconds each. Extended thinking models (Opus, Sonnet 4.6 with adaptive/extended) can legitimately take 3-5 minutes on complex intents. If the log shows a Thompson selection but no response yet, the model is working.
+
+**Stall indicators:**
+
+1. Log file unchanged for 120+ seconds after a Thompson selection was logged
+2. Process is no longer running (check background task status)
+3. Last log line is a retry/failure message with no subsequent selection
+
+**Response:** Report the stall to the user with the last 20 lines of the log. Do NOT kill the process without user confirmation. Do NOT assume a timeout means failure — network buffering and thinking time are legitimate.
+
+### Background Health Checks
+
+While waiting for LLM responses during DECOMPOSE or DISPATCH:
+
+- Verify TypeScript still compiles: `npx tsc --noEmit`
+- Verify tests still pass: `npm test`
+- Check git status for uncommitted work
+- Review the log file for warnings or errors that occurred in earlier stages
+
+This turns dead time into useful verification rather than idle waiting.
+
+### Failure Response
+
+When a pipeline stage fails:
+
+1. Report which stage failed and the error message
+2. Check the log file for the full error context
+3. Fix the code that caused the failure
+4. Retry the pipeline from the beginning (stages are not independently restartable yet — that's a future milestone)
+5. Do NOT perform the failed stage's work manually — see Anti-Pattern: Manual Analysis Bypass
+
+### What This Replaces
+
+Previous sessions used synchronous blocking: run the pipeline, wait silently, report everything at the end. This caused:
+
+- No visibility during 2-5 minute LLM calls
+- Stalls going undetected until the user checked back
+- No diagnostic context when failures occurred deep in the pipeline
+- Wasted time during LLM waits that could have been used for health checks
