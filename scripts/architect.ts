@@ -14,6 +14,8 @@
  *   - API keys in environment (ANTHROPIC_API_KEY, etc.)
  *   - Agent nodes seeded (run: npx tsx src/bootstrap.ts)
  */
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { closeDriver } from "../src/graph/index.js";
 import { executePlan } from "../src/patterns/architect/architect.js";
 import { survey } from "../src/patterns/architect/survey.js";
@@ -24,6 +26,53 @@ import {
   runPreflightChecks,
 } from "./bootstrap-task-executor.js";
 import { checkVertexAuth } from "./vertex-auth.js";
+
+// ── .env auto-loader ─────────────────────────────────────────────────────────
+
+const ENV_KEYS = [
+  "ANTHROPIC_API_KEY",
+  "GOOGLE_API_KEY",
+  "OPENROUTER_API_KEY",
+  "NEO4J_URI",
+  "NEO4J_USERNAME",
+  "NEO4J_PASSWORD",
+];
+
+function loadEnvFile(filePath: string): number {
+  if (!existsSync(filePath)) return 0;
+  let loaded = 0;
+  try {
+    const content = readFileSync(filePath, "utf-8");
+    for (const line of content.split(/\r?\n/)) {
+      const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+      if (!match) continue;
+      const [, key, value] = match;
+      if (ENV_KEYS.includes(key) && !process.env[key]) {
+        process.env[key] = value.replace(/^["']|["']$/g, ""); // strip quotes
+        loaded++;
+      }
+    }
+  } catch { /* ignore read errors */ }
+  return loaded;
+}
+
+/**
+ * Auto-discover API keys from known .env locations.
+ * Only sets vars that aren't already in the environment.
+ */
+function loadEnv(repoPath: string): void {
+  const candidates = [
+    resolve(repoPath, ".env"),
+    resolve(repoPath, "../DND-Manager/.env"),
+  ];
+  let totalLoaded = 0;
+  for (const candidate of candidates) {
+    totalLoaded += loadEnvFile(candidate);
+  }
+  if (totalLoaded > 0) {
+    console.log(`  Loaded ${totalLoaded} env var(s) from .env files`);
+  }
+}
 
 // ── CLI argument parsing ────────────────────────────────────────────────────
 
@@ -143,6 +192,13 @@ async function main(): Promise<void> {
   console.log(`  Mode:   ${cliArgs.dryRun ? "DRY RUN" : "LIVE"}`);
   console.log(`  Gate:   ${cliArgs.autoGate ? "AUTO" : "HUMAN"}`);
   console.log(`  DecomposeN: ${cliArgs.decomposeN}`);
+
+  // Load API keys from .env files (only sets vars not already in environment)
+  console.log("\n── Environment ─────────────────────────────────────────────");
+  loadEnv(repoPath);
+  const keyStatus = (k: string) => process.env[k] ? "set" : "MISSING";
+  console.log(`  ANTHROPIC_API_KEY: ${keyStatus("ANTHROPIC_API_KEY")}`);
+  console.log(`  Vertex AI: (checked below)`);
 
   // Pre-flight
   console.log("\n── Pre-flight ──────────────────────────────────────────────");
