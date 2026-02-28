@@ -1,140 +1,147 @@
-# Codex Signum — Core
+# Codex Signum
 
-> _A semantic encoding where state is structural._
+**A semantic encoding where state is structural.**
 
-**Version**: 0.1.0 (implements Codex Signum v3.0 specification)
+Codex Signum is a substrate-agnostic governance protocol for complex systems — agentic workflows, knowledge graphs, distributed processes — where health, relationships, and learning dynamics are encoded directly in graph topology rather than monitored externally.
 
----
+The core insight: if you encode state structurally, governance becomes intrinsic. You don't bolt on monitoring — the representation *is* the monitoring. You don't enforce rules from outside — the constitutional layer evolves from within, shaped by three heuristic imperatives: reduce suffering, increase prosperity, increase understanding.
 
-## What Is This
+18 months of research and specification. The implementation is recent — the architecture is not. The research corpus in `docs/research/` and specification history in `docs/specs/` predate the code by over a year. The implementation velocity reflects the depth of the design work, not its absence.
 
-Codex Signum is a formal compositional language for autonomous systems. Instead of configuring AI agents with YAML files and prompt templates, you describe **what things are** and the system derives **what to do** from structural properties.
+## What's Here
 
-Three state dimensions measure health continuously:
+A TypeScript implementation with:
 
-| Dimension              | Symbol | Measures                                     |
-| ---------------------- | ------ | -------------------------------------------- |
-| **Pattern Health**     | ΦL     | How well a composition performs its function |
-| **Harmonic Signature** | ΨH     | How coherently components work together      |
-| **Exploration Rate**   | εR     | Balance between exploitation and discovery   |
+- **Thompson Sampling Router** — Multi-model selection using Bayesian updating with context-blocked posteriors. The system learns which model performs best for which task type through every execution.
+- **Architect Pattern** — Recursive problem decomposition: SURVEY → DECOMPOSE → CLASSIFY → SEQUENCE → GATE → DISPATCH → ADAPT. Applied at every level of abstraction, including to its own development.
+- **Signal Conditioning Pipeline** — Inline health computation (ΦL, ΨH, εR) with dampening, hysteresis, and cascade prevention derived from control systems theory.
+- **Constitutional Evolution** — Governance rules that adapt under formal amendment protocols with statistical confidence thresholds, rate limiting, and minimum stability periods.
+- **Neo4j Graph Backend** — Every decision, outcome, and learning event is a node in a persistent graph. The topology *is* the system state.
 
-Ten axioms constrain behavior. Five grammar rules govern composition. Six morpheme types provide the building blocks. The graph IS the state.
+## Numbers
+
+- **763** passing tests across 5 test levels (unit, contract, pipeline, outcome, safety)
+- **192** barrel exports
+- **TypeScript** core, strict mode, zero `any` leaks
+- **Neo4j** graph backend with full Cypher query layer
+- **Multi-provider** — Anthropic, Google, Mistral through substrate-agnostic interfaces
 
 ## Architecture
 
 ```
 src/
-├── types/              # Morphemes, state dimensions, constitutional, memory
-├── computation/        # ΦL, ΨH, εR, maturity, dampening, signal conditioning
-├── graph/              # Neo4j client, schema, queries, health check, migration
-├── memory/             # 4-strata memory system (ephemeral → institutional)
-├── constitutional/     # Axiom evaluation, rule engine, ADR creation
+├── computation/           # State dimension calculators (ΦL, ΨH, εR)
+│   └── signals/           # 7-stage signal conditioning pipeline
 ├── patterns/
-│   ├── thompson-router/ # Model routing (sampler, router, selectModel, cost)
-│   ├── dev-agent/       # Pipeline (SCOPE→EXECUTE→REVIEW→VALIDATE)
-│   └── observer/        # Validation, feedback, hypothesis evaluation
-├── bootstrap.ts         # Agent arm seeding + informed priors
-└── index.ts             # Public API exports
+│   ├── architect/         # 7-stage planning pipeline (SURVEY→ADAPT)
+│   ├── dev-agent/         # SCOPE→EXECUTE→REVIEW→VALIDATE pipeline
+│   └── thompson-router/   # Bayesian model selection
+├── constitutional/        # Rule engine, cascade prevention, evolution
+├── memory/                # 4-stratum memory (ephemeral → institutional)
+├── resilience/            # Circuit breaker with exponential backoff + jitter
+├── graph/                 # Neo4j connection, schema, queries
+├── types/                 # Core type definitions
+└── index.ts               # Public API
 
-tests/
-└── conformance/     # 115 tests verifying spec compliance
+scripts/                   # Self-hosting CLI — runs Architect on itself
+tests/                     # 5 test levels: conformance, pipeline, safety
+docs/                      # Specification corpus consumed by SURVEY
 ```
+
+## Documentation
+
+The `docs/` directory contains the full research and specification corpus:
+
+- **`docs/specs/`** — Core specification (v3.0), engineering bridge, pattern designs, implementation plans
+- **`docs/research/`** — Validated research papers covering spectral graph theory, cybernetic homeostasis, constitutional AI evolution, percolation theory, complex adaptive systems, and operational excellence mappings
+- **`docs/hypotheses/`** — Pre-registered hypothesis tracking with validation status against implementation
+- **`docs/journal/`** — Development journal: session notes, architectural decisions, lessons learned
+
+## Research Foundation
+
+This isn't a weekend project with a manifesto. The framework synthesises established research traditions into a governance architecture that — as far as we can determine through systematic literature review — hasn't been attempted as an integrated system:
+
+- **Spectral graph theory** (Olfati-Saber) for consensus and coordination
+- **Cybernetic homeostasis** (Pihlakas) for safety through dampening and hysteresis
+- **Constitutional AI** (Anthropic) extended with formal evolution mechanisms
+- **Percolation theory** for cascade safety with budget-capped dampening
+- **Topological data analysis** for memory structure observability
+- **Lean Six Sigma / Shingo Model** for operational excellence mappings
+
+See [`docs/research/`](docs/research/) for the full corpus and [`docs/hypotheses/`](docs/hypotheses/) for validation tracking.
+
+## The Heuristic Imperatives
+
+Three meta-imperatives direct system evolution as gradient signals, not hard constraints:
+
+| Imperative | Function |
+| --- | --- |
+| **Ω₁ — Reduce Suffering** | Minimise harm from failures, cascades, wasted resources |
+| **Ω₂ — Increase Prosperity** | Distribute capability, reward contribution, expand access |
+| **Ω₃ — Increase Understanding** | Make the invisible visible, the complex comprehensible |
+
+These are coupled: when one plateaus, progress requires advancing another. Safety isn't constraining the recursion — it's generating it.
 
 ## Quick Start
 
 ```bash
-# Install
+# Clone
+git clone https://github.com/rowenhodge-ops/Codex_signum.git
+cd Codex_signum
+
+# Install dependencies
 npm install
 
-# Run conformance tests
+# Copy environment template and configure
+cp .env.example .env
+# Edit .env with your API keys and Neo4j credentials
+
+# Run tests (no Neo4j required for most tests)
 npm test
 
-# Verbose test output
-npm run test:conformance
+# Type check
+npx tsc --noEmit
 
 # Build
 npm run build
 
-# Check Neo4j graph health (requires Neo4j connection)
-npm run graph:check
+# Run the Architect pipeline on itself (requires API keys + Neo4j)
+npx tsx scripts/architect.ts plan "<your intent>"
+
+# Run reconciliation report (no LLM, pure analysis)
+npx tsx scripts/reconcile.ts
 ```
 
-## Consuming This Package
-
-Add as a Git dependency in your project:
+### As a dependency
 
 ```json
 {
   "dependencies": {
-    "@codex-signum/core": "github:rowenhodge-ops/Codex_signum"
+    "@codex-signum/core": "github:rowenhodge-ops/Codex_signum#main"
   }
 }
 ```
-
-Then import what you need:
 
 ```typescript
 import {
   computePhiL,
   computePsiH,
   computeEpsilonR,
-  route,
-  EphemeralStore,
-  evaluateConstitution,
+  selectModel,
+  recordOutcome,
+  executePlan,
 } from "@codex-signum/core";
 ```
 
-## State Dimensions
+## Consumer Application
 
-### ΦL (Pattern Health)
-
-Weighted composite of axiom compliance, provenance clarity, usage success rate, and temporal stability — modulated by a two-component maturity factor:
-
-```
-ΦL_effective = (Σ wᵢ × fᵢ) × (1 - e^(-0.05 × observations)) × (1 - e^(-0.5 × connections))
-```
-
-### ΨH (Harmonic Signature)
-
-Fiedler eigenvalue (algebraic connectivity) combined with runtime friction:
-
-```
-ΨH = 0.4 × normalize(λ₂) + 0.6 × (1 - friction)
-```
-
-### εR (Exploration Rate)
-
-Thompson Sampling with floor enforcement and hysteresis:
-
-```
-εR = max(floor, exploratory_decisions / total_decisions)
-```
-
-## Memory System (4 Strata)
-
-| Stratum | Type          | Lifecycle                            |
-| ------- | ------------- | ------------------------------------ |
-| 1       | Ephemeral     | Per-execution, auto-expires          |
-| 2       | Observation   | Promoted from ephemeral, accumulates |
-| 3       | Distillation  | Patterns extracted from observations |
-| 4       | Institutional | Governance-level knowledge           |
-
-Memory flows **upward only** (Stratum 1 → 4). Each promotion gate requires minimum volume and confidence.
-
-## Constitutional Rules
-
-Rules live in the graph as nodes with `GOVERNS` relationships to patterns. Three amendment tiers:
-
-- **Tier 1**: Parameter refinement (weights, defaults)
-- **Tier 2**: Structural refinement (axiom language, grammar exceptions)
-- **Tier 3**: Foundational change (morphemes, axioms, grammar rules)
-
-## Requirements
-
-- Node.js 18+
-- TypeScript 5.3+
-- Neo4j Aura (for graph operations — computation works without it)
+[DND-Manager](https://github.com/rowenhodge-ops/DND-Manager) is a D&D character sheet manager that exercises the full Codex Signum pipeline — routing, architect decomposition, agent execution, and governance — as a working integration test.
 
 ## License
 
-MIT
+- **Specification** (`docs/specs/codex-signum-v3_0.md`): CC0 / Public Domain
+- **Implementation**: Apache License 2.0 — see [LICENSE](LICENSE)
+
+## Author
+
+**Rowen Hodge** — [codexsignum.com](https://codexsignum.com)
