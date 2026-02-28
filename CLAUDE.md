@@ -39,7 +39,7 @@ src/
 ├── patterns/              # Reference patterns
 │   ├── architect/         # 7-stage planning pipeline (SURVEY→DECOMPOSE→CLASSIFY→SEQUENCE→GATE→DISPATCH→ADAPT)
 │   │   ├── types.ts       # Full pipeline types + ModelExecutor + TaskExecutor interfaces
-│   │   ├── survey.ts      # SURVEY (35KB, spec cross-reference, pure filesystem)
+│   │   ├── survey.ts      # SURVEY (35KB, spec cross-reference, pure filesystem + doc discovery + claim extraction)
 │   │   ├── decompose.ts   # DECOMPOSE (LLM via ModelExecutor interface)
 │   │   ├── decompose-prompt.ts # Prompt builder for DECOMPOSE
 │   │   ├── parallel-decompose.ts  # Best-of-N decompose + scorePlan() (Self-MoA, log(N) quality)
@@ -85,7 +85,53 @@ src/
 │   ├── constitutional.ts  # Rule types, amendment taxonomy
 │   └── memory.ts          # Four-stratum memory types
 │
-└── index.ts               # Barrel export — EVERYTHING public goes through here
+├── index.ts               # Barrel export — EVERYTHING public goes through here
+
+scripts/                   # Self-hosting CLI (NOT part of the library — consumer-grade tooling)
+├── architect.ts           # `npx tsx scripts/architect.ts plan "<intent>"` — full pipeline
+├── reconcile.ts           # `npx tsx scripts/reconcile.ts` — gap analysis (no LLM, pure filesystem)
+├── bootstrap-executor.ts  # ModelExecutor using raw fetch() — reads API keys from env
+├── bootstrap-task-executor.ts # TaskExecutor V1 — safe-default (no auto-apply)
+├── seed-agents.ts         # Seed Agent nodes in Neo4j for bootstrap models
+├── verify-graph-state.ts  # Graph state verification
+└── verify-select-model.ts # Thompson selection verification
+
+docs/                      # Specification corpus, research papers, hypothesis registry
+├── specs/                 # Canonical specifications (13 files)
+│   ├── codex-signum-v3_0.md              # Core protocol (THE canonical spec)
+│   ├── codex-signum-engineering-bridge-v2_0.md  # Implementation authority
+│   ├── codex-signum-v3_1-adaptive-imperative-boundaries.md
+│   ├── codex-signum-architect-pattern-design.md
+│   ├── codex-signum-reference-patterns-design.md
+│   ├── codex-signum-research-pattern-design.md
+│   ├── codex-signum-pattern-exchange-protocol.md
+│   ├── codex-signum-lean-process-maps-v2.md
+│   ├── codex-signum-opex-addendum-v2.md
+│   ├── codex-signum-attunement-v0_2.md
+│   ├── codex-signum-implementation-README.md
+│   ├── codex-signum-implementation-plan.md
+│   └── codex-signum-research-index.md
+├── research/              # Research papers (short-named copies for SURVEY consumption)
+│   ├── parameter-validation.md     # 16-parameter table, dampening, hysteresis
+│   ├── safety-analysis.md          # 81.6% cascade correction, percolation theory
+│   ├── cybernetic-homeostasis.md   # Cascade parameters, degradation
+│   ├── harmonic-resonance.md       # ΨH via Kuramoto model
+│   ├── semiotic-foundations.md
+│   ├── observability-monitoring.md
+│   ├── system-vitality-framework.md
+│   ├── structural-semiotics.md
+│   ├── novelty-assessment.md
+│   ├── opex-structural-mappings.md
+│   ├── parallel-reasoning.md       # Multi-model orchestration strategy
+│   └── self-recursive-learning.md  # Self-recursive structural intelligence
+├── Research/              # ⚠️ KNOWN ISSUE: case-duplicate of research/ — originated from Linux agent
+│                          # Contains long-named originals + some short copies. To be consolidated.
+│                          # SURVEY reads BOTH directories. Clean up in next hygiene pass.
+└── hypotheses/            # Tracked scientific claims with evidence trails
+    ├── README.md          # Status definitions (proposed, validated, partially-validated, etc.)
+    ├── cascade-dampening.md   # H-001 (subcriticality), H-002 (max depth 2), H-003 (hub √k scaling)
+    ├── thompson-routing.md    # H-010 (context-blocked posteriors), H-011 (exploration decay), H-012 (min trials)
+    └── signal-conditioning.md # H-020 (ΦL decay), H-021 (ΨH rhythm), H-022 (εR recovery), H-023 (algedonic)
 
 tests/                     # All tests
 dist/                      # Compiled output — COMMITTED to repo
@@ -104,6 +150,8 @@ Core is substrate-agnostic. It does NOT know about:
 - Any consumer application's business logic
 
 If you find yourself importing from a consumer app — **STOP. You are going the wrong direction.**
+
+The `scripts/` directory is an exception: it provides self-hosting tooling for running the Architect pattern on core itself. These scripts use raw `fetch()` for LLM calls and read API keys from environment variables — they demonstrate the pattern without pulling in provider SDKs. Scripts are NOT part of the library's public API.
 
 ### 2. dist/ is committed. There is NO prepare script.
 
@@ -179,6 +227,84 @@ This rule exists because the most expensive architectural mistake in the project
 
 Conversely, if a function constructs provider-specific clients (Thompson router instances, native SDK wrappers), checks consumer-specific state (git remotes, working directories), or uses consumer-specific types — it stays in the consumer.
 
+### 12. Docs Corpus Is SURVEY's Source of Truth
+
+The `docs/` directory is not documentation for humans — it is the **specification corpus that SURVEY reads**. Files in `docs/specs/`, `docs/research/`, and `docs/hypotheses/` are consumed programmatically by `discoverDocumentSources()` and `parseHypotheses()` in the SURVEY stage.
+
+Do NOT:
+- Remove or rename files without updating SURVEY's discovery paths
+- Add non-specification files to `docs/specs/` (use `docs/` root for prompts and operational docs)
+- Create hypotheses without the `## H-{NNN}:` heading format (SURVEY parser depends on it)
+- Mix short-named and long-named copies in the same directory (use short names in `docs/research/`)
+
+When adding new research papers: create a short-named copy (e.g., `new-topic.md`) in `docs/research/`. When adding new hypotheses: follow the format in `docs/hypotheses/README.md` — each must have Source, Claim, Status, Evidence fields.
+
+---
+
+## Self-Hosting CLI
+
+Core runs the Architect pattern on itself via scripts in `scripts/`. These are NOT part of the library — they are consumer-grade tooling that demonstrates self-hosting.
+
+### Running the Architect
+
+```bash
+# Full pipeline: survey + decompose + classify + sequence + gate + dispatch + adapt
+npx tsx scripts/architect.ts plan "<intent>"
+
+# With options
+npx tsx scripts/architect.ts plan "<intent>" --auto-gate --dry-run --decompose-n=3
+```
+
+### Running Reconciliation (No LLM)
+
+```bash
+# Pure filesystem + graph analysis — outputs gap report, claims, hypotheses, confidence score
+npx tsx scripts/reconcile.ts
+```
+
+### Seeding Agents
+
+```bash
+# Requires running Neo4j instance
+npx tsx scripts/seed-agents.ts
+```
+
+### Bootstrap Architecture
+
+The self-hosting CLI uses a **bootstrap executor** (`scripts/bootstrap-executor.ts`) that implements core's `ModelExecutor` interface via raw `fetch()` calls. It reads `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, and `OPENROUTER_API_KEY` from environment and calls core's `selectModel()` for Thompson-routed selection.
+
+The **task executor** (`scripts/bootstrap-task-executor.ts`) is V1 safe-default: it generates task prompts but does NOT auto-apply filesystem changes. It runs `npx tsc --noEmit` and `npm test` for verification.
+
+Pre-flight checks verify: correct git remote (Codex_signum, not DND-Manager), clean working tree, passing type check.
+
+---
+
+## SURVEY Broadening — Document Discovery & Claim Extraction
+
+SURVEY now auto-discovers the documentation corpus and cross-references it against implementation:
+
+**Document Discovery** (`discoverDocumentSources()`):
+- Recursively finds `.md` files in configured `docsPaths` (default: `docs/specs/`, `docs/research/`)
+- Reads content (8000 char cap), extracts title
+- Runs `extractClaims()` to identify formula, threshold, warning, recommendation, and architectural claims
+- Notes `.pdf` files as blind spots
+
+**Claim Extraction** (`extractClaims()`):
+Pattern-based (no LLM required). Detects:
+- **Formulas**: Greek letters (γ, ε, Φ, Ψ), math operators, `min()`, `max()`, `clamp()`
+- **Thresholds**: "must be < N", "limit of N", "budget of 0.8"
+- **Warnings**: "supercritical", "dangerously inadequate", "CRITICAL"
+- **Recommendations**: "recommended fix", "should use", "replace with"
+- **Architectural**: "state is structural", "must not", "constitutional", "axiom"
+
+**Research-Divergence Gaps**: When a document claims a formula/threshold that differs from what the codebase implements, SURVEY generates a `research-divergence` gap. When a warning/recommendation targets a pattern that still exists, it becomes a gap.
+
+**Hypothesis Tracking** (`parseHypotheses()`):
+- Reads `docs/hypotheses/*.md` files
+- Parses `## H-{NNN}:` blocks with Source, Claim, Status, Evidence fields
+- Hypotheses with status "proposed" + corresponding code → flagged as "ready for validation"
+- Untested hypotheses reduce confidence score
+
 ---
 
 ## Architect Pattern — executePlan() Configuration
@@ -219,6 +345,9 @@ When in doubt about how something should be computed:
 | Adversarial resilience? | Engineering Bridge v2.0 §Part 9 |
 | RTY, error classification, failure modes? | Engineering Bridge v2.0 §Part 10 |
 | Architect pattern design? | `codex-signum-architect-pattern-design.md` |
+| Pattern Exchange Protocol? | `codex-signum-pattern-exchange-protocol.md` |
+| Lean process maps? | `codex-signum-lean-process-maps-v2.md` |
+| Research corpus index? | `codex-signum-research-index.md` |
 
 **The Engineering Bridge is the implementation authority.** If you need to know *what* to build, read the Bridge. If you need to know *why*, read the Codex v3.0.
 
@@ -310,6 +439,9 @@ git commit -m "build: description"
 
 # Verify barrel exports
 node -e "const c = require('./dist'); console.log(Object.keys(c).length, 'exports')"
+
+# Run reconciliation report (no LLM, pure analysis)
+npx tsx scripts/reconcile.ts
 ```
 
 ---
@@ -321,6 +453,7 @@ node -e "const c = require('./dist'); console.log(Object.keys(c).length, 'export
 - **Graph schema** — stable, extend only if adding new node types
 - **Existing test expectations** — unless a fix changes behavior to match spec
 - **package.json `prepare` script** — DO NOT ADD ONE (see rule #2)
+- **Hypothesis IDs** — H-{NNN} numbers are permanent identifiers; supersede don't renumber
 
 ---
 
@@ -359,6 +492,7 @@ Conformance tests (`tests/conformance/`) must cover these Codex dimensions:
 - **Constitutional engine**: Rule evaluation, cascade prevention, amendment taxonomy
 - **Resilience**: Circuit breaker with exponential backoff + jitter (not fixed cooldown)
 - **Patterns**: Architect 7-stage pipeline, dev-agent pipeline, Thompson router
+- **SURVEY broadening**: Document discovery, claim extraction, hypothesis parsing, research-divergence gap detection
 
 ### Data Provenance Rule
 
@@ -391,3 +525,4 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Consumer re-implements core orchestration | DND called classify/sequence/gate/dispatch/adapt individually instead of `executePlan()` | Consumers call `executePlan()` with config — inject behavior through executors, not by re-implementing the stage loop |
 | Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts |
+| Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
