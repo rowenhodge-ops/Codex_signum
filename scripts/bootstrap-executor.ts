@@ -358,43 +358,6 @@ async function callGoogle(
   }
 }
 
-async function callOpenRouter(
-  apiModelString: string,
-  prompt: string,
-): Promise<ProviderCallResult> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
-
-  const start = Date.now();
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: apiModelString,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 16384,
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenRouter API ${response.status}: ${errText}`);
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const text = data.choices?.[0]?.message?.content ?? "";
-
-  return { text, durationMs: Date.now() - start };
-}
-
 // ── Vertex AI Gemini (streaming with fallback) ───────────────────────────
 
 async function callVertexGemini(
@@ -545,14 +508,14 @@ function parseBudget(param: string): number {
 
 // ── Provider classification ──────────────────────────────────────────────
 
-type ProviderClass = "anthropic" | "vertex" | "google" | "openrouter";
+type ProviderClass = "anthropic" | "vertex" | "google" | "unsupported";
 
 function classifyProvider(provider: string): ProviderClass {
   const p = provider.toLowerCase();
   if (p === "anthropic") return "anthropic";
   if (p.includes("vertex")) return "vertex";
   if (p.includes("google") || p.includes("gemini")) return "google";
-  return "openrouter";
+  return "unsupported";
 }
 
 function getAvailableProviders(vertexAvailable: boolean): Set<ProviderClass> {
@@ -560,7 +523,6 @@ function getAvailableProviders(vertexAvailable: boolean): Set<ProviderClass> {
   if (process.env.ANTHROPIC_API_KEY) available.add("anthropic");
   if (vertexAvailable) available.add("vertex");
   if (process.env.GOOGLE_API_KEY) available.add("google");
-  if (process.env.OPENROUTER_API_KEY) available.add("openrouter");
   return available;
 }
 
@@ -596,7 +558,7 @@ export function createBootstrapModelExecutor(
 
       if (availableProviders.size === 0) {
         throw new Error(
-          "No API keys set. Set at least one of: ANTHROPIC_API_KEY, GOOGLE_API_KEY, OPENROUTER_API_KEY",
+          "No API keys set. Set at least one of: ANTHROPIC_API_KEY, GOOGLE_API_KEY",
         );
       }
 
@@ -615,6 +577,20 @@ export function createBootstrapModelExecutor(
         console.log(
           `  [Thompson] Selected: ${selection.selectedAgentId} (${selection.provider} → ${providerClass}, confidence: ${selection.confidence.toFixed(2)}, exploratory: ${selection.wasExploratory})`,
         );
+
+        if (providerClass === "unsupported") {
+          console.warn(
+            `  [Thompson] Unsupported provider ${selection.provider} — recording failure, retrying (${attempt + 1}/${MAX_SELECTION_RETRIES})`,
+          );
+          await selection.recordOutcome({
+            success: false,
+            qualityScore: 0.0,
+            durationMs: 0,
+            errorType: "no_provider",
+            notes: `Unsupported provider ${selection.provider}`,
+          });
+          continue;
+        }
 
         if (!availableProviders.has(providerClass)) {
           console.warn(
@@ -649,7 +625,7 @@ export function createBootstrapModelExecutor(
           } else if (providerClass === "google") {
             result = await callGoogle(selection.apiModelString, prompt);
           } else {
-            result = await callOpenRouter(selection.apiModelString, prompt);
+            throw new Error(`Unsupported provider ${selection.provider}`);
           }
 
           // Record success
