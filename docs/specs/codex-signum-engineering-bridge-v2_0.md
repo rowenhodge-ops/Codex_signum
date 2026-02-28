@@ -209,32 +209,24 @@ Recommended `gradient_sensitivity`: 0.05â€“0.15. When Î© gradients are po
 **This replaces the fixed Î³=0.7 from v1.0.**
 
 ```
-impact_at_container = component_Î¦L_drop Ã— component_weight Ã— Î³_effective(k)
+impact_at_container = component_ΦL_drop × component_weight × γ_effective(k)
 
-Î³_effective = min(0.7, 0.8 / (k - 1))    for k > 1
-Î³_effective = 0.7                          for k â‰¤ 1
+γ_effective = min(γ_base, s / k)    where s = 0.8 (safety budget), γ_base = 0.7
 ```
 
-Where k = branching factor (number of children whose health propagates to this node).
+Where k = degree of the receiving node (number of connections). The budget-capped formula guarantees spectral radius μ = k × γ ≤ s = 0.8 < 1 for ALL k ≥ 1, providing topology-independent subcriticality.
 
-| Branching Factor (k) | Maximum Î³ | Recommended Î³ | 2-level attenuation |
+| Branching Factor (k) | γ_eff (s=0.8) | μ = k×γ | Status |
 |---|---|---|---|
-| 1 | No constraint | 0.7 | 0.49 |
-| 2 | < 1.0 | 0.7 | 0.49 |
-| 3 | < 0.5 | 0.4 | 0.16 |
-| 4 | < 0.33 | 0.27 | 0.07 |
-| 5+ | < 0.25 | 0.2 | 0.04 |
+| 1 | 0.7 | 0.7 | Subcritical ✓ |
+| 2 | 0.4 | 0.8 | Subcritical ✓ |
+| 3 | 0.267 | 0.8 | Subcritical ✓ |
+| 5 | 0.16 | 0.8 | Subcritical ✓ |
+| 10 | 0.08 | 0.8 | Subcritical ✓ |
 
-**Why this matters:** Î³=0.7 is supercritical for all tree topologies with branching factor â‰¥ 2. The 2-level cascade limit is the system's primary safety mechanism â€” without it, failures propagate to root. The topology-aware formula ensures the system is intrinsically subcritical: failures attenuate faster than they accumulate.
+**Why this matters:** γ=0.7 is supercritical for all tree topologies with branching factor ≥ 2. The 2-level cascade limit is the system's primary safety mechanism — without it, failures propagate to root. The budget-capped formula ensures the system is intrinsically subcritical: failures attenuate faster than they accumulate. This single formula handles all topologies including hubs — no separate hub dampening is needed.
 
-**Hub dampening:** For high-degree hub nodes specifically, use Î³_base/âˆšk (not Î³_base/degree, which is over-aggressive). This maintains constant signal-to-noise ratio at the parent because k independent noise sources aggregate with standard deviation proportional to âˆšk.
-
-| Hub degree | Î³_base/degree (too aggressive) | Î³_base/âˆšk (recommended) |
-|---|---|---|
-| 5 | 0.14 | 0.31 |
-| 10 | 0.07 | 0.22 |
-| 20 | 0.035 | 0.16 |
-
+> **History:** v1 used `0.8/(k-1)`, v2 added `γ_base/√k` for hubs. Both were found supercritical for k ≥ 3. Budget-capped formula `min(γ_base, s/k)` is the only topology-independent subcriticality guarantee. See Safety Analysis paper and commit `ce0ef96`.
 **Algedonic bypass:** Any agent with Î¦L < 0.1 (emergency threshold) should propagate to root with Î³ = 1.0, bypassing all dampening. This preserves the cascade limit for normal operations while ensuring existential threats are never masked.
 
 ### Cascade Limit
@@ -495,7 +487,7 @@ For critical patterns, enumerate failure modes and their structural signals:
 
 **Immediate blacklisting.** A single failure should not permanently exclude a component. Selection pressure (reduced Î¦L, lower sampling probability) achieves gradual quarantine.
 
-**Fixed dampening for all topologies.** Do not use Î³=0.7 everywhere. Compute Î³_effective from the local branching factor. This is the single most important parameter correction from v1.0.
+**Fixed dampening for all topologies.** Do not use γ=0.7 everywhere. Use budget-capped γ_effective = min(γ_base, 0.8/k). This is the single most important parameter correction from v1.0.
 
 ---
 
@@ -512,7 +504,7 @@ For critical patterns, enumerate failure modes and their structural signals:
 | Î¦L | Health score â€” composite of success rate, compliance, provenance, stability |
 | Î¨H | Harmonic signature â€” two-component: Î»â‚‚ (structural coherence) + TV_G (runtime friction) |
 | ÎµR | Exploration rate â€” fraction of decisions sampling uncertain alternatives |
-| Î³_effective | Topology-aware dampening â€” min(0.7, 0.8/(k-1)) where k is branching factor |
+| γ_effective | Budget-capped dampening — min(γ_base, 0.8/k) where k is degree, guarantees μ ≤ 0.8 |
 | Luminance | Health visibility â€” bright = healthy, dim = degraded, dark = dead |
 | Dormant | Built but not connected â€” exists but not wired into active flow |
 | Hysteresis | Recovery is 2.5Ã— slower than degradation â€” prevents flapping |
