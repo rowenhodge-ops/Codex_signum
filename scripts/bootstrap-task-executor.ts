@@ -5,6 +5,9 @@
  * NOT part of the npm package. Dev tooling only.
  */
 import { execSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { join } from "node:path";
 import type {
   ModelExecutor,
   Task,
@@ -104,9 +107,14 @@ export function createBootstrapTaskExecutor(
           `     LLM response: ${result.text.length} chars from ${result.modelId} (${result.durationMs}ms)`,
         );
 
-        // For now, the task executor reports the LLM output but does NOT
-        // auto-apply changes to the filesystem. The human reviews the output.
-        // This is the safe default for V1 — GATE is mandatory.
+        // Write LLM output to target files (analytical tasks produce docs)
+        if (task.files_affected.length > 0) {
+          const targetFile = task.files_affected[0];
+          const fullPath = join(repoPath, targetFile);
+          mkdirSync(dirname(fullPath), { recursive: true });
+          writeFileSync(fullPath, result.text, "utf-8");
+          console.log(`     Wrote: ${targetFile} (${result.text.length} chars)`);
+        }
 
         // Verify TypeScript still compiles (if any files were changed)
         try {
