@@ -245,7 +245,7 @@ async function main(): Promise<void> {
 
   // Create executors
   const modelExecutor = createBootstrapModelExecutor({ vertexAvailable });
-  const taskExecutor = createBootstrapTaskExecutor(modelExecutor);
+  const { executor: taskExecutor, writeManifest } = createBootstrapTaskExecutor(modelExecutor);
 
   // Execute plan
   console.log("\n── EXECUTE PLAN ────────────────────────────────────────────");
@@ -257,6 +257,9 @@ async function main(): Promise<void> {
     parallelDecompose: cliArgs.decomposeN > 1,
     dryRun: cliArgs.dryRun,
   }, pipelineSurvey);
+
+  // Write manifest after dispatch completes
+  writeManifest();
 
   // Results
   const succeeded = planState.task_outcomes.filter((t) => t.success).length;

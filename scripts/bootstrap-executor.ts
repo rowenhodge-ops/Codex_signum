@@ -306,7 +306,7 @@ async function callGoogle(
 
   const requestBody = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 16384 },
+    generationConfig: { maxOutputTokens: getMaxOutputTokens(apiModelString) },
   };
 
   // Try streaming first
@@ -377,7 +377,7 @@ async function callVertexGemini(
 
   const requestBody = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 16384 },
+    generationConfig: { maxOutputTokens: getMaxOutputTokens(apiModelString) },
   };
 
   // Streaming: streamGenerateContent with alt=sse for single-line JSON events
@@ -461,7 +461,7 @@ async function callVertexMistral(
   const requestBody = {
     model: apiModelString,
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 16384,
+    max_tokens: getMaxOutputTokens(apiModelString),
   };
 
   const start = Date.now();
@@ -494,6 +494,18 @@ async function callVertexMistral(
 function isVertexMistralModel(apiModelString: string): boolean {
   const m = apiModelString.toLowerCase();
   return m.startsWith("mistral") || m.startsWith("codestral");
+}
+
+/** Per-model max output tokens — prevents 400 errors from exceeding model limits */
+function getMaxOutputTokens(modelId: string): number {
+  const m = modelId.toLowerCase();
+  if (m.includes("gemini-2.0-flash")) return 8192;
+  if (m.includes("gemini-2.5-flash-lite")) return 32768;
+  if (m.includes("gemini-2.5")) return 65536;
+  if (m.includes("gemini-3")) return 65536;
+  if (m.includes("gemini")) return 16384;
+  if (m.includes("mistral") || m.includes("codestral")) return 8192;
+  return 16384; // Anthropic default
 }
 
 function parseBudget(param: string): number {
