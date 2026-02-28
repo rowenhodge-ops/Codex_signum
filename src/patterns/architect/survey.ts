@@ -1575,14 +1575,25 @@ function checkClaimAgainstCode(
     claim.type === "warning" &&
     /28\.6\s*%|28\.6\s*percent/i.test(text)
   ) {
-    // Check if any spec documents still contain the incorrect 28.6% figure
-    addGap({
-      id: "research-divergence-cascade-probability",
-      description: `Research '${doc.title}' corrects the cascade participation probability: 28.6% (binomial model) is wrong, correct value is 81.6% (percolation-theoretic) at γ=0.7. Verify no specs or comments cite 28.6%.`,
-      severity: "warning",
-      specRef: doc.path,
-      category: "research-divergence",
-    });
+    // If the same document also contains "81.6%" or correction language,
+    // it's a correction paper — the 28.6% is being flagged, not propagated.
+    const docContent = doc.content || "";
+    const isCorrectionContext =
+      /81\.6\s*%/i.test(docContent) ||
+      /correct(?:ed|ion|s)?\b/i.test(docContent) ||
+      /percolation.theoretic/i.test(docContent);
+
+    if (isCorrectionContext) {
+      // Suppress — the document is correcting the figure, not citing it as truth
+    } else {
+      addGap({
+        id: "research-divergence-cascade-probability",
+        description: `Research '${doc.title}' mentions 28.6% cascade probability without correction context. The correct value is 81.6% (percolation-theoretic) at γ=0.7. Verify no specs or comments cite 28.6%.`,
+        severity: "warning",
+        specRef: doc.path,
+        category: "research-divergence",
+      });
+    }
   }
 
   // ── Formula: budget-capped dampening min(γ_base, s/k) ─────────────────────
