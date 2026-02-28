@@ -17,7 +17,7 @@
     "neo4j",
     "state-dimensions"
   ],
-  "author": "rowenhodge-ops",
+  "author": "Rowen Hodge",
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
@@ -40,5 +40,5 @@
     "typescript": "^5.3.0",
     "vitest": "^1.0.0"
   },
-  "license": "MIT"
+  "license": "Apache-2.0"
 }

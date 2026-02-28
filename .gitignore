@@ -13,7 +13,7 @@ docs/Audits/
 docs/Plans/
 docs/Prompts/
 docs/Journal/
-
+docs/pipeline-output/
 
 # Obsidian / Smart Environment (never commit)
 .obsidian/
