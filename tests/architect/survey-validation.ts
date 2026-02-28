@@ -13,8 +13,8 @@
  *
  * Example:
  *   npx tsx tests/architect/survey-validation.ts \
- *     "C:/Users/Rowen/OneDrive/01 - Documents/02 - VS Code/DND-Manager" \
- *     "C:/Users/Rowen/OneDrive/01 - Documents/02 - VS Code/DND-Manager/docs/Codex_Signum/02_codex-signum-engineering-bridge-v2_0.md"
+ *     "/path/to/DND-Manager" \
+ *     "/path/to/DND-Manager/docs/Codex_Signum/02_codex-signum-engineering-bridge-v2_0.md"
  */
 
 import type {
@@ -87,7 +87,7 @@ async function runValidation(): Promise<void> {
   const args = process.argv.slice(2);
   const dndManagerPath =
     args[0] ??
-    "C:/Users/Rowen/OneDrive/01 - Documents/02 - VS Code/DND-Manager";
+    process.argv[2] ?? (() => { throw new Error("Usage: npx tsx tests/architect/survey-validation.ts <dnd-manager-path>"); })();
   const specPaths = args.slice(1);
 
   console.log(

@@ -1,4 +1,19 @@
 node_modules/
 .env
+.env.local
 *.tsbuildinfo
 coverage/
+
+# Obsidian / Smart Environment (never commit)
+.obsidian/
+.smart-env/
+*.ajson
+
+# Claude Code workspaces
+.claude/
+
+# Context transfer documents (session-specific, not public)
+*context-transfer*
+
+# Patches
+*.patch

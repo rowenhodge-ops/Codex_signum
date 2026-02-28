@@ -12,7 +12,7 @@ import { platform } from "node:os";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-export const GCP_PROJECT = "kore-5e252";
+export const GCP_PROJECT = process.env.GOOGLE_CLOUD_PROJECT ?? (() => { throw new Error("GOOGLE_CLOUD_PROJECT not set"); })();
 export const VERTEX_REGION = "us-central1";
 
 const TOKEN_TIMEOUT_MS = 10_000;
