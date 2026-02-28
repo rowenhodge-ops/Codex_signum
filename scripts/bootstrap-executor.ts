@@ -18,35 +18,118 @@ interface ProviderCallResult {
   durationMs: number;
 }
 
-async function callAnthropic(
+const HEARTBEAT_INTERVAL_MS = 15_000;
+
+// ── Anthropic SSE stream parser ──────────────────────────────────────────
+
+async function parseAnthropicStream(
+  response: Response,
+  modelId: string,
+): Promise<{ text: string; thinkingDurationMs: number }> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+
+  let textContent = "";
+  let buffer = "";
+  let thinkingStarted = 0;
+  let thinkingDurationMs = 0;
+  let lastHeartbeat = Date.now();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // Process complete SSE events (double newline separated)
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? ""; // Keep incomplete event in buffer
+
+    for (const event of events) {
+      const dataLine = event
+        .split("\n")
+        .find((line) => line.startsWith("data: "));
+      if (!dataLine) continue;
+
+      const dataStr = dataLine.slice(6);
+      if (dataStr === "[DONE]") continue;
+
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(dataStr);
+      } catch {
+        continue; // Skip unparseable chunks
+      }
+
+      switch (data.type) {
+        case "content_block_start": {
+          const block = data.content_block as
+            | { type: string }
+            | undefined;
+          if (block?.type === "thinking") {
+            thinkingStarted = Date.now();
+            console.log(`  [${modelId}] thinking started...`);
+          }
+          break;
+        }
+
+        case "content_block_delta": {
+          const delta = data.delta as
+            | { type: string; thinking?: string; text?: string }
+            | undefined;
+          if (delta?.type === "thinking_delta") {
+            // Heartbeat during extended thinking
+            const now = Date.now();
+            if (now - lastHeartbeat > HEARTBEAT_INTERVAL_MS) {
+              const elapsed = ((now - thinkingStarted) / 1000).toFixed(0);
+              console.log(
+                `  [${modelId}] still thinking... ${elapsed}s elapsed`,
+              );
+              lastHeartbeat = now;
+            }
+          } else if (delta?.type === "text_delta" && delta.text) {
+            textContent += delta.text;
+          }
+          break;
+        }
+
+        case "content_block_stop":
+          if (thinkingStarted > 0 && thinkingDurationMs === 0) {
+            thinkingDurationMs = Date.now() - thinkingStarted;
+            console.log(
+              `  [${modelId}] thinking complete (${(thinkingDurationMs / 1000).toFixed(1)}s)`,
+            );
+          }
+          break;
+
+        case "error":
+          throw new Error(
+            `Anthropic stream error: ${JSON.stringify(data)}`,
+          );
+
+        default:
+          // message_start, message_delta, message_stop, ping — ignore
+          break;
+      }
+    }
+  }
+
+  return { text: textContent, thinkingDurationMs };
+}
+
+// ── Anthropic non-streaming fallback ─────────────────────────────────────
+
+async function callAnthropicNonStreaming(
   apiModelString: string,
-  thinkingMode: string,
-  thinkingParameter: string | undefined,
-  prompt: string,
-): Promise<ProviderCallResult> {
+  requestBody: Record<string, unknown>,
+): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
 
-  const messages = [{ role: "user" as const, content: prompt }];
+  // Remove stream flag for fallback
+  const body = { ...requestBody, stream: false };
+  delete body.stream;
 
-  const body: Record<string, unknown> = {
-    model: apiModelString,
-    max_tokens: 16384,
-    messages,
-  };
-
-  // Adaptive thinking (4.6 models) — no budget_tokens, just type: "adaptive"
-  if (thinkingMode === "adaptive") {
-    body.thinking = { type: "adaptive" };
-  } else if (thinkingMode === "extended" && thinkingParameter) {
-    // Extended thinking (older models) — requires budget_tokens
-    body.thinking = {
-      type: "enabled",
-      budget_tokens: parseBudget(thinkingParameter),
-    };
-  }
-
-  const start = Date.now();
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -65,12 +148,84 @@ async function callAnthropic(
   const data = (await response.json()) as {
     content: Array<{ type: string; text?: string }>;
   };
-  const text = data.content
+  return data.content
     .filter((b) => b.type === "text")
     .map((b) => b.text ?? "")
     .join("\n");
+}
 
-  return { text, durationMs: Date.now() - start };
+// ── Anthropic call (streaming with fallback) ─────────────────────────────
+
+async function callAnthropic(
+  apiModelString: string,
+  thinkingMode: string,
+  thinkingParameter: string | undefined,
+  prompt: string,
+): Promise<ProviderCallResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
+
+  const messages = [{ role: "user" as const, content: prompt }];
+
+  const requestBody: Record<string, unknown> = {
+    model: apiModelString,
+    max_tokens: 16384,
+    messages,
+    stream: true,
+  };
+
+  // Adaptive thinking (4.6 models) — no budget_tokens, just type: "adaptive"
+  if (thinkingMode === "adaptive") {
+    requestBody.thinking = { type: "adaptive" };
+  } else if (thinkingMode === "extended" && thinkingParameter) {
+    // Extended thinking (older models) — requires budget_tokens
+    // max_tokens MUST be greater than budget_tokens
+    const budget = parseBudget(thinkingParameter);
+    requestBody.thinking = {
+      type: "enabled",
+      budget_tokens: budget,
+    };
+    requestBody.max_tokens = budget + 16384;
+  }
+
+  const start = Date.now();
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Anthropic API ${response.status}: ${errText}`);
+  }
+
+  // Try streaming parse, fall back to non-streaming on error
+  try {
+    const { text, thinkingDurationMs } = await parseAnthropicStream(
+      response,
+      apiModelString,
+    );
+    if (!text) {
+      throw new Error(
+        `Empty text response from ${apiModelString} (thinking took ${thinkingDurationMs}ms)`,
+      );
+    }
+    return { text, durationMs: Date.now() - start };
+  } catch (streamErr) {
+    console.warn(
+      `  [${apiModelString}] streaming parse failed, retrying non-streaming: ${streamErr}`,
+    );
+    const text = await callAnthropicNonStreaming(
+      apiModelString,
+      requestBody,
+    );
+    return { text, durationMs: Date.now() - start };
+  }
 }
 
 async function callGoogle(
@@ -272,20 +427,25 @@ export function createBootstrapModelExecutor(): ModelExecutor {
             wasExploratory: selection.wasExploratory,
           };
         } catch (err) {
-          // Record failure
+          // Record failure and continue to next retry instead of killing the task.
+          // This handles model 404s, budget_tokens errors, and transient API failures.
+          const errMsg = err instanceof Error ? err.message : String(err);
+          console.warn(
+            `  [Thompson] API error for ${selection.selectedAgentId} — recording failure, retrying (${attempt + 1}/${MAX_SELECTION_RETRIES}): ${errMsg.slice(0, 200)}`,
+          );
           await selection.recordOutcome({
             success: false,
             qualityScore: 0.0,
             durationMs: 0,
             errorType: "api_error",
-            notes: err instanceof Error ? err.message : String(err),
+            notes: errMsg,
           });
-          throw err;
+          continue;
         }
       }
 
       throw new Error(
-        `All ${MAX_SELECTION_RETRIES} model selections had no API key. Available: [${[...availableProviders].join(", ")}]`,
+        `All ${MAX_SELECTION_RETRIES} model selections failed. Available providers: [${[...availableProviders].join(", ")}]`,
       );
     },
   };
