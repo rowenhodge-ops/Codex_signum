@@ -21,7 +21,7 @@ export { gate } from "./gate.js";
 export { adapt } from "./adapt.js";
 export { decompose } from "./decompose.js";
 export { buildDecomposePrompt } from "./decompose-prompt.js";
-export { dispatch } from "./dispatch.js";
+export { dispatch, type DispatchOptions } from "./dispatch.js";
 export { executePlan } from "./architect.js";
 
 // Parallel decompose (Best-of-N strategy)

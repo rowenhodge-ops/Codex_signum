@@ -79,7 +79,10 @@ export async function executePlan(intent, repoPath, config, surveyOutput) {
         return planState;
     }
     // 6. DISPATCH
-    planState = await dispatch(planState, config.taskExecutor);
+    planState = await dispatch(planState, config.taskExecutor, {
+        repoPath,
+        dryRun: config.dryRun,
+    });
     planState.updated_at = new Date().toISOString();
     // 7. Check for failures → ADAPT
     const failures = planState.task_outcomes.filter((o) => !o.success);

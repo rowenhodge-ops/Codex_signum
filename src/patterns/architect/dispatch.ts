@@ -15,9 +15,15 @@ import type {
   TaskExecutionContext,
 } from "./types.js";
 
+export interface DispatchOptions {
+  repoPath: string;
+  dryRun?: boolean;
+}
+
 export async function dispatch(
   planState: PlanState,
   taskExecutor: TaskExecutor,
+  options?: DispatchOptions,
 ): Promise<PlanState> {
   const { task_graph, execution_plan } = planState;
   if (!task_graph || !execution_plan) {
@@ -49,8 +55,8 @@ export async function dispatch(
 
     // Execute via injected TaskExecutor
     const context: TaskExecutionContext = {
-      repoPath: "", // Caller should set this via plan context
-      dryRun: false,
+      repoPath: options?.repoPath ?? "",
+      dryRun: options?.dryRun ?? false,
       previousOutcomes: outcomes,
       planId: planState.plan_id,
       intent: planState.intent,

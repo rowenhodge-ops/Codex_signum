@@ -8,5 +8,9 @@
  * Verdict: GENERIC — refactored to use TaskExecutor injection.
  */
 import type { PlanState, TaskExecutor } from "./types.js";
-export declare function dispatch(planState: PlanState, taskExecutor: TaskExecutor): Promise<PlanState>;
+export interface DispatchOptions {
+    repoPath: string;
+    dryRun?: boolean;
+}
+export declare function dispatch(planState: PlanState, taskExecutor: TaskExecutor, options?: DispatchOptions): Promise<PlanState>;
 //# sourceMappingURL=dispatch.d.ts.map

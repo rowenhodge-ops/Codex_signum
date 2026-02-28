@@ -122,7 +122,10 @@ export async function executePlan(
   }
 
   // 6. DISPATCH
-  planState = await dispatch(planState, config.taskExecutor);
+  planState = await dispatch(planState, config.taskExecutor, {
+    repoPath,
+    dryRun: config.dryRun,
+  });
   planState.updated_at = new Date().toISOString();
 
   // 7. Check for failures → ADAPT

@@ -7,7 +7,7 @@
  * Moved from DND-Manager agent/patterns/architect/dispatch.ts.
  * Verdict: GENERIC — refactored to use TaskExecutor injection.
  */
-export async function dispatch(planState, taskExecutor) {
+export async function dispatch(planState, taskExecutor, options) {
     const { task_graph, execution_plan } = planState;
     if (!task_graph || !execution_plan) {
         throw new Error("Cannot dispatch — no execution plan");
@@ -31,8 +31,8 @@ export async function dispatch(planState, taskExecutor) {
         }
         // Execute via injected TaskExecutor
         const context = {
-            repoPath: "", // Caller should set this via plan context
-            dryRun: false,
+            repoPath: options?.repoPath ?? "",
+            dryRun: options?.dryRun ?? false,
             previousOutcomes: outcomes,
             planId: planState.plan_id,
             intent: planState.intent,
