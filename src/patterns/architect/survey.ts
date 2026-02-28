@@ -471,6 +471,16 @@ function detectDuplications(
     // Skip the file itself if it's in core (when surveying core repo)
     if (relPath.startsWith("src/") || relPath.startsWith("dist/")) continue;
 
+    // Skip test files — they test core functions, they don't reimplement them
+    if (
+      relPath.startsWith("tests/") ||
+      relPath.startsWith("test/") ||
+      relPath.includes("__tests__/") ||
+      relPath.endsWith(".test.ts") ||
+      relPath.endsWith(".spec.ts")
+    )
+      continue;
+
     let content: string;
     try {
       content = fs.readFileSync(filePath, "utf-8");
