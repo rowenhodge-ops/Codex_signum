@@ -228,6 +228,67 @@ async function callAnthropic(
   }
 }
 
+// ── Google stream parser ──────────────────────────────────────────────────
+
+async function parseGoogleStream(
+  response: Response,
+  modelId: string,
+): Promise<string> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let textContent = "";
+  let buffer = "";
+  let lastHeartbeat = Date.now();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // Google streams newline-delimited JSON (array chunks)
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === "[" || trimmed === "]" || trimmed === ",")
+        continue;
+
+      try {
+        // Strip leading comma if present (array format)
+        const clean = trimmed.startsWith(",") ? trimmed.slice(1) : trimmed;
+        const chunk = JSON.parse(clean) as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ text?: string }> };
+          }>;
+        };
+        const parts = chunk.candidates?.[0]?.content?.parts ?? [];
+        for (const part of parts) {
+          if (part.text) {
+            textContent += part.text;
+          }
+        }
+
+        // Heartbeat
+        const now = Date.now();
+        if (now - lastHeartbeat > HEARTBEAT_INTERVAL_MS) {
+          console.log(
+            `  [${modelId}] streaming... ${textContent.length} chars received`,
+          );
+          lastHeartbeat = now;
+        }
+      } catch {
+        // Partial JSON — will complete in next chunk
+      }
+    }
+  }
+
+  return textContent;
+}
+
+// ── Google call (streaming with fallback) ─────────────────────────────────
+
 async function callGoogle(
   apiModelString: string,
   prompt: string,
@@ -235,34 +296,59 @@ async function callGoogle(
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_API_KEY not set");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${apiModelString}:generateContent?key=${apiKey}`;
+  const requestBody = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: 16384 },
+  };
+
+  // Try streaming first
+  const streamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModelString}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
   const start = Date.now();
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 16384 },
-    }),
-  });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Google API ${response.status}: ${errText}`);
+  try {
+    const response = await fetch(streamUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Google API ${response.status}: ${errText}`);
+    }
+
+    const text = await parseGoogleStream(response, apiModelString);
+    return { text, durationMs: Date.now() - start };
+  } catch (streamErr) {
+    // Fall back to non-streaming
+    console.warn(
+      `  [${apiModelString}] streaming failed, retrying non-streaming: ${streamErr}`,
+    );
+    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModelString}:generateContent?key=${apiKey}`;
+    const response = await fetch(fallbackUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Google API ${response.status}: ${errText}`);
+    }
+
+    const data = (await response.json()) as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> };
+      }>;
+    };
+    const text =
+      data.candidates?.[0]?.content?.parts
+        ?.map((p) => p.text ?? "")
+        .join("\n") ?? "";
+
+    return { text, durationMs: Date.now() - start };
   }
-
-  const data = (await response.json()) as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ text?: string }> };
-    }>;
-  };
-  const text =
-    data.candidates?.[0]?.content?.parts
-      ?.map((p) => p.text ?? "")
-      .join("\n") ?? "";
-
-  return { text, durationMs: Date.now() - start };
 }
 
 async function callOpenRouter(
