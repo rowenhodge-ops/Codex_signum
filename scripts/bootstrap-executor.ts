@@ -182,7 +182,7 @@ function getAvailableProviders(): Set<ProviderClass> {
 
 // ── ModelExecutor implementation ──────────────────────────────────────────
 
-const MAX_SELECTION_RETRIES = 3;
+const MAX_SELECTION_RETRIES = 10;
 
 function mapContextToRequest(
   context?: ModelExecutorContext,
