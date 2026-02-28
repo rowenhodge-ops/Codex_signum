@@ -14,7 +14,7 @@ src/
 │   ├── phi-l.ts           # ΦL — health score (4-factor: axiom_compliance, provenance, success_rate, temporal_stability)
 │   ├── psi-h.ts           # ΨH — harmonic signature (λ₂ structural coherence + TV_G runtime friction)
 │   ├── epsilon-r.ts       # εR — exploration rate with imperative gradient + spectral calibration
-│   ├── dampening.ts       # Topology-aware cascade dampening: γ_effective = min(0.7, 0.8/(k-1))
+│   ├── dampening.ts       # Topology-aware cascade dampening: γ_effective = min(0.7, 0.8/k) [budget-capped]
 │   ├── maturity.ts        # Network maturity index (4 normalized factors, each weighted 0.25)
 │   ├── aggregation.ts     # Hierarchical health aggregation (node → pattern → bloom → system)
 │   ├── hierarchical-health.ts  # Recursive bottom-up health walk
@@ -188,7 +188,7 @@ The graph IS the monitoring infrastructure. Observations flow through execution,
 
 `γ = 0.7` everywhere is WRONG. Always compute from topology:
 ```
-γ_effective = min(0.7, 0.8 / (k - 1))    for k > 1
+γ_effective = min(0.7, 0.8 / k)    # budget-capped, guarantees μ = k×γ ≤ 0.8 < 1
 ```
 Hub dampening uses `γ_base / √k` (NOT `γ_base / degree`).
 
@@ -524,5 +524,5 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Bare `number` as health score | ΦL must always be composite structure | Use `PhiLOutput` type, never bare number |
 | Consumer re-implements core orchestration | DND called classify/sequence/gate/dispatch/adapt individually instead of `executePlan()` | Consumers call `executePlan()` with config — inject behavior through executors, not by re-implementing the stage loop |
 | Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
-| Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts |
+| Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
