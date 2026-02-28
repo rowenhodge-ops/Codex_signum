@@ -563,34 +563,38 @@ Report to the user at each stage transition. Include key metrics:
 | Stage | What to Report |
 |---|---|
 | SURVEY | Doc count, hypothesis count, gap count, confidence %, blind spots |
-| DECOMPOSE | Model selected (Thompson), task count, phase count, LLM call duration |
+| DECOMPOSE | Model selected (Thompson), task count, phase count, LLM call duration, thinking duration if applicable |
 | CLASSIFY | Mechanical vs generative breakdown |
 | SEQUENCE | Critical path length, parallelism opportunities |
 | GATE | Full plan structure — task titles, dependencies, estimated complexity |
-| DISPATCH | Per-task: model selected, pass/fail, output summary, duration |
+| DISPATCH | Per-task: model selected, pass/fail, output summary, duration, thinking duration if applicable |
 | ADAPT | Failure count, adaptation strategy, retry decisions |
 
 Do NOT wait until the entire pipeline completes to report. Each stage completion is a progress checkpoint.
 
-### Stall Detection
+### Stall Detection (Streaming-Based)
 
-Monitor the log file size and content while waiting for LLM responses:
+The bootstrap executor uses streaming API calls. During extended thinking, heartbeat logs appear every 15 seconds:
 
-```bash
-# Check if output is still growing
-wc -l /tmp/architect-run.log
-tail -20 /tmp/architect-run.log
+```text
+  [claude-opus-4-6] thinking started...
+  [claude-opus-4-6] still thinking... 15s elapsed
+  [claude-opus-4-6] still thinking... 30s elapsed
+  [claude-opus-4-6] still thinking... 45s elapsed
+  [claude-opus-4-6] thinking complete (52.3s)
 ```
 
-**Normal behavior:** DECOMPOSE and DISPATCH make LLM calls that take 30-180 seconds each. Extended thinking models (Opus, Sonnet 4.6 with adaptive/extended) can legitimately take 3-5 minutes on complex intents. If the log shows a Thompson selection but no response yet, the model is working.
+**If heartbeats are arriving:** The model is alive and working. Do NOT interrupt. Extended thinking models (Opus, Sonnet 4.6) can legitimately think for 5+ minutes on complex intents like multi-task decomposition.
 
-**Stall indicators:**
+**If heartbeats stop arriving AND no new output for 120 seconds:**
 
-1. Log file unchanged for 120+ seconds after a Thompson selection was logged
-2. Process is no longer running (check background task status)
-3. Last log line is a retry/failure message with no subsequent selection
+1. Check if the process is still alive (check background task status)
+2. Check for active network connections to the API provider
+3. If process is alive with active connection — continue waiting (possible network buffering)
+4. If process is alive with NO active connection — the connection may have dropped. Report to user.
+5. Do NOT kill the process without user confirmation
 
-**Response:** Report the stall to the user with the last 20 lines of the log. Do NOT kill the process without user confirmation. Do NOT assume a timeout means failure — network buffering and thinking time are legitimate.
+**If the pipeline was launched without streaming** (fallback mode), no heartbeats will appear. In this case, use process and network checks as the only liveness signal. There is no safe timeout value — thinking models take as long as they need.
 
 ### Background Health Checks
 

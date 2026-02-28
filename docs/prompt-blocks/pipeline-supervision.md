@@ -31,9 +31,9 @@ While waiting for DECOMPOSE or DISPATCH API calls (30-60s each):
 - Check `git status` for uncommitted work
 - Review the log for earlier warnings
 
-### 4. Monitor log file for liveness
+### 4. Monitor streaming heartbeats for liveness
 
-During DECOMPOSE and DISPATCH, poll the log file to verify the pipeline is still progressing. Normal LLM calls take 30-180 seconds. Extended thinking models (Opus, Sonnet 4.6) can take 3-5 minutes on complex intents. Only investigate if the log file is unchanged for 120+ seconds after a Thompson selection was logged. Check process health before taking action. Do NOT kill the process without user confirmation.
+During DECOMPOSE and DISPATCH, the executor streams API calls and logs thinking heartbeats every 15s. If heartbeats are arriving, the model is working — do NOT interrupt even if it takes 5+ minutes. Only investigate if heartbeats stop AND no output for 120s. Check process health and network connections before taking action. Do NOT kill the process without user confirmation.
 
 ### 5. On failure: fix the pipeline, not the work
 
