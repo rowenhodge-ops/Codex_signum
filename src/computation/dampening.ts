@@ -29,9 +29,6 @@ export const HYSTERESIS_RATIO = 2.5;
 /** Maximum dampening factor (cap from spec) */
 const MAX_GAMMA = 0.7;
 
-/** @deprecated Legacy numerator — use SAFETY_BUDGET with computeGammaEffective instead */
-const GAMMA_NUMERATOR = 0.8;
-
 /**
  * Safety budget for budget-capped dampening.
  * γ_effective(k) = min(γ_base, SAFETY_BUDGET / k)
