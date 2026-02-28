@@ -23,6 +23,7 @@ import {
   createBootstrapTaskExecutor,
   runPreflightChecks,
 } from "./bootstrap-task-executor.js";
+import { checkVertexAuth } from "./vertex-auth.js";
 
 // ── CLI argument parsing ────────────────────────────────────────────────────
 
@@ -147,6 +148,13 @@ async function main(): Promise<void> {
   console.log("\n── Pre-flight ──────────────────────────────────────────────");
   runPreflightChecks(repoPath);
 
+  // Vertex AI auth check (soft requirement — pipeline runs without it)
+  console.log("\n── Vertex AI Auth ──────────────────────────────────────────");
+  const vertexAvailable = await checkVertexAuth();
+  if (!vertexAvailable) {
+    console.log("  ⚠️  Continuing without Vertex AI models (Anthropic only)");
+  }
+
   // SURVEY
   console.log("\n── SURVEY ──────────────────────────────────────────────────");
   const surveyResult = await survey({
@@ -170,7 +178,7 @@ async function main(): Promise<void> {
   const pipelineSurvey = toPipelineSurveyOutput(surveyResult, cliArgs.intent);
 
   // Create executors
-  const modelExecutor = createBootstrapModelExecutor();
+  const modelExecutor = createBootstrapModelExecutor({ vertexAvailable });
   const taskExecutor = createBootstrapTaskExecutor(modelExecutor);
 
   // Execute plan
