@@ -25,6 +25,10 @@
 
 - **Source:** Parameter Validation §3.4
 - **Claim:** Hub nodes (high-degree) should have γ_hub = γ_base/√k to prevent degree-correlated amplification
-- **Status:** deferred
-- **Evidence:** Not yet implemented — current propagation uses uniform dampening
-- **Notes:** Requires degree-aware propagation. Low priority until graph has enough nodes for hub effects to matter.
+- **Status:** superseded
+- **Evidence:**
+  - Budget-capped formula min(γ_base, 0.8/k) handles all topologies including hubs
+  - √k was found supercritical for k ≥ 3 (Safety Analysis paper)
+  - Replaced in commit ce0ef96 (M-7)
+  - `computeHubDampening` removed in M-7B — `computeGammaEffective` is the sole implementation
+- **Superseded by:** H-001 (subcriticality via budget-capped dampening)
