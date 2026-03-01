@@ -15,6 +15,8 @@
 | M-8B | Lean review synthesis — consolidation, prioritisation, FR/NFR definition | ✅ |
 | M-8C | Codex-native topology refactor (FR-9, FR-10/11, FR-12-15, R2, R4) | ✅ |
 | M-8C.V | Spec edits (R-01 Bridge View, R-02 Axiom DAG) + verification run | ✅ |
+| M-7C | Grammar refactor — morpheme-native entity names (Agent→Seed, Pattern→Bloom, observer→feedback) | ✅ |
+| M-8 | Optimisation runs — Thompson data generation, human feedback CLI, DevAgent CLI | 🔄 |
 
 ---
 
@@ -39,6 +41,8 @@ M-7B ✅  Architect pipeline operational (7-stage self-hosting)
         └── M-8B ✅  Lean review synthesis (FRs, NFRs, prioritisation)
               └── M-8C ✅  Codex-native topology refactor (FR-9, FR-10/11, FR-12-15, R2, R4)
                     └── M-8C.V ✅  Spec edits + verification run
+              └── M-7C ✅  Grammar refactor (Agent→Seed, Pattern→Bloom, observer→feedback)
+                    └── M-8 🔄  Optimisation runs + human feedback CLI + DevAgent CLI
 ```
 
 ---
@@ -61,8 +65,8 @@ These items were identified during M-8A/M-8B analysis but are not yet scheduled:
 
 | Metric | M-8A Baseline | M-8C Target | Actual |
 |--------|---------------|-------------|--------|
-| Tests passing | 813 | 813+ | 813 |
-| Barrel exports | 193 | 193+ | 193 |
+| Tests passing | 813 | 813+ | 813 (M-7C: 813) |
+| Barrel exports | 193 | 193+ | 210 (M-7C: deprecated aliases added) |
 | Pipeline completion rate | 96% | >99% | 100% (M-8C.V: 6/6) |
 | Hallucination detection | manual | automated | ✅ Jidoka active |
 | Pre-flight auth | absent | automated | ✅ Active |
@@ -70,4 +74,4 @@ These items were identified during M-8A/M-8B analysis but are not yet scheduled:
 
 ---
 
-*Updated after M-8C.V verification run (2026-03-02).*
+*Updated after M-7C close-out (2026-03-02).*

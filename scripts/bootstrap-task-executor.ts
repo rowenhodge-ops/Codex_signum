@@ -300,6 +300,13 @@ export function checkConsistency(
 
 /** Entities that have been eliminated from the codebase and should not appear in outputs */
 export const ELIMINATED_ENTITIES = [
+  // Pre-M-7C entity names (graph labels renamed to morpheme-native names)
+  "Agent node", "Pattern node",
+  ":Agent", ":Pattern",
+  "AgentProps", "PatternProps",
+  "createAgent", "getAgent", "listActiveAgents",
+  "createPattern", "getPattern", "updatePatternState",
+  // Original eliminated entities (monitoring overlay anti-pattern)
   "Observer pattern",
   "Model Sentinel",
   "collector.ts",
