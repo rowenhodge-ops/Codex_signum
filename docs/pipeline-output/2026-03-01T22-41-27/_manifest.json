@@ -1,0 +1,28 @@
+{
+  "runId": "2026-03-01T22-41-27",
+  "intent": "Post-refactor audit of M-7C Grammar Refactor. The codebase was just refactored to use Codex-native morpheme names (Agent→Seed, Pattern→Bloom, observer→feedback, relationships renamed). Review the refactored code against these source documents: (1) codex-signum-v3_0.md for canonical morpheme definitions, (2) codex-signum-engineering-bridge-v2_0.md for implementation terminology, (3) docs/entity-mapping-v3.md for the rename mapping, (4) src/types/morphemes.ts for the type definitions. Look for: missed renames, hybrid state where old and new names coexist incorrectly, spec drift where the refactored code diverges from spec intent, and backward-compatibility alias completeness.",
+  "startedAt": "2026-03-01T22:41:28.638Z",
+  "completedAt": "2026-03-01T22:41:28.857Z",
+  "tasks": [
+    {
+      "taskId": "survey-1772404886691-5b12px_t1",
+      "title": "Placeholder task — LLM decomposition failed",
+      "type": "generative",
+      "model": "unknown",
+      "provider": "unknown",
+      "thinkingMode": "unknown",
+      "status": "failed",
+      "durationMs": 0,
+      "outputFile": "",
+      "outputChars": 0
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "succeeded": 0,
+    "failed": 1,
+    "totalDurationMs": 0,
+    "totalOutputChars": 0,
+    "modelsUsed": []
+  }
+}
