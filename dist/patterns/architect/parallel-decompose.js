@@ -5,17 +5,17 @@ import { decompose } from "./decompose.js";
 /**
  * Run decompose N times and return the best-scoring plan.
  */
-export async function parallelDecompose(intent, survey, modelExecutor, options = {}) {
+export async function parallelDecompose(intent, survey, modelExecutor, options = {}, repoPath) {
     const { n = 3, parallel = false } = options;
     // Single attempt — just call decompose directly
     if (n <= 1) {
-        return decompose(intent, survey, modelExecutor);
+        return decompose(intent, survey, modelExecutor, repoPath);
     }
     console.log(`  🔀 Parallel decompose: generating ${n} plans (${parallel ? "parallel" : "sequential"})...`);
     // Generate N decompositions
     let graphs;
     if (parallel) {
-        const attempts = Array.from({ length: n }, () => decompose(intent, survey, modelExecutor).catch(() => null));
+        const attempts = Array.from({ length: n }, () => decompose(intent, survey, modelExecutor, repoPath).catch(() => null));
         const results = await Promise.all(attempts);
         graphs = results.filter((g) => g !== null);
     }
@@ -23,7 +23,7 @@ export async function parallelDecompose(intent, survey, modelExecutor, options =
         graphs = [];
         for (let i = 0; i < n; i++) {
             try {
-                const graph = await decompose(intent, survey, modelExecutor);
+                const graph = await decompose(intent, survey, modelExecutor, repoPath);
                 graphs.push(graph);
                 console.log(`    Plan ${i + 1}/${n}: ${graph.tasks.length} tasks, confidence ${(graph.decomposition_confidence * 100).toFixed(0)}%`);
             }
@@ -35,7 +35,7 @@ export async function parallelDecompose(intent, survey, modelExecutor, options =
     // If all failed, fall back to single attempt (which returns stub on failure)
     if (graphs.length === 0) {
         console.log("  ⚠️ All parallel attempts failed — falling back to single decompose");
-        return decompose(intent, survey, modelExecutor);
+        return decompose(intent, survey, modelExecutor, repoPath);
     }
     // Score each plan
     const scored = graphs.map((graph) => scorePlan(graph, survey, intent));

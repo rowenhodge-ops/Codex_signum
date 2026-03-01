@@ -1,13 +1,9 @@
-/**
- * DECOMPOSE stage — transforms survey output + intent into a TaskGraph.
- *
- * Calls an LLM via the injected ModelExecutor to produce a real
- * task decomposition. Falls back to stub on LLM or parse failure.
- *
- * Moved from DND-Manager agent/patterns/architect/decompose.ts.
- * Verdict: SPLIT — removed DND-specific `createArchitectLLM` import,
- * refactored to accept ModelExecutor as a parameter.
- */
 import type { PipelineSurveyOutput, TaskGraph, ModelExecutor } from "./types.js";
-export declare function decompose(intent: string, survey: PipelineSurveyOutput, modelExecutor: ModelExecutor): Promise<TaskGraph>;
+/**
+ * Validate that every files_affected path in the task graph exists on disk.
+ * Returns warnings for non-existent paths. Does NOT strip them — the DECOMPOSE
+ * model needs to learn which paths are real through Thompson feedback.
+ */
+export declare function validateFilePaths(taskGraph: TaskGraph, repoPath: string): string[];
+export declare function decompose(intent: string, survey: PipelineSurveyOutput, modelExecutor: ModelExecutor, repoPath?: string): Promise<TaskGraph>;
 //# sourceMappingURL=decompose.d.ts.map

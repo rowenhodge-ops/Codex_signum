@@ -34,7 +34,7 @@ export interface ScoredPlan {
 /**
  * Run decompose N times and return the best-scoring plan.
  */
-export declare function parallelDecompose(intent: string, survey: PipelineSurveyOutput, modelExecutor: ModelExecutor, options?: ParallelDecomposeOptions): Promise<TaskGraph>;
+export declare function parallelDecompose(intent: string, survey: PipelineSurveyOutput, modelExecutor: ModelExecutor, options?: ParallelDecomposeOptions, repoPath?: string): Promise<TaskGraph>;
 /**
  * Score a TaskGraph on quality heuristics.
  * Returns 0-1 composite score.

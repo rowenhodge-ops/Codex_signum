@@ -1,16 +1,13 @@
-/**
- * decompose-prompt.ts — Prompt construction for DECOMPOSE stage.
- *
- * Builds a structured prompt that instructs the LLM to produce a TaskGraph
- * from intent + survey output. Response format is JSON.
- *
- * Moved from DND-Manager agent/patterns/architect/decompose-prompt.ts.
- * Verdict: GENERIC — pure prompt building, no DND imports.
- */
 import type { PipelineSurveyOutput } from "./types.js";
 /**
- * Build the decompose prompt from intent and survey output.
- * Returns a single string to send to the LLM.
+ * Get a listing of relevant files in the repository.
+ * Scans docs/specs/, docs/research/, docs/lean/, docs/hypotheses/, and src/.
  */
-export declare function buildDecomposePrompt(intent: string, survey: PipelineSurveyOutput): string;
+export declare function getDirectoryListing(repoPath: string): string;
+/**
+ * Build the decompose prompt from intent and survey output.
+ * When repoPath is provided, includes a directory listing so the LLM
+ * can reference real file paths in files_affected.
+ */
+export declare function buildDecomposePrompt(intent: string, survey: PipelineSurveyOutput, repoPath?: string): string;
 //# sourceMappingURL=decompose-prompt.d.ts.map

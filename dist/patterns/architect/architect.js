@@ -35,13 +35,13 @@ export async function executePlan(intent, repoPath, config, surveyOutput) {
     planState.survey = surveyOutput ?? createMinimalSurvey(intent);
     planState.status = "decomposing";
     planState.updated_at = new Date().toISOString();
-    // 2. DECOMPOSE
+    // 2. DECOMPOSE (repoPath enables directory listing + file path validation)
     const decomposeAttempts = config.decomposeAttempts ?? 1;
     if (decomposeAttempts > 1) {
-        planState.task_graph = await parallelDecompose(intent, planState.survey, config.modelExecutor, { n: decomposeAttempts, parallel: config.parallelDecompose ?? false });
+        planState.task_graph = await parallelDecompose(intent, planState.survey, config.modelExecutor, { n: decomposeAttempts, parallel: config.parallelDecompose ?? false }, repoPath);
     }
     else {
-        planState.task_graph = await decompose(intent, planState.survey, config.modelExecutor);
+        planState.task_graph = await decompose(intent, planState.survey, config.modelExecutor, repoPath);
     }
     planState.status = "classifying";
     planState.updated_at = new Date().toISOString();

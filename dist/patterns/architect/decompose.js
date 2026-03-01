@@ -1,12 +1,41 @@
 // Copyright 2024-2026 Rowen Hodge
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
+/**
+ * DECOMPOSE stage — transforms survey output + intent into a TaskGraph.
+ *
+ * Calls an LLM via the injected ModelExecutor to produce a real
+ * task decomposition. Falls back to stub on LLM or parse failure.
+ *
+ * Moved from DND-Manager agent/patterns/architect/decompose.ts.
+ * Verdict: SPLIT — removed DND-specific `createArchitectLLM` import,
+ * refactored to accept ModelExecutor as a parameter.
+ */
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { MAX_TASKS_PER_PLAN } from "./types.js";
 import { buildDecomposePrompt } from "./decompose-prompt.js";
-export async function decompose(intent, survey, modelExecutor) {
+/**
+ * Validate that every files_affected path in the task graph exists on disk.
+ * Returns warnings for non-existent paths. Does NOT strip them — the DECOMPOSE
+ * model needs to learn which paths are real through Thompson feedback.
+ */
+export function validateFilePaths(taskGraph, repoPath) {
+    const warnings = [];
+    for (const task of taskGraph.tasks) {
+        for (const filePath of task.files_affected) {
+            const fullPath = join(repoPath, filePath);
+            if (!existsSync(fullPath)) {
+                warnings.push(`Task ${task.task_id}: files_affected contains non-existent path "${filePath}"`);
+            }
+        }
+    }
+    return warnings;
+}
+export async function decompose(intent, survey, modelExecutor, repoPath) {
     const intentId = survey.intent_id;
     try {
-        const prompt = buildDecomposePrompt(intent, survey);
+        const prompt = buildDecomposePrompt(intent, survey, repoPath);
         const result = await modelExecutor.execute(prompt, {
             taskType: "planning",
             complexity: "complex",
@@ -16,6 +45,16 @@ export async function decompose(intent, survey, modelExecutor) {
         const parsed = parseTaskGraph(result.text, intentId);
         if (parsed) {
             console.log(`  DECOMPOSE: Parsed ${parsed.tasks.length} tasks in ${parsed.phases.length} phases (confidence: ${parsed.decomposition_confidence.toFixed(2)})`);
+            // Validate file paths if repoPath provided
+            if (repoPath) {
+                const fileWarnings = validateFilePaths(parsed, repoPath);
+                if (fileWarnings.length > 0) {
+                    console.warn(`  DECOMPOSE: ${fileWarnings.length} non-existent file path(s) in task graph:`);
+                    for (const w of fileWarnings) {
+                        console.warn(`    ⚠️  ${w}`);
+                    }
+                }
+            }
             return parsed;
         }
         console.error(`  DECOMPOSE: parseTaskGraph returned null. First 500 chars of response:\n${result.text.slice(0, 500)}`);
