@@ -46,6 +46,11 @@ export {
   createDistillation,
   // Context Clusters
   ensureContextCluster,
+  // Human Feedback
+  recordHumanFeedback,
+  getHumanFeedbackForRun,
+  listPendingFeedbackRuns,
+  getCalibrationMetrics,
   // Topology
   getBloomDegree,
   getBloomAdjacency,
@@ -78,6 +83,8 @@ export type {
   DistillationProps,
   ContextClusterProps,
   ArmStats,
+  HumanFeedbackProps,
+  CalibrationMetrics,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

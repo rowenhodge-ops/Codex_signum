@@ -21,6 +21,8 @@ recordObservation, getObservationsForBloom, countObservationsForBloom,
 createDistillation, 
 // Context Clusters
 ensureContextCluster, 
+// Human Feedback
+recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibrationMetrics, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Backward compatibility aliases (deprecated)

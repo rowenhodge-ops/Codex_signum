@@ -620,6 +620,52 @@ export function verifyProviderAuth(
   };
 }
 
+// ── Direct model call (for DevAgent executor) ───────────────────────────
+
+export interface DirectCallOptions {
+  provider: string;
+  apiModelString: string;
+  thinkingMode: string;
+  thinkingParameter?: string;
+}
+
+/**
+ * Call a model directly by provider and API model string.
+ * Used by the DevAgent executor which does its own Thompson routing.
+ */
+export async function callModelDirect(
+  options: DirectCallOptions,
+  prompt: string,
+  vertexAvailable: boolean = false,
+): Promise<ProviderCallResult> {
+  const providerClass = classifyProvider(options.provider);
+
+  if (providerClass === "anthropic") {
+    return callAnthropic(
+      options.apiModelString,
+      options.thinkingMode,
+      options.thinkingParameter,
+      prompt,
+    );
+  } else if (providerClass === "vertex") {
+    if (!vertexAvailable) {
+      throw new Error("[INFRASTRUCTURE] Vertex AI credentials not available");
+    }
+    if (isVertexMistralModel(options.apiModelString)) {
+      return callVertexMistral(options.apiModelString, prompt);
+    } else {
+      return callVertexGemini(options.apiModelString, prompt);
+    }
+  } else if (providerClass === "google") {
+    return callGoogle(options.apiModelString, prompt);
+  }
+
+  throw new Error(`Unsupported provider: ${options.provider} (classified as ${providerClass})`);
+}
+
+export { classifyProvider, getAvailableProviders, getMaxOutputTokens };
+export type { ProviderCallResult, ProviderClass };
+
 // ── ModelExecutor implementation ──────────────────────────────────────────
 
 const MAX_SELECTION_RETRIES = 10;

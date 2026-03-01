@@ -100,6 +100,11 @@ const SCHEMA_STATEMENTS: string[] = [
   "CREATE CONSTRAINT threshold_event_id_unique IF NOT EXISTS FOR (te:ThresholdEvent) REQUIRE te.id IS UNIQUE",
   "CREATE INDEX threshold_event_pattern IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.patternId)",
   "CREATE INDEX threshold_event_timestamp IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.timestamp)",
+
+  // Human feedback calibration (breaks LLM-evaluating-LLM circularity)
+  "CREATE CONSTRAINT human_feedback_id_unique IF NOT EXISTS FOR (hf:HumanFeedback) REQUIRE hf.id IS UNIQUE",
+  "CREATE INDEX human_feedback_run IF NOT EXISTS FOR (hf:HumanFeedback) ON (hf.runId)",
+  "CREATE INDEX human_feedback_timestamp IF NOT EXISTS FOR (hf:HumanFeedback) ON (hf.timestamp)",
 ];
 
 // ============ SCHEMA MIGRATION ============

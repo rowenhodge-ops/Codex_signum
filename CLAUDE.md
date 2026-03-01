@@ -286,6 +286,37 @@ The **task executor** (`scripts/bootstrap-task-executor.ts`) is V1 safe-default:
 
 Pre-flight checks verify: correct git remote (Codex_signum, not DND-Manager), clean working tree, passing type check, provider authentication.
 
+### Human Feedback (breaks LLM-evaluating-LLM circularity)
+
+```bash
+npx tsx scripts/feedback.ts accept <runId>           # Human approves run
+npx tsx scripts/feedback.ts reject <runId> "reason"   # Human rejects run
+npx tsx scripts/feedback.ts partial <runId> --accept=t1 --reject=t2 "reason"
+npx tsx scripts/feedback.ts calibrate                  # Show precision/recall
+npx tsx scripts/feedback.ts pending                    # Runs awaiting feedback
+npx tsx scripts/feedback.ts status <runId>             # Check feedback for a run
+```
+
+Thompson reads `adjustedQuality` (human-calibrated) when available, falls back to `qualityScore` (LLM-only). Over time, this creates a calibration signal that corrects systematic LLM scoring biases. Reject verdict applies a 0.5× quality penalty to Decision nodes from the run.
+
+### Running the DevAgent (Coding Tasks)
+
+```bash
+# Mechanical coding task through SCOPE → EXECUTE → REVIEW → VALIDATE
+npx tsx scripts/dev-agent.ts run "<task description>" --files=<paths> --complexity=<level>
+
+# With options
+npx tsx scripts/dev-agent.ts run "Rename AgentProps to SeedProps" \
+  --files=src/graph/queries.ts --complexity=moderate --preset=full --milestone=M-7C
+```
+
+DevAgent uses Thompson routing per stage. Quality assessment is V1 mechanical (pattern-matching). Human feedback via `feedback.ts` provides calibration. DevAgent does NOT auto-apply changes — it produces quality-gated output for human review.
+
+**When to use which pipeline:**
+
+- **Architect** (`scripts/architect.ts`): Analytical work — spec reviews, audits, multi-file analysis
+- **DevAgent** (`scripts/dev-agent.ts`): Coding tasks — renames, refactors, feature implementation
+
 ---
 
 ## SURVEY Broadening — Document Discovery & Claim Extraction
