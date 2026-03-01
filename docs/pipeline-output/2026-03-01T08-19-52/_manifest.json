@@ -1,0 +1,31 @@
+{
+  "runId": "2026-03-01T08-19-52",
+  "intent": "Consolidate the two M-7B spec review reports into a single authoritative action item list. For every finding and recommendation, test compliance against: (1) all 10 Codex Signum axioms, (2) the 5 grammar rules, (3) the anti-pattern table rows 1-10. Reject or reframe any recommendation that violates the framework's own principles. Pay particular attention to: the Error morpheme recommendation (does it collapse 3D state into binary?), the axiom ordering changes, and any Engineering Bridge formula fixes that might be computed views. The consolidated output should classify items as validated, reframed, or rejected, and note which items should be resolved now vs deferred to the Codex-native refactor.",
+  "startedAt": "2026-03-01T08:23:41.271Z",
+  "completedAt": "2026-03-01T08:25:38.090Z",
+  "tasks": [
+    {
+      "taskId": "survey-1772353190731-549ehq_t1",
+      "title": "Placeholder task — LLM decomposition failed",
+      "type": "generative",
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 115306,
+      "outputFile": "docs\\pipeline-output\\2026-03-01T08-19-52\\survey-1772353190731-549ehq_t1-placeholder-task-llm-decomposition-failed.md",
+      "outputChars": 16440
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "totalDurationMs": 115306,
+    "totalOutputChars": 16440,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:low"
+    ]
+  }
+}
