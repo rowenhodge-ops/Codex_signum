@@ -11,8 +11,6 @@
  * NOT part of the npm package. Dev tooling only.
  */
 import { GoogleAuth } from "google-auth-library";
-import { execSync } from "node:child_process";
-import { platform } from "node:os";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -78,46 +76,11 @@ export async function checkVertexAuth(): Promise<boolean> {
     // Credentials missing or expired — fall through to interactive auth
   }
 
-  // Interactive auth flow
+  // Non-interactive: skip browser auth to avoid blocking the pipeline.
+  // Run `gcloud auth application-default login` manually before launching
+  // the pipeline if you want Vertex AI models available.
   console.log("  ⚠️  Vertex AI credentials not found or expired.");
-  console.log("  Opening browser for Google Cloud authentication...");
-  console.log(
-    "  (Complete sign-in in the browser, then return here)\n",
-  );
-
-  try {
-    // On Windows, gcloud.cmd uses bundled Python; the bare 'gcloud' shell
-    // script fails with "Python was not found".
-    const gcloudCmd = platform() === "win32" ? "gcloud.cmd" : "gcloud";
-    execSync(`${gcloudCmd} auth application-default login`, {
-      stdio: "inherit",
-    });
-  } catch {
-    console.error(
-      "  ❌ gcloud auth failed. Is gcloud CLI installed?",
-    );
-    return false;
-  }
-
-  // Reset auth client to pick up new credentials
-  authClient = null;
-
-  // Re-check after interactive auth
-  try {
-    const freshAuth = getAuthClient();
-    const client = await freshAuth.getClient();
-    const tokenResponse = await client.getAccessToken();
-    if (tokenResponse.token) {
-      console.log("  ✅ Vertex AI credentials valid (after login)");
-      return true;
-    }
-  } catch {
-    console.error(
-      "  ❌ Vertex AI credentials still invalid after login.",
-    );
-    return false;
-  }
-
+  console.log("  Run `gcloud auth application-default login` manually to enable Vertex AI.");
   return false;
 }
 
