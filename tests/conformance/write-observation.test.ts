@@ -186,7 +186,7 @@ describe("conditionValue() — signal pipeline wrapping", () => {
 // Mock the graph layer
 vi.mock("../../src/graph/queries.js", () => ({
   recordObservation: vi.fn().mockResolvedValue(undefined),
-  updatePatternPhiL: vi.fn().mockResolvedValue(undefined),
+  updateBloomPhiL: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../../src/graph/client.js", () => ({
@@ -202,7 +202,7 @@ vi.mock("../../src/graph/client.js", () => ({
 const { writeObservation } = await import(
   "../../src/graph/write-observation.js"
 );
-const { recordObservation, updatePatternPhiL } = await import(
+const { recordObservation, updateBloomPhiL } = await import(
   "../../src/graph/queries.js"
 );
 
@@ -231,7 +231,7 @@ function makeContext(overrides: Partial<PatternHealthContext> = {}): PatternHeal
 function makeObservation(overrides: Partial<ObservationProps> = {}): ObservationProps {
   return {
     id: `obs-${Date.now()}`,
-    sourcePatternId: "pattern-test",
+    sourceBloomId: "pattern-test",
     metric: "quality",
     value: 0.8,
     ...overrides,
@@ -254,15 +254,15 @@ describe("writeObservation() — orchestration", () => {
     expect(recordObservation).toHaveBeenCalledWith(obs);
   });
 
-  it("calls updatePatternPhiL with recomputed ΦL (not raw value)", async () => {
+  it("calls updateBloomPhiL with recomputed ΦL (not raw value)", async () => {
     const obs = makeObservation({ value: 0.8 });
     const ctx = makeContext();
     const result = await writeObservation(obs, ctx, pipeline);
 
-    expect(updatePatternPhiL).toHaveBeenCalledOnce();
+    expect(updateBloomPhiL).toHaveBeenCalledOnce();
     // The first arg should be the pattern ID
-    const callArgs = vi.mocked(updatePatternPhiL).mock.calls[0];
-    expect(callArgs[0]).toBe(obs.sourcePatternId);
+    const callArgs = vi.mocked(updateBloomPhiL).mock.calls[0];
+    expect(callArgs[0]).toBe(obs.sourceBloomId);
     // The second arg is the ΦL effective (a computed value, not the raw observation)
     expect(typeof callArgs[1]).toBe("number");
     // The third arg is the trend
@@ -339,7 +339,7 @@ describe("writeObservation() — orchestration", () => {
       expect(result.thresholdEvent!.previousBand).toBe("trusted");
       expect(result.thresholdEvent!.newBand).toBe(result.band);
       expect(result.thresholdEvent!.direction).toBe("degrading");
-      expect(result.thresholdEvent!.patternId).toBe(obs.sourcePatternId);
+      expect(result.thresholdEvent!.patternId).toBe(obs.sourceBloomId);
     }
   });
 
@@ -502,16 +502,16 @@ describe("Data provenance — conditioning contract", () => {
   });
 
   it("source pattern ID is preserved through the write path", async () => {
-    const obs = makeObservation({ sourcePatternId: "my-pattern-42" });
+    const obs = makeObservation({ sourceBloomId: "my-pattern-42" });
     const ctx = makeContext();
     await writeObservation(obs, ctx, pipeline);
 
     // recordObservation receives the pattern ID
     const obsArgs = vi.mocked(recordObservation).mock.calls[0][0];
-    expect(obsArgs.sourcePatternId).toBe("my-pattern-42");
+    expect(obsArgs.sourceBloomId).toBe("my-pattern-42");
 
-    // updatePatternPhiL receives the same pattern ID
-    const phiLArgs = vi.mocked(updatePatternPhiL).mock.calls[0];
+    // updateBloomPhiL receives the same pattern ID
+    const phiLArgs = vi.mocked(updateBloomPhiL).mock.calls[0];
     expect(phiLArgs[0]).toBe("my-pattern-42");
   });
 

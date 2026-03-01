@@ -41,7 +41,7 @@ describe("deriveConvergenceStatus()", () => {
     expect(deriveConvergenceStatus(50, 0.4, 0.5)).toBe("diverging");
   });
 
-  it("returns diverging when topAgentSelectionRate < 0.3 (agent churn)", () => {
+  it("returns diverging when topSeedSelectionRate < 0.3 (agent churn)", () => {
     expect(deriveConvergenceStatus(50, 0.75, 0.2)).toBe("diverging");
   });
 
@@ -159,8 +159,8 @@ describe("runRetrospective()", () => {
     expect(queries.queryConvergence).toHaveBeenCalledWith(48);
   });
 
-  it("passes patternIds to queryStageHealth", async () => {
-    await runRetrospective({ patternIds: ["p1", "p2"] });
+  it("passes bloomIds to queryStageHealth", async () => {
+    await runRetrospective({ bloomIds: ["p1", "p2"] });
     expect(queries.queryStageHealth).toHaveBeenCalledWith(24, ["p1", "p2"]);
   });
 
@@ -186,8 +186,8 @@ describe("runRetrospective()", () => {
         contextClusterId: "cc-1",
         decisionCount: 50,
         successRate: 0.3,
-        topAgentId: "a1",
-        topAgentSelectionRate: 0.2,
+        topSeedId: "a1",
+        topSeedSelectionRate: 0.2,
         status: "diverging",
       },
     ]);
@@ -205,8 +205,8 @@ describe("runRetrospective()", () => {
         contextClusterId: "cc-div",
         decisionCount: 50,
         successRate: 0.3,
-        topAgentId: "a1",
-        topAgentSelectionRate: 0.2,
+        topSeedId: "a1",
+        topSeedSelectionRate: 0.2,
         status: "diverging",
       },
     ]);
@@ -225,8 +225,8 @@ describe("runRetrospective()", () => {
         contextClusterId: "cc-conv",
         decisionCount: 50,
         successRate: 0.9,
-        topAgentId: "a1",
-        topAgentSelectionRate: 0.8,
+        topSeedId: "a1",
+        topSeedSelectionRate: 0.8,
         status: "converging",
       },
     ]);
@@ -244,24 +244,24 @@ describe("runRetrospective()", () => {
         contextClusterId: "cc-div-1",
         decisionCount: 50,
         successRate: 0.3,
-        topAgentId: "a1",
-        topAgentSelectionRate: 0.2,
+        topSeedId: "a1",
+        topSeedSelectionRate: 0.2,
         status: "diverging",
       },
       {
         contextClusterId: "cc-stable",
         decisionCount: 50,
         successRate: 0.7,
-        topAgentId: "a2",
-        topAgentSelectionRate: 0.5,
+        topSeedId: "a2",
+        topSeedSelectionRate: 0.5,
         status: "stable",
       },
       {
         contextClusterId: "cc-div-2",
         decisionCount: 50,
         successRate: 0.4,
-        topAgentId: "a3",
-        topAgentSelectionRate: 0.25,
+        topSeedId: "a3",
+        topSeedSelectionRate: 0.25,
         status: "diverging",
       },
     ]);

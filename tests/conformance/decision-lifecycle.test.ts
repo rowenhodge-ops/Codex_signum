@@ -10,8 +10,8 @@ import type {
   ArmStats,
 } from "../../src/graph/queries.js";
 import {
-  CORE_PATTERNS,
-  bootstrapPatterns,
+  CORE_BLOOMS,
+  bootstrapBlooms,
 } from "../../src/bootstrap.js";
 
 // ── Contract: DecisionProps ──
@@ -22,11 +22,11 @@ describe("DecisionProps — contract shape", () => {
       id: "test-dec-001",
       taskType: "code_generation",
       complexity: "complex",
-      selectedAgentId: "claude-opus-4-6:adaptive:max",
+      selectedSeedId: "claude-opus-4-6:adaptive:max",
       wasExploratory: false,
     };
     expect(props.id).toBeTruthy();
-    expect(props.selectedAgentId).toBeTruthy();
+    expect(props.selectedSeedId).toBeTruthy();
     expect(["trivial", "moderate", "complex", "critical"]).toContain(
       props.complexity,
     );
@@ -37,15 +37,15 @@ describe("DecisionProps — contract shape", () => {
       id: "test-dec-002",
       taskType: "code_generation",
       complexity: "moderate",
-      selectedAgentId: "claude-sonnet-4-6:adaptive:high",
+      selectedSeedId: "claude-sonnet-4-6:adaptive:high",
       wasExploratory: true,
       domain: "core",
-      madeByPatternId: "thompson-router",
+      madeByBloomId: "thompson-router",
       contextClusterId: "code_generation:moderate:core",
       qualityRequirement: 0.8,
     };
     expect(props.domain).toBe("core");
-    expect(props.madeByPatternId).toBe("thompson-router");
+    expect(props.madeByBloomId).toBe("thompson-router");
     expect(props.contextClusterId).toBeTruthy();
     expect(props.qualityRequirement).toBeGreaterThanOrEqual(0);
     expect(props.qualityRequirement).toBeLessThanOrEqual(1);
@@ -116,7 +116,7 @@ describe("DecisionOutcomeProps — contract shape", () => {
 describe("ArmStats — contract shape", () => {
   it("has Thompson prior structure (alpha/beta >= 1)", () => {
     const stats: ArmStats = {
-      agentId: "claude-opus-4-6:adaptive:max",
+      seedId: "claude-opus-4-6:adaptive:max",
       alpha: 4,
       beta: 2,
       totalTrials: 5,
@@ -133,7 +133,7 @@ describe("ArmStats — contract shape", () => {
 
   it("fresh agent has uniform prior (alpha=1, beta=1)", () => {
     const fresh: ArmStats = {
-      agentId: "new-model:none",
+      seedId: "new-model:none",
       alpha: 1,
       beta: 1,
       totalTrials: 0,
@@ -149,7 +149,7 @@ describe("ArmStats — contract shape", () => {
 
   it("alpha + beta - 2 equals totalTrials", () => {
     const stats: ArmStats = {
-      agentId: "test",
+      seedId: "test",
       alpha: 8,
       beta: 3,
       totalTrials: 9,
@@ -189,15 +189,15 @@ describe("ContextClusterProps — contract shape", () => {
   });
 });
 
-// ── Contract: CORE_PATTERNS ──
+// ── Contract: CORE_BLOOMS ──
 
-describe("CORE_PATTERNS registry", () => {
+describe("CORE_BLOOMS registry", () => {
   it("has exactly 4 patterns", () => {
-    expect(CORE_PATTERNS).toHaveLength(4);
+    expect(CORE_BLOOMS).toHaveLength(4);
   });
 
   it("contains the 4 expected pattern IDs", () => {
-    const ids = CORE_PATTERNS.map((p) => p.id);
+    const ids = CORE_BLOOMS.map((p) => p.id);
     expect(ids).toContain("thompson-router");
     expect(ids).toContain("dev-agent");
     expect(ids).toContain("architect");
@@ -205,7 +205,7 @@ describe("CORE_PATTERNS registry", () => {
   });
 
   it("all patterns have required fields", () => {
-    for (const p of CORE_PATTERNS) {
+    for (const p of CORE_BLOOMS) {
       expect(p.id).toBeTruthy();
       expect(p.name).toBeTruthy();
       expect(p.description).toBeTruthy();
@@ -216,13 +216,13 @@ describe("CORE_PATTERNS registry", () => {
   });
 
   it("model-sentinel is in design state", () => {
-    const sentinel = CORE_PATTERNS.find((p) => p.id === "model-sentinel");
+    const sentinel = CORE_BLOOMS.find((p) => p.id === "model-sentinel");
     expect(sentinel).toBeDefined();
     expect(sentinel!.state).toBe("design");
   });
 
-  it("bootstrapPatterns is a function", () => {
-    expect(typeof bootstrapPatterns).toBe("function");
+  it("bootstrapBlooms is a function", () => {
+    expect(typeof bootstrapBlooms).toBe("function");
   });
 });
 
@@ -252,7 +252,7 @@ describe.skipIf(!process.env.NEO4J_URI)(
         id: decisionId,
         taskType: "code_generation",
         complexity: "complex",
-        selectedAgentId: "claude-opus-4-6:adaptive:max",
+        selectedSeedId: "claude-opus-4-6:adaptive:max",
         wasExploratory: false,
         contextClusterId: clusterId,
       });
@@ -267,7 +267,7 @@ describe.skipIf(!process.env.NEO4J_URI)(
 
       const stats = await getArmStatsForCluster(clusterId);
       const arm = stats.find(
-        (s) => s.agentId === "claude-opus-4-6:adaptive:max",
+        (s) => s.seedId === "claude-opus-4-6:adaptive:max",
       );
       expect(arm).toBeDefined();
       expect(arm!.alpha).toBe(2); // 1 success + 1 prior

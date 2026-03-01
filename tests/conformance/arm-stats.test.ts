@@ -12,7 +12,7 @@ import {
 describe("updateArmStats — Beta posterior update", () => {
   it("increments alpha on success outcome", () => {
     const before: ArmStats = {
-      agentId: "test-agent",
+      seedId: "test-agent",
       alpha: 6,
       beta: 3,
       totalTrials: 7,
@@ -32,7 +32,7 @@ describe("updateArmStats — Beta posterior update", () => {
 
   it("increments beta on failure outcome", () => {
     const before: ArmStats = {
-      agentId: "test-agent",
+      seedId: "test-agent",
       alpha: 6,
       beta: 3,
       totalTrials: 7,
@@ -50,13 +50,13 @@ describe("updateArmStats — Beta posterior update", () => {
     expect(after.totalTrials).toBe(8);
   });
 
-  it("preserves agentId through update", () => {
+  it("preserves seedId through update", () => {
     const before = freshArmStats("my-agent-id");
     const after = updateArmStats(before, {
       success: true,
       durationMs: 100,
     });
-    expect(after.agentId).toBe("my-agent-id");
+    expect(after.seedId).toBe("my-agent-id");
   });
 
   it("maintains alpha + beta - 2 = totalTrials invariant", () => {
@@ -78,7 +78,7 @@ describe("updateArmStats — Beta posterior update", () => {
 describe("updateArmStats — EWMA smoothing", () => {
   it("EWMA updates avgLatencyMs (λ=0.1)", () => {
     const before: ArmStats = {
-      agentId: "test",
+      seedId: "test",
       alpha: 11,
       beta: 2,
       totalTrials: 11,
@@ -98,7 +98,7 @@ describe("updateArmStats — EWMA smoothing", () => {
 
   it("EWMA updates avgQuality when qualityScore provided", () => {
     const before: ArmStats = {
-      agentId: "test",
+      seedId: "test",
       alpha: 11,
       beta: 2,
       totalTrials: 11,
@@ -118,7 +118,7 @@ describe("updateArmStats — EWMA smoothing", () => {
 
   it("preserves avgQuality when qualityScore not provided", () => {
     const before: ArmStats = {
-      agentId: "test",
+      seedId: "test",
       alpha: 11,
       beta: 2,
       totalTrials: 11,
@@ -133,7 +133,7 @@ describe("updateArmStats — EWMA smoothing", () => {
 
   it("EWMA updates avgCost when cost provided", () => {
     const before: ArmStats = {
-      agentId: "test",
+      seedId: "test",
       alpha: 11,
       beta: 2,
       totalTrials: 11,
@@ -169,7 +169,7 @@ describe("updateArmStats — EWMA smoothing", () => {
 describe("freshArmStats", () => {
   it("creates uniform Beta(1,1) prior", () => {
     const stats = freshArmStats("new-agent");
-    expect(stats.agentId).toBe("new-agent");
+    expect(stats.seedId).toBe("new-agent");
     expect(stats.alpha).toBe(1);
     expect(stats.beta).toBe(1);
     expect(stats.totalTrials).toBe(0);

@@ -109,7 +109,7 @@ describe("EphemeralStore.promote (Stratum 1 → 2)", () => {
 
     expect(obs).not.toBeNull();
     expect(obs!.stratum).toBe(2);
-    expect(obs!.sourcePatternId).toBe("router-v1");
+    expect(obs!.sourceBloomId).toBe("router-v1");
     expect(obs!.observationType).toBe("execution_outcome");
     expect(obs!.data.success).toBe(true);
     expect(obs!.data.durationMs).toBe(350);
@@ -140,7 +140,7 @@ describe("createObservation (Stratum 2)", () => {
     });
 
     expect(obs.stratum).toBe(2);
-    expect(obs.sourcePatternId).toBe("router-v1");
+    expect(obs.sourceBloomId).toBe("router-v1");
     expect(obs.observationType).toBe("execution_outcome");
     expect(obs.data.success).toBe(true);
     expect(obs.id).toBeDefined();
@@ -355,7 +355,7 @@ describe("createDecision", () => {
     expect(decision.alternatives).toHaveLength(3);
     expect(decision.selected).toBe("gemini-flash");
     expect(decision.reason).toContain("Fastest");
-    expect(decision.madeByPatternId).toBe("router-v1");
+    expect(decision.madeByBloomId).toBe("router-v1");
     expect(decision.evaluatedRules).toHaveLength(2);
     expect(decision.outcome).toBeUndefined();
   });

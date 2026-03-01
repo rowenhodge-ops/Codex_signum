@@ -549,7 +549,7 @@ describe("computeUpwardFlow", () => {
     });
 
     expect(result.observation.stratum).toBe(2);
-    expect(result.observation.sourcePatternId).toBe("pattern-1");
+    expect(result.observation.sourceBloomId).toBe("pattern-1");
     expect(result.observation.data.success).toBe(true);
     expect(result.observation.data.qualityScore).toBe(0.85);
     expect(result.observation.data.modelUsed).toBe("gemini-flash");

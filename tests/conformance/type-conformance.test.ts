@@ -270,7 +270,7 @@ describe("Memory Strata Types", () => {
       id: "obs-001",
       stratum: 2,
       timestamp: new Date(),
-      sourcePatternId: "router-v1",
+      sourceBloomId: "router-v1",
       observationType: "execution_outcome",
       data: {
         success: true,
@@ -314,7 +314,7 @@ describe("Memory Strata Types", () => {
 });
 
 describe("Decision Type Structure", () => {
-  it("has alternatives/selected/reason/madeByPatternId", () => {
+  it("has alternatives/selected/reason/madeByBloomId", () => {
     const d: Decision = {
       id: "dec-001",
       timestamp: new Date(),
@@ -323,11 +323,11 @@ describe("Decision Type Structure", () => {
       selected: "gemini-flash",
       reason: "Fastest for moderate complexity",
       evaluatedRules: ["rule-1"],
-      madeByPatternId: "router-v1",
+      madeByBloomId: "router-v1",
     };
     expect(d.alternatives).toHaveLength(3);
     expect(d.selected).toBe("gemini-flash");
-    expect(d.madeByPatternId).toBe("router-v1");
+    expect(d.madeByBloomId).toBe("router-v1");
   });
 
   it("DecisionContext.complexity uses low/medium/high", () => {

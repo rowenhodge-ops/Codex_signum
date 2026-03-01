@@ -134,7 +134,7 @@ describe("route", () => {
     // Give gemini-flash very strong track record
     const armStats: ArmStats[] = [
       {
-        agentId: "gemini-flash",
+        seedId: "gemini-flash",
         alpha: 100,
         beta: 2,
         totalTrials: 100,
@@ -142,7 +142,7 @@ describe("route", () => {
         avgLatencyMs: 3000,
       },
       {
-        agentId: "claude-haiku",
+        seedId: "claude-haiku",
         alpha: 5,
         beta: 10,
         totalTrials: 13,
@@ -150,7 +150,7 @@ describe("route", () => {
         avgLatencyMs: 7000,
       },
       {
-        agentId: "mistral-medium",
+        seedId: "mistral-medium",
         alpha: 3,
         beta: 3,
         totalTrials: 4,

@@ -23,9 +23,9 @@ function makeModel(id: string, overrides?: Partial<RoutableModel>): RoutableMode
   };
 }
 
-function makeStats(agentId: string, alpha: number, beta: number, overrides?: Partial<ArmStats>): ArmStats {
+function makeStats(seedId: string, alpha: number, beta: number, overrides?: Partial<ArmStats>): ArmStats {
   return {
-    agentId,
+    seedId,
     alpha,
     beta,
     totalTrials: alpha + beta - 2,

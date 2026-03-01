@@ -7,8 +7,8 @@ import { selectModel } from "../../src/patterns/thompson-router/index.js";
 import type { ArmStats } from "../../src/graph/queries.js";
 
 const mocks = vi.hoisted(() => ({
-  listActiveAgentsByCapability: vi.fn(),
-  listActiveAgents: vi.fn(),
+  listActiveSeedsByCapability: vi.fn(),
+  listActiveSeeds: vi.fn(),
   ensureContextCluster: vi.fn(),
   getArmStatsForCluster: vi.fn(),
   recordDecision: vi.fn(),
@@ -16,18 +16,18 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../src/graph/index.js", () => ({
-  listActiveAgentsByCapability: mocks.listActiveAgentsByCapability,
-  listActiveAgents: mocks.listActiveAgents,
+  listActiveSeedsByCapability: mocks.listActiveSeedsByCapability,
+  listActiveSeeds: mocks.listActiveSeeds,
   ensureContextCluster: mocks.ensureContextCluster,
   getArmStatsForCluster: mocks.getArmStatsForCluster,
   recordDecision: mocks.recordDecision,
   recordDecisionOutcome: mocks.recordDecisionOutcome,
 }));
 
-function makeAgentRecord(properties: Record<string, unknown>) {
+function makeSeedRecord(properties: Record<string, unknown>) {
   return {
     get: (key: string) => {
-      if (key === "a") return { properties };
+      if (key === "s") return { properties };
       return undefined;
     },
   };
@@ -44,7 +44,7 @@ describe("Data provenance contract", () => {
   it("arm stats read from graph before sampling — no default priors invented", async () => {
     const graphStats: ArmStats[] = [
       {
-        agentId: "agent-from-graph",
+        seedId: "agent-from-graph",
         alpha: 25,
         beta: 3,
         totalTrials: 26,
@@ -55,8 +55,8 @@ describe("Data provenance contract", () => {
       },
     ];
     mocks.getArmStatsForCluster.mockResolvedValue(graphStats);
-    mocks.listActiveAgentsByCapability.mockResolvedValue([
-      makeAgentRecord({
+    mocks.listActiveSeedsByCapability.mockResolvedValue([
+      makeSeedRecord({
         id: "agent-from-graph",
         name: "Graph Agent",
         provider: "test",
@@ -78,13 +78,13 @@ describe("Data provenance contract", () => {
     // Verify the graph was queried for arm stats (not freshly initialized)
     expect(mocks.getArmStatsForCluster).toHaveBeenCalledTimes(1);
     // The selected agent must match what was available from the graph
-    expect(result.selectedAgentId).toBe("agent-from-graph");
+    expect(result.selectedSeedId).toBe("agent-from-graph");
   });
 
-  it("selectModel records the agentId that was actually selected", async () => {
+  it("selectModel records the seedId that was actually selected", async () => {
     mocks.getArmStatsForCluster.mockResolvedValue([]);
-    mocks.listActiveAgentsByCapability.mockResolvedValue([
-      makeAgentRecord({
+    mocks.listActiveSeedsByCapability.mockResolvedValue([
+      makeSeedRecord({
         id: "exactly-this-id",
         name: "Exact Agent",
         provider: "exact",
@@ -103,16 +103,16 @@ describe("Data provenance contract", () => {
       complexity: "trivial",
     });
 
-    // The Decision node's agentId must match what Thompson sampling returned
+    // The Decision node's seedId must match what Thompson sampling returned
     const decisionArgs = mocks.recordDecision.mock.calls[0][0];
-    expect(decisionArgs.selectedAgentId).toBe(result.selectedAgentId);
-    expect(result.selectedAgentId).toBe("exactly-this-id");
+    expect(decisionArgs.selectedSeedId).toBe(result.selectedSeedId);
+    expect(result.selectedSeedId).toBe("exactly-this-id");
   });
 
   it("recordOutcome durationMs matches what caller provided exactly", async () => {
     mocks.getArmStatsForCluster.mockResolvedValue([]);
-    mocks.listActiveAgentsByCapability.mockResolvedValue([
-      makeAgentRecord({
+    mocks.listActiveSeedsByCapability.mockResolvedValue([
+      makeSeedRecord({
         id: "duration-test",
         name: "Duration Test",
         provider: "test",

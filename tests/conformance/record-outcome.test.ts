@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { selectModel } from "../../src/patterns/thompson-router/index.js";
 
 const mocks = vi.hoisted(() => ({
-  listActiveAgentsByCapability: vi.fn(),
-  listActiveAgents: vi.fn(),
+  listActiveSeedsByCapability: vi.fn(),
+  listActiveSeeds: vi.fn(),
   ensureContextCluster: vi.fn(),
   getArmStatsForCluster: vi.fn(),
   recordDecision: vi.fn(),
@@ -15,26 +15,26 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../src/graph/index.js", () => ({
-  listActiveAgentsByCapability: mocks.listActiveAgentsByCapability,
-  listActiveAgents: mocks.listActiveAgents,
+  listActiveSeedsByCapability: mocks.listActiveSeedsByCapability,
+  listActiveSeeds: mocks.listActiveSeeds,
   ensureContextCluster: mocks.ensureContextCluster,
   getArmStatsForCluster: mocks.getArmStatsForCluster,
   recordDecision: mocks.recordDecision,
   recordDecisionOutcome: mocks.recordDecisionOutcome,
 }));
 
-function makeAgentRecord(properties: Record<string, unknown>) {
+function makeSeedRecord(properties: Record<string, unknown>) {
   return {
     get: (key: string) => {
-      if (key === "a") return { properties };
+      if (key === "s") return { properties };
       return undefined;
     },
   };
 }
 
 function setupSingleAgent() {
-  mocks.listActiveAgentsByCapability.mockResolvedValue([
-    makeAgentRecord({
+  mocks.listActiveSeedsByCapability.mockResolvedValue([
+    makeSeedRecord({
       id: "test-agent:adaptive:high",
       name: "Test Agent",
       provider: "test-provider",
@@ -70,7 +70,7 @@ describe("Decision node lifecycle via recordOutcome", () => {
     expect(mocks.recordDecision).toHaveBeenCalledTimes(1);
     const callArgs = mocks.recordDecision.mock.calls[0][0];
     expect(callArgs.id).toContain("dec_");
-    expect(callArgs.selectedAgentId).toBe("test-agent:adaptive:high");
+    expect(callArgs.selectedSeedId).toBe("test-agent:adaptive:high");
     expect(callArgs.taskType).toBe("code_generation");
     expect(callArgs.complexity).toBe("moderate");
 

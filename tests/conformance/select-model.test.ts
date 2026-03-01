@@ -9,25 +9,25 @@ import {
 } from "../../src/patterns/thompson-router/index.js";
 
 const mocks = vi.hoisted(() => ({
-  listActiveAgentsByCapability: vi.fn(),
-  listActiveAgents: vi.fn(),
+  listActiveSeedsByCapability: vi.fn(),
+  listActiveSeeds: vi.fn(),
   ensureContextCluster: vi.fn(),
   getArmStatsForCluster: vi.fn(),
   recordDecision: vi.fn(),
 }));
 
 vi.mock("../../src/graph/index.js", () => ({
-  listActiveAgentsByCapability: mocks.listActiveAgentsByCapability,
-  listActiveAgents: mocks.listActiveAgents,
+  listActiveSeedsByCapability: mocks.listActiveSeedsByCapability,
+  listActiveSeeds: mocks.listActiveSeeds,
   ensureContextCluster: mocks.ensureContextCluster,
   getArmStatsForCluster: mocks.getArmStatsForCluster,
   recordDecision: mocks.recordDecision,
 }));
 
-function makeAgentRecord(properties: Record<string, unknown>) {
+function makeSeedRecord(properties: Record<string, unknown>) {
   return {
     get: (key: string) => {
-      if (key === "a") return { properties };
+      if (key === "s") return { properties };
       return undefined;
     },
   };
@@ -41,21 +41,21 @@ describe("selectModel", () => {
     mocks.recordDecision.mockResolvedValue(undefined);
   });
 
-  it("throws when no agents are available", async () => {
-    mocks.listActiveAgentsByCapability.mockResolvedValue([]);
-    mocks.listActiveAgents.mockResolvedValue([]);
+  it("throws when no seeds are available", async () => {
+    mocks.listActiveSeedsByCapability.mockResolvedValue([]);
+    mocks.listActiveSeeds.mockResolvedValue([]);
 
     await expect(
       selectModel({
         taskType: "code_generation",
         complexity: "moderate",
       }),
-    ).rejects.toThrow("No active agents in graph");
+    ).rejects.toThrow("No active seeds in graph");
   });
 
   it("returns required selection fields", async () => {
-    mocks.listActiveAgentsByCapability.mockResolvedValue([
-      makeAgentRecord({
+    mocks.listActiveSeedsByCapability.mockResolvedValue([
+      makeSeedRecord({
         id: "gemini-2.5-flash:default",
         name: "Gemini 2.5 Flash",
         provider: "vertex-ai",
@@ -75,7 +75,7 @@ describe("selectModel", () => {
       callerPatternId: "dev-agent",
     });
 
-    expect(result.selectedAgentId).toBe("gemini-2.5-flash:default");
+    expect(result.selectedSeedId).toBe("gemini-2.5-flash:default");
     expect(result.baseModelId).toBe("gemini-2.5-flash");
     expect(result.provider).toBe("vertex-ai");
     expect(result.apiModelString).toBe("gemini-2.5-flash");
@@ -87,8 +87,8 @@ describe("selectModel", () => {
   });
 
   it("applies capability filtering requirements", async () => {
-    mocks.listActiveAgentsByCapability.mockResolvedValue([
-      makeAgentRecord({
+    mocks.listActiveSeedsByCapability.mockResolvedValue([
+      makeSeedRecord({
         id: "claude-sonnet-4-6:adaptive:high",
         name: "Claude Sonnet 4.6",
         provider: "anthropic",
@@ -110,7 +110,7 @@ describe("selectModel", () => {
       maxCostPer1kOutput: 0.02,
     });
 
-    expect(mocks.listActiveAgentsByCapability).toHaveBeenCalledWith({
+    expect(mocks.listActiveSeedsByCapability).toHaveBeenCalledWith({
       supportsAdaptiveThinking: true,
       supportsStructuredOutputs: true,
       maxCostPer1kOutput: 0.02,
