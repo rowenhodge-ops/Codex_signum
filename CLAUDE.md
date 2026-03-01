@@ -91,7 +91,7 @@ scripts/                   # Self-hosting CLI (NOT part of the library — consu
 ├── architect.ts           # `npx tsx scripts/architect.ts plan "<intent>"` — full pipeline
 ├── reconcile.ts           # `npx tsx scripts/reconcile.ts` — gap analysis (no LLM, pure filesystem)
 ├── bootstrap-executor.ts  # ModelExecutor using raw fetch() — reads API keys from env
-├── bootstrap-task-executor.ts # TaskExecutor V1 — safe-default (no auto-apply)
+├── bootstrap-task-executor.ts # TaskExecutor V1 — context injection, synthesis, jidoka, consistency
 ├── seed-agents.ts         # Seed Agent nodes in Neo4j for bootstrap models
 ├── verify-graph-state.ts  # Graph state verification
 └── verify-select-model.ts # Thompson selection verification
@@ -276,9 +276,15 @@ npx tsx scripts/seed-agents.ts
 
 The self-hosting CLI uses a **bootstrap executor** (`scripts/bootstrap-executor.ts`) that implements core's `ModelExecutor` interface via raw `fetch()` calls. It reads `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, and `OPENROUTER_API_KEY` from environment and calls core's `selectModel()` for Thompson-routed selection.
 
-The **task executor** (`scripts/bootstrap-task-executor.ts`) is V1 safe-default: it generates task prompts but does NOT auto-apply filesystem changes. It runs `npx tsc --noEmit` and `npm test` for verification.
+The **task executor** (`scripts/bootstrap-task-executor.ts`) is V1 safe-default: it generates task prompts but does NOT auto-apply filesystem changes. Key capabilities (M-8C):
 
-Pre-flight checks verify: correct git remote (Codex_signum, not DND-Manager), clean working tree, passing type check.
+- **File context injection**: `files_affected` injected as read context (32K cap analytical, 8K mechanical, 120K total budget)
+- **Cross-task output injection**: synthesis/consolidation tasks receive prior task outputs as context (6K cap each)
+- **Post-dispatch consistency check**: scans all outputs for metric divergence, wrong axiom/stage names
+- **Hallucination detection (Jidoka)**: 3-layer andon cord (signal/content/structural) flags fabrications before write
+- **Pre-flight auth gate**: `verifyProviderAuth()` refuses degraded infrastructure (overridable with `--allow-degraded`)
+
+Pre-flight checks verify: correct git remote (Codex_signum, not DND-Manager), clean working tree, passing type check, provider authentication.
 
 ---
 
@@ -511,7 +517,7 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 763 | `npm test` at HEAD `c356510` |
+| Tests passing | 813 | `npm test` at HEAD `56d9db0` |
 | Barrel exports | 193 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
@@ -539,6 +545,7 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
 | Manual analysis bypass | Agent does analytical work itself when the Architect pipeline exists and is operational | Fix the failing pipeline stage, then retry. The Architect does analytical work. If DECOMPOSE fails, fix DECOMPOSE — don't write the analysis manually. This is the single most important anti-pattern for this repo. |
+| Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "9 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 10 axioms, 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
 
 ---
 
