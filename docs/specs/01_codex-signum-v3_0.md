@@ -599,6 +599,40 @@ Ten principles constrain all valid expressions.
 
 The first three define what the language *is for*. The next six define what the language *requires*. The last defines what the language *protects*.
 
+### Axiom Dependency Structure
+
+The ten axioms are numbered for stable reference, not for priority. Their logical dependencies form a directed acyclic graph (DAG):
+
+```text
+Symbiosis (1) ←── Transparency (2)
+                      │
+                      ├──→ Fidelity (3) ←── Visible State (4)
+                      │                          │
+                      │                          ├──→ Provenance (6)
+                      │                          │
+                      │                          └──→ Semantic Stability (8)
+                      │
+                      └──→ Comprehension Primacy (9)
+
+Minimal Authority (5) ─── (independent)
+
+Reversibility (7) ←── Provenance (6)
+
+Adaptive Pressure (10) ←── Transparency (2) + Visible State (4)
+```
+
+**Reading the DAG:**
+
+- **Foundation layer:** Symbiosis (1) and Minimal Authority (5) have no dependencies. They constrain all other axioms.
+- **Visibility layer:** Transparency (2) and Visible State (4) are the most-depended-upon axioms. Most other axioms require them to function.
+- **Derived layer:** Fidelity (3), Provenance (6), Reversibility (7), Semantic Stability (8), Comprehension Primacy (9), and Adaptive Pressure (10) depend on the visibility layer.
+
+**Implications for implementors:** When evaluating axiom compliance, check the foundation and visibility layers first. If Visible State (4) is violated, Fidelity (3), Provenance (6), Semantic Stability (8), and Adaptive Pressure (10) cannot be meaningfully assessed.
+
+**Implications for document ordering:** When the pipeline analyses the specification, documents should be processed in topological order of axiom dependencies. Axioms that other axioms depend on should be reviewed before their dependents.
+
+The numbering is stable (Axiom 8 is always Semantic Stability). The DAG is informational, not normative — it describes existing logical relationships, not new constraints.
+
 ### 1. Symbiosis
 
 The language exists to enable collaboration between intelligences, not to replace judgment or obscure reasoning. Any use that reduces mutual comprehension between communicating parties violates its purpose.
@@ -1235,6 +1269,7 @@ The language grows by composition, not mutation.
 | 2.7 | 2026-02-10 | Addendum: Spectral Resonance (Î¨H redefined as Î»â‚‚ + TV_G, topology-aware dampening, spectral ÎµR calibration, event-triggered structural review, resonance check). |
 | 2.8 | 2026-02-12 | Addendum: Constitutional Evolution (amendment taxonomy, lifecycle, safeguards, reversion protocol). |
 | 3.0 | 2026-02-14 | **Consolidated specification.** Absorbed all addendums (v2.6 System Vitality, v2.6 Memory Topology, v2.7 Spectral Resonance, v2.8 Constitutional Evolution) into a single document. Incorporated research-derived corrections: Î¨H redefined as two-component metric replacing grammar_alignment_factor; topology-aware dampening replacing fixed Î³=0.7; hysteresis ratio increased from 1.5Ã— to 2.5Ã—; perceptual framing of "state is structural" made explicit (information-theoretic superiority claims removed); morphemes reframed as dimensional channels addressing oligosynthesis concern; Axiom 3 (Fidelity) strengthened with deterministic computation requirement; lossy encoding trade-off acknowledged with full-precision backing store recommendation. Added "What This Is Not" section to anchor the Codex as grammar, not framework. Research archive: 10 papers reviewed, findings absorbed or archived. No changes to morphemes, axioms, grammar rules, state dimensions, or meta-imperatives. |
+| 3.0.1 | 2026-03-02 | Added Axiom Dependency DAG annotation. Informational, not normative. No changes to axiom definitions, numbering, or semantics. Derived from M-8A pipeline analysis (t14). |
 
 ---
 

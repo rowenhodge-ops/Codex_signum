@@ -13,9 +13,11 @@
 
 This document translates the Codex Signum specification into concrete engineering rules, parameter values, and safety constraints. If you are building an implementation, follow this document. If you need to understand *why* a rule exists, read the Codex â€” but you should never need to read the Codex to know *what* to build.
 
-The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice.
+The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice. The Bridge View Principle (Part 1.1) constrains what may appear in these computations.
 
 **What changed from v1.0:** This version absorbs parameter corrections and safety constraints derived from ten research papers (see companion Research Index). Key changes: topology-aware dampening replaces fixed Î³=0.7; hysteresis ratio increased from 1.5Ã— to 2.5Ã—; Î¨H computation replaced entirely; signal conditioning pipeline added; pulsation frequency safety limits added; seven CAS vulnerability watchpoints added; visual encoding constraints formalised.
+
+**v2.0.1 additions:** Bridge View Principle (Part 1.1) — normative constraint ensuring all Bridge formulas are pure functions of grammar-defined state. Derived from M-8A pipeline analysis.
 
 ---
 
@@ -32,6 +34,32 @@ The Codex defines the grammar. This document tells you how to compute the gramma
 - When a component degrades, its structural properties change in-graph. That change *is* the degradation signal.
 
 **Perceptual advantage, not information-theoretic:** The advantage of structural encoding is perceptual â€” pre-attentive parallel processing enables faster anomaly detection than serial text-log reading. It is not an information-theoretic compression advantage. Shannon entropy applies regardless of representation. Implementations should maintain full-precision backing stores alongside any visual encoding, with the visual layer serving human observation and the backing store serving machine processing and audit.
+
+---
+
+## Part 1.1: Bridge View Principle
+
+**Every Engineering Bridge formula MUST be expressible as a pure function of grammar-defined morpheme states and axiom-defined parameters.** No Bridge formula may introduce state, thresholds, entities, or temporal behavior not grounded in the symbolic grammar.
+
+**What this means:**
+
+- Every variable in a Bridge formula must trace to either a morpheme state property (ΦL, ΨH, εR, connection weight, containment relationship) or an axiom-defined parameter (dampening factor, hysteresis ratio, decay constant, maturity index).
+- If a formula requires a new variable, that variable must first be defined in the Codex specification (v3.0 or amendment) before appearing here.
+- Bridge formulas are *translations*, not *extensions*. They translate Codex grammar into computable form. They do not add concepts the grammar doesn't contain.
+
+**Why this matters:**
+
+Without this constraint, the Engineering Bridge drifts from the Codex. Implementors introduce monitoring overlays, computed views, or convenience abstractions that have no grounding in the grammar. Over time, the Bridge becomes a parallel specification with its own ontology — violating Axiom 4 (Visible State) and Axiom 3 (Fidelity).
+
+The Bridge View Principle prevents this class of drift structurally. If you can't express it as a pure function of grammar-defined state, it doesn't belong in the Bridge.
+
+**Validation test for any Bridge formula:**
+
+1. List every variable in the formula.
+2. For each variable, identify its source: morpheme state property or axiom-defined parameter.
+3. If any variable has no source in the Codex grammar, the formula violates the Bridge View Principle.
+
+**Provenance:** Discovered during M-8A pipeline analysis (t15), validated across multiple Architect runs. Resolves recommendations F-2, F-4, F-7, AI-03, AI-07, AI-09, C-03, C-07, C-10 from the M-7B/M-8A review corpus with a single architectural constraint.
 
 ---
 
