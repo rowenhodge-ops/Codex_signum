@@ -7,12 +7,12 @@ export declare function queryOverallSuccess(windowHours: number): Promise<{
 }>;
 /** Thompson convergence per context cluster */
 export declare function queryConvergence(windowHours: number): Promise<ConvergenceReading[]>;
-/** Stage-level observation quality per pattern (uses raw value, not conditioned) */
-export declare function queryStageHealth(windowHours: number, patternIds: string[] | undefined): Promise<StageReading[]>;
+/** Stage-level observation quality per bloom (uses raw value, not conditioned) */
+export declare function queryStageHealth(windowHours: number, bloomIds: string[] | undefined): Promise<StageReading[]>;
 /** ThresholdEvents (degradation) in window */
 export declare function queryDegradation(windowHours: number): Promise<DegradationReading[]>;
 /** Pure function — classify convergence from metrics */
-export declare function deriveConvergenceStatus(decisionCount: number, successRate: number, topAgentSelectionRate: number): ConvergenceReading["status"];
+export declare function deriveConvergenceStatus(decisionCount: number, successRate: number, topSeedSelectionRate: number): ConvergenceReading["status"];
 /**
  * Pure function — worst health band from a list.
  * Order: algedonic (worst) → critical → degraded → healthy → trusted → optimal (best)

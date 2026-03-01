@@ -544,9 +544,9 @@ async function inspectGraphState(session, blindSpots) {
         thresholdEvents: [],
         constitutionalAlerts: [],
     };
-    // Query pattern health (ΦL values)
+    // Query bloom health (ΦL values)
     try {
-        const result = await session.run("MATCH (p:Pattern) RETURN p.id AS id, p.phi_l AS phiL");
+        const result = await session.run("MATCH (b:Bloom) RETURN b.id AS id, b.phi_l AS phiL");
         for (const record of result.records) {
             const id = record.get("id");
             const phiL = record.get("phiL");
@@ -557,8 +557,8 @@ async function inspectGraphState(session, blindSpots) {
     }
     catch (err) {
         blindSpots.push({
-            description: `Graph query failed for pattern health: ${String(err)}`,
-            resolution: "Check Neo4j connectivity and Pattern node schema",
+            description: `Graph query failed for bloom health: ${String(err)}`,
+            resolution: "Check Neo4j connectivity and Bloom node schema",
         });
     }
     // Query active cascade events
@@ -592,11 +592,11 @@ async function inspectGraphState(session, blindSpots) {
             resolution: "Check if ThresholdEvent nodes exist in graph schema",
         });
     }
-    // Query constitutional alerts (Patterns with constitutional violations)
+    // Query constitutional alerts (Blooms with constitutional violations)
     try {
-        const result = await session.run(`MATCH (p:Pattern)
-       WHERE p.constitutional_violations IS NOT NULL AND size(p.constitutional_violations) > 0
-       RETURN p.id AS id, p.constitutional_violations AS violations`);
+        const result = await session.run(`MATCH (b:Bloom)
+       WHERE b.constitutional_violations IS NOT NULL AND size(b.constitutional_violations) > 0
+       RETURN b.id AS id, b.constitutional_violations AS violations`);
         for (const record of result.records) {
             const id = record.get("id");
             const violations = record.get("violations");

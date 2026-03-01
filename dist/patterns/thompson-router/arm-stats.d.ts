@@ -41,7 +41,7 @@ export interface OutcomeRecord {
 export declare function updateArmStats(current: ArmStats, outcome: OutcomeRecord, ewmaLambda?: number): ArmStats;
 /**
  * Create a fresh ArmStats with uniform Beta(1,1) prior.
- * Used when an agent has no prior observations in a cluster.
+ * Used when a seed has no prior observations in a cluster.
  */
-export declare function freshArmStats(agentId: string): ArmStats;
+export declare function freshArmStats(seedId: string): ArmStats;
 //# sourceMappingURL=arm-stats.d.ts.map

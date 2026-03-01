@@ -1,8 +1,8 @@
-import type { AgentProps, PatternProps } from "./graph/queries.js";
-export declare const ALL_ARMS: AgentProps[];
-export declare function bootstrapAgents(force?: boolean): Promise<number>;
-export declare const CORE_PATTERNS: PatternProps[];
-export declare function bootstrapPatterns(force?: boolean): Promise<number>;
+import type { SeedProps, BloomProps } from "./graph/queries.js";
+export declare const ALL_ARMS: SeedProps[];
+export declare function bootstrapSeeds(force?: boolean): Promise<number>;
+export declare const CORE_BLOOMS: BloomProps[];
+export declare function bootstrapBlooms(force?: boolean): Promise<number>;
 export declare function seedInformedPriors(): Promise<number>;
 /**
  * Seed strong informed priors for the analytical context cluster.
@@ -15,4 +15,10 @@ export declare function seedInformedPriors(): Promise<number>;
  * old analytical_prior_ decisions before reseeding.
  */
 export declare function seedAnalyticalPriors(): Promise<number>;
+/** @deprecated Use bootstrapSeeds */
+export declare const bootstrapAgents: typeof bootstrapSeeds;
+/** @deprecated Use bootstrapBlooms */
+export declare const bootstrapPatterns: typeof bootstrapBlooms;
+/** @deprecated Use CORE_BLOOMS */
+export declare const CORE_PATTERNS: BloomProps[];
 //# sourceMappingURL=bootstrap.d.ts.map

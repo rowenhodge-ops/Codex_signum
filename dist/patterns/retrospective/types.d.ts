@@ -11,8 +11,8 @@ import type { HealthBand } from "../../types/threshold-event.js";
 export interface RetrospectiveOptions {
     /** How far back to query (hours). Default: 24 */
     windowHours?: number;
-    /** Limit to specific patterns. Default: all */
-    patternIds?: string[];
+    /** Limit to specific blooms. Default: all */
+    bloomIds?: string[];
     /**
      * If true, write a DistilledInsight node to graph for high-signal findings.
      * Default: false. The caller decides whether to persist insights.
@@ -25,19 +25,19 @@ export interface ConvergenceReading {
     decisionCount: number;
     /** successes / total in window */
     successRate: number;
-    /** Most-selected agent */
-    topAgentId: string;
-    /** Fraction of decisions going to top agent */
-    topAgentSelectionRate: number;
+    /** Most-selected seed */
+    topSeedId: string;
+    /** Fraction of decisions going to top seed */
+    topSeedSelectionRate: number;
     /**
-     * Converging = success rate high AND top agent stabilising.
-     * Diverging = success rate low OR agent churn across decisions.
+     * Converging = success rate high AND top seed stabilising.
+     * Diverging = success rate low OR seed churn across decisions.
      */
     status: "converging" | "stable" | "diverging" | "insufficient_data";
 }
-/** Stage health per pattern */
+/** Stage health per bloom */
 export interface StageReading {
-    patternId: string;
+    bloomId: string;
     stageName: string;
     observationCount: number;
     /** Average raw observation value in window */
@@ -47,7 +47,7 @@ export interface StageReading {
 }
 /** Degradation events in window */
 export interface DegradationReading {
-    patternId: string;
+    bloomId: string;
     eventCount: number;
     /** Worst band crossed in window */
     lowestBandReached: HealthBand | "unknown";

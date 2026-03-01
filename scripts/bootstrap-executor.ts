@@ -669,7 +669,7 @@ export function createBootstrapModelExecutor(
         const providerClass = classifyProvider(selection.provider);
 
         console.log(
-          `  [Thompson] Selected: ${selection.selectedAgentId} (${selection.provider} → ${providerClass}, confidence: ${selection.confidence.toFixed(2)}, exploratory: ${selection.wasExploratory})`,
+          `  [Thompson] Selected: ${selection.selectedSeedId} (${selection.provider} → ${providerClass}, confidence: ${selection.confidence.toFixed(2)}, exploratory: ${selection.wasExploratory})`,
         );
 
         if (providerClass === "unsupported") {
@@ -731,7 +731,7 @@ export function createBootstrapModelExecutor(
 
           return {
             text: result.text,
-            modelId: selection.selectedAgentId,
+            modelId: selection.selectedSeedId,
             durationMs: result.durationMs,
             wasExploratory: selection.wasExploratory,
             provider: selection.provider,
@@ -743,7 +743,7 @@ export function createBootstrapModelExecutor(
           // This handles model 404s, budget_tokens errors, and transient API failures.
           const errMsg = err instanceof Error ? err.message : String(err);
           console.warn(
-            `  [Thompson] API error for ${selection.selectedAgentId} — recording failure, retrying (${attempt + 1}/${MAX_SELECTION_RETRIES}): ${errMsg.slice(0, 200)}`,
+            `  [Thompson] API error for ${selection.selectedSeedId} — recording failure, retrying (${attempt + 1}/${MAX_SELECTION_RETRIES}): ${errMsg.slice(0, 200)}`,
           );
           await selection.recordOutcome({
             success: false,

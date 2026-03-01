@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { pathToFileURL } from "node:url";
-import { closeDriver, createAgent, createPattern, ensureContextCluster, getDecisionsForCluster, listActiveAgents, migrateSchema, recordDecision, recordDecisionOutcome, runQuery, seedConstitutionalRules, } from "./graph/index.js";
+import { closeDriver, createSeed, createBloom, ensureContextCluster, getDecisionsForCluster, listActiveSeeds, migrateSchema, recordDecision, recordDecisionOutcome, runQuery, seedConstitutionalRules, } from "./graph/index.js";
 export const ALL_ARMS = [
     {
         id: "claude-opus-4-6:adaptive:max",
@@ -843,28 +843,28 @@ export const ALL_ARMS = [
         capabilities: [],
     },
 ];
-export async function bootstrapAgents(force = false) {
+export async function bootstrapSeeds(force = false) {
     if (!force) {
-        const existing = await listActiveAgents();
+        const existing = await listActiveSeeds();
         if (existing.length >= 20) {
-            console.log(`Graph already has ${existing.length} active agents. Use force=true to re-seed.`);
+            console.log(`Graph already has ${existing.length} active seeds. Use force=true to re-seed.`);
             return existing.length;
         }
     }
     if (force) {
-        // Remove stale Agent nodes not in current ALL_ARMS
+        // Remove stale Seed nodes not in current ALL_ARMS
         const knownIds = ALL_ARMS.map((a) => a.id);
-        const result = await runQuery(`MATCH (a:Agent) WHERE NOT a.id IN $ids DETACH DELETE a RETURN count(a) AS removed`, { ids: knownIds });
+        const result = await runQuery(`MATCH (s:Seed) WHERE NOT s.id IN $ids DETACH DELETE s RETURN count(s) AS removed`, { ids: knownIds });
         const removed = result.records[0]?.get("removed")?.toNumber?.() ?? 0;
         if (removed > 0) {
-            console.log(`Cleaned up ${removed} stale Agent nodes.`);
+            console.log(`Cleaned up ${removed} stale Seed nodes.`);
         }
     }
-    console.log(`Seeding ${ALL_ARMS.length} agent configurations...`);
+    console.log(`Seeding ${ALL_ARMS.length} seed configurations...`);
     let seeded = 0;
     for (const arm of ALL_ARMS) {
         try {
-            await createAgent(arm);
+            await createSeed(arm);
             seeded++;
             console.log(`  ✅ ${arm.id} (${arm.status})`);
         }
@@ -872,10 +872,10 @@ export async function bootstrapAgents(force = false) {
             console.error(`  ❌ ${arm.id}: ${err instanceof Error ? err.message : err}`);
         }
     }
-    console.log(`\nSeeded ${seeded}/${ALL_ARMS.length} agents.`);
+    console.log(`\nSeeded ${seeded}/${ALL_ARMS.length} seeds.`);
     return seeded;
 }
-export const CORE_PATTERNS = [
+export const CORE_BLOOMS = [
     {
         id: "thompson-router",
         name: "Thompson Router",
@@ -906,28 +906,28 @@ export const CORE_PATTERNS = [
         state: "design",
     },
 ];
-export async function bootstrapPatterns(force = false) {
+export async function bootstrapBlooms(force = false) {
     if (!force) {
-        const result = await runQuery("MATCH (p:Pattern) RETURN count(p) AS count", {}, "READ");
+        const result = await runQuery("MATCH (b:Bloom) RETURN count(b) AS count", {}, "READ");
         const existing = result.records[0]?.get("count") ?? 0;
-        if (existing >= CORE_PATTERNS.length) {
-            console.log(`Graph already has ${existing} patterns. Use force=true to re-seed.`);
+        if (existing >= CORE_BLOOMS.length) {
+            console.log(`Graph already has ${existing} blooms. Use force=true to re-seed.`);
             return existing;
         }
     }
-    console.log(`Seeding ${CORE_PATTERNS.length} core patterns...`);
+    console.log(`Seeding ${CORE_BLOOMS.length} core blooms...`);
     let seeded = 0;
-    for (const pattern of CORE_PATTERNS) {
+    for (const bloom of CORE_BLOOMS) {
         try {
-            await createPattern(pattern);
+            await createBloom(bloom);
             seeded++;
-            console.log(`  ✅ ${pattern.id} (${pattern.state ?? "created"})`);
+            console.log(`  ✅ ${bloom.id} (${bloom.state ?? "created"})`);
         }
         catch (err) {
-            console.error(`  ❌ ${pattern.id}: ${err instanceof Error ? err.message : err}`);
+            console.error(`  ❌ ${bloom.id}: ${err instanceof Error ? err.message : err}`);
         }
     }
-    console.log(`\nSeeded ${seeded}/${CORE_PATTERNS.length} patterns.`);
+    console.log(`\nSeeded ${seeded}/${CORE_BLOOMS.length} blooms.`);
     return seeded;
 }
 export async function seedInformedPriors() {
@@ -967,7 +967,7 @@ export async function seedInformedPriors() {
                     id: decId,
                     taskType,
                     complexity: "moderate",
-                    selectedAgentId: arm.id,
+                    selectedSeedId: arm.id,
                     wasExploratory: false,
                     contextClusterId: clusterId,
                 });
@@ -1035,7 +1035,7 @@ export async function seedAnalyticalPriors() {
                     id: decId,
                     taskType: "analytical",
                     complexity,
-                    selectedAgentId: arm.id,
+                    selectedSeedId: arm.id,
                     wasExploratory: false,
                     contextClusterId: clusterId,
                 });
@@ -1056,7 +1056,7 @@ export async function seedAnalyticalPriors() {
     return created;
 }
 async function main() {
-    console.log("🌱 Codex Signum — Agent Bootstrap\n");
+    console.log("🌱 Codex Signum — Seed Bootstrap\n");
     const force = process.argv.includes("--force");
     try {
         const schema = await migrateSchema();
@@ -1066,8 +1066,8 @@ async function main() {
         console.log(`Applied schema statements: ${schema.applied}`);
         const seededRules = await seedConstitutionalRules();
         console.log(`Seeded constitutional rules: ${seededRules}`);
-        await bootstrapAgents(force);
-        await bootstrapPatterns(force);
+        await bootstrapSeeds(force);
+        await bootstrapBlooms(force);
         if (force ||
             (await getDecisionsForCluster("strategic:moderate:general", 1)).length ===
                 0) {
@@ -1089,4 +1089,11 @@ const isDirectRun = invokedPath
 if (isDirectRun) {
     void main();
 }
+// ── Backward Compatibility Aliases (deprecated) ──
+/** @deprecated Use bootstrapSeeds */
+export const bootstrapAgents = bootstrapSeeds;
+/** @deprecated Use bootstrapBlooms */
+export const bootstrapPatterns = bootstrapBlooms;
+/** @deprecated Use CORE_BLOOMS */
+export const CORE_PATTERNS = CORE_BLOOMS;
 //# sourceMappingURL=bootstrap.js.map

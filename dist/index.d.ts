@@ -13,5 +13,5 @@ export * from "./signals/index.js";
 export * from "./resilience/index.js";
 export * from "./metrics/index.js";
 export * from "./patterns/index.js";
-export { ALL_ARMS, CORE_PATTERNS, bootstrapAgents, bootstrapPatterns, seedAnalyticalPriors, seedInformedPriors, } from "./bootstrap.js";
+export { ALL_ARMS, CORE_BLOOMS, bootstrapSeeds, bootstrapBlooms, seedAnalyticalPriors, seedInformedPriors, bootstrapAgents, bootstrapPatterns, CORE_PATTERNS, } from "./bootstrap.js";
 //# sourceMappingURL=index.d.ts.map

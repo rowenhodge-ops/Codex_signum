@@ -59,7 +59,7 @@ src/
 │   │   ├── pipeline.ts    # Pipeline with lifecycle hooks (afterStage, afterPipeline)
 │   │   └── index.ts
 │   ├── thompson-router/   # Thompson sampling model selection
-│   └── observer/          # Validation & testing (may be stub)
+│   └── feedback/          # Feedback functions + types (formerly observer/)
 │
 ├── resilience/            # Circuit breaker, retry logic
 │   └── circuit-breaker.ts # MUST use: exponential backoff + full jitter + 5-10 half-open probes
@@ -72,7 +72,7 @@ src/
 ├── memory/                # Four-stratum memory operations
 │   ├── compaction.ts      # Stratum 2: continuous exponential decay, weight = e^(-λ × age)
 │   ├── distillation.ts    # Stratum 3: performance profiles, routing hints, threshold calibration
-│   └── flow-coordinator.ts # Upward compression + downward enrichment
+│   └── flow.ts             # Upward compression + downward enrichment
 │
 ├── graph/                 # Neo4j connection, schema, queries
 │   ├── client.ts
@@ -92,7 +92,7 @@ scripts/                   # Self-hosting CLI (NOT part of the library — consu
 ├── reconcile.ts           # `npx tsx scripts/reconcile.ts` — gap analysis (no LLM, pure filesystem)
 ├── bootstrap-executor.ts  # ModelExecutor using raw fetch() — reads API keys from env
 ├── bootstrap-task-executor.ts # TaskExecutor V1 — context injection, synthesis, jidoka, consistency
-├── seed-agents.ts         # Seed Agent nodes in Neo4j for bootstrap models
+├── seed-agents.ts         # Seed nodes in Neo4j for bootstrap models
 ├── verify-graph-state.ts  # Graph state verification
 └── verify-select-model.ts # Thompson selection verification
 
@@ -518,7 +518,7 @@ These are the current baselines. Test counts must only go up. Export counts may 
 | Metric | Baseline | Source |
 |---|---|---|
 | Tests passing | 813 | `npm test` at HEAD `56d9db0` |
-| Barrel exports | 193 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Barrel exports | 210 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 

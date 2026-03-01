@@ -14,7 +14,7 @@ export function route(context, models, armStats, decisionCount = 0, config = DEF
     if (activeModels.length === 0) {
         throw new Error("No active models available");
     }
-    const statsMap = new Map(armStats.map((s) => [s.agentId, s]));
+    const statsMap = new Map(armStats.map((s) => [s.seedId, s]));
     const contextClusterId = buildContextClusterId(context);
     const forceExplore = decisionCount > 0 && decisionCount % config.forceExploreEvery === 0;
     const sampledValues = new Map();

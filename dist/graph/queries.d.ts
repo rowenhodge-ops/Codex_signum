@@ -4,11 +4,13 @@
  * Reusable query builders for creating, reading, and relating
  * Codex entities in Neo4j. All state mutations flow through here.
  *
+ * M-7C: Uses morpheme-native names (Seed, Bloom, ROUTED_TO, etc.)
+ *
  * @module codex-signum-core/graph/queries
  */
 import type { Record as Neo4jRecord } from "neo4j-driver";
-/** Properties for creating an Agent node */
-export interface AgentProps {
+/** Properties for creating a Seed node (compute substrate — LLM model instance) */
+export interface SeedProps {
     id: string;
     name: string;
     provider: string;
@@ -37,8 +39,8 @@ export interface AgentProps {
     lastUsed?: string;
     probeFailures?: number;
 }
-/** Properties for creating/updating a Pattern node */
-export interface PatternProps {
+/** Properties for creating/updating a Bloom node (scoped composition of morphemes) */
+export interface BloomProps {
     id: string;
     name: string;
     description?: string;
@@ -52,8 +54,8 @@ export interface DecisionProps {
     taskType: string;
     complexity: "trivial" | "moderate" | "complex" | "critical";
     domain?: string;
-    selectedAgentId: string;
-    madeByPatternId?: string;
+    selectedSeedId: string;
+    madeByBloomId?: string;
     wasExploratory: boolean;
     contextClusterId?: string;
     qualityRequirement?: number;
@@ -75,7 +77,7 @@ export interface DecisionOutcomeProps {
 /** Properties for recording an Observation */
 export interface ObservationProps {
     id: string;
-    sourcePatternId: string;
+    sourceBloomId: string;
     metric: string;
     value: number;
     unit?: string;
@@ -99,7 +101,7 @@ export interface ContextClusterProps {
 }
 /** Thompson Sampling arm stats */
 export interface ArmStats {
-    agentId: string;
+    seedId: string;
     alpha: number;
     beta: number;
     totalTrials: number;
@@ -108,21 +110,21 @@ export interface ArmStats {
     avgCost: number;
     totalCost: number;
 }
-export declare function createAgent(props: AgentProps): Promise<void>;
-export declare function getAgent(id: string): Promise<Neo4jRecord | null>;
-export declare function listActiveAgents(): Promise<Neo4jRecord[]>;
-export declare function listActiveAgentsByCapability(requirements: {
+export declare function createSeed(props: SeedProps): Promise<void>;
+export declare function getSeed(id: string): Promise<Neo4jRecord | null>;
+export declare function listActiveSeeds(): Promise<Neo4jRecord[]>;
+export declare function listActiveSeedsByCapability(requirements: {
     supportsAdaptiveThinking?: boolean;
     supportsExtendedThinking?: boolean;
     supportsInterleavedThinking?: boolean;
     supportsStructuredOutputs?: boolean;
     maxCostPer1kOutput?: number;
 }): Promise<Neo4jRecord[]>;
-export declare function createPattern(props: PatternProps): Promise<void>;
-export declare function getPattern(id: string): Promise<Neo4jRecord | null>;
-export declare function updatePatternState(id: string, state: string): Promise<void>;
-/** Increment pattern connection count and recalculate state */
-export declare function connectPatterns(fromId: string, toId: string, relType: string, properties?: Record<string, unknown>): Promise<void>;
+export declare function createBloom(props: BloomProps): Promise<void>;
+export declare function getBloom(id: string): Promise<Neo4jRecord | null>;
+export declare function updateBloomState(id: string, state: string): Promise<void>;
+/** Increment bloom connection count and recalculate state */
+export declare function connectBlooms(fromId: string, toId: string, relType: string, properties?: Record<string, unknown>): Promise<void>;
 export declare function recordDecision(props: DecisionProps): Promise<void>;
 export declare function recordDecisionOutcome(props: DecisionOutcomeProps): Promise<void>;
 /** Get recent decisions for a context cluster (Thompson Sampling) */
@@ -130,40 +132,40 @@ export declare function getDecisionsForCluster(clusterId: string, limit?: number
 /** Compute Thompson Sampling arm stats for a context cluster */
 export declare function getArmStatsForCluster(clusterId: string): Promise<ArmStats[]>;
 export declare function recordObservation(props: ObservationProps): Promise<void>;
-/** Get observations for ΦL computation — recent, for a given pattern */
-export declare function getObservationsForPattern(patternId: string, limit?: number): Promise<Neo4jRecord[]>;
+/** Get observations for ΦL computation — recent, for a given bloom */
+export declare function getObservationsForBloom(bloomId: string, limit?: number): Promise<Neo4jRecord[]>;
 /** Count observations for maturity calculation */
-export declare function countObservationsForPattern(patternId: string): Promise<number>;
+export declare function countObservationsForBloom(bloomId: string): Promise<number>;
 export declare function createDistillation(props: DistillationProps): Promise<void>;
 export declare function ensureContextCluster(props: ContextClusterProps): Promise<void>;
 /**
- * Get the degree of a pattern node (number of relationships).
+ * Get the degree of a bloom node (number of relationships).
  * Used for topology-aware dampening: γ_effective = min(0.7, 0.8/(k-1))
  */
-export declare function getPatternDegree(patternId: string): Promise<number>;
+export declare function getBloomDegree(bloomId: string): Promise<number>;
 /**
- * Get the adjacency list for patterns.
+ * Get the adjacency list for blooms.
  * Used for ΨH (spectral analysis) computations.
  */
-export declare function getPatternAdjacency(): Promise<Array<{
+export declare function getBloomAdjacency(): Promise<Array<{
     from: string;
     to: string;
     weight: number;
 }>>;
 /**
- * Get all patterns with their phi-L values.
+ * Get all blooms with their phi-L values.
  * Used for Graph Total Variation computation in ΨH.
  */
-export declare function getPatternsWithHealth(): Promise<Array<{
+export declare function getBloomsWithHealth(): Promise<Array<{
     id: string;
     phiL: number;
     state: string;
     degree: number;
 }>>;
 /**
- * Store computed ΦL on a pattern node.
+ * Store computed ΦL on a bloom node.
  */
-export declare function updatePatternPhiL(patternId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
+export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
 /**
  * Get immediate children of a container node.
  * Returns child IDs with their stored ΦL, connection count, observation count, and degree.
@@ -203,4 +205,36 @@ export declare function getContainersBottomUp(): Promise<Array<{
     id: string;
     depth: number;
 }>>;
+/** @deprecated Use SeedProps */
+export type AgentProps = SeedProps;
+/** @deprecated Use BloomProps */
+export type PatternProps = BloomProps;
+/** @deprecated Use createSeed */
+export declare const createAgent: typeof createSeed;
+/** @deprecated Use getSeed */
+export declare const getAgent: typeof getSeed;
+/** @deprecated Use listActiveSeeds */
+export declare const listActiveAgents: typeof listActiveSeeds;
+/** @deprecated Use listActiveSeedsByCapability */
+export declare const listActiveAgentsByCapability: typeof listActiveSeedsByCapability;
+/** @deprecated Use createBloom */
+export declare const createPattern: typeof createBloom;
+/** @deprecated Use getBloom */
+export declare const getPattern: typeof getBloom;
+/** @deprecated Use updateBloomState */
+export declare const updatePatternState: typeof updateBloomState;
+/** @deprecated Use connectBlooms */
+export declare const connectPatterns: typeof connectBlooms;
+/** @deprecated Use getBloomDegree */
+export declare const getPatternDegree: typeof getBloomDegree;
+/** @deprecated Use getBloomAdjacency */
+export declare const getPatternAdjacency: typeof getBloomAdjacency;
+/** @deprecated Use getBloomsWithHealth */
+export declare const getPatternsWithHealth: typeof getBloomsWithHealth;
+/** @deprecated Use updateBloomPhiL */
+export declare const updatePatternPhiL: typeof updateBloomPhiL;
+/** @deprecated Use getObservationsForBloom */
+export declare const getObservationsForPattern: typeof getObservationsForBloom;
+/** @deprecated Use countObservationsForBloom */
+export declare const countObservationsForPattern: typeof countObservationsForBloom;
 //# sourceMappingURL=queries.d.ts.map

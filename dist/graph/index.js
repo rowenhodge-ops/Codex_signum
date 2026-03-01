@@ -9,20 +9,22 @@
 export { getDriver, getSession, closeDriver, runQuery, writeTransaction, readTransaction, healthCheck, } from "./client.js";
 export { migrateSchema, verifySchema, seedConstitutionalRules, } from "./schema.js";
 export { 
-// Agents
-createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, 
-// Patterns
-createPattern, getPattern, updatePatternState, connectPatterns, 
+// Seeds (formerly Agents)
+createSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability, 
+// Blooms (formerly Patterns)
+createBloom, getBloom, updateBloomState, connectBlooms, 
 // Decisions
 recordDecision, recordDecisionOutcome, getDecisionsForCluster, getArmStatsForCluster, 
 // Observations
-recordObservation, getObservationsForPattern, countObservationsForPattern, 
+recordObservation, getObservationsForBloom, countObservationsForBloom, 
 // Distillations
 createDistillation, 
 // Context Clusters
 ensureContextCluster, 
 // Topology
-getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
+getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
+// Backward compatibility aliases (deprecated)
+createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Inline conditioning write path
 export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map

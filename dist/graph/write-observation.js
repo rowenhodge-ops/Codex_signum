@@ -5,7 +5,7 @@ import { conditionValue } from "../computation/condition-value.js";
 import { healthBand, bandOrdinal } from "../computation/health-band.js";
 import { computePhiL } from "../computation/phi-l.js";
 import { ALGEDONIC_THRESHOLD, propagateDegradation, } from "../computation/dampening.js";
-import { recordObservation, updatePatternPhiL } from "./queries.js";
+import { recordObservation, updateBloomPhiL } from "./queries.js";
 import { writeTransaction } from "./client.js";
 // ============ CORE FUNCTION ============
 /**
@@ -24,7 +24,7 @@ export async function writeObservation(observation, context, pipeline) {
     // Step 1: Record the raw observation in the graph
     await recordObservation(observation);
     // Step 2: Condition the value through the 7-stage signal pipeline (INLINE)
-    const conditioned = conditionValue(pipeline, observation.sourcePatternId, observation.metric, observation.value, context.topologyRole);
+    const conditioned = conditionValue(pipeline, observation.sourceBloomId, observation.metric, observation.value, context.topologyRole);
     // Step 3: Recompute ΦL with updated observation count
     const phiL = computePhiL(context.factors, context.observationCount + 1, // This observation increments the count
     context.connectionCount, context.previousPhiL);
@@ -33,10 +33,10 @@ export async function writeObservation(observation, context, pipeline) {
     // Step 5: Detect band crossing --> write immutable ThresholdEvent
     let thresholdEvent = null;
     if (context.previousBand !== undefined && context.previousBand !== band) {
-        thresholdEvent = await writeThresholdEvent(observation.sourcePatternId, context.previousBand, band, phiL.effective, context.maturityIndex);
+        thresholdEvent = await writeThresholdEvent(observation.sourceBloomId, context.previousBand, band, phiL.effective, context.maturityIndex);
     }
-    // Step 6: Update pattern's stored ΦL on the Pattern node
-    await updatePatternPhiL(observation.sourcePatternId, phiL.effective, phiL.trend);
+    // Step 6: Update bloom's stored ΦL on the Bloom node
+    await updateBloomPhiL(observation.sourceBloomId, phiL.effective, phiL.trend);
     // Step 7: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
     let cascadeResult = null;
     if (phiL.effective < ALGEDONIC_THRESHOLD &&
@@ -44,7 +44,7 @@ export async function writeObservation(observation, context, pipeline) {
         context.neighbors.size > 0) {
         const severity = (context.previousPhiL ?? 0.5) - phiL.effective;
         if (severity > 0) {
-            cascadeResult = propagateDegradation(observation.sourcePatternId, severity, context.neighbors);
+            cascadeResult = propagateDegradation(observation.sourceBloomId, severity, context.neighbors);
         }
     }
     return {
@@ -96,8 +96,8 @@ export async function writeThresholdEvent(patternId, previousBand, newBand, phiL
          timestamp: datetime()
        })
        WITH te
-       MATCH (p:Pattern { id: $patternId })
-       CREATE (te)-[:THRESHOLD_CROSSED_BY]->(p)`, {
+       MATCH (b:Bloom { id: $patternId })
+       CREATE (te)-[:THRESHOLD_CROSSED_BY]->(b)`, {
             id: event.id,
             patternId: event.patternId,
             previousBand: event.previousBand,

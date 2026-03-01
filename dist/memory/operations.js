@@ -76,7 +76,7 @@ export class EphemeralStore {
             id: generateId(),
             stratum: 2,
             timestamp: new Date(),
-            sourcePatternId: entry.patternId,
+            sourceBloomId: entry.patternId,
             observationType,
             data,
         };
@@ -90,12 +90,12 @@ export class EphemeralStore {
  * Create a new Observation directly (without promotion from Stratum 1).
  * Use this for automated signals (e.g., success/failure, latency).
  */
-export function createObservation(sourcePatternId, observationType, data) {
+export function createObservation(sourceBloomId, observationType, data) {
     return {
         id: generateId(),
         stratum: 2,
         timestamp: new Date(),
-        sourcePatternId,
+        sourceBloomId,
         observationType,
         data,
     };
@@ -148,7 +148,7 @@ export function distillObservations(observations, category, patternIds) {
     const confidence = Math.min(1, Math.max(0, (1 - Math.sqrt(variance)) * (1 - Math.exp(-0.1 * observations.length))));
     // Derive related pattern IDs from observations if not provided
     const relatedPatternIds = patternIds ?? [
-        ...new Set(observations.map((o) => o.sourcePatternId)),
+        ...new Set(observations.map((o) => o.sourceBloomId)),
     ];
     return {
         id: generateId(),
@@ -201,7 +201,7 @@ export function shouldPromoteToInstitutional(distillations, minDistillations = 5
 /**
  * Create a Decision record for the memory system.
  */
-export function createDecision(context, alternatives, selected, reason, madeByPatternId, evaluatedRules = []) {
+export function createDecision(context, alternatives, selected, reason, madeByBloomId, evaluatedRules = []) {
     return {
         id: generateId(),
         timestamp: new Date(),
@@ -210,7 +210,7 @@ export function createDecision(context, alternatives, selected, reason, madeByPa
         selected,
         reason,
         evaluatedRules,
-        madeByPatternId,
+        madeByBloomId,
     };
 }
 /**

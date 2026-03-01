@@ -38,7 +38,7 @@ export function updateArmStats(current, outcome, ewmaLambda = 0.1) {
         : current.avgCost;
     const totalCost = current.totalCost + outcomesCost;
     return {
-        agentId: current.agentId,
+        seedId: current.seedId,
         alpha,
         beta,
         totalTrials,
@@ -50,11 +50,11 @@ export function updateArmStats(current, outcome, ewmaLambda = 0.1) {
 }
 /**
  * Create a fresh ArmStats with uniform Beta(1,1) prior.
- * Used when an agent has no prior observations in a cluster.
+ * Used when a seed has no prior observations in a cluster.
  */
-export function freshArmStats(agentId) {
+export function freshArmStats(seedId) {
     return {
-        agentId,
+        seedId,
         alpha: 1,
         beta: 1,
         totalTrials: 0,

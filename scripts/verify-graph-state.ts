@@ -37,8 +37,8 @@ async function verify() {
   const testDecision = await runQuery(
     `CREATE (d:Decision {
       id: 'test-verify-' + toString(timestamp()),
-      madeByPatternId: 'verify-script',
-      selectedAgentId: 'test-model',
+      madeByBloomId: 'verify-script',
+      selectedSeedId: 'test-model',
       taskType: 'verification',
       complexity: 'trivial',
       timestamp: datetime(),
@@ -53,7 +53,7 @@ async function verify() {
 
   console.log("\n--- Reading back test Decision ---");
   const readBack = await runQuery(
-    "MATCH (d:Decision) WHERE d.madeByPatternId = 'verify-script' RETURN d.id AS id, d.timestamp AS ts",
+    "MATCH (d:Decision) WHERE d.madeByBloomId = 'verify-script' RETURN d.id AS id, d.timestamp AS ts",
     {},
     "READ",
   );
@@ -66,7 +66,7 @@ async function verify() {
 
   console.log("\n--- Cleaning up test data ---");
   await runQuery(
-    "MATCH (d:Decision) WHERE d.madeByPatternId = 'verify-script' DELETE d",
+    "MATCH (d:Decision) WHERE d.madeByBloomId = 'verify-script' DELETE d",
     {},
     "WRITE",
   );

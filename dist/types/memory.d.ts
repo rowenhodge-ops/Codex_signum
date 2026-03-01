@@ -56,8 +56,8 @@ export interface Observation {
     stratum: 2;
     /** Timestamp of observation */
     timestamp: Date;
-    /** Which pattern produced this observation */
-    sourcePatternId: string;
+    /** Which bloom produced this observation */
+    sourceBloomId: string;
     /** Type of observation */
     observationType: ObservationType;
     /** The observation data */
@@ -160,8 +160,8 @@ export interface Decision {
     evaluatedRules: string[];
     /** The outcome (when known) */
     outcome?: DecisionOutcome;
-    /** Which pattern made this decision */
-    madeByPatternId: string;
+    /** Which bloom made this decision */
+    madeByBloomId: string;
 }
 export interface DecisionContext {
     /** Task type being routed */

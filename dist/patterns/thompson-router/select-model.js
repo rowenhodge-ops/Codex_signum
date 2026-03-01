@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { v4 as uuid } from "uuid";
-import { ensureContextCluster, getArmStatsForCluster, listActiveAgents, listActiveAgentsByCapability, recordDecision, recordDecisionOutcome, } from "../../graph/index.js";
+import { ensureContextCluster, getArmStatsForCluster, listActiveSeeds, listActiveSeedsByCapability, recordDecision, recordDecisionOutcome, } from "../../graph/index.js";
 import { buildContextClusterId, route } from "./router.js";
 import { DEFAULT_ROUTER_CONFIG } from "./types.js";
 /**
@@ -20,26 +20,26 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
         capabilityFilter.supportsStructuredOutputs = true;
     if (request.maxCostPer1kOutput !== undefined)
         capabilityFilter.maxCostPer1kOutput = request.maxCostPer1kOutput;
-    let agentRecords = await listActiveAgentsByCapability(capabilityFilter);
-    if (agentRecords.length === 0) {
-        const allActive = await listActiveAgents();
+    let seedRecords = await listActiveSeedsByCapability(capabilityFilter);
+    if (seedRecords.length === 0) {
+        const allActive = await listActiveSeeds();
         if (allActive.length === 0) {
-            throw new Error("No active agents in graph. Run bootstrap first.");
+            throw new Error("No active seeds in graph. Run bootstrap first.");
         }
-        agentRecords = allActive;
+        seedRecords = allActive;
     }
-    const models = agentRecords.map((record) => {
-        const agent = record.get("a").properties;
+    const models = seedRecords.map((record) => {
+        const seed = record.get("s").properties;
         return {
-            id: String(agent.id),
-            name: String(agent.name ?? agent.id),
-            provider: String(agent.provider ?? "unknown"),
-            avgLatencyMs: Number(agent.avgLatencyMs ?? 0),
-            costPer1kTokens: Number(agent.costPer1kTokens ?? agent.costPer1kOutput ?? agent.costPer1kInput ?? 0),
-            capabilities: Array.isArray(agent.capabilities)
-                ? agent.capabilities.map((value) => String(value))
+            id: String(seed.id),
+            name: String(seed.name ?? seed.id),
+            provider: String(seed.provider ?? "unknown"),
+            avgLatencyMs: Number(seed.avgLatencyMs ?? 0),
+            costPer1kTokens: Number(seed.costPer1kTokens ?? seed.costPer1kOutput ?? seed.costPer1kInput ?? 0),
+            capabilities: Array.isArray(seed.capabilities)
+                ? seed.capabilities.map((value) => String(value))
                 : [],
-            status: String(agent.status ?? "active"),
+            status: String(seed.status ?? "active"),
         };
     });
     const context = {
@@ -66,15 +66,15 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
         taskType: request.taskType,
         complexity: request.complexity,
         domain: request.domain,
-        selectedAgentId: decision.selectedModelId,
-        madeByPatternId: request.callerPatternId,
+        selectedSeedId: decision.selectedModelId,
+        madeByBloomId: request.callerPatternId,
         wasExploratory: decision.wasExploratory,
         contextClusterId,
         qualityRequirement: request.qualityRequirement,
         costCeiling: request.costCeiling,
     });
-    const selectedAgent = agentRecords.find((record) => String(record.get("a").properties.id) === decision.selectedModelId);
-    const agentProps = selectedAgent?.get("a").properties ?? {};
+    const selectedSeed = seedRecords.find((record) => String(record.get("s").properties.id) === decision.selectedModelId);
+    const seedProps = selectedSeed?.get("s").properties ?? {};
     // Idempotency flag — prevents double-recording in the same session.
     let outcomeRecorded = false;
     const recordOutcome = async (outcome) => {
@@ -92,15 +92,15 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
         });
     };
     return {
-        selectedAgentId: decision.selectedModelId,
-        baseModelId: String(agentProps.baseModelId ?? "") || String(agentProps.model ?? "") || decision.selectedModelId,
-        thinkingMode: String(agentProps.thinkingMode ?? "default"),
-        thinkingParameter: agentProps.thinkingParameter !== undefined
-            ? String(agentProps.thinkingParameter)
+        selectedSeedId: decision.selectedModelId,
+        baseModelId: String(seedProps.baseModelId ?? "") || String(seedProps.model ?? "") || decision.selectedModelId,
+        thinkingMode: String(seedProps.thinkingMode ?? "default"),
+        thinkingParameter: seedProps.thinkingParameter !== undefined
+            ? String(seedProps.thinkingParameter)
             : undefined,
-        provider: String(agentProps.provider ?? "unknown"),
-        apiModelString: String(agentProps.model ?? "") ||
-            String(agentProps.baseModelId ?? "") ||
+        provider: String(seedProps.provider ?? "unknown"),
+        apiModelString: String(seedProps.model ?? "") ||
+            String(seedProps.baseModelId ?? "") ||
             decision.selectedModelId,
         wasExploratory: decision.wasExploratory,
         confidence: decision.confidence,

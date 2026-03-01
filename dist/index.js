@@ -26,5 +26,7 @@ export * from "./metrics/index.js";
 // ── Patterns ──
 export * from "./patterns/index.js";
 // ── Bootstrap ──
-export { ALL_ARMS, CORE_PATTERNS, bootstrapAgents, bootstrapPatterns, seedAnalyticalPriors, seedInformedPriors, } from "./bootstrap.js";
+export { ALL_ARMS, CORE_BLOOMS, bootstrapSeeds, bootstrapBlooms, seedAnalyticalPriors, seedInformedPriors, 
+// Backward compatibility aliases (deprecated)
+bootstrapAgents, bootstrapPatterns, CORE_PATTERNS, } from "./bootstrap.js";
 //# sourceMappingURL=index.js.map

@@ -21,25 +21,25 @@ async function verify() {
   } catch (err) {
     console.error("selectModel() failed:", err);
     console.log("\nThis means the core selectModel function cannot operate.");
-    console.log("Check: Are there Agent nodes in the graph?");
-    console.log("Check: Does selectModel require pre-registered agents?");
+    console.log("Check: Are there Seed nodes in the graph?");
+    console.log("Check: Does selectModel require pre-registered seeds?");
 
-    const agents = await runQuery(
-      "MATCH (a:Agent) RETURN a.id AS id, a.status AS status LIMIT 10",
+    const seeds = await runQuery(
+      "MATCH (s:Seed) RETURN s.id AS id, s.status AS status LIMIT 10",
       {},
       "READ",
     );
-    console.log(`\nAgent nodes in graph: ${agents.records.length}`);
-    for (const r of agents.records) {
+    console.log(`\nSeed nodes in graph: ${seeds.records.length}`);
+    for (const r of seeds.records) {
       console.log(`  - ${r.get("id")} [${r.get("status")}]`);
     }
 
-    if (agents.records.length === 0) {
+    if (seeds.records.length === 0) {
       console.log(
-        "\nNo agents registered. The bootstrap may need to seed Agent nodes.",
+        "\nNo seeds registered. The bootstrap may need to seed Seed nodes.",
       );
       console.log(
-        "Or selectModel() may need agents registered before it can route.",
+        "Or selectModel() may need seeds registered before it can route.",
       );
     }
     process.exit(1);
@@ -47,7 +47,7 @@ async function verify() {
 
   console.log("\n--- Checking Decision was written to graph ---");
   const decisions = await runQuery(
-    "MATCH (d:Decision {id: $id}) RETURN d.id AS id, d.selectedAgentId AS agent, d.taskType AS task",
+    "MATCH (d:Decision {id: $id}) RETURN d.id AS id, d.selectedSeedId AS seed, d.taskType AS task",
     { id: result.decisionId },
     "READ",
   );
@@ -64,7 +64,7 @@ async function verify() {
   }
 
   console.log(`Decision node found: ${decisions.records[0].get("id")}`);
-  console.log(`Selected agent: ${decisions.records[0].get("agent")}`);
+  console.log(`Selected seed: ${decisions.records[0].get("seed")}`);
 
   console.log("\n--- Recording outcome ---");
   await recordDecisionOutcome({

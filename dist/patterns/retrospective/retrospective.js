@@ -15,11 +15,11 @@
 import { writeTransaction } from "../../graph/client.js";
 import { queryOverallSuccess, queryConvergence, queryStageHealth, queryDegradation, } from "./queries.js";
 export async function runRetrospective(opts = {}) {
-    const { windowHours = 24, patternIds, writeInsights = false } = opts;
+    const { windowHours = 24, bloomIds, writeInsights = false } = opts;
     const [overall, convergence, stages, degradation] = await Promise.all([
         queryOverallSuccess(windowHours),
         queryConvergence(windowHours),
-        queryStageHealth(windowHours, patternIds),
+        queryStageHealth(windowHours, bloomIds),
         queryDegradation(windowHours),
     ]);
     const insightNodeIds = [];

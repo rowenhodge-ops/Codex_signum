@@ -48,7 +48,7 @@ export declare class EphemeralStore {
  * Create a new Observation directly (without promotion from Stratum 1).
  * Use this for automated signals (e.g., success/failure, latency).
  */
-export declare function createObservation(sourcePatternId: string, observationType: ObservationType, data: ObservationData): Observation;
+export declare function createObservation(sourceBloomId: string, observationType: ObservationType, data: ObservationData): Observation;
 /**
  * Check if observations should be distilled (promoted to Stratum 3).
  *
@@ -79,7 +79,7 @@ export declare function shouldPromoteToInstitutional(distillations: Distillation
 /**
  * Create a Decision record for the memory system.
  */
-export declare function createDecision(context: DecisionContext, alternatives: string[], selected: string, reason: string, madeByPatternId: string, evaluatedRules?: string[]): Decision;
+export declare function createDecision(context: DecisionContext, alternatives: string[], selected: string, reason: string, madeByBloomId: string, evaluatedRules?: string[]): Decision;
 /**
  * Attach an outcome to a decision.
  */
