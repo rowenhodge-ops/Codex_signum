@@ -517,7 +517,7 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 813 | `npm test` at HEAD `56d9db0` |
+| Tests passing | 813 | `npm test` at HEAD `a9c357f` |
 | Barrel exports | 210 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
