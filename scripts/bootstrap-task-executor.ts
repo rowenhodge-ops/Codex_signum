@@ -100,22 +100,42 @@ function getOutputPath(task: Task, runId: string, repoPath: string): string {
   return join(outputDir, safeName + ".md");
 }
 
-/** Read files_affected as context for the LLM prompt */
-function readFileContext(task: Task, repoPath: string): string {
+/** Max total chars across all files for context injection */
+export const MAX_TOTAL_CONTEXT_CHARS = 120_000;
+
+/**
+ * Read files_affected as context for the LLM prompt.
+ *
+ * Analytical tasks (generative) get a higher per-file cap (32K) because
+ * specification documents are 10-40KB. Mechanical tasks keep the 8K cap
+ * since code files are typically shorter.
+ */
+export function readFileContext(task: Task, repoPath: string): string {
   if (!task.files_affected.length) return "";
 
+  // Analytical tasks get more context (specs are 10-40KB)
+  const perFileCap = task.type === "mechanical" ? 8000 : 32000;
+
   let context = "";
+  let totalChars = 0;
+
   for (const filePath of task.files_affected) {
+    if (totalChars >= MAX_TOTAL_CONTEXT_CHARS) {
+      context += `\n\n--- File: ${filePath} --- (skipped: total context limit reached)`;
+      continue;
+    }
     const fullPath = join(repoPath, filePath);
     try {
       const content = readFileSync(fullPath, "utf-8");
-      // Cap per-file context at 8000 chars to stay within prompt limits
-      const capped = content.length > 8000
-        ? content.slice(0, 8000) + "\n... (truncated at 8000 chars)"
+      const remaining = MAX_TOTAL_CONTEXT_CHARS - totalChars;
+      const cap = Math.min(perFileCap, remaining);
+      const capped = content.length > cap
+        ? content.slice(0, cap) + `\n... (truncated at ${cap} chars)`
         : content;
       context += `\n\n--- File: ${filePath} ---\n${capped}`;
+      totalChars += capped.length;
     } catch {
-      context += `\n\n--- File: ${filePath} --- (not found, skipping)`;
+      context += `\n\n--- File: ${filePath} --- (NOT FOUND — this is a defect in DECOMPOSE)`;
     }
   }
   return context;

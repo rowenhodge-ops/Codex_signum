@@ -13,6 +13,8 @@
  * refactored to accept ModelExecutor as a parameter.
  */
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type {
   PipelineSurveyOutput,
   TaskGraph,
@@ -23,15 +25,36 @@ import type {
 import { MAX_TASKS_PER_PLAN } from "./types.js";
 import { buildDecomposePrompt } from "./decompose-prompt.js";
 
+/**
+ * Validate that every files_affected path in the task graph exists on disk.
+ * Returns warnings for non-existent paths. Does NOT strip them — the DECOMPOSE
+ * model needs to learn which paths are real through Thompson feedback.
+ */
+export function validateFilePaths(taskGraph: TaskGraph, repoPath: string): string[] {
+  const warnings: string[] = [];
+  for (const task of taskGraph.tasks) {
+    for (const filePath of task.files_affected) {
+      const fullPath = join(repoPath, filePath);
+      if (!existsSync(fullPath)) {
+        warnings.push(
+          `Task ${task.task_id}: files_affected contains non-existent path "${filePath}"`,
+        );
+      }
+    }
+  }
+  return warnings;
+}
+
 export async function decompose(
   intent: string,
   survey: PipelineSurveyOutput,
   modelExecutor: ModelExecutor,
+  repoPath?: string,
 ): Promise<TaskGraph> {
   const intentId = survey.intent_id;
 
   try {
-    const prompt = buildDecomposePrompt(intent, survey);
+    const prompt = buildDecomposePrompt(intent, survey, repoPath);
 
     const result = await modelExecutor.execute(prompt, {
       taskType: "planning",
@@ -45,6 +68,18 @@ export async function decompose(
 
     if (parsed) {
       console.log(`  DECOMPOSE: Parsed ${parsed.tasks.length} tasks in ${parsed.phases.length} phases (confidence: ${parsed.decomposition_confidence.toFixed(2)})`);
+
+      // Validate file paths if repoPath provided
+      if (repoPath) {
+        const fileWarnings = validateFilePaths(parsed, repoPath);
+        if (fileWarnings.length > 0) {
+          console.warn(`  DECOMPOSE: ${fileWarnings.length} non-existent file path(s) in task graph:`);
+          for (const w of fileWarnings) {
+            console.warn(`    ⚠️  ${w}`);
+          }
+        }
+      }
+
       return parsed;
     }
 

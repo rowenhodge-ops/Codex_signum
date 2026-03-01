@@ -78,7 +78,7 @@ export async function executePlan(
   planState.status = "decomposing";
   planState.updated_at = new Date().toISOString();
 
-  // 2. DECOMPOSE
+  // 2. DECOMPOSE (repoPath enables directory listing + file path validation)
   const decomposeAttempts = config.decomposeAttempts ?? 1;
   if (decomposeAttempts > 1) {
     planState.task_graph = await parallelDecompose(
@@ -86,12 +86,14 @@ export async function executePlan(
       planState.survey,
       config.modelExecutor,
       { n: decomposeAttempts, parallel: config.parallelDecompose ?? false },
+      repoPath,
     );
   } else {
     planState.task_graph = await decompose(
       intent,
       planState.survey,
       config.modelExecutor,
+      repoPath,
     );
   }
   planState.status = "classifying";

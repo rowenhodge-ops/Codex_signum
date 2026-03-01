@@ -12,17 +12,64 @@
  * Verdict: GENERIC — pure prompt building, no DND imports.
  */
 
+import { readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import type { PipelineSurveyOutput } from "./types.js";
 import { MAX_TASKS_PER_PLAN } from "./types.js";
 
 /**
+ * Walk directories and collect .ts and .md file paths.
+ * Returns paths relative to repoPath, using forward slashes.
+ */
+function walkDir(dir: string, base: string, maxDepth: number): string[] {
+  if (maxDepth <= 0) return [];
+  const paths: string[] = [];
+  try {
+    for (const entry of readdirSync(dir)) {
+      if (entry.startsWith(".") || entry === "node_modules" || entry === "dist") continue;
+      const fullPath = join(dir, entry);
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        paths.push(...walkDir(fullPath, base, maxDepth - 1));
+      } else if (entry.endsWith(".ts") || entry.endsWith(".md")) {
+        paths.push(relative(base, fullPath).replace(/\\/g, "/"));
+      }
+    }
+  } catch { /* directory not readable */ }
+  return paths;
+}
+
+/**
+ * Get a listing of relevant files in the repository.
+ * Scans docs/specs/, docs/research/, docs/lean/, docs/hypotheses/, and src/.
+ */
+export function getDirectoryListing(repoPath: string): string {
+  const dirs = ["docs/specs", "docs/research", "docs/lean", "docs/hypotheses", "src"];
+  const allPaths: string[] = [];
+
+  for (const dir of dirs) {
+    const fullDir = join(repoPath, dir);
+    allPaths.push(...walkDir(fullDir, repoPath, 4));
+  }
+
+  allPaths.sort();
+  return allPaths.join("\n") || "(directory listing unavailable)";
+}
+
+/**
  * Build the decompose prompt from intent and survey output.
- * Returns a single string to send to the LLM.
+ * When repoPath is provided, includes a directory listing so the LLM
+ * can reference real file paths in files_affected.
  */
 export function buildDecomposePrompt(
   intent: string,
   survey: PipelineSurveyOutput,
+  repoPath?: string,
 ): string {
+  const directorySection = repoPath
+    ? `\n## Available Files\n\nThe following files exist in the repository. When assigning files_affected to tasks,\nONLY use paths from this list. Do NOT invent file paths.\n\n${getDirectoryListing(repoPath)}\n`
+    : "";
+
   return `You are a software architect decomposing a development intent into an executable task graph.
 
 ## Intent
@@ -51,7 +98,7 @@ ${survey.codebase_state.recent_changes.slice(0, 10).join("\n")}
 
 ### Survey Blind Spots
 ${survey.blind_spots.join("\n") || "none"}
-
+${directorySection}
 ## Your Task
 
 Decompose the intent into a task graph.
