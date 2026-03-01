@@ -30,12 +30,12 @@ import type {
 export async function runRetrospective(
   opts: RetrospectiveOptions = {},
 ): Promise<RetrospectiveInsights> {
-  const { windowHours = 24, patternIds, writeInsights = false } = opts;
+  const { windowHours = 24, bloomIds, writeInsights = false } = opts;
 
   const [overall, convergence, stages, degradation] = await Promise.all([
     queryOverallSuccess(windowHours),
     queryConvergence(windowHours),
-    queryStageHealth(windowHours, patternIds),
+    queryStageHealth(windowHours, bloomIds),
     queryDegradation(windowHours),
   ]);
 

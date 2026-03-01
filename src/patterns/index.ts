@@ -46,19 +46,19 @@ export type {
   StageResult,
 } from "./dev-agent/index.js";
 
-// Observer (feedback functions + types — Observer class removed per state-is-structural axiom)
+// Feedback functions + types (formerly observer — Observer class removed per state-is-structural axiom)
 export {
   checkCorrectionScale,
   checkLearningScale,
   checkEvolutionaryScale,
-} from "./observer/index.js";
+} from "./feedback/index.js";
 export type {
   FeedbackRecommendation,
   GraphObserver,
   ObservableEvent,
   ObserverMode,
   ObserverState,
-} from "./observer/index.js";
+} from "./feedback/index.js";
 
 // Architect Pattern — SURVEY + Pipeline stages
 export {
