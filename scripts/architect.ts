@@ -24,7 +24,8 @@ import { closeDriver } from "../src/graph/index.js";
 import { executePlan } from "../src/patterns/architect/architect.js";
 import { survey } from "../src/patterns/architect/survey.js";
 import type { PipelineSurveyOutput } from "../src/patterns/architect/types.js";
-import { createBootstrapModelExecutor } from "./bootstrap-executor.js";
+import { ALL_ARMS } from "../src/bootstrap.js";
+import { createBootstrapModelExecutor, verifyProviderAuth } from "./bootstrap-executor.js";
 import {
   createBootstrapTaskExecutor,
   runPreflightChecks,
@@ -95,9 +96,11 @@ Usage:
   npx tsx scripts/architect.ts plan "<intent>"
 
 Options:
-  --auto-gate       Skip human approval at GATE stage
-  --dry-run         Tasks execute but make no real changes
-  --decompose-n=N   Best-of-N decompose attempts (default: 1)
+  --auto-gate          Skip human approval at GATE stage
+  --dry-run            Tasks execute but make no real changes
+  --decompose-n=N      Best-of-N decompose attempts (default: 1)
+  --allow-degraded     Allow running with missing providers (warning instead of error)
+  --milestone=LABEL    Milestone label for auto-commit (default: "run")
 
 Examples:
   npx tsx scripts/architect.ts plan "Add hub-aware dampening to cascade propagation"
@@ -112,6 +115,8 @@ interface CliArgs {
   autoGate: boolean;
   dryRun: boolean;
   decomposeN: number;
+  allowDegraded: boolean;
+  milestone: string;
 }
 
 function parseArgs(): CliArgs | null {
@@ -136,17 +141,22 @@ function parseArgs(): CliArgs | null {
   let autoGate = false;
   let dryRun = false;
   let decomposeN = 1;
+  let allowDegraded = false;
+  let milestone = "run";
 
   for (const arg of args.slice(2)) {
     if (arg === "--auto-gate") autoGate = true;
     else if (arg === "--dry-run") dryRun = true;
+    else if (arg === "--allow-degraded") allowDegraded = true;
     else if (arg.startsWith("--decompose-n=")) {
       decomposeN = parseInt(arg.split("=")[1], 10);
       if (isNaN(decomposeN) || decomposeN < 1) decomposeN = 1;
+    } else if (arg.startsWith("--milestone=")) {
+      milestone = arg.split("=")[1] || "run";
     }
   }
 
-  return { command, intent, autoGate, dryRun, decomposeN };
+  return { command, intent, autoGate, dryRun, decomposeN, allowDegraded, milestone };
 }
 
 // ── Survey → PipelineSurveyOutput conversion ────────────────────────────────
@@ -215,11 +225,33 @@ async function main(): Promise<void> {
   console.log("\n── Pre-flight ──────────────────────────────────────────────");
   runPreflightChecks(repoPath);
 
-  // Vertex AI auth check (soft requirement — pipeline runs without it)
+  // Vertex AI auth check
   console.log("\n── Vertex AI Auth ──────────────────────────────────────────");
   const vertexAvailable = await checkVertexAuth();
-  if (!vertexAvailable) {
-    console.log("  ⚠️  Continuing without Vertex AI models (Anthropic only)");
+
+  // Provider auth gate (FR-9)
+  console.log("\n── Provider Auth ───────────────────────────────────────────");
+  const authResult = verifyProviderAuth(vertexAvailable, ALL_ARMS);
+
+  for (const p of authResult.providers) {
+    const icon = p.available ? "✅" : "❌";
+    console.log(`  ${icon} ${p.provider}: ${p.available ? "authenticated" : p.error}`);
+  }
+
+  console.log(`\n  Models available: ${authResult.availableModelCount}/${authResult.totalModelCount}`);
+
+  if (!authResult.allAvailable) {
+    if (cliArgs.allowDegraded) {
+      console.warn("\n  ⚠️  --allow-degraded: continuing with missing providers.");
+      console.warn("     Thompson posteriors will be skewed — results are not representative.");
+    } else {
+      console.error("\n❌ Pre-flight failed: not all providers authenticated.");
+      console.error("   Fix authentication or remove unavailable providers from models.ts before running.");
+      console.error("   The pipeline refuses to run with degraded infrastructure.");
+      console.error("   Resilience means recovering from the unexpected, not normalizing the known-broken.");
+      console.error("   Use --allow-degraded to override (development/testing only).");
+      process.exit(1);
+    }
   }
 
   // SURVEY
@@ -304,7 +336,7 @@ async function main(): Promise<void> {
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "pipe"],
       });
-      const commitMsg = `pipeline: M-7B run ${manifest.runId} — ${succeeded}/${manifest.summary.total} tasks`;
+      const commitMsg = `pipeline: ${cliArgs.milestone} run ${manifest.runId} — ${succeeded}/${manifest.summary.total} tasks`;
       execSync(`git commit -m "${commitMsg}"`, {
         cwd: repoPath,
         encoding: "utf-8",
