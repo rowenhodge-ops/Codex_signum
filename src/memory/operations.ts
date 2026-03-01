@@ -129,7 +129,7 @@ export class EphemeralStore {
       id: generateId(),
       stratum: 2,
       timestamp: new Date(),
-      sourcePatternId: entry.patternId,
+      sourceBloomId: entry.patternId,
       observationType,
       data,
     };
@@ -148,7 +148,7 @@ export class EphemeralStore {
  * Use this for automated signals (e.g., success/failure, latency).
  */
 export function createObservation(
-  sourcePatternId: string,
+  sourceBloomId: string,
   observationType: ObservationType,
   data: ObservationData,
 ): Observation {
@@ -156,7 +156,7 @@ export function createObservation(
     id: generateId(),
     stratum: 2,
     timestamp: new Date(),
-    sourcePatternId,
+    sourceBloomId,
     observationType,
     data,
   };
@@ -238,7 +238,7 @@ export function distillObservations(
 
   // Derive related pattern IDs from observations if not provided
   const relatedPatternIds = patternIds ?? [
-    ...new Set(observations.map((o) => o.sourcePatternId)),
+    ...new Set(observations.map((o) => o.sourceBloomId)),
   ];
 
   return {
@@ -314,7 +314,7 @@ export function createDecision(
   alternatives: string[],
   selected: string,
   reason: string,
-  madeByPatternId: string,
+  madeByBloomId: string,
   evaluatedRules: string[] = [],
 ): Decision {
   return {
@@ -325,7 +325,7 @@ export function createDecision(
     selected,
     reason,
     evaluatedRules,
-    madeByPatternId,
+    madeByBloomId,
   };
 }
 

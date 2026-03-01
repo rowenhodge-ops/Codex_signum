@@ -31,7 +31,7 @@ export function route(
     throw new Error("No active models available");
   }
 
-  const statsMap = new Map(armStats.map((s) => [s.agentId, s]));
+  const statsMap = new Map(armStats.map((s) => [s.seedId, s]));
   const contextClusterId = buildContextClusterId(context);
 
   const forceExplore =

@@ -5,20 +5,20 @@
 import { pathToFileURL } from "node:url";
 import {
   closeDriver,
-  createAgent,
-  createPattern,
+  createSeed,
+  createBloom,
   ensureContextCluster,
   getDecisionsForCluster,
-  listActiveAgents,
+  listActiveSeeds,
   migrateSchema,
   recordDecision,
   recordDecisionOutcome,
   runQuery,
   seedConstitutionalRules,
 } from "./graph/index.js";
-import type { AgentProps, PatternProps } from "./graph/queries.js";
+import type { SeedProps, BloomProps } from "./graph/queries.js";
 
-export const ALL_ARMS: AgentProps[] = [
+export const ALL_ARMS: SeedProps[] = [
   {
     id: "claude-opus-4-6:adaptive:max",
     name: "Claude Opus 4.6 (Adaptive Max)",
@@ -859,36 +859,36 @@ export const ALL_ARMS: AgentProps[] = [
   },
 ];
 
-export async function bootstrapAgents(force: boolean = false): Promise<number> {
+export async function bootstrapSeeds(force: boolean = false): Promise<number> {
   if (!force) {
-    const existing = await listActiveAgents();
+    const existing = await listActiveSeeds();
     if (existing.length >= 20) {
       console.log(
-        `Graph already has ${existing.length} active agents. Use force=true to re-seed.`,
+        `Graph already has ${existing.length} active seeds. Use force=true to re-seed.`,
       );
       return existing.length;
     }
   }
 
   if (force) {
-    // Remove stale Agent nodes not in current ALL_ARMS
+    // Remove stale Seed nodes not in current ALL_ARMS
     const knownIds = ALL_ARMS.map((a) => a.id);
     const result = await runQuery(
-      `MATCH (a:Agent) WHERE NOT a.id IN $ids DETACH DELETE a RETURN count(a) AS removed`,
+      `MATCH (s:Seed) WHERE NOT s.id IN $ids DETACH DELETE s RETURN count(s) AS removed`,
       { ids: knownIds },
     );
     const removed = result.records[0]?.get("removed")?.toNumber?.() ?? 0;
     if (removed > 0) {
-      console.log(`Cleaned up ${removed} stale Agent nodes.`);
+      console.log(`Cleaned up ${removed} stale Seed nodes.`);
     }
   }
 
-  console.log(`Seeding ${ALL_ARMS.length} agent configurations...`);
+  console.log(`Seeding ${ALL_ARMS.length} seed configurations...`);
   let seeded = 0;
 
   for (const arm of ALL_ARMS) {
     try {
-      await createAgent(arm);
+      await createSeed(arm);
       seeded++;
       console.log(`  ✅ ${arm.id} (${arm.status})`);
     } catch (err) {
@@ -898,11 +898,11 @@ export async function bootstrapAgents(force: boolean = false): Promise<number> {
     }
   }
 
-  console.log(`\nSeeded ${seeded}/${ALL_ARMS.length} agents.`);
+  console.log(`\nSeeded ${seeded}/${ALL_ARMS.length} seeds.`);
   return seeded;
 }
 
-export const CORE_PATTERNS: PatternProps[] = [
+export const CORE_BLOOMS: BloomProps[] = [
   {
     id: "thompson-router",
     name: "Thompson Router",
@@ -934,40 +934,40 @@ export const CORE_PATTERNS: PatternProps[] = [
   },
 ];
 
-export async function bootstrapPatterns(
+export async function bootstrapBlooms(
   force: boolean = false,
 ): Promise<number> {
   if (!force) {
     const result = await runQuery(
-      "MATCH (p:Pattern) RETURN count(p) AS count",
+      "MATCH (b:Bloom) RETURN count(b) AS count",
       {},
       "READ",
     );
     const existing = (result.records[0]?.get("count") as number) ?? 0;
-    if (existing >= CORE_PATTERNS.length) {
+    if (existing >= CORE_BLOOMS.length) {
       console.log(
-        `Graph already has ${existing} patterns. Use force=true to re-seed.`,
+        `Graph already has ${existing} blooms. Use force=true to re-seed.`,
       );
       return existing;
     }
   }
 
-  console.log(`Seeding ${CORE_PATTERNS.length} core patterns...`);
+  console.log(`Seeding ${CORE_BLOOMS.length} core blooms...`);
   let seeded = 0;
 
-  for (const pattern of CORE_PATTERNS) {
+  for (const bloom of CORE_BLOOMS) {
     try {
-      await createPattern(pattern);
+      await createBloom(bloom);
       seeded++;
-      console.log(`  ✅ ${pattern.id} (${pattern.state ?? "created"})`);
+      console.log(`  ✅ ${bloom.id} (${bloom.state ?? "created"})`);
     } catch (err) {
       console.error(
-        `  ❌ ${pattern.id}: ${err instanceof Error ? err.message : err}`,
+        `  ❌ ${bloom.id}: ${err instanceof Error ? err.message : err}`,
       );
     }
   }
 
-  console.log(`\nSeeded ${seeded}/${CORE_PATTERNS.length} patterns.`);
+  console.log(`\nSeeded ${seeded}/${CORE_BLOOMS.length} blooms.`);
   return seeded;
 }
 
@@ -1014,7 +1014,7 @@ export async function seedInformedPriors(): Promise<number> {
           id: decId,
           taskType,
           complexity: "moderate",
-          selectedAgentId: arm.id,
+          selectedSeedId: arm.id,
           wasExploratory: false,
           contextClusterId: clusterId,
         });
@@ -1098,7 +1098,7 @@ export async function seedAnalyticalPriors(): Promise<number> {
           id: decId,
           taskType: "analytical",
           complexity,
-          selectedAgentId: arm.id,
+          selectedSeedId: arm.id,
           wasExploratory: false,
           contextClusterId: clusterId,
         });
@@ -1121,7 +1121,7 @@ export async function seedAnalyticalPriors(): Promise<number> {
 }
 
 async function main() {
-  console.log("🌱 Codex Signum — Agent Bootstrap\n");
+  console.log("🌱 Codex Signum — Seed Bootstrap\n");
   const force = process.argv.includes("--force");
 
   try {
@@ -1134,8 +1134,8 @@ async function main() {
     const seededRules = await seedConstitutionalRules();
     console.log(`Seeded constitutional rules: ${seededRules}`);
 
-    await bootstrapAgents(force);
-    await bootstrapPatterns(force);
+    await bootstrapSeeds(force);
+    await bootstrapBlooms(force);
     if (
       force ||
       (await getDecisionsForCluster("strategic:moderate:general", 1)).length ===
@@ -1159,3 +1159,12 @@ const isDirectRun = invokedPath
 if (isDirectRun) {
   void main();
 }
+
+// ── Backward Compatibility Aliases (deprecated) ──
+
+/** @deprecated Use bootstrapSeeds */
+export const bootstrapAgents = bootstrapSeeds;
+/** @deprecated Use bootstrapBlooms */
+export const bootstrapPatterns = bootstrapBlooms;
+/** @deprecated Use CORE_BLOOMS */
+export const CORE_PATTERNS = CORE_BLOOMS;

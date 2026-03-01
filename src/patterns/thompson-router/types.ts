@@ -69,7 +69,7 @@ export interface SelectModelRequest {
 
 /** Output from selectModel — what the caller gets */
 export interface SelectModelResult {
-	selectedAgentId: string;
+	selectedSeedId: string;
 	baseModelId: string;
 	thinkingMode: string;
 	thinkingParameter?: string;
@@ -81,7 +81,7 @@ export interface SelectModelResult {
 	contextClusterId: string;
 	reasoning: string;
 	/**
-	 * Record the outcome of executing against the selected agent.
+	 * Record the outcome of executing against the selected seed.
 	 * Updates the Decision node with outcome metrics and is idempotent
 	 * (calling twice is safe — second call is a no-op).
 	 */
