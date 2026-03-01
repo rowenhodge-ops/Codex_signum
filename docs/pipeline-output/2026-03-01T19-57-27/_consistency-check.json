@@ -1,0 +1,13 @@
+{
+  "issues": [
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"Variable\" (not in the 10 canonical axioms)",
+      "tasks": [
+        "t6"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-01T20:07:29.489Z",
+  "taskCount": 6
+}
