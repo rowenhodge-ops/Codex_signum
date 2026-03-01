@@ -1,0 +1,15 @@
+{
+  "runId": "2026-02-28T21-10-27",
+  "intent": "Count files in src/",
+  "startedAt": "2026-02-28T21:10:37.251Z",
+  "completedAt": "2026-02-28T21:10:37.252Z",
+  "tasks": [],
+  "summary": {
+    "total": 0,
+    "succeeded": 0,
+    "failed": 0,
+    "totalDurationMs": 0,
+    "totalOutputChars": 0,
+    "modelsUsed": []
+  }
+}
