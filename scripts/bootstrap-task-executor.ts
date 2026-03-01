@@ -181,15 +181,133 @@ export interface BootstrapTaskExecutorBundle {
   writeManifest(): RunManifest | null;
 }
 
+/** Max chars of prior-task output injected per task for synthesis context */
+export const MAX_PRIOR_OUTPUT_CHARS = 6000;
+
+/** Detect whether a task is a synthesis/consolidation task that needs prior outputs */
+export function isSynthesisTask(task: Task, isLastPhase: boolean): boolean {
+  const synthesisPattern = /consolidat|synthesiz|final.report|summary.of|across.all/i;
+  const text = `${task.description} ${task.acceptance_criteria.join(" ")}`;
+  return synthesisPattern.test(text) || isLastPhase;
+}
+
+/** Canonical reference constants for consistency checking */
+export const CANONICAL_AXIOM_NAMES = [
+  "Symbiosis", "Transparency", "Fidelity", "Visible State",
+  "Minimal Authority", "Provenance", "Reversibility",
+  "Semantic Stability", "Comprehension Primacy", "Adaptive Pressure",
+] as const;
+
+export const CANONICAL_PIPELINE_STAGES = [
+  "SURVEY", "DECOMPOSE", "CLASSIFY", "SEQUENCE", "GATE", "DISPATCH", "ADAPT",
+] as const;
+
+export interface ConsistencyIssue {
+  type: "metric-divergence" | "wrong-axiom-name" | "wrong-stage-name";
+  description: string;
+  tasks: string[];
+}
+
+export interface ConsistencyReport {
+  issues: ConsistencyIssue[];
+  checkedAt: string;
+  taskCount: number;
+}
+
+/**
+ * Scan all task outputs for consistency issues:
+ * 1. Percentage values with same label but >20% relative difference
+ * 2. Axiom names not matching the canonical 10
+ * 3. Pipeline stage names not in SURVEY/DECOMPOSE/.../ADAPT
+ */
+export function checkConsistency(
+  taskOutputs: Map<string, { title: string; output: string }>,
+): ConsistencyReport {
+  const issues: ConsistencyIssue[] = [];
+
+  // 1. Metric divergence: find "label: NN%" patterns and compare
+  const metricsByLabel = new Map<string, { value: number; taskId: string }[]>();
+  const pctPattern = /([A-Za-z][A-Za-z_ -]{2,30}):\s*(\d{1,3}(?:\.\d+)?)%/g;
+
+  for (const [taskId, { output }] of taskOutputs) {
+    let match: RegExpExecArray | null;
+    while ((match = pctPattern.exec(output)) !== null) {
+      const label = match[1].trim().toLowerCase();
+      const value = parseFloat(match[2]);
+      if (!metricsByLabel.has(label)) metricsByLabel.set(label, []);
+      metricsByLabel.get(label)!.push({ value, taskId });
+    }
+  }
+
+  for (const [label, entries] of metricsByLabel) {
+    if (entries.length < 2) continue;
+    const values = entries.map((e) => e.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (min > 0 && (max - min) / min > 0.2) {
+      issues.push({
+        type: "metric-divergence",
+        description: `"${label}" ranges from ${min}% to ${max}% across tasks (>${((max - min) / min * 100).toFixed(0)}% relative difference)`,
+        tasks: entries.map((e) => e.taskId),
+      });
+    }
+  }
+
+  // 2. Wrong axiom names
+  const axiomPattern = /axiom[s]?\s*(?:of\s+)?[:\-–]?\s*["']?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
+  const canonicalLower = new Set(CANONICAL_AXIOM_NAMES.map((a) => a.toLowerCase()));
+
+  for (const [taskId, { output }] of taskOutputs) {
+    let match: RegExpExecArray | null;
+    while ((match = axiomPattern.exec(output)) !== null) {
+      const found = match[1].trim();
+      if (!canonicalLower.has(found.toLowerCase())) {
+        issues.push({
+          type: "wrong-axiom-name",
+          description: `Non-canonical axiom name "${found}" (not in the 10 canonical axioms)`,
+          tasks: [taskId],
+        });
+      }
+    }
+  }
+
+  // 3. Wrong pipeline stage names
+  const stagePattern = /(?:stage|phase|step)\s*(?:\d+\s*)?[:\-–]?\s*["']?([A-Z]{3,})/g;
+  const canonicalStages = new Set(CANONICAL_PIPELINE_STAGES as unknown as string[]);
+
+  for (const [taskId, { output }] of taskOutputs) {
+    let match: RegExpExecArray | null;
+    while ((match = stagePattern.exec(output)) !== null) {
+      const found = match[1];
+      if (!canonicalStages.has(found) && /^[A-Z]+$/.test(found)) {
+        issues.push({
+          type: "wrong-stage-name",
+          description: `Non-canonical pipeline stage "${found}" (not in SURVEY/.../ADAPT)`,
+          tasks: [taskId],
+        });
+      }
+    }
+  }
+
+  return {
+    issues,
+    checkedAt: new Date().toISOString(),
+    taskCount: taskOutputs.size,
+  };
+}
+
 export function createBootstrapTaskExecutor(
   modelExecutor: ModelExecutor,
 ): BootstrapTaskExecutorBundle {
   // Manifest accumulator — written after all tasks complete
   const manifestTasks: ManifestTask[] = [];
+  // Cross-task output accumulator for synthesis injection
+  const taskOutputs = new Map<string, { title: string; output: string; model: string }>();
   let currentRunId: string | null = null;
   let currentIntent: string = "";
   let currentRepoPath: string = "";
   let runStartedAt: string = "";
+  let totalPhases: string[] = [];
 
   const executor: TaskExecutor = {
     async execute(
@@ -204,6 +322,10 @@ export function createBootstrapTaskExecutor(
         currentIntent = context.intent;
         currentRepoPath = repoPath;
         runStartedAt = new Date().toISOString();
+      }
+      // Track phases seen for synthesis detection (last phase = synthesis candidate)
+      if (!totalPhases.includes(task.phase)) {
+        totalPhases.push(task.phase);
       }
 
       console.log(`\n  📋 Task: ${task.title} [${task.task_id}]`);
@@ -222,7 +344,9 @@ export function createBootstrapTaskExecutor(
 
       try {
         // Generate analysis via LLM
-        const prompt = buildTaskPrompt(task, context);
+        const isLastPhase = totalPhases.length > 1 &&
+          task.phase === totalPhases[totalPhases.length - 1];
+        const prompt = buildTaskPrompt(task, context, taskOutputs, isLastPhase);
         const result = await modelExecutor.execute(prompt, {
           taskType: task.type === "mechanical" ? "coding" : "analytical",
           complexity:
@@ -285,10 +409,12 @@ export function createBootstrapTaskExecutor(
           outputChars: result.text.length,
         });
 
-        // TODO: mechanical task auto-apply (see architect spec)
-        // Future: for mechanical tasks, apply the change to a git branch,
-        // run tests, and auto-merge if green. For now, all output goes to
-        // pipeline-output for human review.
+        // Store output for cross-task injection (capped)
+        taskOutputs.set(task.task_id, {
+          title: task.title,
+          output: result.text.slice(0, MAX_PRIOR_OUTPUT_CHARS),
+          model: result.modelId,
+        });
 
         return {
           task_id: task.task_id,
@@ -348,13 +474,34 @@ export function createBootstrapTaskExecutor(
     const manifestPath = join(outputDir, "_manifest.json");
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
     console.log(`  [DISPATCH] Manifest written to: ${manifestPath}`);
+
+    // Run post-dispatch consistency check
+    if (taskOutputs.size > 0) {
+      const report = checkConsistency(taskOutputs);
+      const reportPath = join(outputDir, "_consistency-check.json");
+      writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf-8");
+      if (report.issues.length > 0) {
+        console.log(`  [DISPATCH] ⚠️  ${report.issues.length} consistency issue(s) found — see ${reportPath}`);
+        for (const issue of report.issues) {
+          console.log(`    - [${issue.type}] ${issue.description}`);
+        }
+      } else {
+        console.log(`  [DISPATCH] ✅ Consistency check passed (${report.taskCount} tasks)`);
+      }
+    }
+
     return manifest;
   }
 
   return { executor, writeManifest };
 }
 
-function buildTaskPrompt(task: Task, context: TaskExecutionContext): string {
+function buildTaskPrompt(
+  task: Task,
+  context: TaskExecutionContext,
+  priorOutputs: Map<string, { title: string; output: string; model: string }>,
+  isLastPhase: boolean,
+): string {
   const fileContext = readFileContext(task, context.repoPath);
 
   const isMechanical = task.type === "mechanical";
@@ -372,6 +519,20 @@ function buildTaskPrompt(task: Task, context: TaskExecutionContext): string {
         `Focus on findings, evidence, and recommendations.`,
         `Do NOT output code changes or file rewrites — only analysis.`,
       ];
+
+  // Build prior-task context for synthesis tasks
+  const synthesisContext: string[] = [];
+  if (priorOutputs.size > 0 && isSynthesisTask(task, isLastPhase)) {
+    synthesisContext.push(`## Prior Task Outputs (for synthesis/consolidation)`);
+    synthesisContext.push(`The following are outputs from earlier tasks in this pipeline run.`);
+    synthesisContext.push(`Use them as source material — do NOT simply repeat them.`);
+    synthesisContext.push(``);
+    for (const [taskId, { title, output }] of priorOutputs) {
+      synthesisContext.push(`### ${taskId}: ${title}`);
+      synthesisContext.push(output);
+      synthesisContext.push(``);
+    }
+  }
 
   return [
     `You are executing a task in the Codex Signum core library.`,
@@ -399,6 +560,7 @@ function buildTaskPrompt(task: Task, context: TaskExecutionContext): string {
           ``,
         ]
       : []),
+    ...synthesisContext,
     ...instructions,
   ].join("\n");
 }
