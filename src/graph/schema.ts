@@ -8,6 +8,8 @@
  * Node labels, relationships, constraints, and indexes
  * that encode the Codex grammar as a graph structure.
  *
+ * M-7C: Labels use Codex morpheme names (Seed, Bloom).
+ *
  * "The Neo4j graph is the single source of truth."
  *
  * @see codex-signum-implementation-README.md §TASK 1
@@ -21,15 +23,17 @@ import { writeTransaction } from "./client.js";
 /**
  * All Cypher statements needed to create the Codex schema.
  * Run these once (idempotent — CREATE IF NOT EXISTS).
+ *
+ * M-7C: Uses morpheme-native labels (Seed instead of Agent, Bloom instead of Pattern).
  */
 const SCHEMA_STATEMENTS: string[] = [
   // ── Node Uniqueness Constraints ──
 
-  // Agents (models, services — compute substrate)
-  "CREATE CONSTRAINT agent_id_unique IF NOT EXISTS FOR (a:Agent) REQUIRE a.id IS UNIQUE",
+  // Seeds (compute substrate — LLM model instances)
+  "CREATE CONSTRAINT seed_id_unique IF NOT EXISTS FOR (s:Seed) REQUIRE s.id IS UNIQUE",
 
-  // Patterns (compositions of morphemes)
-  "CREATE CONSTRAINT pattern_id_unique IF NOT EXISTS FOR (p:Pattern) REQUIRE p.id IS UNIQUE",
+  // Blooms (scoped compositions of morphemes)
+  "CREATE CONSTRAINT bloom_id_unique IF NOT EXISTS FOR (b:Bloom) REQUIRE b.id IS UNIQUE",
 
   // Decisions (routing choices, governance evaluations)
   "CREATE CONSTRAINT decision_id_unique IF NOT EXISTS FOR (d:Decision) REQUIRE d.id IS UNIQUE",
@@ -45,9 +49,6 @@ const SCHEMA_STATEMENTS: string[] = [
 
   // Institutional Knowledge (Stratum 4)
   "CREATE CONSTRAINT institutional_id_unique IF NOT EXISTS FOR (ik:InstitutionalKnowledge) REQUIRE ik.id IS UNIQUE",
-
-  // Seeds (atomic morphemes within patterns)
-  "CREATE CONSTRAINT seed_id_unique IF NOT EXISTS FOR (s:Seed) REQUIRE s.id IS UNIQUE",
 
   // Resonators (transformation morphemes)
   "CREATE CONSTRAINT resonator_id_unique IF NOT EXISTS FOR (r:Resonator) REQUIRE r.id IS UNIQUE",
@@ -69,25 +70,25 @@ const SCHEMA_STATEMENTS: string[] = [
   // Observations by timestamp (time-range queries for ΦL computation)
   "CREATE INDEX observation_timestamp IF NOT EXISTS FOR (o:Observation) ON (o.timestamp)",
 
-  // Observations by source pattern (ΦL computation per pattern)
-  "CREATE INDEX observation_source IF NOT EXISTS FOR (o:Observation) ON (o.sourcePatternId)",
+  // Observations by source bloom (ΦL computation per bloom)
+  "CREATE INDEX observation_source_bloom IF NOT EXISTS FOR (o:Observation) ON (o.sourceBloomId)",
 
   // Decisions by timestamp
   "CREATE INDEX decision_timestamp IF NOT EXISTS FOR (d:Decision) ON (d.timestamp)",
 
-  // Decisions by pattern
-  "CREATE INDEX decision_pattern IF NOT EXISTS FOR (d:Decision) ON (d.madeByPatternId)",
+  // Decisions by bloom
+  "CREATE INDEX decision_bloom IF NOT EXISTS FOR (d:Decision) ON (d.madeByBloomId)",
 
-  // Agents by status (for Thompson Sampling — active agents)
-  "CREATE INDEX agent_status IF NOT EXISTS FOR (a:Agent) ON (a.status)",
+  // Seeds by status (for Thompson Sampling — active seeds)
+  "CREATE INDEX seed_status IF NOT EXISTS FOR (s:Seed) ON (s.status)",
 
-  // Agents by provider / model family / probe freshness
-  "CREATE INDEX agent_provider IF NOT EXISTS FOR (a:Agent) ON (a.provider)",
-  "CREATE INDEX agent_base_model IF NOT EXISTS FOR (a:Agent) ON (a.baseModelId)",
-  "CREATE INDEX agent_last_probed IF NOT EXISTS FOR (a:Agent) ON (a.lastProbed)",
+  // Seeds by provider / model family / probe freshness
+  "CREATE INDEX seed_provider IF NOT EXISTS FOR (s:Seed) ON (s.provider)",
+  "CREATE INDEX seed_base_model IF NOT EXISTS FOR (s:Seed) ON (s.baseModelId)",
+  "CREATE INDEX seed_last_probed IF NOT EXISTS FOR (s:Seed) ON (s.lastProbed)",
 
-  // Patterns by state (integration lifecycle)
-  "CREATE INDEX pattern_state IF NOT EXISTS FOR (p:Pattern) ON (p.state)",
+  // Blooms by state (integration lifecycle)
+  "CREATE INDEX bloom_state IF NOT EXISTS FOR (b:Bloom) ON (b.state)",
 
   // Constitutional Rules by status (active rules)
   "CREATE INDEX rule_status IF NOT EXISTS FOR (r:ConstitutionalRule) ON (r.status)",
@@ -132,6 +133,170 @@ export async function migrateSchema(): Promise<{
   }
 
   return { applied, errors };
+}
+
+// ============ M-7C MORPHEME LABEL MIGRATION ============
+
+/**
+ * M-7C migration: rename pre-Codex node labels to morpheme-native names.
+ * Idempotent — safe to run multiple times.
+ * Run AFTER migrateSchema() on existing databases.
+ *
+ * Label renames: Agent → Seed, Pattern → Bloom
+ * Relationship renames: SELECTED → ROUTED_TO, MADE_BY → ORIGINATED_FROM, OBSERVED_BY → OBSERVED_IN
+ * Property renames: selectedAgentId → selectedSeedId, madeByPatternId → madeByBloomId, sourcePatternId → sourceBloomId
+ */
+export async function migrateToMorphemeLabels(): Promise<{
+  renamed: string[];
+  skipped: string[];
+  errors: string[];
+}> {
+  const renamed: string[] = [];
+  const skipped: string[] = [];
+  const errors: string[] = [];
+
+  // ── Label Migrations ──
+  const labelMigrations = [
+    { from: "Agent", to: "Seed" },
+    { from: "Pattern", to: "Bloom" },
+  ];
+
+  for (const { from, to } of labelMigrations) {
+    try {
+      await writeTransaction(async (tx) => {
+        // Check if any nodes with old label exist
+        const check = await tx.run(
+          `MATCH (n:${from}) RETURN count(n) AS count`,
+        );
+        const count = check.records[0]?.get("count") ?? 0;
+        if (count === 0) {
+          skipped.push(`${from} → ${to} (no nodes found)`);
+          return;
+        }
+        // Add new label, remove old label
+        await tx.run(
+          `MATCH (n:${from}) SET n:${to} REMOVE n:${from}`,
+        );
+        renamed.push(`${from} → ${to} (${count} nodes)`);
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(`Label ${from} → ${to}: ${msg}`);
+    }
+  }
+
+  // ── Relationship Migrations ──
+  const relMigrations = [
+    { from: "SELECTED", to: "ROUTED_TO" },
+    { from: "MADE_BY", to: "ORIGINATED_FROM" },
+    { from: "OBSERVED_BY", to: "OBSERVED_IN" },
+  ];
+
+  for (const { from, to } of relMigrations) {
+    try {
+      await writeTransaction(async (tx) => {
+        // Check if any relationships with old type exist
+        const check = await tx.run(
+          `MATCH ()-[r:${from}]->() RETURN count(r) AS count`,
+        );
+        const count = check.records[0]?.get("count") ?? 0;
+        if (count === 0) {
+          skipped.push(`Rel ${from} → ${to} (none found)`);
+          return;
+        }
+        // Create new relationship with all properties, delete old
+        await tx.run(
+          `MATCH (a)-[r:${from}]->(b)
+           CREATE (a)-[r2:${to}]->(b)
+           SET r2 = properties(r)
+           DELETE r`,
+        );
+        renamed.push(`Rel ${from} → ${to} (${count} relationships)`);
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(`Rel ${from} → ${to}: ${msg}`);
+    }
+  }
+
+  // ── Property Migrations ──
+  const propMigrations = [
+    { label: "Decision", from: "selectedAgentId", to: "selectedSeedId" },
+    { label: "Decision", from: "madeByPatternId", to: "madeByBloomId" },
+    { label: "Observation", from: "sourcePatternId", to: "sourceBloomId" },
+  ];
+
+  for (const { label, from, to } of propMigrations) {
+    try {
+      await writeTransaction(async (tx) => {
+        const check = await tx.run(
+          `MATCH (n:${label}) WHERE n.${from} IS NOT NULL RETURN count(n) AS count`,
+        );
+        const count = check.records[0]?.get("count") ?? 0;
+        if (count === 0) {
+          skipped.push(`Prop ${label}.${from} → ${to} (none found)`);
+          return;
+        }
+        await tx.run(
+          `MATCH (n:${label}) WHERE n.${from} IS NOT NULL
+           SET n.${to} = n.${from}
+           REMOVE n.${from}`,
+        );
+        renamed.push(`Prop ${label}.${from} → ${to} (${count} nodes)`);
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(`Prop ${label}.${from} → ${to}: ${msg}`);
+    }
+  }
+
+  return { renamed, skipped, errors };
+}
+
+/**
+ * Drop legacy pre-M-7C constraints and indexes.
+ * Run AFTER migrateToMorphemeLabels() succeeds.
+ * Idempotent — safe to run if constraints don't exist.
+ */
+export async function cleanupLegacySchema(): Promise<{
+  dropped: string[];
+  errors: string[];
+}> {
+  const dropped: string[] = [];
+  const cleanupErrors: string[] = [];
+
+  const legacyStatements = [
+    // Old constraints
+    "DROP CONSTRAINT agent_id_unique IF EXISTS",
+    "DROP CONSTRAINT pattern_id_unique IF EXISTS",
+    // Old indexes
+    "DROP INDEX agent_status IF EXISTS",
+    "DROP INDEX agent_provider IF EXISTS",
+    "DROP INDEX agent_base_model IF EXISTS",
+    "DROP INDEX agent_last_probed IF EXISTS",
+    "DROP INDEX pattern_state IF EXISTS",
+    "DROP INDEX observation_source IF EXISTS",
+    "DROP INDEX decision_pattern IF EXISTS",
+  ];
+
+  for (const statement of legacyStatements) {
+    try {
+      await writeTransaction(async (tx) => {
+        await tx.run(statement);
+      });
+      dropped.push(statement);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes("does not exist") || msg.includes("not found")) {
+        // Already cleaned up — that's fine
+        dropped.push(`${statement} (already gone)`);
+      } else {
+        cleanupErrors.push(`${statement}: ${msg}`);
+      }
+    }
+  }
+
+  return { dropped, errors: cleanupErrors };
 }
 
 /**

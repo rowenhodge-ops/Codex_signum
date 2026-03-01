@@ -8,6 +8,8 @@
  * Reusable query builders for creating, reading, and relating
  * Codex entities in Neo4j. All state mutations flow through here.
  *
+ * M-7C: Uses morpheme-native names (Seed, Bloom, ROUTED_TO, etc.)
+ *
  * @module codex-signum-core/graph/queries
  */
 
@@ -16,8 +18,8 @@ import { runQuery, writeTransaction } from "./client.js";
 
 // ============ TYPES ============
 
-/** Properties for creating an Agent node */
-export interface AgentProps {
+/** Properties for creating a Seed node (compute substrate — LLM model instance) */
+export interface SeedProps {
   // === Identity ===
   id: string;
   name: string;
@@ -62,13 +64,13 @@ export interface AgentProps {
   probeFailures?: number;
 }
 
-/** Properties for creating/updating a Pattern node */
-export interface PatternProps {
+/** Properties for creating/updating a Bloom node (scoped composition of morphemes) */
+export interface BloomProps {
   id: string;
   name: string;
   description?: string;
   state?: string; // IntegrationState
-  morphemeKinds?: string[]; // which morpheme types compose this pattern
+  morphemeKinds?: string[]; // which morpheme types compose this bloom
   domain?: string;
 }
 
@@ -78,8 +80,8 @@ export interface DecisionProps {
   taskType: string;
   complexity: "trivial" | "moderate" | "complex" | "critical";
   domain?: string;
-  selectedAgentId: string;
-  madeByPatternId?: string;
+  selectedSeedId: string;
+  madeByBloomId?: string;
   wasExploratory: boolean;
   contextClusterId?: string;
   qualityRequirement?: number;
@@ -103,7 +105,7 @@ export interface DecisionOutcomeProps {
 /** Properties for recording an Observation */
 export interface ObservationProps {
   id: string;
-  sourcePatternId: string;
+  sourceBloomId: string;
   metric: string;
   value: number;
   unit?: string;
@@ -130,7 +132,7 @@ export interface ContextClusterProps {
 
 /** Thompson Sampling arm stats */
 export interface ArmStats {
-  agentId: string;
+  seedId: string;
   alpha: number; // successes + 1
   beta: number; // failures + 1
   totalTrials: number;
@@ -140,68 +142,68 @@ export interface ArmStats {
   totalCost: number;
 }
 
-// ============ AGENT QUERIES ============
+// ============ SEED QUERIES ============
 
-export async function createAgent(props: AgentProps): Promise<void> {
+export async function createSeed(props: SeedProps): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
-      `MERGE (a:Agent { id: $id })
+      `MERGE (s:Seed { id: $id })
        ON CREATE SET
-         a.name = $name,
-         a.provider = $provider,
-         a.model = $model,
-         a.baseModelId = $baseModelId,
-         a.thinkingMode = $thinkingMode,
-         a.thinkingParameter = $thinkingParameter,
-         a.capabilities = $capabilities,
-         a.supportsAdaptiveThinking = $supportsAdaptiveThinking,
-         a.supportsExtendedThinking = $supportsExtendedThinking,
-         a.supportsInterleavedThinking = $supportsInterleavedThinking,
-         a.supportsPrefilling = $supportsPrefilling,
-         a.supportsStructuredOutputs = $supportsStructuredOutputs,
-         a.supportsWebSearch = $supportsWebSearch,
-         a.supportsComputerUse = $supportsComputerUse,
-         a.maxContextWindow = $maxContextWindow,
-         a.maxOutputTokens = $maxOutputTokens,
-         a.costPer1kInput = $costPer1kInput,
-         a.costPer1kOutput = $costPer1kOutput,
-         a.avgLatencyMs = $avgLatencyMs,
-         a.costPer1kTokens = $costPer1kTokens,
-         a.status = $status,
-         a.region = $region,
-         a.endpoint = $endpoint,
-         a.lastProbed = $lastProbed,
-         a.lastUsed = $lastUsed,
-         a.probeFailures = 0,
-         a.createdAt = datetime()
+         s.name = $name,
+         s.provider = $provider,
+         s.model = $model,
+         s.baseModelId = $baseModelId,
+         s.thinkingMode = $thinkingMode,
+         s.thinkingParameter = $thinkingParameter,
+         s.capabilities = $capabilities,
+         s.supportsAdaptiveThinking = $supportsAdaptiveThinking,
+         s.supportsExtendedThinking = $supportsExtendedThinking,
+         s.supportsInterleavedThinking = $supportsInterleavedThinking,
+         s.supportsPrefilling = $supportsPrefilling,
+         s.supportsStructuredOutputs = $supportsStructuredOutputs,
+         s.supportsWebSearch = $supportsWebSearch,
+         s.supportsComputerUse = $supportsComputerUse,
+         s.maxContextWindow = $maxContextWindow,
+         s.maxOutputTokens = $maxOutputTokens,
+         s.costPer1kInput = $costPer1kInput,
+         s.costPer1kOutput = $costPer1kOutput,
+         s.avgLatencyMs = $avgLatencyMs,
+         s.costPer1kTokens = $costPer1kTokens,
+         s.status = $status,
+         s.region = $region,
+         s.endpoint = $endpoint,
+         s.lastProbed = $lastProbed,
+         s.lastUsed = $lastUsed,
+         s.probeFailures = 0,
+         s.createdAt = datetime()
        ON MATCH SET
-         a.name = $name,
-         a.provider = $provider,
-         a.model = $model,
-         a.baseModelId = $baseModelId,
-         a.thinkingMode = $thinkingMode,
-         a.thinkingParameter = COALESCE($thinkingParameter, a.thinkingParameter),
-         a.capabilities = COALESCE($capabilities, a.capabilities),
-         a.supportsAdaptiveThinking = COALESCE($supportsAdaptiveThinking, a.supportsAdaptiveThinking),
-         a.supportsExtendedThinking = COALESCE($supportsExtendedThinking, a.supportsExtendedThinking),
-         a.supportsInterleavedThinking = COALESCE($supportsInterleavedThinking, a.supportsInterleavedThinking),
-         a.supportsPrefilling = COALESCE($supportsPrefilling, a.supportsPrefilling),
-         a.supportsStructuredOutputs = COALESCE($supportsStructuredOutputs, a.supportsStructuredOutputs),
-         a.supportsWebSearch = COALESCE($supportsWebSearch, a.supportsWebSearch),
-         a.supportsComputerUse = COALESCE($supportsComputerUse, a.supportsComputerUse),
-         a.maxContextWindow = COALESCE($maxContextWindow, a.maxContextWindow),
-         a.maxOutputTokens = COALESCE($maxOutputTokens, a.maxOutputTokens),
-         a.costPer1kInput = COALESCE($costPer1kInput, a.costPer1kInput),
-         a.costPer1kOutput = COALESCE($costPer1kOutput, a.costPer1kOutput),
-         a.avgLatencyMs = COALESCE($avgLatencyMs, a.avgLatencyMs),
-         a.costPer1kTokens = COALESCE($costPer1kTokens, a.costPer1kTokens),
-         a.status = COALESCE($status, a.status),
-         a.region = COALESCE($region, a.region),
-         a.endpoint = COALESCE($endpoint, a.endpoint),
-         a.lastProbed = COALESCE($lastProbed, a.lastProbed),
-         a.lastUsed = COALESCE($lastUsed, a.lastUsed),
-         a.probeFailures = COALESCE($probeFailures, a.probeFailures),
-         a.updatedAt = datetime()`,
+         s.name = $name,
+         s.provider = $provider,
+         s.model = $model,
+         s.baseModelId = $baseModelId,
+         s.thinkingMode = $thinkingMode,
+         s.thinkingParameter = COALESCE($thinkingParameter, s.thinkingParameter),
+         s.capabilities = COALESCE($capabilities, s.capabilities),
+         s.supportsAdaptiveThinking = COALESCE($supportsAdaptiveThinking, s.supportsAdaptiveThinking),
+         s.supportsExtendedThinking = COALESCE($supportsExtendedThinking, s.supportsExtendedThinking),
+         s.supportsInterleavedThinking = COALESCE($supportsInterleavedThinking, s.supportsInterleavedThinking),
+         s.supportsPrefilling = COALESCE($supportsPrefilling, s.supportsPrefilling),
+         s.supportsStructuredOutputs = COALESCE($supportsStructuredOutputs, s.supportsStructuredOutputs),
+         s.supportsWebSearch = COALESCE($supportsWebSearch, s.supportsWebSearch),
+         s.supportsComputerUse = COALESCE($supportsComputerUse, s.supportsComputerUse),
+         s.maxContextWindow = COALESCE($maxContextWindow, s.maxContextWindow),
+         s.maxOutputTokens = COALESCE($maxOutputTokens, s.maxOutputTokens),
+         s.costPer1kInput = COALESCE($costPer1kInput, s.costPer1kInput),
+         s.costPer1kOutput = COALESCE($costPer1kOutput, s.costPer1kOutput),
+         s.avgLatencyMs = COALESCE($avgLatencyMs, s.avgLatencyMs),
+         s.costPer1kTokens = COALESCE($costPer1kTokens, s.costPer1kTokens),
+         s.status = COALESCE($status, s.status),
+         s.region = COALESCE($region, s.region),
+         s.endpoint = COALESCE($endpoint, s.endpoint),
+         s.lastProbed = COALESCE($lastProbed, s.lastProbed),
+         s.lastUsed = COALESCE($lastUsed, s.lastUsed),
+         s.probeFailures = COALESCE($probeFailures, s.probeFailures),
+         s.updatedAt = datetime()`,
       {
         ...props,
         baseModelId: props.baseModelId,
@@ -232,81 +234,81 @@ export async function createAgent(props: AgentProps): Promise<void> {
   });
 }
 
-export async function getAgent(id: string): Promise<Neo4jRecord | null> {
+export async function getSeed(id: string): Promise<Neo4jRecord | null> {
   const result = await runQuery(
-    "MATCH (a:Agent { id: $id }) RETURN a",
+    "MATCH (s:Seed { id: $id }) RETURN s",
     { id },
     "READ",
   );
   return result.records[0] ?? null;
 }
 
-export async function listActiveAgents(): Promise<Neo4jRecord[]> {
+export async function listActiveSeeds(): Promise<Neo4jRecord[]> {
   const result = await runQuery(
-    "MATCH (a:Agent) WHERE a.status = 'active' RETURN a ORDER BY a.avgLatencyMs ASC",
+    "MATCH (s:Seed) WHERE s.status = 'active' RETURN s ORDER BY s.avgLatencyMs ASC",
     {},
     "READ",
   );
   return result.records;
 }
 
-export async function listActiveAgentsByCapability(requirements: {
+export async function listActiveSeedsByCapability(requirements: {
   supportsAdaptiveThinking?: boolean;
   supportsExtendedThinking?: boolean;
   supportsInterleavedThinking?: boolean;
   supportsStructuredOutputs?: boolean;
   maxCostPer1kOutput?: number;
 }): Promise<Neo4jRecord[]> {
-  const conditions = ["a.status = 'active'"];
+  const conditions = ["s.status = 'active'"];
   const params: Record<string, unknown> = {};
 
   if (requirements.supportsAdaptiveThinking) {
-    conditions.push("a.supportsAdaptiveThinking = true");
+    conditions.push("s.supportsAdaptiveThinking = true");
   }
   if (requirements.supportsExtendedThinking) {
-    conditions.push("a.supportsExtendedThinking = true");
+    conditions.push("s.supportsExtendedThinking = true");
   }
   if (requirements.supportsInterleavedThinking) {
-    conditions.push("a.supportsInterleavedThinking = true");
+    conditions.push("s.supportsInterleavedThinking = true");
   }
   if (requirements.supportsStructuredOutputs) {
-    conditions.push("a.supportsStructuredOutputs = true");
+    conditions.push("s.supportsStructuredOutputs = true");
   }
   if (requirements.maxCostPer1kOutput !== undefined) {
-    conditions.push("a.costPer1kOutput <= $maxCost");
+    conditions.push("s.costPer1kOutput <= $maxCost");
     params.maxCost = requirements.maxCostPer1kOutput;
   }
 
   const result = await runQuery(
-    `MATCH (a:Agent) WHERE ${conditions.join(" AND ")} RETURN a ORDER BY a.avgLatencyMs ASC`,
+    `MATCH (s:Seed) WHERE ${conditions.join(" AND ")} RETURN s ORDER BY s.avgLatencyMs ASC`,
     params,
     "READ",
   );
   return result.records;
 }
 
-// ============ PATTERN QUERIES ============
+// ============ BLOOM QUERIES ============
 
-export async function createPattern(props: PatternProps): Promise<void> {
+export async function createBloom(props: BloomProps): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
-      `MERGE (p:Pattern { id: $id })
+      `MERGE (b:Bloom { id: $id })
        ON CREATE SET
-         p.name = $name,
-         p.description = $description,
-         p.state = $state,
-         p.morphemeKinds = $morphemeKinds,
-         p.domain = $domain,
-         p.createdAt = datetime(),
-         p.observationCount = 0,
-         p.connectionCount = 0
+         b.name = $name,
+         b.description = $description,
+         b.state = $state,
+         b.morphemeKinds = $morphemeKinds,
+         b.domain = $domain,
+         b.createdAt = datetime(),
+         b.observationCount = 0,
+         b.connectionCount = 0
        ON MATCH SET
-         p.name = $name,
-         p.description = $description,
-         p.state = $state,
-         p.morphemeKinds = $morphemeKinds,
-         p.domain = $domain,
-         p.updatedAt = datetime()`,
+         b.name = $name,
+         b.description = $description,
+         b.state = $state,
+         b.morphemeKinds = $morphemeKinds,
+         b.domain = $domain,
+         b.updatedAt = datetime()`,
       {
         ...props,
         description: props.description ?? null,
@@ -318,30 +320,30 @@ export async function createPattern(props: PatternProps): Promise<void> {
   });
 }
 
-export async function getPattern(id: string): Promise<Neo4jRecord | null> {
+export async function getBloom(id: string): Promise<Neo4jRecord | null> {
   const result = await runQuery(
-    "MATCH (p:Pattern { id: $id }) RETURN p",
+    "MATCH (b:Bloom { id: $id }) RETURN b",
     { id },
     "READ",
   );
   return result.records[0] ?? null;
 }
 
-export async function updatePatternState(
+export async function updateBloomState(
   id: string,
   state: string,
 ): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
-      `MATCH (p:Pattern { id: $id })
-       SET p.state = $state, p.updatedAt = datetime()`,
+      `MATCH (b:Bloom { id: $id })
+       SET b.state = $state, b.updatedAt = datetime()`,
       { id, state },
     );
   });
 }
 
-/** Increment pattern connection count and recalculate state */
-export async function connectPatterns(
+/** Increment bloom connection count and recalculate state */
+export async function connectBlooms(
   fromId: string,
   toId: string,
   relType: string,
@@ -356,7 +358,7 @@ export async function connectPatterns(
   await writeTransaction(async (tx) => {
     // Create the relationship
     await tx.run(
-      `MATCH (a:Pattern { id: $fromId }), (b:Pattern { id: $toId })
+      `MATCH (a:Bloom { id: $fromId }), (b:Bloom { id: $toId })
        MERGE (a)-[r:${relType}]->(b)
        ON CREATE SET r.createdAt = datetime()${propsString}
        WITH a, b
@@ -375,7 +377,7 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
     await tx.run(
       `CREATE (d:Decision {
          id: $id,
-        selectedAgentId: $selectedAgentId,
+        selectedSeedId: $selectedSeedId,
          taskType: $taskType,
          complexity: $complexity,
          domain: $domain,
@@ -386,12 +388,12 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
          status: 'pending'
        })
        WITH d
-       MATCH (a:Agent { id: $selectedAgentId })
-       MERGE (d)-[:SELECTED]->(a)
+       MATCH (s:Seed { id: $selectedSeedId })
+       MERGE (d)-[:ROUTED_TO]->(s)
        WITH d
-       OPTIONAL MATCH (p:Pattern { id: $madeByPatternId })
-       FOREACH (_ IN CASE WHEN p IS NOT NULL THEN [1] ELSE [] END |
-         MERGE (d)-[:MADE_BY]->(p)
+       OPTIONAL MATCH (b:Bloom { id: $madeByBloomId })
+       FOREACH (_ IN CASE WHEN b IS NOT NULL THEN [1] ELSE [] END |
+         MERGE (d)-[:ORIGINATED_FROM]->(b)
        )
        WITH d
        OPTIONAL MATCH (cc:ContextCluster { id: $contextClusterId })
@@ -401,7 +403,7 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
       {
         ...props,
         domain: props.domain ?? null,
-        madeByPatternId: props.madeByPatternId ?? null,
+        madeByBloomId: props.madeByBloomId ?? null,
         contextClusterId: props.contextClusterId ?? null,
         qualityRequirement: props.qualityRequirement ?? null,
         costCeiling: props.costCeiling ?? null,
@@ -448,8 +450,8 @@ export async function getDecisionsForCluster(
   const result = await runQuery(
     `MATCH (d:Decision)-[:IN_CONTEXT]->(cc:ContextCluster { id: $clusterId })
      WHERE d.status = 'completed'
-     MATCH (d)-[:SELECTED]->(a:Agent)
-     RETURN d, a
+     MATCH (d)-[:ROUTED_TO]->(s:Seed)
+     RETURN d, s
      ORDER BY d.timestamp DESC
      LIMIT toInteger($limit)`,
     { clusterId, limit },
@@ -465,8 +467,8 @@ export async function getArmStatsForCluster(
   const result = await runQuery(
     `MATCH (d:Decision)-[:IN_CONTEXT]->(cc:ContextCluster { id: $clusterId })
      WHERE d.status = 'completed'
-     MATCH (d)-[:SELECTED]->(a:Agent)
-     WITH a,
+     MATCH (d)-[:ROUTED_TO]->(s:Seed)
+     WITH s,
           count(d) AS totalTrials,
           sum(CASE WHEN d.success THEN 1 ELSE 0 END) AS successes,
           sum(CASE WHEN NOT d.success THEN 1 ELSE 0 END) AS failures,
@@ -474,7 +476,7 @@ export async function getArmStatsForCluster(
          avg(d.durationMs) AS avgLatencyMs,
          avg(COALESCE(d.cost, 0)) AS avgCost,
          sum(COALESCE(d.cost, 0)) AS totalCost
-     RETURN a.id AS agentId,
+     RETURN s.id AS seedId,
             successes + 1 AS alpha,
             failures + 1 AS beta,
             totalTrials,
@@ -487,7 +489,7 @@ export async function getArmStatsForCluster(
     "READ",
   );
   return result.records.map((r) => ({
-    agentId: r.get("agentId"),
+    seedId: r.get("seedId"),
     alpha: r.get("alpha"),
     beta: r.get("beta"),
     totalTrials: r.get("totalTrials"),
@@ -515,9 +517,9 @@ export async function recordObservation(
          retained: true
        })
        WITH o
-       MATCH (p:Pattern { id: $sourcePatternId })
-       MERGE (o)-[:OBSERVED_BY]->(p)
-       SET p.observationCount = coalesce(p.observationCount, 0) + 1`,
+       MATCH (b:Bloom { id: $sourceBloomId })
+       MERGE (o)-[:OBSERVED_IN]->(b)
+       SET b.observationCount = coalesce(b.observationCount, 0) + 1`,
       {
         ...props,
         unit: props.unit ?? null,
@@ -527,32 +529,32 @@ export async function recordObservation(
   });
 }
 
-/** Get observations for ΦL computation — recent, for a given pattern */
-export async function getObservationsForPattern(
-  patternId: string,
+/** Get observations for ΦL computation — recent, for a given bloom */
+export async function getObservationsForBloom(
+  bloomId: string,
   limit: number = 50,
 ): Promise<Neo4jRecord[]> {
   const result = await runQuery(
-    `MATCH (o:Observation)-[:OBSERVED_BY]->(p:Pattern { id: $patternId })
+    `MATCH (o:Observation)-[:OBSERVED_IN]->(b:Bloom { id: $bloomId })
      WHERE o.retained = true
      RETURN o
      ORDER BY o.timestamp DESC
      LIMIT $limit`,
-    { patternId, limit },
+    { bloomId, limit },
     "READ",
   );
   return result.records;
 }
 
 /** Count observations for maturity calculation */
-export async function countObservationsForPattern(
-  patternId: string,
+export async function countObservationsForBloom(
+  bloomId: string,
 ): Promise<number> {
   const result = await runQuery(
-    `MATCH (o:Observation)-[:OBSERVED_BY]->(p:Pattern { id: $patternId })
+    `MATCH (o:Observation)-[:OBSERVED_IN]->(b:Bloom { id: $bloomId })
      WHERE o.retained = true
      RETURN count(o) AS count`,
-    { patternId },
+    { bloomId },
     "READ",
   );
   return result.records[0]?.get("count") ?? 0;
@@ -612,29 +614,29 @@ export async function ensureContextCluster(
 // ============ TOPOLOGY QUERIES ============
 
 /**
- * Get the degree of a pattern node (number of relationships).
+ * Get the degree of a bloom node (number of relationships).
  * Used for topology-aware dampening: γ_effective = min(0.7, 0.8/(k-1))
  */
-export async function getPatternDegree(patternId: string): Promise<number> {
+export async function getBloomDegree(bloomId: string): Promise<number> {
   const result = await runQuery(
-    `MATCH (p:Pattern { id: $patternId })
-     OPTIONAL MATCH (p)-[r]-()
+    `MATCH (b:Bloom { id: $bloomId })
+     OPTIONAL MATCH (b)-[r]-()
      RETURN count(r) AS degree`,
-    { patternId },
+    { bloomId },
     "READ",
   );
   return result.records[0]?.get("degree") ?? 0;
 }
 
 /**
- * Get the adjacency list for patterns.
+ * Get the adjacency list for blooms.
  * Used for ΨH (spectral analysis) computations.
  */
-export async function getPatternAdjacency(): Promise<
+export async function getBloomAdjacency(): Promise<
   Array<{ from: string; to: string; weight: number }>
 > {
   const result = await runQuery(
-    `MATCH (a:Pattern)-[r]->(b:Pattern)
+    `MATCH (a:Bloom)-[r]->(b:Bloom)
      RETURN a.id AS fromId, b.id AS toId, coalesce(r.weight, 1.0) AS weight`,
     {},
     "READ",
@@ -647,21 +649,21 @@ export async function getPatternAdjacency(): Promise<
 }
 
 /**
- * Get all patterns with their phi-L values.
+ * Get all blooms with their phi-L values.
  * Used for Graph Total Variation computation in ΨH.
  */
-export async function getPatternsWithHealth(): Promise<
+export async function getBloomsWithHealth(): Promise<
   Array<{ id: string; phiL: number; state: string; degree: number }>
 > {
   const result = await runQuery(
-    `MATCH (p:Pattern)
-     OPTIONAL MATCH (p)-[r]-()
-     WITH p, count(r) AS degree
-     RETURN p.id AS id,
-            coalesce(p.phiL, 0.5) AS phiL,
-            coalesce(p.state, 'created') AS state,
+    `MATCH (b:Bloom)
+     OPTIONAL MATCH (b)-[r]-()
+     WITH b, count(r) AS degree
+     RETURN b.id AS id,
+            coalesce(b.phiL, 0.5) AS phiL,
+            coalesce(b.state, 'created') AS state,
             degree
-     ORDER BY p.id`,
+     ORDER BY b.id`,
     {},
     "READ",
   );
@@ -674,20 +676,20 @@ export async function getPatternsWithHealth(): Promise<
 }
 
 /**
- * Store computed ΦL on a pattern node.
+ * Store computed ΦL on a bloom node.
  */
-export async function updatePatternPhiL(
-  patternId: string,
+export async function updateBloomPhiL(
+  bloomId: string,
   phiL: number,
   trend: "improving" | "stable" | "declining",
 ): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
-      `MATCH (p:Pattern { id: $patternId })
-       SET p.phiL = $phiL,
-           p.phiLTrend = $trend,
-           p.phiLComputedAt = datetime()`,
-      { patternId, phiL, trend },
+      `MATCH (b:Bloom { id: $bloomId })
+       SET b.phiL = $phiL,
+           b.phiLTrend = $trend,
+           b.phiLComputedAt = datetime()`,
+      { bloomId, phiL, trend },
     );
   });
 }
@@ -832,3 +834,38 @@ export async function getContainersBottomUp(): Promise<
     depth: rec.get("depth"),
   }));
 }
+
+// ============ BACKWARD COMPATIBILITY (remove in M-8) ============
+
+/** @deprecated Use SeedProps */
+export type AgentProps = SeedProps;
+/** @deprecated Use BloomProps */
+export type PatternProps = BloomProps;
+/** @deprecated Use createSeed */
+export const createAgent = createSeed;
+/** @deprecated Use getSeed */
+export const getAgent = getSeed;
+/** @deprecated Use listActiveSeeds */
+export const listActiveAgents = listActiveSeeds;
+/** @deprecated Use listActiveSeedsByCapability */
+export const listActiveAgentsByCapability = listActiveSeedsByCapability;
+/** @deprecated Use createBloom */
+export const createPattern = createBloom;
+/** @deprecated Use getBloom */
+export const getPattern = getBloom;
+/** @deprecated Use updateBloomState */
+export const updatePatternState = updateBloomState;
+/** @deprecated Use connectBlooms */
+export const connectPatterns = connectBlooms;
+/** @deprecated Use getBloomDegree */
+export const getPatternDegree = getBloomDegree;
+/** @deprecated Use getBloomAdjacency */
+export const getPatternAdjacency = getBloomAdjacency;
+/** @deprecated Use getBloomsWithHealth */
+export const getPatternsWithHealth = getBloomsWithHealth;
+/** @deprecated Use updateBloomPhiL */
+export const updatePatternPhiL = updateBloomPhiL;
+/** @deprecated Use getObservationsForBloom */
+export const getObservationsForPattern = getObservationsForBloom;
+/** @deprecated Use countObservationsForBloom */
+export const countObservationsForPattern = countObservationsForBloom;

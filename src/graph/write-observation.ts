@@ -36,7 +36,7 @@ import type {
   PropagationNode,
   PropagationResult,
 } from "../computation/dampening.js";
-import { recordObservation, updatePatternPhiL } from "./queries.js";
+import { recordObservation, updateBloomPhiL } from "./queries.js";
 import { writeTransaction } from "./client.js";
 import type { ObservationProps } from "./queries.js";
 
@@ -111,7 +111,7 @@ export async function writeObservation(
   // Step 2: Condition the value through the 7-stage signal pipeline (INLINE)
   const conditioned = conditionValue(
     pipeline,
-    observation.sourcePatternId,
+    observation.sourceBloomId,
     observation.metric,
     observation.value,
     context.topologyRole,
@@ -132,7 +132,7 @@ export async function writeObservation(
   let thresholdEvent: ThresholdEvent | null = null;
   if (context.previousBand !== undefined && context.previousBand !== band) {
     thresholdEvent = await writeThresholdEvent(
-      observation.sourcePatternId,
+      observation.sourceBloomId,
       context.previousBand,
       band,
       phiL.effective,
@@ -140,9 +140,9 @@ export async function writeObservation(
     );
   }
 
-  // Step 6: Update pattern's stored ΦL on the Pattern node
-  await updatePatternPhiL(
-    observation.sourcePatternId,
+  // Step 6: Update bloom's stored ΦL on the Bloom node
+  await updateBloomPhiL(
+    observation.sourceBloomId,
     phiL.effective,
     phiL.trend,
   );
@@ -157,7 +157,7 @@ export async function writeObservation(
     const severity = (context.previousPhiL ?? 0.5) - phiL.effective;
     if (severity > 0) {
       cascadeResult = propagateDegradation(
-        observation.sourcePatternId,
+        observation.sourceBloomId,
         severity,
         context.neighbors,
       );
@@ -225,8 +225,8 @@ export async function writeThresholdEvent(
          timestamp: datetime()
        })
        WITH te
-       MATCH (p:Pattern { id: $patternId })
-       CREATE (te)-[:THRESHOLD_CROSSED_BY]->(p)`,
+       MATCH (b:Bloom { id: $patternId })
+       CREATE (te)-[:THRESHOLD_CROSSED_BY]->(b)`,
       {
         id: event.id,
         patternId: event.patternId,

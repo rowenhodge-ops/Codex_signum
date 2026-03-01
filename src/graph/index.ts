@@ -23,16 +23,16 @@ export {
   seedConstitutionalRules,
 } from "./schema.js";
 export {
-  // Agents
-  createAgent,
-  getAgent,
-  listActiveAgents,
-  listActiveAgentsByCapability,
-  // Patterns
-  createPattern,
-  getPattern,
-  updatePatternState,
-  connectPatterns,
+  // Seeds (formerly Agents)
+  createSeed,
+  getSeed,
+  listActiveSeeds,
+  listActiveSeedsByCapability,
+  // Blooms (formerly Patterns)
+  createBloom,
+  getBloom,
+  updateBloomState,
+  connectBlooms,
   // Decisions
   recordDecision,
   recordDecisionOutcome,
@@ -40,13 +40,28 @@ export {
   getArmStatsForCluster,
   // Observations
   recordObservation,
-  getObservationsForPattern,
-  countObservationsForPattern,
+  getObservationsForBloom,
+  countObservationsForBloom,
   // Distillations
   createDistillation,
   // Context Clusters
   ensureContextCluster,
   // Topology
+  getBloomDegree,
+  getBloomAdjacency,
+  getBloomsWithHealth,
+  updateBloomPhiL,
+  // Backward compatibility aliases (deprecated)
+  createAgent,
+  getAgent,
+  listActiveAgents,
+  listActiveAgentsByCapability,
+  createPattern,
+  getPattern,
+  updatePatternState,
+  connectPatterns,
+  getObservationsForPattern,
+  countObservationsForPattern,
   getPatternDegree,
   getPatternAdjacency,
   getPatternsWithHealth,
@@ -55,14 +70,17 @@ export {
 
 // Re-export query types
 export type {
-  AgentProps,
-  PatternProps,
+  SeedProps,
+  BloomProps,
   DecisionProps,
   DecisionOutcomeProps,
   ObservationProps,
   DistillationProps,
   ContextClusterProps,
   ArmStats,
+  // Backward compatibility aliases (deprecated)
+  AgentProps,
+  PatternProps,
 } from "./queries.js";
 
 // Inline conditioning write path
