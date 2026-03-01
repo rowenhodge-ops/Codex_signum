@@ -296,6 +296,127 @@ export function checkConsistency(
   };
 }
 
+// ── Jidoka / Andon Cord — Hallucination Detection ─────────────────────────
+
+/** Entities that have been eliminated from the codebase and should not appear in outputs */
+export const ELIMINATED_ENTITIES = [
+  "Observer pattern",
+  "Model Sentinel",
+  "collector.ts",
+  "evaluator.ts",
+  "auditor.ts",
+  "GraphObserver",
+  "codexStats",
+  "health dashboard",
+  "monitoring overlay",
+] as const;
+
+export interface HallucinationFlag {
+  level: "signal" | "content" | "structural";
+  severity: "warning" | "error";
+  description: string;
+}
+
+/**
+ * Three-layer hallucination detection on LLM task output.
+ *
+ * Signal-level: output too short, empty, or error-like
+ * Content-level: references eliminated entities, fabricated names
+ * Structural-level: acceptance criteria sections missing from output
+ */
+export function detectHallucinations(
+  output: string,
+  task: Task,
+): HallucinationFlag[] {
+  const flags: HallucinationFlag[] = [];
+
+  // ── Layer 1: Signal-level ──────────────────────────────────────────────
+  if (!output || output.trim().length === 0) {
+    flags.push({
+      level: "signal",
+      severity: "error",
+      description: "Empty output from LLM",
+    });
+    return flags; // No point checking content/structure on empty output
+  }
+
+  if (output.trim().length < 200) {
+    flags.push({
+      level: "signal",
+      severity: "warning",
+      description: `Suspiciously short output (${output.trim().length} chars)`,
+    });
+  }
+
+  const errorPatterns = /^(error|Error:|I cannot|I'm unable|I apologize|Sorry,)/m;
+  if (errorPatterns.test(output)) {
+    flags.push({
+      level: "signal",
+      severity: "warning",
+      description: "Output begins with error-like pattern",
+    });
+  }
+
+  // ── Layer 2: Content-level ─────────────────────────────────────────────
+  for (const entity of ELIMINATED_ENTITIES) {
+    if (output.toLowerCase().includes(entity.toLowerCase())) {
+      flags.push({
+        level: "content",
+        severity: "warning",
+        description: `References eliminated entity "${entity}"`,
+      });
+    }
+  }
+
+  // Check for wrong axiom count (common hallucination: "9 axioms" or "12 axioms")
+  const axiomCountMatch = output.match(/(\d+)\s+axioms?/i);
+  if (axiomCountMatch) {
+    const count = parseInt(axiomCountMatch[1], 10);
+    if (count !== 10) {
+      flags.push({
+        level: "content",
+        severity: "warning",
+        description: `Claims ${count} axioms (canonical count is 10)`,
+      });
+    }
+  }
+
+  // Check for wrong pipeline stage count
+  const stageCountMatch = output.match(/(\d+)[\s-]+stage pipeline/i);
+  if (stageCountMatch) {
+    const count = parseInt(stageCountMatch[1], 10);
+    if (count !== 7) {
+      flags.push({
+        level: "content",
+        severity: "warning",
+        description: `Claims ${count}-stage pipeline (canonical count is 7)`,
+      });
+    }
+  }
+
+  // ── Layer 3: Structural-level ──────────────────────────────────────────
+  // Check if acceptance criteria keywords appear in output
+  for (const criterion of task.acceptance_criteria) {
+    // Extract key nouns/phrases from criterion (words > 5 chars)
+    const keyTerms = criterion.match(/[A-Za-z]{6,}/g);
+    if (!keyTerms || keyTerms.length === 0) continue;
+
+    // If none of the key terms from a criterion appear in output, flag it
+    const found = keyTerms.some((term) =>
+      output.toLowerCase().includes(term.toLowerCase()),
+    );
+    if (!found) {
+      flags.push({
+        level: "structural",
+        severity: "warning",
+        description: `Acceptance criterion may not be addressed: "${criterion.slice(0, 80)}"`,
+      });
+    }
+  }
+
+  return flags;
+}
+
 export function createBootstrapTaskExecutor(
   modelExecutor: ModelExecutor,
 ): BootstrapTaskExecutorBundle {
@@ -361,6 +482,22 @@ export function createBootstrapTaskExecutor(
           `     LLM response: ${result.text.length} chars from ${result.modelId} (${result.durationMs}ms)`,
         );
 
+        // Jidoka: hallucination detection on raw output
+        const hallucinationFlags = detectHallucinations(result.text, task);
+        if (hallucinationFlags.length > 0) {
+          const errors = hallucinationFlags.filter((f) => f.severity === "error");
+          const warnings = hallucinationFlags.filter((f) => f.severity === "warning");
+          if (errors.length > 0) {
+            console.log(`     🔴 ${errors.length} hallucination error(s) detected`);
+          }
+          if (warnings.length > 0) {
+            console.log(`     🟡 ${warnings.length} hallucination warning(s) detected`);
+          }
+          for (const flag of hallucinationFlags) {
+            console.log(`       [${flag.level}/${flag.severity}] ${flag.description}`);
+          }
+        }
+
         // Write output to pipeline-output/ (NEVER to source files)
         const outputPath = getOutputPath(task, currentRunId, repoPath);
 
@@ -377,6 +514,14 @@ export function createBootstrapTaskExecutor(
               `# ${task.title}`,
             ];
 
+        const hallucinationSection = hallucinationFlags.length > 0
+          ? [
+              ``,
+              `> **⚠️ Hallucination flags (${hallucinationFlags.length}):**`,
+              ...hallucinationFlags.map((f) => `> - [${f.level}/${f.severity}] ${f.description}`),
+            ]
+          : [];
+
         const outputContent = [
           ...header,
           ``,
@@ -385,6 +530,7 @@ export function createBootstrapTaskExecutor(
           `> Duration: ${result.durationMs}ms`,
           `> Output chars: ${result.text.length}`,
           `> Timestamp: ${new Date().toISOString()}`,
+          ...hallucinationSection,
           ``,
           `---`,
           ``,
