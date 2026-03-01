@@ -870,6 +870,19 @@ export async function bootstrapAgents(force: boolean = false): Promise<number> {
     }
   }
 
+  if (force) {
+    // Remove stale Agent nodes not in current ALL_ARMS
+    const knownIds = ALL_ARMS.map((a) => a.id);
+    const result = await runQuery(
+      `MATCH (a:Agent) WHERE NOT a.id IN $ids DETACH DELETE a RETURN count(a) AS removed`,
+      { ids: knownIds },
+    );
+    const removed = result.records[0]?.get("removed")?.toNumber?.() ?? 0;
+    if (removed > 0) {
+      console.log(`Cleaned up ${removed} stale Agent nodes.`);
+    }
+  }
+
   console.log(`Seeding ${ALL_ARMS.length} agent configurations...`);
   let seeded = 0;
 
@@ -961,6 +974,11 @@ export async function bootstrapPatterns(
 export async function seedInformedPriors(): Promise<number> {
   const taskCategories = ["strategic", "analytical", "generative", "routine"];
   let created = 0;
+
+  // Clear old bootstrap decisions (idempotent re-seeding)
+  await runQuery(
+    `MATCH (d:Decision) WHERE d.id STARTS WITH 'bootstrap_' DETACH DELETE d`,
+  );
 
   for (const arm of ALL_ARMS) {
     if (arm.status === "retired") continue;

@@ -299,7 +299,7 @@ async function main(): Promise<void> {
   if (manifest && succeeded > 0) {
     console.log("\n── Auto-commit pipeline output ──────────────────────────────");
     try {
-      execSync("git add docs/pipeline-output/", {
+      execSync("git add -f docs/pipeline-output/", {
         cwd: repoPath,
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "pipe"],
