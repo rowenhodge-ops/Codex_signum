@@ -1,0 +1,27 @@
+{
+  "issues": [
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"System\" (not in the 10 canonical axioms)",
+      "tasks": [
+        "t4"
+      ]
+    },
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"System\" (not in the 10 canonical axioms)",
+      "tasks": [
+        "t4"
+      ]
+    },
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"System\" (not in the 10 canonical axioms)",
+      "tasks": [
+        "t4"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-02T01:00:21.399Z",
+  "taskCount": 6
+}
