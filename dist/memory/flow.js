@@ -39,7 +39,7 @@ export function computeUpwardFlow(input) {
         id: generateId(),
         stratum: 2,
         timestamp: new Date(),
-        sourceBloomId: execution.patternId,
+        sourceBloomId: execution.bloomId,
         observationType: "execution_outcome",
         data,
     };

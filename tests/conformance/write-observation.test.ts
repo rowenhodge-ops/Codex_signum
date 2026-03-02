@@ -339,7 +339,7 @@ describe("writeObservation() — orchestration", () => {
       expect(result.thresholdEvent!.previousBand).toBe("trusted");
       expect(result.thresholdEvent!.newBand).toBe(result.band);
       expect(result.thresholdEvent!.direction).toBe("degrading");
-      expect(result.thresholdEvent!.patternId).toBe(obs.sourceBloomId);
+      expect(result.thresholdEvent!.bloomId).toBe(obs.sourceBloomId);
     }
   });
 

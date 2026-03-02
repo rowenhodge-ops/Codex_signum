@@ -33,7 +33,7 @@ const generateId = (): string => {
 export interface UpwardFlowInput {
   /** The execution that just completed */
   execution: {
-    patternId: string;
+    bloomId: string;
     modelId: string;
     success: boolean;
     qualityScore?: number;
@@ -92,7 +92,7 @@ export function computeUpwardFlow(input: UpwardFlowInput): UpwardFlowResult {
     id: generateId(),
     stratum: 2,
     timestamp: new Date(),
-    sourceBloomId: execution.patternId,
+    sourceBloomId: execution.bloomId,
     observationType: "execution_outcome",
     data,
   };

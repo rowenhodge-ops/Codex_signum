@@ -744,7 +744,7 @@ async function inspectGraphState(
   }
 
   const state: GraphState = {
-    patternHealth: {},
+    bloomHealth: {},
     activeCascades: 0,
     thresholdEvents: [],
     constitutionalAlerts: [],
@@ -759,7 +759,7 @@ async function inspectGraphState(
       const id = record.get("id") as string;
       const phiL = record.get("phiL") as number | null;
       if (id && phiL !== null && phiL !== undefined) {
-        state.patternHealth[id] = phiL;
+        state.bloomHealth[id] = phiL;
       }
     }
   } catch (err) {

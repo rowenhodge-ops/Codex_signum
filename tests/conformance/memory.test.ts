@@ -538,7 +538,7 @@ describe("computeUpwardFlow", () => {
   it("creates observation from execution result", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: true,
         qualityScore: 0.85,
@@ -558,7 +558,7 @@ describe("computeUpwardFlow", () => {
   it("triggers distillation when observation count exceeds threshold", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: true,
         durationMs: 1000,
@@ -573,7 +573,7 @@ describe("computeUpwardFlow", () => {
   it("does not trigger distillation below threshold", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: true,
         durationMs: 1000,
@@ -588,7 +588,7 @@ describe("computeUpwardFlow", () => {
   it("triggers institutional promotion when distillation count + confidence sufficient", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: true,
         durationMs: 1000,
@@ -609,7 +609,7 @@ describe("computeUpwardFlow", () => {
   it("does not trigger institutional promotion with low confidence", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: true,
         durationMs: 1000,
@@ -630,7 +630,7 @@ describe("computeUpwardFlow", () => {
   it("captures failure signature in observation context", () => {
     const result = computeUpwardFlow({
       execution: {
-        patternId: "pattern-1",
+        bloomId: "pattern-1",
         modelId: "gemini-flash",
         success: false,
         durationMs: 30000,

@@ -71,7 +71,7 @@ const SCHEMA_STATEMENTS = [
     "CREATE INDEX cluster_task_type IF NOT EXISTS FOR (cc:ContextCluster) ON (cc.taskType)",
     // ThresholdEvent (immutable band crossing records)
     "CREATE CONSTRAINT threshold_event_id_unique IF NOT EXISTS FOR (te:ThresholdEvent) REQUIRE te.id IS UNIQUE",
-    "CREATE INDEX threshold_event_pattern IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.patternId)",
+    "CREATE INDEX threshold_event_bloom IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.bloomId)",
     "CREATE INDEX threshold_event_timestamp IF NOT EXISTS FOR (te:ThresholdEvent) ON (te.timestamp)",
     // Human feedback calibration (breaks LLM-evaluating-LLM circularity)
     "CREATE CONSTRAINT human_feedback_id_unique IF NOT EXISTS FOR (hf:HumanFeedback) REQUIRE hf.id IS UNIQUE",

@@ -56,15 +56,15 @@ describe("EphemeralStore (Stratum 1)", () => {
     const e = store.add("router-v1");
     const found = store.get(e.executionId);
     expect(found).toBeDefined();
-    expect(found!.patternId).toBe("router-v1");
+    expect(found!.bloomId).toBe("router-v1");
   });
 
-  it("finds by pattern", () => {
+  it("finds by bloom", () => {
     store.add("router-v1");
     store.add("router-v1");
     store.add("generator-v2");
-    expect(store.findByPattern("router-v1")).toHaveLength(2);
-    expect(store.findByPattern("generator-v2")).toHaveLength(1);
+    expect(store.findByBloom("router-v1")).toHaveLength(2);
+    expect(store.findByBloom("generator-v2")).toHaveLength(1);
   });
 
   it("clears all entries (session end)", () => {

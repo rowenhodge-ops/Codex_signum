@@ -95,8 +95,8 @@ export interface SurveyOutput {
         entryPoints: string[];
     };
     graphState: {
-        /** Pattern health readings: pattern id → ΦL value */
-        patternHealth: Record<string, number>;
+        /** Bloom health readings: bloom id → ΦL value */
+        bloomHealth: Record<string, number>;
         /** Number of active (unresolved) cascade events */
         activeCascades: number;
         /** Recent threshold events (last 7 days) */
@@ -187,7 +187,7 @@ export interface PipelineSurveyOutput {
         open_issues: string[];
     };
     graph_state: {
-        pattern_health: Record<string, number>;
+        bloom_health: Record<string, number>;
         active_cascades: number;
         constitutional_alerts: string[];
     };

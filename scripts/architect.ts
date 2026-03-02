@@ -174,7 +174,7 @@ function toPipelineSurveyOutput(
       open_issues: [],
     },
     graph_state: {
-      pattern_health: surveyResult.graphState?.patternHealth ?? {},
+      bloom_health: surveyResult.graphState?.bloomHealth ?? {},
       active_cascades: surveyResult.graphState?.activeCascades ?? 0,
       constitutional_alerts:
         surveyResult.graphState?.constitutionalAlerts ?? [],

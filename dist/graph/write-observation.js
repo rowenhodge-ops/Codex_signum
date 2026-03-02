@@ -62,20 +62,20 @@ export async function writeObservation(observation, context, pipeline) {
  * Uses CREATE (not MERGE) -- each crossing is a distinct structural event.
  * The ThresholdEvent node links to the pattern via THRESHOLD_CROSSED_BY.
  *
- * @param patternId - Pattern that crossed the threshold
+ * @param bloomId - Bloom that crossed the threshold
  * @param previousBand - Band before crossing
  * @param newBand - Band after crossing
  * @param phiLEffective - Current ΦL effective value
  * @param maturityIndex - Current maturity index
  * @returns The created ThresholdEvent
  */
-export async function writeThresholdEvent(patternId, previousBand, newBand, phiLEffective, maturityIndex) {
+export async function writeThresholdEvent(bloomId, previousBand, newBand, phiLEffective, maturityIndex) {
     const direction = bandOrdinal(newBand) > bandOrdinal(previousBand)
         ? "improving"
         : "degrading";
     const event = {
-        id: `te-${patternId}-${Date.now()}`,
-        patternId,
+        id: `te-${bloomId}-${Date.now()}`,
+        bloomId,
         previousBand,
         newBand,
         phiLEffective,
@@ -83,11 +83,11 @@ export async function writeThresholdEvent(patternId, previousBand, newBand, phiL
         direction,
         timestamp: new Date(),
     };
-    // Write immutable ThresholdEvent node + relationship to Pattern
+    // Write immutable ThresholdEvent node + relationship to Bloom
     await writeTransaction(async (tx) => {
         await tx.run(`CREATE (te:ThresholdEvent {
          id: $id,
-         patternId: $patternId,
+         bloomId: $bloomId,
          previousBand: $previousBand,
          newBand: $newBand,
          phiLEffective: $phiLEffective,
@@ -96,10 +96,10 @@ export async function writeThresholdEvent(patternId, previousBand, newBand, phiL
          timestamp: datetime()
        })
        WITH te
-       MATCH (b:Bloom { id: $patternId })
+       MATCH (b:Bloom { id: $bloomId })
        CREATE (te)-[:THRESHOLD_CROSSED_BY]->(b)`, {
             id: event.id,
-            patternId: event.patternId,
+            bloomId: event.bloomId,
             previousBand: event.previousBand,
             newBand: event.newBand,
             phiLEffective: event.phiLEffective,

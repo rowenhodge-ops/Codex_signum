@@ -83,12 +83,12 @@ export declare function writeObservation(observation: ObservationProps, context:
  * Uses CREATE (not MERGE) -- each crossing is a distinct structural event.
  * The ThresholdEvent node links to the pattern via THRESHOLD_CROSSED_BY.
  *
- * @param patternId - Pattern that crossed the threshold
+ * @param bloomId - Bloom that crossed the threshold
  * @param previousBand - Band before crossing
  * @param newBand - Band after crossing
  * @param phiLEffective - Current ΦL effective value
  * @param maturityIndex - Current maturity index
  * @returns The created ThresholdEvent
  */
-export declare function writeThresholdEvent(patternId: string, previousBand: HealthBand, newBand: HealthBand, phiLEffective: number, maturityIndex: number): Promise<ThresholdEvent>;
+export declare function writeThresholdEvent(bloomId: string, previousBand: HealthBand, newBand: HealthBand, phiLEffective: number, maturityIndex: number): Promise<ThresholdEvent>;
 //# sourceMappingURL=write-observation.d.ts.map

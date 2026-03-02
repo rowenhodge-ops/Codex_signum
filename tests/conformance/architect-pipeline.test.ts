@@ -48,7 +48,7 @@ function createTestSurvey(
       open_issues: [],
     },
     graph_state: {
-      pattern_health: {},
+      bloom_health: {},
       active_cascades: 0,
       constitutional_alerts: [],
     },

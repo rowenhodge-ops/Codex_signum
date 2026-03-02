@@ -17,7 +17,7 @@ import type { UpwardFlowInput } from "../../src/memory/flow.js";
 function makeInput(overrides: Partial<UpwardFlowInput["execution"]> = {}, existingObs = 0): UpwardFlowInput {
   return {
     execution: {
-      patternId: "p-001",
+      bloomId: "p-001",
       modelId: "test-model",
       success: true,
       qualityScore: 0.85,

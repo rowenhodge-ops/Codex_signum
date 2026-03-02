@@ -518,12 +518,16 @@ export async function recordHumanFeedback(props) {
             verdict: props.verdict,
             reason: props.reason ?? null,
         });
-        // Apply quality penalties based on verdict
+        // Apply quality penalties based on verdict.
+        // Rejection flips d.success to false so Thompson's Beta(alpha, beta)
+        // posteriors incorporate the human signal — without this, the 0.5x quality
+        // penalty only affected avgQuality (presentation-order), not the actual
+        // Beta sampling that drives model selection.
         if (props.verdict === "reject") {
-            // Penalize all successful decisions — LLM thought it was good, human disagrees
             await tx.run(`MATCH (d:Decision)
          WHERE d.runId = $runId AND d.success = true
          SET d.humanOverride = 'rejected',
+             d.success = false,
              d.adjustedQuality = d.qualityScore * 0.5,
              d.humanFeedbackId = $feedbackId`, { runId: props.runId, feedbackId: props.id });
         }
@@ -541,6 +545,7 @@ export async function recordHumanFeedback(props) {
                     await tx.run(`MATCH (d:Decision)
              WHERE d.runId = $runId AND d.taskId = $taskId AND d.success = true
              SET d.humanOverride = 'rejected',
+                 d.success = false,
                  d.adjustedQuality = d.qualityScore * 0.5,
                  d.humanFeedbackId = $feedbackId`, { runId: props.runId, taskId: tv.taskId, feedbackId: props.id });
                 }

@@ -66,6 +66,44 @@ function extractReason(args: string[]): string | undefined {
   return reasonParts.length > 0 ? reasonParts.join(" ") : undefined;
 }
 
+/**
+ * HiTL gate: require interactive TTY confirmation for verdict commands.
+ * Prevents autonomous pipeline processes (Claude Code, task executors)
+ * from self-assessing via the feedback CLI.
+ *
+ * Read-only commands (calibrate, pending, status) are exempt.
+ */
+function requireHumanConfirmation(command: string, runId: string): Promise<void> {
+  // Read-only commands don't modify feedback state
+  if (["calibrate", "pending", "status"].includes(command)) {
+    return Promise.resolve();
+  }
+
+  // Check TTY — non-interactive processes (piped stdin) cannot confirm
+  if (!process.stdin.isTTY) {
+    console.error("ERROR: Feedback verdicts require an interactive terminal (TTY).");
+    console.error("This CLI must be run by a human, not by a pipeline or automated process.");
+    console.error("If you are a human running this in a non-TTY context, set HUMAN_FEEDBACK_OVERRIDE=1.");
+    if (!process.env.HUMAN_FEEDBACK_OVERRIDE) {
+      process.exit(1);
+    }
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    process.stdout.write(`\nYou are about to record "${command}" feedback for run: ${runId}\nType "confirm" to proceed: `);
+    process.stdin.setEncoding("utf8");
+    process.stdin.once("data", (data: string) => {
+      if (data.trim().toLowerCase() === "confirm") {
+        resolve();
+      } else {
+        console.error("Aborted — confirmation not received.");
+        process.exit(1);
+      }
+    });
+  });
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
@@ -73,6 +111,12 @@ async function main() {
   if (!command) {
     printUsage();
     process.exit(1);
+  }
+
+  // HiTL gate: verdict commands require human confirmation
+  const runId = args[1] ?? "";
+  if (["accept", "reject", "partial"].includes(command)) {
+    await requireHumanConfirmation(command, runId);
   }
 
   // Ensure driver is connected

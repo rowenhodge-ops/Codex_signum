@@ -25,8 +25,8 @@ export interface EphemeralMemory {
     stratum: 1;
     /** Which execution this belongs to */
     executionId: string;
-    /** The pattern instance running this execution */
-    patternId: string;
+    /** The bloom instance running this execution */
+    bloomId: string;
     /** Working data (anything needed during execution) */
     data: Record<string, unknown>;
     /** Correction helix state (if in retry loop) */

@@ -49,8 +49,8 @@ export type HealthBand =
 export interface ThresholdEvent {
   /** Unique event identifier */
   id: string;
-  /** Pattern that crossed the threshold */
-  patternId: string;
+  /** Bloom that crossed the threshold */
+  bloomId: string;
   /** Previous health band before crossing */
   previousBand: HealthBand;
   /** New health band after crossing */

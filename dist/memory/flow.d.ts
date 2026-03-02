@@ -16,7 +16,7 @@ import type { PerformanceProfile, RoutingHints } from "./distillation.js";
 export interface UpwardFlowInput {
     /** The execution that just completed */
     execution: {
-        patternId: string;
+        bloomId: string;
         modelId: string;
         success: boolean;
         qualityScore?: number;

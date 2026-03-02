@@ -252,17 +252,17 @@ describe("ArchitectureDecisionRecord", () => {
 // ============ MEMORY STRATA ============
 
 describe("Memory Strata Types", () => {
-  it("Stratum 1: EphemeralMemory has executionId/patternId/data", () => {
+  it("Stratum 1: EphemeralMemory has executionId/bloomId/data", () => {
     const e: EphemeralMemory = {
       stratum: 1,
       executionId: "exec-001",
-      patternId: "router-v1",
+      bloomId: "router-v1",
       data: { model: "gemini" },
       createdAt: new Date(),
     };
     expect(e.stratum).toBe(1);
     expect(e.executionId).toBeDefined();
-    expect(e.patternId).toBeDefined();
+    expect(e.bloomId).toBeDefined();
   });
 
   it("Stratum 2: Observation has observationType/data:ObservationData", () => {

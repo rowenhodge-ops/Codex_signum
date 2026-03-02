@@ -23,11 +23,11 @@ import type { Decision, DecisionContext, DecisionOutcome, Distillation, Distilla
 export declare class EphemeralStore {
     private entries;
     /** Create an ephemeral entry for an execution */
-    add(patternId: string, data?: Record<string, unknown>): EphemeralMemory;
+    add(bloomId: string, data?: Record<string, unknown>): EphemeralMemory;
     /** Get by execution ID */
     get(executionId: string): EphemeralMemory | undefined;
-    /** Find all entries for a specific pattern */
-    findByPattern(patternId: string): EphemeralMemory[];
+    /** Find all entries for a specific bloom */
+    findByBloom(bloomId: string): EphemeralMemory[];
     /** Get all entries */
     getAll(): EphemeralMemory[];
     /** Clear all (session end) */

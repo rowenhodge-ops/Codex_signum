@@ -18,12 +18,12 @@ const generateId = () => {
 export class EphemeralStore {
     entries = new Map();
     /** Create an ephemeral entry for an execution */
-    add(patternId, data = {}) {
+    add(bloomId, data = {}) {
         const executionId = generateId();
         const entry = {
             stratum: 1,
             executionId,
-            patternId,
+            bloomId,
             data,
             createdAt: new Date(),
         };
@@ -34,9 +34,9 @@ export class EphemeralStore {
     get(executionId) {
         return this.entries.get(executionId);
     }
-    /** Find all entries for a specific pattern */
-    findByPattern(patternId) {
-        return Array.from(this.entries.values()).filter((entry) => entry.patternId === patternId);
+    /** Find all entries for a specific bloom */
+    findByBloom(bloomId) {
+        return Array.from(this.entries.values()).filter((entry) => entry.bloomId === bloomId);
     }
     /** Get all entries */
     getAll() {
@@ -76,7 +76,7 @@ export class EphemeralStore {
             id: generateId(),
             stratum: 2,
             timestamp: new Date(),
-            sourceBloomId: entry.patternId,
+            sourceBloomId: entry.bloomId,
             observationType,
             data,
         };

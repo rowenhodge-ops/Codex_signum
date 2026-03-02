@@ -86,7 +86,7 @@ ${survey.codebase_state.recent_changes.slice(0, 10).join("\n")}
 ### Build Status: ${survey.codebase_state.test_status}
 
 ### Graph State
-- Pattern health: ${JSON.stringify(survey.graph_state.pattern_health)}
+- Bloom health: ${JSON.stringify(survey.graph_state.bloom_health)}
 - Active cascades: ${survey.graph_state.active_cascades}
 - Constitutional alerts: ${survey.graph_state.constitutional_alerts.join("; ") || "none"}
 
