@@ -58,6 +58,54 @@ if echo "$CONTENT" | grep -qE "Promise\.all.*session\.run|Promise\.all.*tx\.run"
   ERRORS+=("WARNING: Promise.all with session.run detected. Neo4j sessions should be sequential, not concurrent.")
 fi
 
+# 9. Eliminated entities — things that USED to exist but were removed/renamed
+# Source: ELIMINATED_ENTITIES in src/patterns/architect/survey.ts + M-7C renames
+# These are the most common hallucination category for coding agents working on this repo.
+# Skip eliminated entity check for files that are ABOUT eliminated entities
+if [[ "$FILE" == *"hallucination-detection"* ]] || [[ "$FILE" == *"survey.ts"* ]]; then
+  # These files define or test the eliminated entity list — they must reference the old names
+  :  # no-op, skip this check
+else
+  ELIMINATED_PATTERNS=(
+    # Pre-M-7C node labels (renamed in M-7C grammar refactor)
+    "\\bAgent\\b.*label"       # Agent → Seed (Neo4j label)
+    "\\bPattern\\b.*label"     # Pattern → Bloom (Neo4j label)
+    ":Agent[^s]"               # Cypher :Agent label (but not "Agents" the word)
+    ":Pattern[^E]"             # Cypher :Pattern label (but not "PatternExchange")
+
+    # Pre-M-7C relationship types
+    "SELECTED[^_]"             # SELECTED → ROUTED_TO (but not SELECTED_SEED)
+    ":MADE_BY"                 # MADE_BY → ORIGINATED_FROM
+    ":OBSERVED_BY"             # OBSERVED_BY → OBSERVED_IN
+
+    # Pre-M-7C property names (in new code, not backward-compat aliases)
+    "selectedAgentId"          # → selectedSeedId
+    "madeByPatternId"          # → madeByBloomId
+    "sourcePatternId"          # → sourceBloomId
+
+    # Eliminated architectural patterns
+    "class Observer"           # Observer pattern eliminated (ce0ef96)
+    "new Observer"             # Observer pattern eliminated
+    "ModelSentinel"            # Never existed — hallucinated entity
+    "model.sentinel"           # Never existed — hallucinated entity
+    "collector\\.ts"           # Anti-pattern: observation pipeline
+    "evaluator\\.ts"           # Anti-pattern: separate evaluation layer
+    "auditor\\.ts"             # Anti-pattern: monitoring overlay
+  )
+
+  for pattern in "${ELIMINATED_PATTERNS[@]}"; do
+    if echo "$CONTENT" | grep -qE "$pattern"; then
+      MATCH=$(echo "$CONTENT" | grep -nE "$pattern" | head -1)
+      # Skip if it's in a @deprecated comment or backward-compat alias block
+      LINE_CONTENT=$(echo "$MATCH" | cut -d: -f2-)
+      if echo "$LINE_CONTENT" | grep -qiE "@deprecated|backward.compat|legacy|ELIMINATED_ENTITIES|Agent → Seed|Pattern → Bloom"; then
+        continue
+      fi
+      ERRORS+=("WARNING: Eliminated entity reference: '$pattern' found. Check M-7C renames and ELIMINATED_ENTITIES list. Line: $MATCH")
+    fi
+  done
+fi
+
 # Report errors
 if [ ${#ERRORS[@]} -gt 0 ]; then
   echo "=== PRE-EDIT GUARD ==="
