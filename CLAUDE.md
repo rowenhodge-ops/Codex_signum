@@ -464,6 +464,9 @@ grep -rn "export.*functionName" src/ --include="*.ts"
 ## Build & Verification
 
 ```bash
+# One-time setup: activate checked-in git hooks for any editor/agent
+git config core.hooksPath .githooks
+
 # Type check (run after every edit)
 npx tsc --noEmit
 
