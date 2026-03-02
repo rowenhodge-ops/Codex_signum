@@ -89,8 +89,12 @@ echo "✓ No consumer imports in core"
 SRC_CHANGED=$(echo "$STAGED" | grep "^src/" | head -1)
 DIST_STAGED=$(echo "$STAGED" | grep "^dist/" | head -1)
 if [ -n "$SRC_CHANGED" ] && [ -z "$DIST_STAGED" ]; then
-  echo "⚠ WARNING: src/ files changed but dist/ not staged. Run: npm run build && git add dist/"
+  echo "✗ GATE FAILED: src/ files changed but dist/ not staged."
+  echo "  Run: npm run build && git add dist/"
+  echo "  (Skip with --no-verify if this is a docs-only or test-only commit that incidentally touched src/)"
+  exit 1
 fi
+echo "✓ dist/ staged with src/ changes"
 
 # 7. Check pipeline test coverage if src/signals/ was modified
 SIGNALS_CHANGED=$(echo "$STAGED" | grep "^src/signals/" | head -1)

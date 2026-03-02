@@ -67,12 +67,16 @@ if git diff --cached --name-only | grep -q "package.json"; then
   fi
 fi
 
-# 5. dist/ reminder
+# 5. dist/ must be staged when src/ changes
 SRC_CHANGED=$(git diff --cached --name-only | grep "^src/" | head -1)
 DIST_STAGED=$(git diff --cached --name-only | grep "^dist/" | head -1)
 if [ -n "$SRC_CHANGED" ] && [ -z "$DIST_STAGED" ]; then
-  echo "⚠ WARNING: src/ changed but dist/ not staged. Run: npm run build && git add dist/"
+  echo "✗ GATE FAILED: src/ files changed but dist/ not staged."
+  echo "  Run: npm run build && git add dist/"
+  echo "  (Skip with --no-verify if this is a docs-only or test-only commit that incidentally touched src/)"
+  exit 1
 fi
+echo "✓ dist/ staged with src/ changes"
 
 echo "=== PRE-COMMIT PASSED ==="
 exit 0
