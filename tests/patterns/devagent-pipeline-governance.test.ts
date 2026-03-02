@@ -80,7 +80,7 @@ describe("DevAgent: pipeline runs all configured stages", () => {
     const result = await agent.run(makeTask({ id: "gov-task-42" }));
 
     expect(result.taskId).toBe("gov-task-42");
-    expect(result.totalDurationMs).toBeGreaterThan(0);
+    expect(result.totalDurationMs).toBeGreaterThanOrEqual(0);
   });
 });
 

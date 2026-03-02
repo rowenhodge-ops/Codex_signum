@@ -118,19 +118,109 @@
 
 The structural enforcement ratio (L3-L5) increased from **~18% to ~27%** of describe blocks.
 
-## Remaining Gaps
+## Spec-Gap Tests (Phase 7 — Expected Failures)
 
-1. **A1 Symbiosis** — excluded per instruction (requires multi-agent integration)
-2. **Morpheme composition tests** — Grid and Helix have type-level coverage only, no functional tests
-3. **Learning loop closure** — no test that retrospective output is consumable by Architect SURVEY
-4. **HumanFeedback penalty** — no router-level test that rejection applies 0.5× quality penalty
-5. **DevAgent todo tests** — 7 skipped tests in existing conformance remain unimplemented
-6. **Cross-platform case sensitivity** — docs/Research/ vs docs/research/ not tested (known issue)
+**Date added:** 2026-03-03
+**Purpose:** Encode what the Codex protocol REQUIRES. These tests FAIL where the implementation diverges from spec — they are the live compliance map.
+
+### Test Infrastructure
+
+| Command | Scope | Expected Result |
+|---------|-------|-----------------|
+| `npm test` | Everything except `tests/spec-gaps/` | All green (CI gate) |
+| `npm run test:spec-compliance` | Everything including `tests/spec-gaps/` | Shows spec gaps |
+
+Configuration:
+- `vitest.config.ts` — excludes `tests/spec-gaps/` via `exclude` option
+- `vitest.spec-compliance.config.ts` — includes all `tests/**/*.test.ts`
+
+### Spec-Gap Test Files — Phase 7a (initial, 4 files, graph persistence only)
+
+Covered the graph persistence violation only — 22 failing. Replaced by Phase 7b below.
+
+### Spec-Gap Test Files — Phase 7b (expanded, 11 files, full compliance map)
+
+**Date added:** 2026-03-03
+**Source documents:** `codex-signum-lean-process-maps-v2.md` (SIPOCs, VSMs, NFR-G1 through G8),
+`codex-signum-v3_0.md` (10 axioms, 6 morphemes), `codex-signum-opex-addendum-v2.md` (poka-yoke, RTY)
+
+| File | Source | Failing | Passing | What It Exposes |
+|------|--------|---------|---------|-----------------|
+| visible-state-graph-persistence.test.ts | A4 | 7 | 0 | DevAgent/Architect decisions never reach graph |
+| provenance-graph-trail.test.ts | A6 | 5 | 0 | No ORIGINATED_FROM trail, no contextClusterId, no recordDecisionOutcome in patterns |
+| reversibility-append-only.test.ts | A7 | 4 | 1 | writeFileSync for pipeline output; docs/pipeline-output/ shadow store; _manifest.json not a graph event |
+| shadow-system-detection.test.ts | Shadow System | 6 | 0 | mkdirSync pipeline-output; JSON manifests; EphemeralStore-only state; Architect JS-object accumulation |
+| memory-model-wiring.test.ts | LSS §3.2 VSM | 10 | 1 | 10 of 11 memory functions have zero non-test callers: shouldDistill, createInstitutionalKnowledge, shouldPromoteToInstitutional, computeUpwardFlow, computeDownwardFlow, identifyCompactable, distillPerformanceProfile, distillRoutingHints, distillThresholdCalibration, writeObservation |
+| constitutional-persistence.test.ts | Constitutional | 6 | 0 | evaluateConstitution result never persisted; amendment lifecycle not in graph; ADRs never persisted; no Tier 1 blocker gate |
+| learning-loop-closure.test.ts | LSS §3.2 VSM | 5 | 1 | DevAgent doesn't call recordDecisionOutcome; Architect doesn't call selectModel; no afterPipeline hook with graph writes |
+| morpheme-lifecycle.test.ts | Codex v3.0 §Morphemes | 10 | 0 | Line: no creation, no persistence, no schema; Resonator/Grid/Helix: constraint only, no creation, no indexes, no transition validation |
+| sipoc-compliance.test.ts | LSS §2 SIPOCs | 4 | 8 | PipelineResult missing RTY/pca fields; DevAgent doesn't read ΦL from graph; Retrospective lacks FMEA output and baselines |
+| value-stream-integrity.test.ts | LSS §3 VSMs | 4 | 5 | No afterPipeline hook calling conditionValue/writeObservation/computePhiL/recordDecisionOutcome |
+| process-governance.test.ts | LSS NFR-G1..G8 | 4 | 8 | NFR-G1: no orphan reconciliation; NFR-G4: Decision→Observation chain incomplete; PipelineRun node absent |
+
+Totals: 73 failing, 23 passing across 96 spec-gap tests.
+
+### What the 23 Passing Tests Confirm (Do Not Regress)
+
+- Thompson: `selectModel()` exists, writes Decision BEFORE execution, returns `decisionId`
+- Schema: no legacy `Execution`/`Model`/`Stage` types; `HumanFeedback` in schema and queries
+- Observation: `OBSERVED_IN` enforced; `write-observation.ts` correctly chains conditionValue → computePhiL → updateBloomPhiL
+- RTY and %C&A computed in `src/`
+- No Observer pattern; no SignalPipelineService class; no Agent/Seed DELETE queries
+- `sourceAcceptanceCriteria` in AgentTask; Architect SURVEY reads graph; Architect DISPATCH uses TaskExecutor; Retrospective file exists
+
+### Root Cause Analysis
+
+The learning loop is broken at five points:
+
+1. DevAgent uses `route()` (in-memory) not `selectModel()` (graph-integrated) — Thompson gets no quality signal from stage routing
+2. DevAgent calls `attachOutcome()` not `recordDecisionOutcome()` — posterior updates never happen
+3. `createObservation()` return value is discarded — no Observation nodes from DevAgent
+4. 10 of 11 memory stratum-promotion functions have zero callers — the four-stratum model is a library with no consumer
+5. `writeFileSync` to `docs/pipeline-output/` — shadow state store; Retrospective cannot query it
+
+Only three code paths write to the graph:
+
+1. Thompson `selectModel()` — Decision + ContextCluster ✓
+2. `writeObservation()` — Observation + ThresholdEvent (but nobody calls it in a pipeline) ✓
+3. `retrospective.ts` `writeDistilledInsight()` — DistilledInsight (but nothing to read) ✓
+
+### Priority Order for Gap Closure
+
+Each failing test is a build target. Priority from LSS §7 gap analysis:
+
+| Priority | Spec-Gap Category | §7 | Impact |
+|----------|------------------|----|--------|
+| P1 | learning-loop-closure (selectModel, recordDecisionOutcome, afterPipeline) | P1 | Thompson can't learn |
+| P1 | visible-state + provenance (DevAgent graph writes) | P1 | No execution trace |
+| P2 | value-stream VSM §3.1 (afterPipeline inline conditioning) | P2 | No health recomputation |
+| P2 | process-governance NFR-G1 (orphan reconciliation) | P2 | Poisoned arm stats |
+| P2 | process-governance PipelineRun node | P2 | No plan-level provenance |
+| P3 | morpheme-lifecycle (Line/Resonator/Grid/Helix) | P3 | Incomplete grammar |
+| P3 | constitutional-persistence (ADRs, amendments) | P3 | Governance not auditable |
+| P3 | memory-model-wiring (stratum promotion callers) | P3 | Memory model unused |
+| P3 | sipoc-compliance (FMEA, baselines) | P3 | Retrospective incomplete |
+
+## Remaining Gaps (Not Yet Tested)
+
+1. **A1 Symbiosis** — excluded (requires multi-agent integration)
+2. **Cross-platform case sensitivity** — `docs/Research/` vs `docs/research/` (known issue)
+3. **DevAgent conformance todos** — 7 skipped tests in existing conformance
+4. **Model Sentinel** — design-phase per LSS §2.5, no tests yet
+5. **ConstitutionalRule node lifecycle** — amendment ratification→active graph transition not tested
 
 ## Confidence Assessment
 
-- **Axioms**: 9/10 structurally enforced (A1 excluded) — **HIGH**
-- **Grammar Rules**: 5/5 tested, G4 newly covered — **HIGH**
-- **Anti-Patterns**: 4/5 testable anti-patterns covered (Manual Bypass is process-level) — **HIGH**
-- **Pattern Governance**: 4/4 patterns with governance tests — **HIGH**
-- **Overall**: The test suite now enforces Codex structural invariants, not just computational correctness. The "nails hold the house together."
+| Area | Computational Correctness | Protocol Compliance |
+|------|--------------------------|---------------------|
+| Axioms (A1-A10) | HIGH — 9/10 conformance pass | LOW — A4/A6/A7 violations confirmed |
+| Signal Pipeline | HIGH — 7-stage verified | MEDIUM — writeObservation not called by any pipeline |
+| Thompson Router | HIGH — arm stats, sampling, RTR tested | HIGH — only pattern with full graph integration |
+| DevAgent | MEDIUM — flow tests pass | LOW — 21+ spec-gap failures |
+| Architect | MEDIUM — stage sequencing tested | LOW — zero graph integration |
+| Memory Model | MEDIUM — pure function tests pass | VERY LOW — 10/11 functions uncalled |
+| Constitutional | MEDIUM — evaluation logic tested | LOW — results never persisted |
+| Morphemes | MEDIUM — Seed/Bloom complete | LOW — 4/6 have no lifecycle |
+| LSS Artifacts | N/A | MEDIUM — SIPOC/VSM partially met; NFR-G partially met |
+
+The spec-compliance run is the honest picture. 73 failures = 73 build tickets. 23 passing = 23 regression guards.
