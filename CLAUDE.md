@@ -274,7 +274,7 @@ npx tsx scripts/seed-agents.ts
 
 ### Bootstrap Architecture
 
-The self-hosting CLI uses a **bootstrap executor** (`scripts/bootstrap-executor.ts`) that implements core's `ModelExecutor` interface via raw `fetch()` calls. It reads `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, and `OPENROUTER_API_KEY` from environment and calls core's `selectModel()` for Thompson-routed selection.
+The self-hosting CLI uses a **bootstrap executor** (`scripts/bootstrap-executor.ts`) that implements core's `ModelExecutor` interface via raw `fetch()` calls. It reads `ANTHROPIC_API_KEY` from environment (plus Vertex AI via `gcloud auth application-default login`) and calls core's `selectModel()` for Thompson-routed selection.
 
 The **task executor** (`scripts/bootstrap-task-executor.ts`) is V1 safe-default: it generates task prompts but does NOT auto-apply filesystem changes. Key capabilities (M-8C):
 

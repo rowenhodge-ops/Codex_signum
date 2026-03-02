@@ -568,37 +568,49 @@ export function verifyProviderAuth(
   vertexAvailable: boolean,
   arms: Array<{ provider: string; status: string }>,
 ): PreFlightResult {
-  const providers: ProviderAuthStatus[] = [];
   const now = new Date().toISOString();
 
-  // Anthropic
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  providers.push({
-    provider: "anthropic",
-    available: !!anthropicKey,
-    error: anthropicKey ? undefined : "ANTHROPIC_API_KEY not set",
-    checkedAt: now,
-  });
+  // Data-driven: only check providers that have at least one active model.
+  // Previously this hardcoded 3 providers (anthropic, vertex, google) even when
+  // no models used the "google" class, causing spurious pre-flight failures.
+  const activeArms = arms.filter((a) => a.status === "active");
+  const usedProviderClasses = new Set(
+    activeArms.map((a) => classifyProvider(a.provider)),
+  );
+  usedProviderClasses.delete("unsupported");
 
-  // Vertex AI (checked upstream via checkVertexAuth())
-  providers.push({
-    provider: "vertex",
-    available: vertexAvailable,
-    error: vertexAvailable ? undefined : "Vertex AI credentials not available",
-    checkedAt: now,
-  });
+  const providers: ProviderAuthStatus[] = [];
 
-  // Google AI (direct Gemini API)
-  const googleKey = process.env.GOOGLE_API_KEY;
-  providers.push({
-    provider: "google",
-    available: !!googleKey,
-    error: googleKey ? undefined : "GOOGLE_API_KEY not set",
-    checkedAt: now,
-  });
+  if (usedProviderClasses.has("anthropic")) {
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    providers.push({
+      provider: "anthropic",
+      available: !!anthropicKey,
+      error: anthropicKey ? undefined : "ANTHROPIC_API_KEY not set",
+      checkedAt: now,
+    });
+  }
+
+  if (usedProviderClasses.has("vertex")) {
+    providers.push({
+      provider: "vertex",
+      available: vertexAvailable,
+      error: vertexAvailable ? undefined : "Vertex AI credentials not available",
+      checkedAt: now,
+    });
+  }
+
+  if (usedProviderClasses.has("google")) {
+    const googleKey = process.env.GOOGLE_API_KEY;
+    providers.push({
+      provider: "google",
+      available: !!googleKey,
+      error: googleKey ? undefined : "GOOGLE_API_KEY not set",
+      checkedAt: now,
+    });
+  }
 
   // Count models per provider class
-  const activeArms = arms.filter((a) => a.status === "active");
   const totalModelCount = activeArms.length;
   const availableProviderSet = new Set(
     providers.filter((p) => p.available).map((p) => p.provider),
