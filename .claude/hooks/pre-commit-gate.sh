@@ -4,6 +4,12 @@
 
 echo "=== PRE-COMMIT GATE ==="
 
+# Verify agent-agnostic hooks are active
+HOOKS_PATH=$(git config core.hooksPath 2>/dev/null)
+if [ "$HOOKS_PATH" != ".githooks" ]; then
+  echo "⚠ NOTE: Agent-agnostic git hooks not active. Run: git config core.hooksPath .githooks"
+fi
+
 # 1. Type check
 echo "Running tsc..."
 npx tsc --noEmit 2>&1

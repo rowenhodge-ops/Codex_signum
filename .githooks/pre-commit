@@ -1,0 +1,78 @@
+#!/bin/bash
+# Agent-agnostic pre-commit hook
+# Mirrors critical checks from .claude/hooks/ for ANY editor or coding agent
+#
+# Install: git config core.hooksPath .githooks
+# This is checked into the repo so any contributor gets the guards.
+
+echo "=== PRE-COMMIT (agent-agnostic) ==="
+
+# 1. Type check (fastest gate — catches most errors)
+echo "Running tsc..."
+npx tsc --noEmit 2>&1 | tail -5
+if [ $? -ne 0 ]; then
+  echo "✗ BLOCKED: TypeScript errors. Fix before committing."
+  exit 1
+fi
+echo "✓ tsc clean"
+
+# 2. Run tests
+echo "Running tests..."
+TEST_OUTPUT=$(npm test 2>&1)
+TEST_EXIT=$?
+if [ $TEST_EXIT -ne 0 ]; then
+  echo "✗ BLOCKED: Tests failing."
+  echo "$TEST_OUTPUT" | tail -15
+  exit 1
+fi
+PASS_COUNT=$(echo "$TEST_OUTPUT" | grep -oE "([0-9]+) passed" | grep -oE "[0-9]+" | tail -1)
+echo "✓ Tests passing ($PASS_COUNT)"
+
+# 3. Anti-pattern scan on staged files
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep "\.ts$" | grep "^src/")
+
+if [ -n "$STAGED" ]; then
+  # Firebase/Firestore (wrong database)
+  FB_HITS=$(echo "$STAGED" | xargs grep -liE "firebase|firestore" 2>/dev/null)
+  if [ -n "$FB_HITS" ]; then
+    echo "✗ BLOCKED: Firebase/Firestore reference in: $FB_HITS"
+    exit 1
+  fi
+
+  # Consumer app imports
+  CONSUMER_HITS=$(echo "$STAGED" | xargs grep -lE "from.*DND|from.*dnd-manager" 2>/dev/null)
+  if [ -n "$CONSUMER_HITS" ]; then
+    echo "✗ BLOCKED: Consumer import in core: $CONSUMER_HITS"
+    exit 1
+  fi
+
+  # Eliminated entities (critical subset — full list in .claude/hooks/pre-edit-guard.sh)
+  ELIM_HITS=$(echo "$STAGED" | xargs grep -lE "class Observer|new Observer|ModelSentinel|selectedAgentId|madeByPatternId|sourcePatternId" 2>/dev/null)
+  if [ -n "$ELIM_HITS" ]; then
+    # Filter out backward-compat alias files
+    for f in $ELIM_HITS; do
+      if ! grep -q "@deprecated" "$f" 2>/dev/null; then
+        echo "⚠ WARNING: Eliminated entity reference in: $f"
+        echo "  Check M-7C renames. Old property names should use new morpheme-native names."
+      fi
+    done
+  fi
+fi
+
+# 4. prepare script check
+if git diff --cached --name-only | grep -q "package.json"; then
+  if git diff --cached -- package.json | grep -qE '^\+.*"prepare"'; then
+    echo "✗ BLOCKED: prepare script being added to package.json."
+    exit 1
+  fi
+fi
+
+# 5. dist/ reminder
+SRC_CHANGED=$(git diff --cached --name-only | grep "^src/" | head -1)
+DIST_STAGED=$(git diff --cached --name-only | grep "^dist/" | head -1)
+if [ -n "$SRC_CHANGED" ] && [ -z "$DIST_STAGED" ]; then
+  echo "⚠ WARNING: src/ changed but dist/ not staged. Run: npm run build && git add dist/"
+fi
+
+echo "=== PRE-COMMIT PASSED ==="
+exit 0

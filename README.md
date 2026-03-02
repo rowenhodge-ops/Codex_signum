@@ -92,6 +92,9 @@ cd Codex_signum
 # Install dependencies
 npm install
 
+# One-time setup: activate checked-in git hooks for any editor/agent
+git config core.hooksPath .githooks
+
 # Copy environment template and configure
 cp .env.example .env
 # Edit .env with your API keys and Neo4j credentials
