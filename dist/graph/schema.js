@@ -77,6 +77,17 @@ const SCHEMA_STATEMENTS = [
     "CREATE CONSTRAINT human_feedback_id_unique IF NOT EXISTS FOR (hf:HumanFeedback) REQUIRE hf.id IS UNIQUE",
     "CREATE INDEX human_feedback_run IF NOT EXISTS FOR (hf:HumanFeedback) ON (hf.runId)",
     "CREATE INDEX human_feedback_timestamp IF NOT EXISTS FOR (hf:HumanFeedback) ON (hf.timestamp)",
+    // PipelineRun nodes (execution instances of Architect pattern)
+    "CREATE CONSTRAINT pipeline_run_id_unique IF NOT EXISTS FOR (pr:PipelineRun) REQUIRE pr.id IS UNIQUE",
+    // TaskOutput nodes (individual task results within a run)
+    "CREATE CONSTRAINT task_output_id_unique IF NOT EXISTS FOR (to:TaskOutput) REQUIRE to.id IS UNIQUE",
+    // Indexes for pipeline topology queries
+    "CREATE INDEX pipeline_run_bloom IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.bloomId)",
+    "CREATE INDEX pipeline_run_status IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.status)",
+    "CREATE INDEX pipeline_run_timestamp IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.startedAt)",
+    "CREATE INDEX task_output_run IF NOT EXISTS FOR (to:TaskOutput) ON (to.runId)",
+    "CREATE INDEX task_output_model IF NOT EXISTS FOR (to:TaskOutput) ON (to.modelUsed)",
+    "CREATE INDEX task_output_status IF NOT EXISTS FOR (to:TaskOutput) ON (to.status)",
 ];
 // ============ SCHEMA MIGRATION ============
 /**
@@ -255,8 +266,8 @@ export async function verifySchema() {
     return {
         constraintCount,
         indexCount,
-        // We expect at least 13 constraints and 8 indexes
-        healthy: constraintCount >= 13 && indexCount >= 8,
+        // We expect at least 15 constraints and 14 indexes
+        healthy: constraintCount >= 15 && indexCount >= 14,
     };
 }
 /**
