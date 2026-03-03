@@ -82,6 +82,13 @@ export {
   MAX_ADAPTATIONS_PER_PLAN,
   MAX_TASKS_PER_PLAN,
   MANDATORY_HUMAN_GATE,
+  // Quality gates — source verification
+  detectUnsourcedReferences,
+  DOCUMENT_NAME_MAP,
+  extractPathReferences,
+  resolveDocumentReferences,
+  validateFilePaths,
+  getDirectoryListing,
 } from "./architect/index.js";
 export type {
   // Survey types (core's rich types)
@@ -126,6 +133,8 @@ export type {
   ReasoningTier,
   // Mock executors
   MockModelExecutorOptions,
+  // Quality gates
+  HallucinationFlag,
   MockTaskExecutorOptions,
 } from "./architect/index.js";
 

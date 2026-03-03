@@ -28,4 +28,7 @@ export type { AdaptationResult } from "./adapt.js";
 export type { GateOptions } from "./gate.js";
 export type { ArchitectConfig } from "./architect.js";
 export { MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, } from "./types.js";
+export { detectUnsourcedReferences } from "./hallucination-detection.js";
+export type { HallucinationFlag } from "./hallucination-detection.js";
+export { DOCUMENT_NAME_MAP, extractPathReferences, resolveDocumentReferences, } from "./canonical-references.js";
 //# sourceMappingURL=index.d.ts.map

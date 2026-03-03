@@ -90,3 +90,12 @@ export {
   MAX_TASKS_PER_PLAN,
   MANDATORY_HUMAN_GATE,
 } from "./types.js";
+
+// Quality gates — hallucination detection and source verification
+export { detectUnsourcedReferences } from "./hallucination-detection.js";
+export type { HallucinationFlag } from "./hallucination-detection.js";
+export {
+  DOCUMENT_NAME_MAP,
+  extractPathReferences,
+  resolveDocumentReferences,
+} from "./canonical-references.js";

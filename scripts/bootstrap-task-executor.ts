@@ -22,6 +22,7 @@ import type {
   TaskExecutor,
   TaskOutcome,
 } from "../src/patterns/architect/types.js";
+import { detectUnsourcedReferences } from "../src/patterns/architect/hallucination-detection.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -512,6 +513,11 @@ export function createBootstrapTaskExecutor(
 
         // Jidoka: hallucination detection on raw output
         const hallucinationFlags = detectHallucinations(result.text, task);
+
+        // Source verification: flag references to documents not in context
+        const sourceFlags = detectUnsourcedReferences(result.text, task.task_id, task.files_affected);
+        hallucinationFlags.push(...sourceFlags);
+
         if (hallucinationFlags.length > 0) {
           const errors = hallucinationFlags.filter((f) => f.severity === "error");
           const warnings = hallucinationFlags.filter((f) => f.severity === "warning");
