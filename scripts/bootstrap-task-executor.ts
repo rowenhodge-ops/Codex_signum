@@ -23,6 +23,13 @@ import type {
   TaskOutcome,
 } from "../src/patterns/architect/types.js";
 import { detectUnsourcedReferences } from "../src/patterns/architect/hallucination-detection.js";
+import {
+  createPipelineRun,
+  completePipelineRun,
+  createTaskOutput,
+  ensureArchitectResonators,
+  linkTaskOutputToStage,
+} from "../src/graph/queries.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -196,6 +203,14 @@ export interface RunManifest {
 }
 
 // ── TaskExecutor implementation ─────────────────────────────────────────────
+
+/** Opt-in configuration for graph writes alongside markdown output */
+export interface BootstrapExecutorConfig {
+  /** If true, pipeline run data will be written to the graph */
+  graphEnabled?: boolean;
+  /** Bloom ID for the Architect pattern (required if graphEnabled) */
+  architectBloomId?: string;
+}
 
 export interface BootstrapTaskExecutorBundle {
   executor: TaskExecutor;
@@ -492,6 +507,7 @@ export function detectHallucinations(
 
 export function createBootstrapTaskExecutor(
   modelExecutor: ModelExecutor,
+  config?: BootstrapExecutorConfig,
 ): BootstrapTaskExecutorBundle {
   // Manifest accumulator — written after all tasks complete
   const manifestTasks: ManifestTask[] = [];
@@ -516,6 +532,24 @@ export function createBootstrapTaskExecutor(
         currentIntent = context.intent;
         currentRepoPath = repoPath;
         runStartedAt = new Date().toISOString();
+
+        // Initialize graph tracking if enabled
+        if (config?.graphEnabled && config.architectBloomId) {
+          try {
+            await ensureArchitectResonators(config.architectBloomId);
+            await createPipelineRun({
+              id: currentRunId,
+              intent: currentIntent,
+              bloomId: config.architectBloomId,
+              taskCount: 0, // updated on completion
+              startedAt: runStartedAt,
+              status: "running",
+            });
+            console.log(`  [GRAPH] PipelineRun ${currentRunId} created`);
+          } catch (err) {
+            console.warn(`  [GRAPH] ⚠️  Failed to create PipelineRun: ${err instanceof Error ? err.message : err}`);
+          }
+        }
       }
       // Track phases seen for synthesis detection (last phase = synthesis candidate)
       if (!totalPhases.includes(task.phase)) {
