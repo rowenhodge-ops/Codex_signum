@@ -146,6 +146,44 @@ describe("checkConsistency", () => {
     expect(report.issues).toHaveLength(0);
     expect(report.taskCount).toBe(0);
   });
+
+  it("detects entity existence contradiction across tasks", () => {
+    const outputs = new Map([
+      ["t1", { title: "Task 1", output: "The `readFileContext` function exists and is used for injection." }],
+      ["t2", { title: "Task 2", output: "The `readFileContext` function does not exist in this version." }],
+    ]);
+
+    const report = checkConsistency(outputs);
+
+    const contradictions = report.issues.filter((i) => i.type === "entity-existence-contradiction");
+    expect(contradictions.length).toBeGreaterThanOrEqual(1);
+    expect(contradictions[0].description).toContain("readFileContext");
+    expect(contradictions[0].tasks).toContain("t1");
+    expect(contradictions[0].tasks).toContain("t2");
+  });
+
+  it("does not flag entity mentioned with existence claim in only one task", () => {
+    const outputs = new Map([
+      ["t1", { title: "Task 1", output: "The `detectHallucinations` function exists." }],
+      ["t2", { title: "Task 2", output: "No mention of the entity here." }],
+    ]);
+
+    const report = checkConsistency(outputs);
+
+    const contradictions = report.issues.filter((i) => i.type === "entity-existence-contradiction");
+    expect(contradictions).toHaveLength(0);
+  });
+
+  it("does not flag when only one task makes both claims (no cross-task contradiction)", () => {
+    const outputs = new Map([
+      ["t1", { title: "Task 1", output: "The `legacyFn` was removed — it does not exist in the new version." }],
+    ]);
+
+    const report = checkConsistency(outputs);
+
+    const contradictions = report.issues.filter((i) => i.type === "entity-existence-contradiction");
+    expect(contradictions).toHaveLength(0);
+  });
 });
 
 // ── Constants tests ──────────────────────────────────────────────────────

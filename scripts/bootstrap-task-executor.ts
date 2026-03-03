@@ -230,7 +230,7 @@ export const CANONICAL_MORPHEME_NAMES = [
 ] as const;
 
 export interface ConsistencyIssue {
-  type: "metric-divergence" | "wrong-axiom-name" | "wrong-stage-name";
+  type: "metric-divergence" | "wrong-axiom-name" | "wrong-stage-name" | "entity-existence-contradiction";
   description: string;
   tasks: string[];
 }
@@ -313,6 +313,45 @@ export function checkConsistency(
           tasks: [taskId],
         });
       }
+    }
+  }
+
+  // 4. Entity existence contradictions
+  // Detect when the same backtick-quoted entity is claimed to exist in one task
+  // and to be absent/removed in another (proximity heuristic: same line).
+  const entityStates = new Map<string, { state: "exists" | "absent"; taskId: string }[]>();
+  const existsPattern = /\b(?:exists?|is\s+defined|is\s+present|was\s+(?:created|added))\b/i;
+  const absentPattern = /\b(?:does\s+not\s+exist|not\s+found|no\s+longer\s+exists?|was\s+removed|was\s+deleted|missing|is\s+absent)\b/i;
+
+  for (const [taskId, { output }] of taskOutputs) {
+    for (const line of output.split("\n")) {
+      const hasAbsent = absentPattern.test(line);
+      const hasExists = !hasAbsent && existsPattern.test(line);
+      if (!hasAbsent && !hasExists) continue;
+
+      const localPattern = /`([^`\n]{1,80})`/g;
+      let bMatch: RegExpExecArray | null;
+      while ((bMatch = localPattern.exec(line)) !== null) {
+        const entity = bMatch[1].trim();
+        if (!entity || /^\d+$/.test(entity)) continue;
+        const state: "exists" | "absent" = hasAbsent ? "absent" : "exists";
+        if (!entityStates.has(entity)) entityStates.set(entity, []);
+        entityStates.get(entity)!.push({ state, taskId });
+      }
+    }
+  }
+
+  for (const [entity, entries] of entityStates) {
+    const existsTasks = [...new Set(entries.filter((e) => e.state === "exists").map((e) => e.taskId))];
+    const absentTasks = [...new Set(entries.filter((e) => e.state === "absent").map((e) => e.taskId))];
+    // Only flag when different tasks make contradictory claims
+    if (existsTasks.length > 0 && absentTasks.length > 0 &&
+        existsTasks.some((t) => !absentTasks.includes(t))) {
+      issues.push({
+        type: "entity-existence-contradiction",
+        description: `"${entity}" claimed as existing in [${existsTasks.join(", ")}] but absent in [${absentTasks.join(", ")}]`,
+        tasks: [...new Set([...existsTasks, ...absentTasks])],
+      });
     }
   }
 
@@ -666,9 +705,9 @@ export function createBootstrapTaskExecutor(
       const reportPath = join(outputDir, "_consistency-check.json");
       writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf-8");
       if (report.issues.length > 0) {
-        console.log(`  [DISPATCH] ⚠️  ${report.issues.length} consistency issue(s) found — see ${reportPath}`);
+        console.warn(`  [DISPATCH] ⚠️  ${report.issues.length} consistency issue(s) found — see ${reportPath}`);
         for (const issue of report.issues) {
-          console.log(`    - [${issue.type}] ${issue.description}`);
+          console.warn(`    - [${issue.type}] ${issue.description}`);
         }
       } else {
         console.log(`  [DISPATCH] ✅ Consistency check passed (${report.taskCount} tasks)`);
