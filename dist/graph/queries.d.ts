@@ -110,6 +110,34 @@ export interface ArmStats {
     avgCost: number;
     totalCost: number;
 }
+/** Properties for a PipelineRun node (Stratum 2 — execution instance) */
+export interface PipelineRunProps {
+    id: string;
+    intent: string;
+    bloomId: string;
+    taskCount: number;
+    startedAt: string;
+    completedAt?: string;
+    durationMs?: number;
+    modelDiversity?: number;
+    overallQuality?: number;
+    status: "running" | "completed" | "failed";
+}
+/** Properties for a TaskOutput node (Stratum 2 — individual task result) */
+export interface TaskOutputProps {
+    id: string;
+    runId: string;
+    taskId: string;
+    title: string;
+    taskType: string;
+    modelUsed: string;
+    provider: string;
+    outputLength: number;
+    durationMs: number;
+    qualityScore?: number;
+    hallucinationFlagCount: number;
+    status: "succeeded" | "failed";
+}
 export declare function createSeed(props: SeedProps): Promise<void>;
 export declare function getSeed(id: string): Promise<Neo4jRecord | null>;
 export declare function listActiveSeeds(): Promise<Neo4jRecord[]>;

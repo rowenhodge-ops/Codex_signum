@@ -142,6 +142,38 @@ export interface ArmStats {
   totalCost: number;
 }
 
+// ============ PIPELINE TOPOLOGY TYPES ============
+
+/** Properties for a PipelineRun node (Stratum 2 — execution instance) */
+export interface PipelineRunProps {
+  id: string; // runId from bootstrap-task-executor
+  intent: string; // what the pipeline was asked to do
+  bloomId: string; // which Bloom (Architect pattern) owns this run
+  taskCount: number;
+  startedAt: string; // ISO timestamp
+  completedAt?: string; // ISO timestamp (set when run completes)
+  durationMs?: number;
+  modelDiversity?: number; // count of distinct models used
+  overallQuality?: number; // aggregate quality score (0-1)
+  status: "running" | "completed" | "failed";
+}
+
+/** Properties for a TaskOutput node (Stratum 2 — individual task result) */
+export interface TaskOutputProps {
+  id: string; // `${runId}_${taskId}`
+  runId: string; // links to PipelineRun
+  taskId: string; // t1, t2, etc.
+  title: string;
+  taskType: string; // "generative" | "mechanical" | "analytical"
+  modelUsed: string; // model ID from routing decision
+  provider: string;
+  outputLength: number; // chars
+  durationMs: number;
+  qualityScore?: number; // if available from quality assessment
+  hallucinationFlagCount: number;
+  status: "succeeded" | "failed";
+}
+
 // ============ SEED QUERIES ============
 
 export async function createSeed(props: SeedProps): Promise<void> {
