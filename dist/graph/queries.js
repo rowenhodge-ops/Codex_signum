@@ -673,7 +673,7 @@ export async function createPipelineRun(props) {
     });
 }
 /** Update a PipelineRun when it completes */
-export async function completePipelineRun(runId, completedAt, durationMs, overallQuality, modelDiversity) {
+export async function completePipelineRun(runId, completedAt, durationMs, overallQuality, modelDiversity, taskCount) {
     await writeTransaction(async (tx) => {
         await tx.run(`MATCH (pr:PipelineRun { id: $runId })
        SET pr.status = 'completed',
@@ -681,7 +681,8 @@ export async function completePipelineRun(runId, completedAt, durationMs, overal
            pr.durationMs = $durationMs,
            pr.overallQuality = $overallQuality,
            pr.modelDiversity = $modelDiversity,
-           pr.updatedAt = datetime()`, { runId, completedAt, durationMs, overallQuality, modelDiversity });
+           pr.taskCount = COALESCE($taskCount, pr.taskCount),
+           pr.updatedAt = datetime()`, { runId, completedAt, durationMs, overallQuality, modelDiversity, taskCount: taskCount ?? null });
     });
 }
 /** Get a specific PipelineRun by ID */

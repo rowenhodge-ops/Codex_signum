@@ -215,7 +215,7 @@ export interface BootstrapExecutorConfig {
 export interface BootstrapTaskExecutorBundle {
   executor: TaskExecutor;
   /** Write the run manifest after all tasks complete and return it */
-  writeManifest(): RunManifest | null;
+  writeManifest(): Promise<RunManifest | null>;
 }
 
 /** Max chars of prior-task output injected per task for synthesis context */
@@ -757,7 +757,7 @@ export function createBootstrapTaskExecutor(
     },
   };
 
-  function writeManifest(): RunManifest | null {
+  async function writeManifest(): Promise<RunManifest | null> {
     if (!currentRunId || !currentRepoPath) return null;
 
     const outputDir = join(currentRepoPath, "docs", "pipeline-output", currentRunId);
@@ -797,6 +797,27 @@ export function createBootstrapTaskExecutor(
         }
       } else {
         console.log(`  [DISPATCH] ✅ Consistency check passed (${report.taskCount} tasks)`);
+      }
+    }
+
+    // Complete PipelineRun in graph if enabled
+    if (config?.graphEnabled && currentRunId) {
+      try {
+        const successRate = manifest.summary.total > 0
+          ? manifest.summary.succeeded / manifest.summary.total
+          : 0;
+
+        await completePipelineRun(
+          currentRunId,
+          manifest.completedAt,
+          manifest.summary.totalDurationMs,
+          successRate,
+          modelsUsed.length,
+          manifest.summary.total,
+        );
+        console.log(`  [GRAPH] PipelineRun ${currentRunId} completed (quality=${successRate.toFixed(2)}, models=${modelsUsed.length}, tasks=${manifest.summary.total})`);
+      } catch (err) {
+        console.warn(`  [GRAPH] ⚠️  Failed to complete PipelineRun: ${err instanceof Error ? err.message : err}`);
       }
     }
 

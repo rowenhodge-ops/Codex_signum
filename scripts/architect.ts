@@ -292,7 +292,7 @@ async function main(): Promise<void> {
   }, pipelineSurvey);
 
   // Write manifest after dispatch completes
-  const manifest = writeManifest();
+  const manifest = await writeManifest();
 
   // Results
   const succeeded = planState.task_outcomes.filter((t) => t.success).length;

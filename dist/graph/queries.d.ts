@@ -278,7 +278,7 @@ export declare const ARCHITECT_STAGES: readonly ["SURVEY", "DECOMPOSE", "CLASSIF
 /** Create or update a PipelineRun node */
 export declare function createPipelineRun(props: PipelineRunProps): Promise<void>;
 /** Update a PipelineRun when it completes */
-export declare function completePipelineRun(runId: string, completedAt: string, durationMs: number, overallQuality: number, modelDiversity: number): Promise<void>;
+export declare function completePipelineRun(runId: string, completedAt: string, durationMs: number, overallQuality: number, modelDiversity: number, taskCount?: number): Promise<void>;
 /** Get a specific PipelineRun by ID */
 export declare function getPipelineRun(runId: string): Promise<Neo4jRecord | null>;
 /** List recent PipelineRuns for a Bloom, ordered by startedAt DESC */

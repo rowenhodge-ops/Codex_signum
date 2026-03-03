@@ -1126,6 +1126,7 @@ export async function completePipelineRun(
   durationMs: number,
   overallQuality: number,
   modelDiversity: number,
+  taskCount?: number,
 ): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
@@ -1135,8 +1136,9 @@ export async function completePipelineRun(
            pr.durationMs = $durationMs,
            pr.overallQuality = $overallQuality,
            pr.modelDiversity = $modelDiversity,
+           pr.taskCount = COALESCE($taskCount, pr.taskCount),
            pr.updatedAt = datetime()`,
-      { runId, completedAt, durationMs, overallQuality, modelDiversity },
+      { runId, completedAt, durationMs, overallQuality, modelDiversity, taskCount: taskCount ?? null },
     );
   });
 }
