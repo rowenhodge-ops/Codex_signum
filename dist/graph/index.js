@@ -23,6 +23,8 @@ createDistillation,
 ensureContextCluster, 
 // Human Feedback
 recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibrationMetrics, 
+// Pipeline Topology
+ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, ensureArchitectResonators, linkTaskOutputToStage, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Backward compatibility aliases (deprecated)

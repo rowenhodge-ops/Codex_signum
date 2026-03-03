@@ -51,6 +51,17 @@ export {
   getHumanFeedbackForRun,
   listPendingFeedbackRuns,
   getCalibrationMetrics,
+  // Pipeline Topology
+  ARCHITECT_STAGES,
+  createPipelineRun,
+  completePipelineRun,
+  getPipelineRun,
+  listPipelineRuns,
+  createTaskOutput,
+  getTaskOutputsForRun,
+  queryTaskOutputsByModel,
+  ensureArchitectResonators,
+  linkTaskOutputToStage,
   // Topology
   getBloomDegree,
   getBloomAdjacency,
@@ -85,6 +96,8 @@ export type {
   ArmStats,
   HumanFeedbackProps,
   CalibrationMetrics,
+  PipelineRunProps,
+  TaskOutputProps,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,
