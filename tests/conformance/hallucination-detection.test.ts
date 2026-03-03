@@ -7,6 +7,8 @@ import {
   detectHallucinations,
   ELIMINATED_ENTITIES,
   CANONICAL_AXIOM_NAMES,
+  CANONICAL_PIPELINE_STAGES,
+  CANONICAL_MORPHEME_NAMES,
 } from "../../scripts/bootstrap-task-executor.js";
 import {
   detectUnsourcedReferences,
@@ -292,5 +294,95 @@ describe("DOCUMENT_NAME_MAP", () => {
     for (const [, path] of Object.entries(DOCUMENT_NAME_MAP)) {
       expect(path.startsWith("docs/")).toBe(true);
     }
+  });
+});
+
+// ── Canonical allowlists (M-8.QG.3) ─────────────────────────────────────
+
+describe("CANONICAL_AXIOM_NAMES — v3.0 spec (10 axioms)", () => {
+  it("contains exactly 10 axioms", () => {
+    expect(CANONICAL_AXIOM_NAMES).toHaveLength(10);
+  });
+
+  it("contains all 10 v3.0 axiom names", () => {
+    expect(CANONICAL_AXIOM_NAMES).toContain("Symbiosis");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Transparency");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Fidelity");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Visible State");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Minimal Authority");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Provenance");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Reversibility");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Semantic Stability");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Comprehension Primacy");
+    expect(CANONICAL_AXIOM_NAMES).toContain("Adaptive Pressure");
+  });
+
+  it("does NOT contain v4.0 proposal (Symbiosis absorbed — would be 9 axioms)", () => {
+    // v4.0 is not canonical. Must still have 10, not 9.
+    expect(CANONICAL_AXIOM_NAMES).toHaveLength(10);
+    expect(CANONICAL_AXIOM_NAMES).toContain("Symbiosis");
+  });
+});
+
+describe("CANONICAL_MORPHEME_NAMES — post-M-7C grammar", () => {
+  it("contains all 6 post-M-7C morpheme names", () => {
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Seed");
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Line");
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Bloom");
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Resonator");
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Grid");
+    expect(CANONICAL_MORPHEME_NAMES).toContain("Helix");
+  });
+
+  it("does NOT contain pre-M-7C morpheme names", () => {
+    expect(CANONICAL_MORPHEME_NAMES).not.toContain("Agent");
+    expect(CANONICAL_MORPHEME_NAMES).not.toContain("Pattern");
+  });
+});
+
+describe("ELIMINATED_ENTITIES — pre-M-7C morpheme context patterns", () => {
+  it("contains contextual pre-M-7C entity patterns (not bare words)", () => {
+    // These are the contextual patterns — NOT bare "Agent" or "Pattern"
+    expect(ELIMINATED_ENTITIES).toContain("Agent node");
+    expect(ELIMINATED_ENTITIES).toContain("Pattern node");
+    expect(ELIMINATED_ENTITIES).toContain(":Agent");
+    expect(ELIMINATED_ENTITIES).toContain(":Pattern");
+  });
+
+  it("does NOT flag general English usage of 'agent'", () => {
+    // "agent" as general English word should not trigger eliminated entity detection
+    const output = "The agent ran the pipeline successfully. This pattern of behaviour is expected.\n" +
+      "x".repeat(300);
+    const flags = detectHallucinations(output, makeTask());
+    const entityFlags = flags.filter(
+      (f) => f.level === "content" && f.description.includes("eliminated"),
+    );
+    expect(entityFlags).toHaveLength(0);
+  });
+
+  it("DOES flag morpheme-context usage of 'Agent node'", () => {
+    // "Agent node" is an eliminated morpheme-context reference
+    const output = "Create an Agent node in Neo4j to represent the model.\n" +
+      "x".repeat(300);
+    const flags = detectHallucinations(output, makeTask());
+    const entityFlags = flags.filter((f) => f.level === "content");
+    expect(entityFlags.length).toBeGreaterThan(0);
+    expect(entityFlags.some((f) => f.description.includes("Agent node"))).toBe(true);
+  });
+});
+
+describe("CANONICAL_PIPELINE_STAGES — 7-stage pipeline", () => {
+  it("contains exactly 7 stages", () => {
+    expect(CANONICAL_PIPELINE_STAGES).toHaveLength(7);
+  });
+
+  it("contains all canonical stage names", () => {
+    expect(CANONICAL_PIPELINE_STAGES).toContain("SURVEY");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("DECOMPOSE");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("CLASSIFY");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("SEQUENCE");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("GATE");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("DISPATCH");
+    expect(CANONICAL_PIPELINE_STAGES).toContain("ADAPT");
   });
 });

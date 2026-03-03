@@ -224,6 +224,11 @@ export const CANONICAL_PIPELINE_STAGES = [
   "SURVEY", "DECOMPOSE", "CLASSIFY", "SEQUENCE", "GATE", "DISPATCH", "ADAPT",
 ] as const;
 
+/** Canonical morpheme names (post-M-7C: Agent→Seed, Pattern→Bloom) */
+export const CANONICAL_MORPHEME_NAMES = [
+  "Seed", "Line", "Bloom", "Resonator", "Grid", "Helix",
+] as const;
+
 export interface ConsistencyIssue {
   type: "metric-divergence" | "wrong-axiom-name" | "wrong-stage-name";
   description: string;
