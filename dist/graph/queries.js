@@ -628,6 +628,146 @@ export async function getCalibrationMetrics() {
         validatorRecall: tp + fn > 0 ? tp / (tp + fn) : 0,
     };
 }
+// ============ PIPELINE TOPOLOGY QUERIES ============
+/** Canonical Architect pipeline stages */
+export const ARCHITECT_STAGES = [
+    "SURVEY",
+    "DECOMPOSE",
+    "CLASSIFY",
+    "SEQUENCE",
+    "GATE",
+    "DISPATCH",
+    "ADAPT",
+];
+/** Create or update a PipelineRun node */
+export async function createPipelineRun(props) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MERGE (pr:PipelineRun { id: $id })
+       ON CREATE SET
+         pr.intent = $intent,
+         pr.bloomId = $bloomId,
+         pr.taskCount = $taskCount,
+         pr.startedAt = $startedAt,
+         pr.completedAt = $completedAt,
+         pr.durationMs = $durationMs,
+         pr.modelDiversity = $modelDiversity,
+         pr.overallQuality = $overallQuality,
+         pr.status = $status,
+         pr.createdAt = datetime()
+       ON MATCH SET
+         pr.completedAt = COALESCE($completedAt, pr.completedAt),
+         pr.durationMs = COALESCE($durationMs, pr.durationMs),
+         pr.overallQuality = COALESCE($overallQuality, pr.overallQuality),
+         pr.modelDiversity = COALESCE($modelDiversity, pr.modelDiversity),
+         pr.status = $status,
+         pr.updatedAt = datetime()
+       WITH pr
+       MATCH (b:Bloom { id: $bloomId })
+       MERGE (pr)-[:EXECUTED_IN]->(b)`, {
+            ...props,
+            completedAt: props.completedAt ?? null,
+            durationMs: props.durationMs ?? null,
+            modelDiversity: props.modelDiversity ?? null,
+            overallQuality: props.overallQuality ?? null,
+        });
+    });
+}
+/** Update a PipelineRun when it completes */
+export async function completePipelineRun(runId, completedAt, durationMs, overallQuality, modelDiversity) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MATCH (pr:PipelineRun { id: $runId })
+       SET pr.status = 'completed',
+           pr.completedAt = $completedAt,
+           pr.durationMs = $durationMs,
+           pr.overallQuality = $overallQuality,
+           pr.modelDiversity = $modelDiversity,
+           pr.updatedAt = datetime()`, { runId, completedAt, durationMs, overallQuality, modelDiversity });
+    });
+}
+/** Get a specific PipelineRun by ID */
+export async function getPipelineRun(runId) {
+    const result = await runQuery("MATCH (pr:PipelineRun { id: $runId }) RETURN pr", { runId }, "READ");
+    return result.records[0] ?? null;
+}
+/** List recent PipelineRuns for a Bloom, ordered by startedAt DESC */
+export async function listPipelineRuns(bloomId, limit = 20) {
+    const result = await runQuery(`MATCH (pr:PipelineRun { bloomId: $bloomId })
+     RETURN pr
+     ORDER BY pr.startedAt DESC
+     LIMIT toInteger($limit)`, { bloomId, limit }, "READ");
+    return result.records;
+}
+/** Create a TaskOutput node and link to its PipelineRun */
+export async function createTaskOutput(props) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`CREATE (to:TaskOutput {
+         id: $id,
+         runId: $runId,
+         taskId: $taskId,
+         title: $title,
+         taskType: $taskType,
+         modelUsed: $modelUsed,
+         provider: $provider,
+         outputLength: $outputLength,
+         durationMs: $durationMs,
+         qualityScore: $qualityScore,
+         hallucinationFlagCount: $hallucinationFlagCount,
+         status: $status,
+         createdAt: datetime()
+       })
+       WITH to
+       MATCH (pr:PipelineRun { id: $runId })
+       MERGE (pr)-[:PRODUCED]->(to)`, {
+            ...props,
+            qualityScore: props.qualityScore ?? null,
+        });
+    });
+}
+/** Get all TaskOutputs for a PipelineRun */
+export async function getTaskOutputsForRun(runId) {
+    const result = await runQuery(`MATCH (pr:PipelineRun { id: $runId })-[:PRODUCED]->(to:TaskOutput)
+     RETURN to
+     ORDER BY to.taskId ASC`, { runId }, "READ");
+    return result.records;
+}
+/** Query TaskOutputs by model pattern with optional quality threshold */
+export async function queryTaskOutputsByModel(modelPattern, minQuality) {
+    const qualityFilter = minQuality !== undefined
+        ? " AND to.qualityScore >= $minQuality"
+        : "";
+    const result = await runQuery(`MATCH (pr:PipelineRun)-[:PRODUCED]->(to:TaskOutput)
+     WHERE to.modelUsed CONTAINS $modelPattern${qualityFilter}
+     RETURN to, pr
+     ORDER BY to.createdAt DESC`, { modelPattern, minQuality: minQuality ?? null }, "READ");
+    return result.records;
+}
+/** Ensure the 7 Architect stage Resonators exist and are contained in the Architect Bloom */
+export async function ensureArchitectResonators(architectBloomId) {
+    await writeTransaction(async (tx) => {
+        for (const stage of ARCHITECT_STAGES) {
+            await tx.run(`MERGE (r:Resonator { id: $resonatorId })
+         ON CREATE SET
+           r.name = $stage,
+           r.stage = $stage,
+           r.createdAt = datetime()
+         WITH r
+         MATCH (b:Bloom { id: $bloomId })
+         MERGE (b)-[:CONTAINS]->(r)`, {
+                resonatorId: `${architectBloomId}_${stage}`,
+                stage,
+                bloomId: architectBloomId,
+            });
+        }
+    });
+}
+/** Link a TaskOutput to the Resonator for its assigned stage */
+export async function linkTaskOutputToStage(taskOutputId, resonatorId) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MATCH (to:TaskOutput { id: $taskOutputId }),
+             (r:Resonator { id: $resonatorId })
+       MERGE (r)-[:PROCESSED]->(to)`, { taskOutputId, resonatorId });
+    });
+}
 /** @deprecated Use createSeed */
 export const createAgent = createSeed;
 /** @deprecated Use getSeed */

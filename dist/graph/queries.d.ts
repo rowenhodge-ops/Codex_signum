@@ -273,6 +273,26 @@ export declare function listPendingFeedbackRuns(): Promise<Array<{
 }>>;
 /** Compute calibration metrics: human verdict vs LLM quality scores */
 export declare function getCalibrationMetrics(): Promise<CalibrationMetrics>;
+/** Canonical Architect pipeline stages */
+export declare const ARCHITECT_STAGES: readonly ["SURVEY", "DECOMPOSE", "CLASSIFY", "SEQUENCE", "GATE", "DISPATCH", "ADAPT"];
+/** Create or update a PipelineRun node */
+export declare function createPipelineRun(props: PipelineRunProps): Promise<void>;
+/** Update a PipelineRun when it completes */
+export declare function completePipelineRun(runId: string, completedAt: string, durationMs: number, overallQuality: number, modelDiversity: number): Promise<void>;
+/** Get a specific PipelineRun by ID */
+export declare function getPipelineRun(runId: string): Promise<Neo4jRecord | null>;
+/** List recent PipelineRuns for a Bloom, ordered by startedAt DESC */
+export declare function listPipelineRuns(bloomId: string, limit?: number): Promise<Neo4jRecord[]>;
+/** Create a TaskOutput node and link to its PipelineRun */
+export declare function createTaskOutput(props: TaskOutputProps): Promise<void>;
+/** Get all TaskOutputs for a PipelineRun */
+export declare function getTaskOutputsForRun(runId: string): Promise<Neo4jRecord[]>;
+/** Query TaskOutputs by model pattern with optional quality threshold */
+export declare function queryTaskOutputsByModel(modelPattern: string, minQuality?: number): Promise<Neo4jRecord[]>;
+/** Ensure the 7 Architect stage Resonators exist and are contained in the Architect Bloom */
+export declare function ensureArchitectResonators(architectBloomId: string): Promise<void>;
+/** Link a TaskOutput to the Resonator for its assigned stage */
+export declare function linkTaskOutputToStage(taskOutputId: string, resonatorId: string): Promise<void>;
 /** @deprecated Use SeedProps */
 export type AgentProps = SeedProps;
 /** @deprecated Use BloomProps */
