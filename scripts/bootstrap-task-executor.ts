@@ -674,6 +674,37 @@ export function createBootstrapTaskExecutor(
           model: result.modelId,
         });
 
+        // Write TaskOutput to graph if enabled
+        if (config?.graphEnabled && currentRunId) {
+          try {
+            const taskOutputId = `${currentRunId}_${task.task_id}`;
+            await createTaskOutput({
+              id: taskOutputId,
+              runId: currentRunId,
+              taskId: task.task_id,
+              title: task.title,
+              taskType: task.type,
+              modelUsed: result.modelId,
+              provider: result.provider ?? "unknown",
+              outputLength: result.text.length,
+              durationMs: result.durationMs,
+              qualityScore: undefined, // M-9.3 will add quality assessment
+              hallucinationFlagCount: hallucinationFlags.length,
+              status: "succeeded",
+            });
+
+            // Link to DISPATCH Resonator (the stage that runs tasks)
+            if (config.architectBloomId) {
+              const resonatorId = `${config.architectBloomId}_DISPATCH`;
+              await linkTaskOutputToStage(taskOutputId, resonatorId);
+            }
+
+            console.log(`     [GRAPH] TaskOutput ${taskOutputId} written`);
+          } catch (err2) {
+            console.warn(`     [GRAPH] ⚠️  Failed to write TaskOutput: ${err2 instanceof Error ? err2.message : err2}`);
+          }
+        }
+
         return {
           task_id: task.task_id,
           success: true,
@@ -694,6 +725,27 @@ export function createBootstrapTaskExecutor(
           outputFile: "",
           outputChars: 0,
         });
+
+        // Write failed TaskOutput to graph if enabled
+        if (config?.graphEnabled && currentRunId) {
+          try {
+            await createTaskOutput({
+              id: `${currentRunId}_${task.task_id}`,
+              runId: currentRunId,
+              taskId: task.task_id,
+              title: task.title,
+              taskType: task.type,
+              modelUsed: "unknown",
+              provider: "unknown",
+              outputLength: 0,
+              durationMs: 0,
+              hallucinationFlagCount: 0,
+              status: "failed",
+            });
+          } catch {
+            // Swallow — already in error path
+          }
+        }
 
         return {
           task_id: task.task_id,
