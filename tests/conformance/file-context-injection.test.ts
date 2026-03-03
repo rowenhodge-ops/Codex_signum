@@ -5,7 +5,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readFileContext,
   MAX_TOTAL_CONTEXT_CHARS,
@@ -49,7 +49,12 @@ beforeAll(() => {
   writeFileSync(join(tempDir, "src", "phi-l.ts"), "// phi-l computation\n".repeat(100), "utf-8");
   writeFileSync(
     join(tempDir, "docs", "specs", "codex-v3.md"),
-    "# Codex v3\n" + "Content line.\n".repeat(3000), // ~42KB
+    "# Codex v3\n" + "Content line.\n".repeat(3000), // ~42KB (fits within 48K cap)
+    "utf-8",
+  );
+  writeFileSync(
+    join(tempDir, "docs", "specs", "large-spec.md"),
+    "# Large Spec\n" + "x".repeat(55000), // ~55KB (exceeds 48K cap)
     "utf-8",
   );
   writeFileSync(
@@ -66,7 +71,7 @@ afterAll(() => {
 // ── readFileContext tests ────────────────────────────────────────────────
 
 describe("readFileContext (FR-10)", () => {
-  it("uses higher char cap (32K) for analytical (generative) tasks", () => {
+  it("uses higher char cap (48K) for analytical (generative) tasks", () => {
     const task = makeTask({
       type: "generative",
       files_affected: ["docs/specs/codex-v3.md"],
@@ -74,11 +79,12 @@ describe("readFileContext (FR-10)", () => {
 
     const context = readFileContext(task, tempDir);
 
-    // The file is ~42KB. With 32K cap, it should be truncated at 32K, not 8K.
+    // The file is ~42KB. With 48K cap, it fits entirely (no truncation).
     expect(context).toContain("--- File: docs/specs/codex-v3.md ---");
-    expect(context).toContain("truncated at 32000 chars");
+    // 42KB < 48K cap, so the file should NOT be truncated
+    expect(context).not.toContain("truncated at 8000 chars");
     expect(context.length).toBeGreaterThan(8000);
-    expect(context.length).toBeLessThanOrEqual(32200); // 32K + header overhead
+    expect(context.length).toBeLessThanOrEqual(MAX_TOTAL_CONTEXT_CHARS + 5000);
   });
 
   it("uses lower char cap (8K) for mechanical tasks", () => {
@@ -136,6 +142,76 @@ describe("readFileContext (FR-10)", () => {
     const context = readFileContext(task, tempDir);
 
     expect(context).toBe("");
+  });
+
+  it("truncates analytical files at 48K (not 32K)", () => {
+    const task = makeTask({
+      type: "generative",
+      files_affected: ["docs/specs/large-spec.md"],
+    });
+
+    const context = readFileContext(task, tempDir);
+
+    // 55KB file should be truncated at 48000, not at 32000
+    expect(context).toContain("truncated at 48000 chars");
+    expect(context).not.toContain("truncated at 32000 chars");
+    expect(context.length).toBeGreaterThan(32000);
+    expect(context.length).toBeLessThanOrEqual(48200); // 48K + header overhead
+  });
+
+  it("prioritises docs/specs/ files before src/ files", () => {
+    const task = makeTask({
+      type: "generative",
+      // Intentionally ordered src first — prioritisation should reorder
+      files_affected: ["src/phi-l.ts", "docs/specs/codex-v3.md", "docs/research/safety.md"],
+    });
+
+    const context = readFileContext(task, tempDir);
+
+    // docs/specs should appear before src in the output
+    const specsPos = context.indexOf("--- File: docs/specs/codex-v3.md ---");
+    const srcPos = context.indexOf("--- File: src/phi-l.ts ---");
+    const researchPos = context.indexOf("--- File: docs/research/safety.md ---");
+
+    expect(specsPos).toBeGreaterThanOrEqual(0);
+    expect(srcPos).toBeGreaterThanOrEqual(0);
+    expect(researchPos).toBeGreaterThanOrEqual(0);
+
+    // specs before research, research before src
+    expect(specsPos).toBeLessThan(researchPos);
+    expect(researchPos).toBeLessThan(srcPos);
+  });
+
+  it("context degradation: returned context contains truncation marker when files are truncated", () => {
+    const task = makeTask({
+      type: "generative",
+      files_affected: ["docs/specs/large-spec.md"],
+    });
+
+    const context = readFileContext(task, tempDir);
+
+    // The returned context string contains the marker that the warning system checks
+    const truncatedCount = (context.match(/\(truncated at/g) ?? []).length;
+    expect(truncatedCount).toBe(1);
+  });
+
+  it("context degradation: returned context contains skip marker when budget is exhausted", () => {
+    const files: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      const name = `skip-test-${i}.ts`;
+      writeFileSync(join(tempDir, "src", name), "x".repeat(20000), "utf-8");
+      files.push(`src/${name}`);
+    }
+
+    const task = makeTask({
+      type: "generative",
+      files_affected: files,
+    });
+
+    const context = readFileContext(task, tempDir);
+
+    const skippedCount = (context.match(/\(skipped: total context limit reached\)/g) ?? []).length;
+    expect(skippedCount).toBeGreaterThan(0);
   });
 });
 

@@ -104,22 +104,43 @@ function getOutputPath(task: Task, runId: string, repoPath: string): string {
 export const MAX_TOTAL_CONTEXT_CHARS = 120_000;
 
 /**
+ * Priority rank for file prioritisation: lower number = included first.
+ * Spec files get highest priority so they are never truncated by budget exhaustion.
+ */
+function filePriority(filePath: string): number {
+  if (filePath.startsWith("docs/specs/")) return 0;
+  if (filePath.startsWith("docs/")) return 1;
+  if (filePath.startsWith("src/")) return 2;
+  return 3;
+}
+
+/**
  * Read files_affected as context for the LLM prompt.
  *
- * Analytical tasks (generative) get a higher per-file cap (32K) because
+ * Analytical tasks (generative) get a higher per-file cap (48K) because
  * specification documents are 10-40KB. Mechanical tasks keep the 8K cap
  * since code files are typically shorter.
+ *
+ * Files are processed in priority order: docs/specs/ → docs/ → src/ → other.
+ * This ensures primary reference documents get full context before implementation
+ * files consume the budget.
  */
 export function readFileContext(task: Task, repoPath: string): string {
   if (!task.files_affected.length) return "";
 
-  // Analytical tasks get more context (specs are 10-40KB)
-  const perFileCap = task.type === "mechanical" ? 8000 : 32000;
+  // Analytical tasks get more context (specs are 10-40KB). Increased 32K→48K
+  // after R1 optimisation run showed context starvation causing fabrication.
+  const perFileCap = task.type === "mechanical" ? 8000 : 48000;
+
+  // Prioritise: specs first, then docs, then src, then other.
+  const prioritised = [...task.files_affected].sort(
+    (a, b) => filePriority(a) - filePriority(b),
+  );
 
   let context = "";
   let totalChars = 0;
 
-  for (const filePath of task.files_affected) {
+  for (const filePath of prioritised) {
     if (totalChars >= MAX_TOTAL_CONTEXT_CHARS) {
       context += `\n\n--- File: ${filePath} --- (skipped: total context limit reached)`;
       continue;
@@ -656,6 +677,20 @@ function buildTaskPrompt(
   isLastPhase: boolean,
 ): string {
   const fileContext = readFileContext(task, context.repoPath);
+
+  // Warn when context is significantly degraded (truncated or skipped files).
+  // Visible in pipeline output so operators can widen scope or split the task.
+  if (fileContext) {
+    const requestedFiles = task.files_affected.length;
+    const truncatedFiles = (fileContext.match(/\(truncated at/g) ?? []).length;
+    const skippedFiles = (fileContext.match(/\(skipped: total context limit reached\)/g) ?? []).length;
+    if (truncatedFiles > 0 || skippedFiles > 0) {
+      console.warn(
+        `  ⚠️  Context degradation [${task.task_id}]: ${truncatedFiles} truncated, ` +
+        `${skippedFiles} skipped of ${requestedFiles} files (${fileContext.length} chars used of ${MAX_TOTAL_CONTEXT_CHARS} budget)`,
+      );
+    }
+  }
 
   const isMechanical = task.type === "mechanical";
   const instructions = isMechanical
