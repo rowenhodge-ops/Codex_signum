@@ -848,6 +848,16 @@ export function createBootstrapTaskExecutor(
               status: "failed",
             });
 
+            // Link failed TaskOutput to DISPATCH Resonator (same as success path)
+            if (config.architectBloomId) {
+              try {
+                const resonatorId = `${config.architectBloomId}_DISPATCH`;
+                await linkTaskOutputToStage(`${currentRunId}_${task.task_id}`, resonatorId);
+              } catch {
+                // Swallow — already in error path
+              }
+            }
+
             // Write failure Observation to graph
             if (config.architectBloomId) {
               try {

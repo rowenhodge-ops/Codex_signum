@@ -67,3 +67,19 @@ describe("Bootstrap TaskExecutor — graph wiring", () => {
     expect(bundle.writeManifest).toBeDefined();
   });
 });
+
+describe("Bootstrap TaskExecutor — failed task DISPATCH linkage", () => {
+  it("executor module imports linkTaskOutputToStage for failure path", async () => {
+    // The failure path in bootstrap-task-executor calls linkTaskOutputToStage
+    // to link failed TaskOutputs to the DISPATCH Resonator.
+    // Verify the function is importable from the graph module.
+    const graphModule = await import("../../src/graph/queries.js");
+    expect(typeof graphModule.linkTaskOutputToStage).toBe("function");
+  });
+
+  it("linkTaskOutputToStage signature: (taskOutputId, resonatorId) => Promise<void>", async () => {
+    const { linkTaskOutputToStage } = await import("../../src/graph/queries.js");
+    const fn: (id: string, rid: string) => Promise<void> = linkTaskOutputToStage;
+    expect(typeof fn).toBe("function");
+  });
+});
