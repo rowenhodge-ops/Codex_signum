@@ -1,0 +1,64 @@
+{
+  "issues": [
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"PRODUCED\" claimed as existing in [t6] but absent in [t10]",
+      "tasks": [
+        "t6",
+        "t10"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"createTaskOutput\" claimed as existing in [t12, t6] but absent in [t10, t6]",
+      "tasks": [
+        "t12",
+        "t6",
+        "t10"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"createPipelineRun\" claimed as existing in [t12] but absent in [t10, t5]",
+      "tasks": [
+        "t12",
+        "t10",
+        "t5"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"linkTaskOutputToStage\" claimed as existing in [t12] but absent in [t10]",
+      "tasks": [
+        "t12",
+        "t10"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"recordDecision\" claimed as existing in [t12] but absent in [t10]",
+      "tasks": [
+        "t12",
+        "t10"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"recordObservation\" claimed as existing in [t12] but absent in [t10]",
+      "tasks": [
+        "t12",
+        "t10"
+      ]
+    },
+    {
+      "type": "entity-existence-contradiction",
+      "description": "\"taskId\" claimed as existing in [t6] but absent in [t12]",
+      "tasks": [
+        "t6",
+        "t12"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-04T05:46:00.128Z",
+  "taskCount": 9
+}
