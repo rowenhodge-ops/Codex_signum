@@ -32,6 +32,7 @@ import {
   updateDecisionQuality,
   recordObservation,
 } from "../src/graph/queries.js";
+import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -766,6 +767,29 @@ export function createBootstrapTaskExecutor(
               }
             }
 
+            // Trigger memory processing (compaction + distillation check)
+            if (config.architectBloomId) {
+              try {
+                const memResult = await processMemoryAfterExecution(
+                  config.architectBloomId,
+                  {
+                    modelId: result.modelId,
+                    success: true,
+                    qualityScore,
+                    durationMs: result.durationMs,
+                  },
+                );
+                if (memResult.distillation) {
+                  console.log(`     [GRAPH] Distillation triggered: ${memResult.distillation.distillationId} (${memResult.distillation.observationCount} obs)`);
+                }
+                if (memResult.compaction) {
+                  console.log(`     [GRAPH] Compaction: ${memResult.compaction.observationsDeleted}/${memResult.compaction.observationsEvaluated} pruned`);
+                }
+              } catch (err5) {
+                console.warn(`     [GRAPH] ⚠️  Memory processing failed: ${err5 instanceof Error ? err5.message : err5}`);
+              }
+            }
+
             console.log(`     [GRAPH] TaskOutput ${taskOutputId} written (quality=${qualityScore.toFixed(2)})`);
           } catch (err2) {
             console.warn(`     [GRAPH] ⚠️  Failed to write TaskOutput: ${err2 instanceof Error ? err2.message : err2}`);
@@ -822,6 +846,27 @@ export function createBootstrapTaskExecutor(
                   value: failedQuality,
                   context: `${currentRunId}/${task.task_id}`,
                 });
+              } catch {
+                // Swallow — already in error path
+              }
+
+              // Trigger memory processing for failure path
+              try {
+                const memResult = await processMemoryAfterExecution(
+                  config.architectBloomId,
+                  {
+                    modelId: "unknown",
+                    success: false,
+                    qualityScore: failedQuality,
+                    durationMs: 0,
+                  },
+                );
+                if (memResult.distillation) {
+                  console.log(`     [GRAPH] Distillation triggered: ${memResult.distillation.distillationId} (${memResult.distillation.observationCount} obs)`);
+                }
+                if (memResult.compaction) {
+                  console.log(`     [GRAPH] Compaction: ${memResult.compaction.observationsDeleted}/${memResult.compaction.observationsEvaluated} pruned`);
+                }
               } catch {
                 // Swallow — already in error path
               }
