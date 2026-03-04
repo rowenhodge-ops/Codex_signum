@@ -6,7 +6,7 @@
  * Tests for M-9.3: Decision Lifecycle Completion
  *
  * Covers:
- * - recordDecisionOutcome (already existed, verify shape)
+ * - recordDecisionOutcome (added M-9.3.1, verify shape)
  * - updateDecisionQuality (new — surgical quality update)
  * - findDecisionForTask (new — query for Decision by bloom/model/time)
  * - assessTaskQuality (new — mechanical quality heuristic)

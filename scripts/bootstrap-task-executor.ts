@@ -751,7 +751,7 @@ export function createBootstrapTaskExecutor(
               }
             }
 
-            // Write Observation to graph (feeds ΦL computation for Architect Bloom)
+            // Record Observation node in graph via recordObservation() (raw write — ΦL recomputation deferred)
             if (config.architectBloomId) {
               try {
                 await recordObservation({
