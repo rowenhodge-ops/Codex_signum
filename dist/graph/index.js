@@ -14,7 +14,7 @@ createSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability,
 // Blooms (formerly Patterns)
 createBloom, getBloom, updateBloomState, connectBlooms, 
 // Decisions
-recordDecision, recordDecisionOutcome, getDecisionsForCluster, getArmStatsForCluster, 
+recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, 
 // Observations
 recordObservation, getObservationsForBloom, countObservationsForBloom, 
 // Distillations
@@ -25,6 +25,8 @@ ensureContextCluster,
 recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibrationMetrics, 
 // Pipeline Topology
 ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, ensureArchitectResonators, linkTaskOutputToStage, 
+// Pipeline Analytics
+getPipelineStageHealth, getPipelineRunStats, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Backward compatibility aliases (deprecated)

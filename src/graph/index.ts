@@ -36,6 +36,8 @@ export {
   // Decisions
   recordDecision,
   recordDecisionOutcome,
+  updateDecisionQuality,
+  findDecisionForTask,
   getDecisionsForCluster,
   getArmStatsForCluster,
   // Observations
@@ -62,6 +64,9 @@ export {
   queryTaskOutputsByModel,
   ensureArchitectResonators,
   linkTaskOutputToStage,
+  // Pipeline Analytics
+  getPipelineStageHealth,
+  getPipelineRunStats,
   // Topology
   getBloomDegree,
   getBloomAdjacency,
