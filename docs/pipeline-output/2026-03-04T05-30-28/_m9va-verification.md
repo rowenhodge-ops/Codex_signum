@@ -15,7 +15,8 @@
 | Status | completed |
 | Task count | 14 dispatched (16 decomposed, 2 skipped due to API failures) |
 | Tasks succeeded | 9 |
-| Tasks failed | 7 (API 403 rate limiting, not graph wiring failures) |
+| Tasks failed | 5 (model selection failed — Thompson router exhausted retries, `model: unknown`) |
+| Tasks skipped | 2 (never dispatched) |
 | Overall quality | 0.64 |
 | Models used | 5 (claude-opus-4-6, claude-opus-4-5, claude-opus-4-1 [404], gemini-2.5-flash-lite, mistral-large-3 [404]) |
 | Duration | ~737s (~12.3 minutes) |
@@ -42,6 +43,25 @@
 ```
 
 **No `[GRAPH] Distillation` or `[GRAPH] Compaction` messages** — expected (see Section 6).
+
+---
+
+## 2.5 Consistency Check
+
+`_consistency-check.json` flagged 7 entity-existence contradictions across task outputs. These reflect different analytical layers, not code bugs:
+
+- **t3** audited the **pattern layer** (`src/patterns/architect/`) which contains no graph writes — it correctly reported "all four graph node types missing" from that layer.
+- **t2** audited the **query layer** (`src/graph/queries.ts`) which has the actual CRUD functions — it correctly reported those functions exist.
+
+The contradictions arise because different tasks analysed different parts of the architecture. The pattern layer delegates graph writes to the executor layer (`scripts/bootstrap-task-executor.ts`), not to `src/patterns/architect/` directly. This is by design.
+
+---
+
+## 2.6 Hallucination Flag Summary
+
+Total: 34 flags across 9 tasks. Highest: t10 (7 flags), t3 (6 flags).
+
+t3's conclusion ("all four graph node types missing from architect pattern") is technically correct for the pattern layer it analysed, but misleading when read without the executor/pattern distinction. The graph writes happen in the executor, not the pattern. See Section 2.5.
 
 ---
 
@@ -97,7 +117,9 @@ GATE: PASS
 
 ## 4. Gate Decision: PASS
 
-All 7 required checks pass. The M-9 structural wiring (M-9.1 through M-9.4) correctly writes pipeline execution state to Neo4j:
+All 7 required checks pass. Test count confirmed: 1176 passing at verification time.
+
+The M-9 structural wiring (M-9.1 through M-9.4) correctly writes pipeline execution state to Neo4j:
 
 - **PipelineRun** nodes represent completed runs with quality/task metrics
 - **TaskOutput** nodes capture per-task results with model attribution and quality scores
@@ -123,7 +145,7 @@ Observations exist (14 nodes, metric="task.quality") but PhiL has NOT been recom
 
 ## 6. Memory Persistence Observations
 
-**Distillation:** Did NOT trigger. 14 Observations exist, but `processMemoryAfterExecution()` computes `shouldDistill` based on the Bloom's cumulative observation count and variance. With only one pipeline run producing 14 observations — all for the same Bloom ("bloom_architect") — the threshold (>=10 observations with sufficient variance) was likely borderline. The observations also have similar quality scores (mostly 0.40-0.50), meaning low variance — which reduces the distillation trigger likelihood.
+**Distillation:** Did NOT trigger. 14 Observations exist, but `processMemoryAfterExecution()` computes `shouldDistill` based on the Bloom's cumulative observation count and variance. With only one pipeline run producing 14 observations — all for the same Bloom ("architect", previously misconfigured as "bloom_architect") — the threshold (>=10 observations with sufficient variance) was likely borderline. The observations also have similar quality scores (mostly 0.40-0.50), meaning low variance — which reduces the distillation trigger likelihood.
 
 **Compaction:** Did NOT trigger. Compaction runs opportunistically every 10th execution and requires >=50 observations. This is the first pipeline run with graph writes enabled, so neither condition was met.
 
@@ -138,6 +160,8 @@ Since distillation did not trigger, the proxy was not exercised in this run. The
 ---
 
 ## 8. Recommendations for Part 2
+
+> **M-9.VA-FIX amendment:** Items 1-4 below were addressed in M-9.VA-FIX before M-9.5. See commit history for resolution: bloomId standardised to "architect", quality scoring V2 with continuous signals, claude-opus-4-1 seed removed, failed tasks now linked to DISPATCH.
 
 ### P0 — Fix before M-9.5
 
