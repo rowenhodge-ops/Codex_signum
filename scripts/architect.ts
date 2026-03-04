@@ -278,7 +278,10 @@ async function main(): Promise<void> {
 
   // Create executors
   const modelExecutor = createBootstrapModelExecutor({ vertexAvailable });
-  const { executor: taskExecutor, writeManifest } = createBootstrapTaskExecutor(modelExecutor);
+  const { executor: taskExecutor, writeManifest } = createBootstrapTaskExecutor(modelExecutor, {
+    graphEnabled: true,
+    architectBloomId: "bloom_architect",
+  });
 
   // Execute plan
   console.log("\n── EXECUTE PLAN ────────────────────────────────────────────");
