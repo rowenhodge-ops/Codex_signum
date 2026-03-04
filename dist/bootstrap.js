@@ -384,31 +384,8 @@ export const ALL_ARMS = [
         endpoint: "messages",
         capabilities: ["routine", "fast_commands"],
     },
-    {
-        id: "claude-opus-4-1:extended:16k",
-        name: "Claude Opus 4.1 (Extended 16k)",
-        provider: "anthropic",
-        model: "claude-opus-4-1-20250828",
-        baseModelId: "claude-opus-4-1",
-        thinkingMode: "extended",
-        thinkingParameter: "16k",
-        supportsAdaptiveThinking: false,
-        supportsExtendedThinking: true,
-        supportsInterleavedThinking: true,
-        supportsPrefilling: true,
-        supportsStructuredOutputs: true,
-        supportsWebSearch: true,
-        supportsComputerUse: true,
-        maxContextWindow: 200000,
-        maxOutputTokens: 64000,
-        costPer1kInput: 0.015,
-        costPer1kOutput: 0.075,
-        avgLatencyMs: 15000,
-        status: "active",
-        region: "direct",
-        endpoint: "messages",
-        capabilities: ["code_generation", "review", "planning"],
-    },
+    // claude-opus-4-1 seed removed in M-9.VA-FIX — model ID was 404 in production.
+    // Thompson posteriors for this arm will age out naturally.
     {
         id: "claude-opus-4:extended:16k",
         name: "Claude Opus 4 (Extended 16k)",
@@ -1006,7 +983,7 @@ export async function seedAnalyticalPriors() {
         { armPattern: /haiku/i, alpha: 1, beta: 6 },
         { armPattern: /gemini/i, alpha: 1, beta: 5 },
         { armPattern: /mistral|codestral/i, alpha: 1, beta: 6 },
-        { armPattern: /^claude-opus-4-1:|^claude-opus-4:/i, alpha: 4, beta: 2 },
+        { armPattern: /^claude-opus-4:/i, alpha: 4, beta: 2 },
     ];
     const ANALYTICAL_COMPLEXITIES = ["trivial", "moderate", "complex", "critical"];
     // Clear old analytical_prior_ decisions
