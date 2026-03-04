@@ -293,6 +293,42 @@ export declare function queryTaskOutputsByModel(modelPattern: string, minQuality
 export declare function ensureArchitectResonators(architectBloomId: string): Promise<void>;
 /** Link a TaskOutput to the Resonator for its assigned stage */
 export declare function linkTaskOutputToStage(taskOutputId: string, resonatorId: string): Promise<void>;
+/**
+ * Update the qualityScore on an existing Decision node.
+ * This is the surgical update path for when the task executor
+ * computes real quality after the Thompson router's initial
+ * outcome recording (which uses a default 0.7).
+ */
+export declare function updateDecisionQuality(decisionId: string, qualityScore: number): Promise<void>;
+/**
+ * Find the Decision node that routed a specific task by bloom and model.
+ * Returns the Decision ID if found, undefined if not.
+ * Uses madeByBloomId + selectedSeedId + timestamp range for matching.
+ */
+export declare function findDecisionForTask(bloomId: string, modelSeedId: string, afterTimestamp: string): Promise<string | undefined>;
+/**
+ * Get ΦL and observation counts for each Architect pipeline stage Resonator.
+ * Answers: "which pipeline stage is performing best/worst?"
+ */
+export declare function getPipelineStageHealth(architectBloomId: string): Promise<Array<{
+    stage: string;
+    resonatorId: string;
+    phiL: number;
+    observationCount: number;
+}>>;
+/**
+ * Get aggregate pipeline run statistics from the graph.
+ * Answers: "how is my pipeline performing over time?"
+ */
+export declare function getPipelineRunStats(architectBloomId: string, limit?: number): Promise<Array<{
+    runId: string;
+    intent: string;
+    taskCount: number;
+    overallQuality: number;
+    modelDiversity: number;
+    durationMs: number;
+    startedAt: string;
+}>>;
 /** @deprecated Use SeedProps */
 export type AgentProps = SeedProps;
 /** @deprecated Use BloomProps */

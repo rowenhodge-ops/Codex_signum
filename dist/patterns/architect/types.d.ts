@@ -265,6 +265,8 @@ export interface ModelExecutorResult {
     provider?: string;
     thinkingMode?: string;
     thinkingParameter?: string;
+    /** Decision ID from Thompson routing (for outcome quality updates) */
+    decisionId?: string;
 }
 /**
  * TaskExecutor — substrate-agnostic task execution interface.

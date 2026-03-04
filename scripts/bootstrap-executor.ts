@@ -795,6 +795,7 @@ export function createBootstrapModelExecutor(
             provider: selection.provider,
             thinkingMode: selection.thinkingMode,
             thinkingParameter: selection.thinkingParameter,
+            decisionId: selection.decisionId,
           };
         } catch (err) {
           // Record failure and continue to next retry instead of killing the task.

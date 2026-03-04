@@ -155,7 +155,7 @@ export interface SpecAssertion {
   category: "parameter" | "interface" | "architecture" | "behaviour";
 }
 
-// ============ PIPELINE TYPES (from DND Architect pattern) ============
+// ============ PIPELINE TYPES (Architect pattern) ============
 // These types support the 7-stage Architect pipeline:
 // SURVEY → DECOMPOSE → CLASSIFY → SEQUENCE → GATE → DISPATCH → ADAPT
 
@@ -321,6 +321,8 @@ export interface ModelExecutorResult {
   provider?: string;
   thinkingMode?: string;
   thinkingParameter?: string;
+  /** Decision ID from Thompson routing (for outcome quality updates) */
+  decisionId?: string;
 }
 
 /**

@@ -769,6 +769,77 @@ export async function linkTaskOutputToStage(taskOutputId, resonatorId) {
        MERGE (r)-[:PROCESSED]->(to)`, { taskOutputId, resonatorId });
     });
 }
+// ============ DECISION LIFECYCLE QUERIES ============
+/**
+ * Update the qualityScore on an existing Decision node.
+ * This is the surgical update path for when the task executor
+ * computes real quality after the Thompson router's initial
+ * outcome recording (which uses a default 0.7).
+ */
+export async function updateDecisionQuality(decisionId, qualityScore) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MATCH (d:Decision { id: $decisionId })
+       SET d.qualityScore = $qualityScore`, { decisionId, qualityScore });
+    });
+}
+/**
+ * Find the Decision node that routed a specific task by bloom and model.
+ * Returns the Decision ID if found, undefined if not.
+ * Uses madeByBloomId + selectedSeedId + timestamp range for matching.
+ */
+export async function findDecisionForTask(bloomId, modelSeedId, afterTimestamp) {
+    const result = await runQuery(`MATCH (d:Decision)
+     WHERE d.selectedSeedId = $modelSeedId
+       AND ($bloomId IS NULL OR d.madeByBloomId IS NULL OR d.madeByBloomId = $bloomId)
+       AND d.timestamp >= datetime($afterTimestamp)
+     RETURN d.id AS id
+     ORDER BY d.timestamp DESC
+     LIMIT 1`, { bloomId: bloomId ?? null, modelSeedId, afterTimestamp }, "READ");
+    return result.records[0]?.get("id") ?? undefined;
+}
+// ============ PIPELINE ANALYTICS QUERIES ============
+/**
+ * Get ΦL and observation counts for each Architect pipeline stage Resonator.
+ * Answers: "which pipeline stage is performing best/worst?"
+ */
+export async function getPipelineStageHealth(architectBloomId) {
+    const result = await runQuery(`MATCH (b:Bloom { id: $bloomId })-[:CONTAINS]->(r:Resonator)
+     OPTIONAL MATCH (r)-[:PROCESSED]->(to:TaskOutput)
+     RETURN r.name AS stage, r.id AS resonatorId,
+            COALESCE(r.phiL, 0.0) AS phiL, count(to) AS observationCount
+     ORDER BY r.name`, { bloomId: architectBloomId }, "READ");
+    return result.records.map((rec) => ({
+        stage: String(rec.get("stage")),
+        resonatorId: String(rec.get("resonatorId")),
+        phiL: Number(rec.get("phiL")),
+        observationCount: Number(rec.get("observationCount")),
+    }));
+}
+/**
+ * Get aggregate pipeline run statistics from the graph.
+ * Answers: "how is my pipeline performing over time?"
+ */
+export async function getPipelineRunStats(architectBloomId, limit = 20) {
+    const result = await runQuery(`MATCH (pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom { id: $bloomId })
+     WHERE pr.status = 'completed'
+     RETURN pr.id AS runId, pr.intent AS intent,
+            COALESCE(pr.taskCount, 0) AS taskCount,
+            COALESCE(pr.overallQuality, 0.0) AS overallQuality,
+            COALESCE(pr.modelDiversity, 0) AS modelDiversity,
+            COALESCE(pr.durationMs, 0) AS durationMs,
+            pr.startedAt AS startedAt
+     ORDER BY pr.startedAt DESC
+     LIMIT toInteger($limit)`, { bloomId: architectBloomId, limit }, "READ");
+    return result.records.map((rec) => ({
+        runId: String(rec.get("runId")),
+        intent: String(rec.get("intent")),
+        taskCount: Number(rec.get("taskCount")),
+        overallQuality: Number(rec.get("overallQuality")),
+        modelDiversity: Number(rec.get("modelDiversity")),
+        durationMs: Number(rec.get("durationMs")),
+        startedAt: String(rec.get("startedAt")),
+    }));
+}
 /** @deprecated Use createSeed */
 export const createAgent = createSeed;
 /** @deprecated Use getSeed */
