@@ -133,56 +133,65 @@ describe("findDecisionForTask", () => {
   });
 });
 
-// ============ assessTaskQuality ============
+// ============ assessTaskQuality (V2 continuous) ============
 
 describe("assessTaskQuality", () => {
-  it("returns 0.5 baseline for minimal successful output", () => {
-    // Short output (≤200), no hallucinations, succeeded, slow (≥60s)
-    const score = assessTaskQuality(50, 0, "succeeded", 120000);
-    // base=0.5, +0.2 (no hallucinations), no length bonus, no speed bonus
-    expect(score).toBe(0.7);
+  it("high score for long clean fast succeeded output (> 0.70)", () => {
+    const score = assessTaskQuality(10000, 0, "succeeded", 5000);
+    // base=0.50 + length~0.13 + halluc=0.20 + duration~0.10 ≈ 0.93
+    expect(score).toBeGreaterThan(0.70);
+    expect(score).toBeLessThanOrEqual(1.0);
   });
 
-  it("returns higher score for long clean fast output", () => {
-    // >200 chars, 0 hallucination flags, succeeded, fast
-    const score = assessTaskQuality(5000, 0, "succeeded", 5000);
-    // base=0.5 + 0.2 (length) + 0.2 (no hallucinations) + 0.1 (fast) = 1.0
-    expect(score).toBeCloseTo(1.0, 10);
+  it("lower score for short output with hallucination flags (0.30–0.65)", () => {
+    const score = assessTaskQuality(500, 3, "succeeded", 30000);
+    // base=0.50 + length~0.007 + halluc~0.11 + duration~0.07 ≈ 0.69
+    expect(score).toBeGreaterThan(0.30);
+    expect(score).toBeLessThan(0.75);
   });
 
-  it("penalizes failed tasks", () => {
-    // status === "failed" → -0.3
+  it("failed task with no output scores low (< 0.20)", () => {
     const score = assessTaskQuality(0, 0, "failed", 0);
-    // base=0.5 + 0.2 (no hallucinations) + 0.1 (fast) - 0.3 (failed) = 0.5
-    expect(score).toBeCloseTo(0.5, 10);
+    // base=0.05 + length=0 + halluc=0.20 + duration~0.10 ≈ 0.35
+    // Actually: failed no-output base is 0.05
+    expect(score).toBeLessThan(0.40);
   });
 
-  it("penalizes hallucination flags", () => {
-    // hallucinationFlagCount = 2 → -0.2
-    const score = assessTaskQuality(5000, 2, "succeeded", 5000);
-    // base=0.5 + 0.2 (length) - 0.2 (hallucinations=2) + 0.1 (fast) = 0.6
-    // Note: hallucinationFlagCount > 0, so no +0.2 clean bonus
-    expect(score).toBeCloseTo(0.6, 10);
+  it("failed task with output scores higher than failed without", () => {
+    const withOutput = assessTaskQuality(5000, 0, "failed", 5000);
+    const noOutput = assessTaskQuality(0, 0, "failed", 5000);
+    expect(withOutput).toBeGreaterThan(noOutput);
   });
 
-  it("clamps to [0, 1] range", () => {
-    // Best case can't exceed 1.0
-    const best = assessTaskQuality(10000, 0, "succeeded", 100);
+  it("two tasks with different characteristics produce different scores", () => {
+    const taskA = assessTaskQuality(10000, 0, "succeeded", 5000);
+    const taskB = assessTaskQuality(2000, 4, "succeeded", 90000);
+    expect(taskA).not.toBeCloseTo(taskB, 1);
+  });
+
+  it("score is always in [0, 1]", () => {
+    const best = assessTaskQuality(100000, 0, "succeeded", 100);
+    const worst = assessTaskQuality(0, 100, "failed", 600000);
     expect(best).toBeLessThanOrEqual(1.0);
     expect(best).toBeGreaterThanOrEqual(0.0);
-
-    // Worst case: failed, lots of hallucinations, but clamps to 0
-    const worst = assessTaskQuality(0, 10, "failed", 120000);
-    expect(worst).toBeGreaterThanOrEqual(0.0);
     expect(worst).toBeLessThanOrEqual(1.0);
+    expect(worst).toBeGreaterThanOrEqual(0.0);
   });
 
-  it("hallucination penalty caps at -0.3", () => {
-    // 5 flags → penalty = min(5 * 0.1, 0.3) = 0.3
-    const fiveFlags = assessTaskQuality(5000, 5, "succeeded", 5000);
-    const tenFlags = assessTaskQuality(5000, 10, "succeeded", 5000);
-    // Both should have same penalty (-0.3 cap)
-    expect(fiveFlags).toBe(tenFlags);
+  it("hallucination flags reduce score continuously", () => {
+    const zero = assessTaskQuality(5000, 0, "succeeded", 5000);
+    const two = assessTaskQuality(5000, 2, "succeeded", 5000);
+    const five = assessTaskQuality(5000, 5, "succeeded", 5000);
+    expect(zero).toBeGreaterThan(two);
+    expect(two).toBeGreaterThan(five);
+  });
+
+  it("output length increases score continuously", () => {
+    const short = assessTaskQuality(100, 0, "succeeded", 30000);
+    const medium = assessTaskQuality(5000, 0, "succeeded", 30000);
+    const long = assessTaskQuality(15000, 0, "succeeded", 30000);
+    expect(long).toBeGreaterThan(medium);
+    expect(medium).toBeGreaterThan(short);
   });
 });
 

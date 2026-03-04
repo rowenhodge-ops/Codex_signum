@@ -510,16 +510,15 @@ export function detectHallucinations(
 
 /**
  * Compute a quality score for a task output.
- * V1: mechanical heuristic (no LLM-as-judge).
+ * V2: continuous scoring with genuine variance (not discrete buckets).
  *
- * Scoring:
- *   base = 0.5 (output exists and is non-empty)
- *   +0.2 if output length > 200 chars (substantive response)
- *   +0.2 if hallucinationFlagCount === 0 (clean output)
- *   +0.1 if duration < 60000ms (responsive model)
- *   -0.3 if status === "failed"
- *   -0.1 per hallucination flag (up to -0.3)
- *   clamped to [0, 1]
+ * Components (each contributes a continuous signal):
+ *   base:          0.50 succeeded, 0.15 failed-with-output, 0.05 failed-no-output
+ *   length:        min(outputLength / 15000, 1.0) * 0.20  (continuous 0–0.20)
+ *   hallucination: max(0, 1 - flagCount * 0.15) * 0.20    (continuous 0–0.20, zero at 7+ flags)
+ *   duration:      sigmoid-mapped signal * 0.10             (fast=0.10, slow=0.00)
+ *
+ * Result clamped to [0, 1].
  */
 export function assessTaskQuality(
   outputLength: number,
@@ -527,17 +526,28 @@ export function assessTaskQuality(
   status: "succeeded" | "failed",
   durationMs: number,
 ): number {
-  let score = 0.5;
+  // Base score: succeeded vs failed (with/without output)
+  let base: number;
+  if (status === "succeeded") {
+    base = 0.50;
+  } else if (outputLength > 0) {
+    base = 0.15;
+  } else {
+    base = 0.05;
+  }
 
-  if (outputLength > 200) score += 0.2;
-  if (hallucinationFlagCount === 0) score += 0.2;
-  if (durationMs < 60000) score += 0.1;
-  if (status === "failed") score -= 0.3;
+  // Length contribution: continuous ramp up to 15K chars (cap at 0.20)
+  const lengthContribution = Math.min(outputLength / 15000, 1.0) * 0.20;
 
-  // Penalty per hallucination flag, capped at -0.3
-  const hallucinationPenalty = Math.min(hallucinationFlagCount * 0.1, 0.3);
-  score -= hallucinationPenalty;
+  // Hallucination penalty: each flag reduces linearly, zero floor at 7+ flags
+  const hallucinationContribution = Math.max(0, 1 - hallucinationFlagCount * 0.15) * 0.20;
 
+  // Duration signal: smooth sigmoid — fast (<30s) gets ~0.10, slow (>120s) gets ~0.01
+  // Using a logistic function centred at 60s with steepness k=0.03
+  const durationSignal = 1 / (1 + Math.exp(0.03 * (durationMs / 1000 - 60)));
+  const durationContribution = durationSignal * 0.10;
+
+  const score = base + lengthContribution + hallucinationContribution + durationContribution;
   return Math.max(0, Math.min(1, score));
 }
 
