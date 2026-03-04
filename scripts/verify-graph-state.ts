@@ -3,79 +3,341 @@
 // See LICENSE file for details
 
 import "dotenv/config";
-import { runQuery } from "../src/graph/client.js";
+import { runQuery, closeDriver } from "../src/graph/client.js";
+
+// ── Argument parsing ─────────────────────────────────────────────────────────
+
+const args = process.argv.slice(2);
+const runIdArg = args.find((a) => a.startsWith("--run-id="));
+const targetRunId = runIdArg?.split("=")[1];
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface CheckResult {
+  name: string;
+  status: "PASS" | "FAIL" | "INFO" | "DEFERRED";
+  detail: string;
+}
+
+const results: CheckResult[] = [];
+
+function pass(name: string, detail: string) {
+  results.push({ name, status: "PASS", detail });
+  console.log(`  ✅ [PASS] ${name}: ${detail}`);
+}
+
+function fail(name: string, detail: string) {
+  results.push({ name, status: "FAIL", detail });
+  console.log(`  ❌ [FAIL] ${name}: ${detail}`);
+}
+
+function info(name: string, detail: string) {
+  results.push({ name, status: "INFO", detail });
+  console.log(`  ℹ️  [INFO] ${name}: ${detail}`);
+}
+
+function deferred(name: string, detail: string) {
+  results.push({ name, status: "DEFERRED", detail });
+  console.log(`  ⏳ [DEFERRED] ${name}: ${detail}`);
+}
+
+// ── Verification checks ─────────────────────────────────────────────────────
 
 async function verify() {
-  console.log("--- Checking constitutional rules ---");
+  console.log("══════════════════════════════════════════════════════════════");
+  console.log("  M-9.VA Graph Verification");
+  if (targetRunId) {
+    console.log(`  Target run: ${targetRunId}`);
+  } else {
+    console.log("  Target run: most recent");
+  }
+  console.log("══════════════════════════════════════════════════════════════\n");
+
+  // ── Check 0: Constitutional rules (baseline) ────────────────────────────
+
+  console.log("── Check 0: Constitutional Rules (baseline) ──");
   const rules = await runQuery(
     "MATCH (r:ConstitutionalRule) RETURN r.name AS name, r.status AS status",
     {},
     "READ",
   );
-  console.log(`Found ${rules.records.length} constitutional rules:`);
-  for (const record of rules.records) {
-    console.log(`  - ${record.get("name")} [${record.get("status")}]`);
+  if (rules.records.length >= 10) {
+    pass("Constitutional rules", `${rules.records.length} rules found`);
+  } else {
+    fail("Constitutional rules", `Expected ≥10, found ${rules.records.length}`);
   }
-  if (rules.records.length < 10) {
-    console.error("ERROR: Expected at least 10 constitutional axioms");
+
+  // ── Check 1: PipelineRun nodes exist ────────────────────────────────────
+
+  console.log("\n── Check 1: PipelineRun nodes ──");
+  const prQuery = targetRunId
+    ? `MATCH (pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom)
+       WHERE pr.id = $runId
+       RETURN pr.id AS runId, pr.intent AS intent, pr.status AS status,
+              pr.taskCount AS tasks, pr.overallQuality AS quality,
+              b.name AS bloom
+       ORDER BY pr.startedAt DESC LIMIT 5`
+    : `MATCH (pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom)
+       RETURN pr.id AS runId, pr.intent AS intent, pr.status AS status,
+              pr.taskCount AS tasks, pr.overallQuality AS quality,
+              b.name AS bloom
+       ORDER BY pr.startedAt DESC LIMIT 5`;
+  const prResult = await runQuery(prQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (prResult.records.length === 0) {
+    fail("PipelineRun nodes", "No PipelineRun nodes found");
+  } else {
+    const first = prResult.records[0];
+    const status = first.get("status");
+    const tasks = first.get("tasks");
+    const quality = first.get("quality");
+    const bloom = first.get("bloom");
+    const runId = first.get("runId");
+
+    console.log(`  Run: ${runId}`);
+    console.log(`  Status: ${status}, Tasks: ${tasks}, Quality: ${quality}, Bloom: ${bloom}`);
+
+    if (status === "completed" && tasks > 0) {
+      pass("PipelineRun nodes", `${prResult.records.length} run(s), latest: status=${status}, tasks=${tasks}, quality=${quality}`);
+    } else {
+      fail("PipelineRun nodes", `Latest run: status=${status}, tasks=${tasks} (expected completed with tasks > 0)`);
+    }
+  }
+
+  // ── Check 2: TaskOutput nodes with correct relationships ────────────────
+
+  console.log("\n── Check 2: TaskOutput nodes ──");
+  const toQuery = targetRunId
+    ? `MATCH (pr:PipelineRun)-[:PRODUCED]->(to:TaskOutput)
+       WHERE pr.id = $runId
+       RETURN pr.id AS runId, count(to) AS taskOutputs,
+              avg(to.qualityScore) AS avgQuality,
+              collect(DISTINCT to.modelUsed) AS models`
+    : `MATCH (pr:PipelineRun)-[:PRODUCED]->(to:TaskOutput)
+       WHERE pr.status = 'completed'
+       WITH pr, to ORDER BY pr.startedAt DESC
+       WITH pr, count(to) AS taskOutputs,
+              avg(to.qualityScore) AS avgQuality,
+              collect(DISTINCT to.modelUsed) AS models
+       LIMIT 1
+       RETURN pr.id AS runId, taskOutputs, avgQuality, models`;
+  const toResult = await runQuery(toQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (toResult.records.length === 0) {
+    fail("TaskOutput nodes", "No TaskOutput nodes found for pipeline run");
+  } else {
+    const rec = toResult.records[0];
+    const count = rec.get("taskOutputs");
+    const avgQ = rec.get("avgQuality");
+    const models = rec.get("models");
+
+    console.log(`  TaskOutputs: ${count}, Avg quality: ${avgQ?.toFixed?.(2) ?? avgQ}, Models: ${models}`);
+
+    if (count > 0 && avgQ !== null) {
+      pass("TaskOutput nodes", `${count} outputs, avg quality=${avgQ?.toFixed?.(2) ?? avgQ}, models=${models}`);
+    } else {
+      fail("TaskOutput nodes", `count=${count}, avgQuality=${avgQ}`);
+    }
+  }
+
+  // ── Check 3: TaskOutputs linked to Resonator stages ─────────────────────
+
+  console.log("\n── Check 3: Resonator stage linkage ──");
+  const resQuery = targetRunId
+    ? `MATCH (r:Resonator)<-[:PROCESSED]-(to:TaskOutput)<-[:PRODUCED]-(pr:PipelineRun)
+       WHERE pr.id = $runId
+       RETURN r.name AS stage, count(to) AS taskCount`
+    : `MATCH (r:Resonator)<-[:PROCESSED]-(to:TaskOutput)
+       RETURN r.name AS stage, count(to) AS taskCount`;
+  const resResult = await runQuery(resQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (resResult.records.length === 0) {
+    fail("Resonator linkage", "No TaskOutputs linked to any Resonator");
+  } else {
+    let dispatchFound = false;
+    for (const rec of resResult.records) {
+      const stage = rec.get("stage");
+      const count = rec.get("taskCount");
+      console.log(`  ${stage}: ${count} tasks`);
+      if (stage === "DISPATCH") dispatchFound = true;
+    }
+    if (dispatchFound) {
+      pass("Resonator linkage", `${resResult.records.length} stage(s) with linked TaskOutputs`);
+    } else {
+      fail("Resonator linkage", "DISPATCH Resonator has no linked TaskOutputs");
+    }
+  }
+
+  // ── Check 4: Decision nodes with quality outcomes ───────────────────────
+
+  console.log("\n── Check 4: Decision quality scores ──");
+  const decQuery = targetRunId
+    ? `MATCH (d:Decision)
+       WHERE d.qualityScore IS NOT NULL AND d.context STARTS WITH $runId
+       RETURN count(d) AS decisionsWithQuality,
+              avg(d.qualityScore) AS avgQuality,
+              min(d.qualityScore) AS minQuality,
+              max(d.qualityScore) AS maxQuality`
+    : `MATCH (d:Decision)
+       WHERE d.qualityScore IS NOT NULL
+       RETURN count(d) AS decisionsWithQuality,
+              avg(d.qualityScore) AS avgQuality,
+              min(d.qualityScore) AS minQuality,
+              max(d.qualityScore) AS maxQuality`;
+  const decResult = await runQuery(decQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (decResult.records.length === 0 || decResult.records[0].get("decisionsWithQuality") === 0) {
+    fail("Decision quality", "No Decision nodes with non-null qualityScore");
+  } else {
+    const rec = decResult.records[0];
+    const count = rec.get("decisionsWithQuality");
+    const avg = rec.get("avgQuality");
+    const min = rec.get("minQuality");
+    const max = rec.get("maxQuality");
+    console.log(`  Decisions with quality: ${count}, avg=${avg?.toFixed?.(2) ?? avg}, min=${min?.toFixed?.(2) ?? min}, max=${max?.toFixed?.(2) ?? max}`);
+    pass("Decision quality", `${count} decisions, avg=${avg?.toFixed?.(2) ?? avg}`);
+  }
+
+  // ── Check 5: Observation nodes linked to Architect Bloom ────────────────
+
+  console.log("\n── Check 5: Observation nodes ──");
+  const obsQuery = targetRunId
+    ? `MATCH (o:Observation)-[:OBSERVED_IN]->(b:Bloom)
+       WHERE b.name = 'Architect' AND o.context STARTS WITH $runId
+       RETURN count(o) AS observations,
+              avg(o.value) AS avgValue,
+              collect(DISTINCT o.metric) AS metrics`
+    : `MATCH (o:Observation)-[:OBSERVED_IN]->(b:Bloom {name: 'Architect'})
+       RETURN count(o) AS observations,
+              avg(o.value) AS avgValue,
+              collect(DISTINCT o.metric) AS metrics`;
+  const obsResult = await runQuery(obsQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (obsResult.records.length === 0 || obsResult.records[0].get("observations") === 0) {
+    fail("Observation nodes", "No Observations linked to Architect Bloom");
+  } else {
+    const rec = obsResult.records[0];
+    const count = rec.get("observations");
+    const avgVal = rec.get("avgValue");
+    const metrics = rec.get("metrics");
+    console.log(`  Observations: ${count}, avg value=${avgVal?.toFixed?.(2) ?? avgVal}, metrics=${metrics}`);
+
+    if (metrics && metrics.includes("task.quality")) {
+      pass("Observation nodes", `${count} observations, metrics=${metrics}`);
+    } else {
+      fail("Observation nodes", `${count} observations but missing 'task.quality' metric (found: ${metrics})`);
+    }
+  }
+
+  // ── Check 6: Analytics queries return data ──────────────────────────────
+
+  console.log("\n── Check 6: Analytics queries ──");
+  const analyticsQuery = targetRunId
+    ? `MATCH (r:Resonator {name: 'DISPATCH'})<-[:PROCESSED]-(to:TaskOutput)<-[:PRODUCED]-(pr:PipelineRun)
+       WHERE pr.id = $runId
+       RETURN r.name AS stage,
+              count(to) AS totalTasks,
+              avg(to.qualityScore) AS avgQuality,
+              sum(CASE WHEN to.status = 'succeeded' THEN 1 ELSE 0 END) AS succeeded`
+    : `MATCH (r:Resonator {name: 'DISPATCH'})<-[:PROCESSED]-(to:TaskOutput)
+       RETURN r.name AS stage,
+              count(to) AS totalTasks,
+              avg(to.qualityScore) AS avgQuality,
+              sum(CASE WHEN to.status = 'succeeded' THEN 1 ELSE 0 END) AS succeeded`;
+  const analyticsResult = await runQuery(analyticsQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (analyticsResult.records.length === 0) {
+    fail("Analytics queries", "DISPATCH stage analytics returned no rows");
+  } else {
+    const rec = analyticsResult.records[0];
+    const total = rec.get("totalTasks");
+    const avgQ = rec.get("avgQuality");
+    const succeeded = rec.get("succeeded");
+    console.log(`  DISPATCH: ${total} tasks, ${succeeded} succeeded, avg quality=${avgQ?.toFixed?.(2) ?? avgQ}`);
+
+    if (total > 0) {
+      pass("Analytics queries", `${total} tasks in DISPATCH, ${succeeded} succeeded`);
+    } else {
+      fail("Analytics queries", "DISPATCH has 0 tasks");
+    }
+  }
+
+  // ── Check 7: HumanFeedback node ────────────────────────────────────────
+
+  console.log("\n── Check 7: HumanFeedback ──");
+  const hfQuery = targetRunId
+    ? `MATCH (hf:HumanFeedback)-[:FEEDBACK_FOR]->(pr:PipelineRun)
+       WHERE pr.id = $runId
+       RETURN hf.verdict AS verdict, hf.reason AS reason, pr.id AS runId`
+    : `MATCH (hf:HumanFeedback)-[:FEEDBACK_FOR]->(pr:PipelineRun)
+       RETURN hf.verdict AS verdict, hf.reason AS reason, pr.id AS runId
+       ORDER BY hf.timestamp DESC LIMIT 5`;
+  const hfResult = await runQuery(hfQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
+
+  if (hfResult.records.length === 0) {
+    deferred("HumanFeedback", "No HumanFeedback nodes found — requires Ro to run feedback.ts");
+  } else {
+    const rec = hfResult.records[0];
+    const verdict = rec.get("verdict");
+    const reason = rec.get("reason");
+    console.log(`  Verdict: ${verdict}, Reason: ${reason}`);
+    pass("HumanFeedback", `verdict=${verdict}`);
+  }
+
+  // ── Check 8: Memory persistence (distillation) ─────────────────────────
+
+  console.log("\n── Check 8: Memory persistence (distillation) ──");
+  const distQuery = `MATCH (d:Distillation) RETURN count(d) AS distillations`;
+  const distResult = await runQuery(distQuery, {}, "READ");
+  const distCount = distResult.records[0]?.get("distillations") ?? 0;
+  console.log(`  Distillation nodes: ${distCount}`);
+
+  if (distCount > 0) {
+    info("Memory persistence", `${distCount} Distillation node(s) found — memory pipeline active`);
+  } else {
+    info("Memory persistence", "No Distillation nodes — expected if <10 observations with sufficient variance");
+  }
+
+  // ── Summary ────────────────────────────────────────────────────────────
+
+  console.log("\n══════════════════════════════════════════════════════════════");
+  console.log("  SUMMARY");
+  console.log("══════════════════════════════════════════════════════════════");
+
+  const passed = results.filter((r) => r.status === "PASS").length;
+  const failed = results.filter((r) => r.status === "FAIL").length;
+  const deferred_count = results.filter((r) => r.status === "DEFERRED").length;
+  const info_count = results.filter((r) => r.status === "INFO").length;
+
+  for (const r of results) {
+    const icon =
+      r.status === "PASS" ? "✅" :
+      r.status === "FAIL" ? "❌" :
+      r.status === "DEFERRED" ? "⏳" : "ℹ️ ";
+    console.log(`  ${icon} ${r.name}: ${r.detail}`);
+  }
+
+  console.log(`\n  ${passed} passed, ${failed} failed, ${deferred_count} deferred, ${info_count} info`);
+  const required = results.filter((r) => r.status !== "INFO" && r.status !== "DEFERRED");
+  const requiredPassed = required.filter((r) => r.status === "PASS").length;
+  console.log(`  Required: ${requiredPassed}/${required.length} passed`);
+
+  if (failed > 0) {
+    console.log("\n  ❌ GATE: FAIL — required checks did not pass");
+  } else {
+    console.log("\n  ✅ GATE: PASS — all required checks passed");
+  }
+  console.log("══════════════════════════════════════════════════════════════");
+
+  await closeDriver();
+
+  if (failed > 0) {
     process.exit(1);
   }
-
-  console.log("\n--- Checking constraints ---");
-  const constraints = await runQuery("SHOW CONSTRAINTS", {}, "READ");
-  console.log(`Found ${constraints.records.length} constraints`);
-
-  console.log("\n--- Checking indexes ---");
-  const indexes = await runQuery(
-    "SHOW INDEXES YIELD name WHERE name <> 'constraint' RETURN count(*) AS count",
-    {},
-    "READ",
-  );
-  console.log(`Found ${indexes.records[0]?.get("count")} indexes`);
-
-  console.log("\n--- Writing test Decision node ---");
-  const testDecision = await runQuery(
-    `CREATE (d:Decision {
-      id: 'test-verify-' + toString(timestamp()),
-      madeByBloomId: 'verify-script',
-      selectedSeedId: 'test-model',
-      taskType: 'verification',
-      complexity: 'trivial',
-      timestamp: datetime(),
-      reasoning: 'Graph write verification',
-      confidence: 1.0,
-      wasExploratory: false
-    }) RETURN d.id AS id`,
-    {},
-    "WRITE",
-  );
-  console.log(`Created test Decision: ${testDecision.records[0]?.get("id")}`);
-
-  console.log("\n--- Reading back test Decision ---");
-  const readBack = await runQuery(
-    "MATCH (d:Decision) WHERE d.madeByBloomId = 'verify-script' RETURN d.id AS id, d.timestamp AS ts",
-    {},
-    "READ",
-  );
-  console.log(`Read back ${readBack.records.length} verification decision(s)`);
-
-  if (readBack.records.length === 0) {
-    console.error("ERROR: Write succeeded but read returned nothing");
-    process.exit(1);
-  }
-
-  console.log("\n--- Cleaning up test data ---");
-  await runQuery(
-    "MATCH (d:Decision) WHERE d.madeByBloomId = 'verify-script' DELETE d",
-    {},
-    "WRITE",
-  );
-  console.log("Cleanup complete");
-
-  console.log("\n✅ All graph verifications passed");
 }
 
-verify().catch((err) => {
+verify().catch(async (err) => {
   console.error("FATAL:", err);
+  await closeDriver().catch(() => {});
   process.exit(1);
 });
