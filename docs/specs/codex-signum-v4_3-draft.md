@@ -1,0 +1,1 @@
+The content from the bash output above - but I need to pass the actual content. Let me use the push_files approach instead since create_or_update_file needs the content inline.
