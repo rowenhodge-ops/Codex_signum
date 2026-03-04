@@ -71,16 +71,17 @@ async function verify() {
 
   console.log("\n── Check 1: PipelineRun nodes ──");
   // Note: PipelineRun stores bloomId as a property, not as a relationship to Bloom
+  // Exact match — no fuzzy matching (bloom_architect phantom was fixed in M-9.VA-FIX)
   const prQuery = targetRunId
     ? `MATCH (pr:PipelineRun)
        WHERE pr.id = $runId
-       OPTIONAL MATCH (b:Bloom) WHERE b.id = pr.bloomId OR ('bloom_' + b.id) = pr.bloomId
+       OPTIONAL MATCH (b:Bloom) WHERE b.id = pr.bloomId
        RETURN pr.id AS runId, pr.intent AS intent, pr.status AS status,
               pr.taskCount AS tasks, pr.overallQuality AS quality,
               coalesce(b.name, pr.bloomId) AS bloom
        ORDER BY pr.startedAt DESC LIMIT 5`
     : `MATCH (pr:PipelineRun)
-       OPTIONAL MATCH (b:Bloom) WHERE b.id = pr.bloomId OR ('bloom_' + b.id) = pr.bloomId
+       OPTIONAL MATCH (b:Bloom) WHERE b.id = pr.bloomId
        RETURN pr.id AS runId, pr.intent AS intent, pr.status AS status,
               pr.taskCount AS tasks, pr.overallQuality AS quality,
               coalesce(b.name, pr.bloomId) AS bloom
@@ -201,7 +202,7 @@ async function verify() {
 
   console.log("\n── Check 5: Observation nodes ──");
   // Note: Observations store sourceBloomId as a property, not as a relationship.
-  // The architectBloomId config uses "bloom_architect" while the Bloom node id is "architect".
+  // architectBloomId was standardised to "architect" in M-9.VA-FIX.
   const obsQuery = targetRunId
     ? `MATCH (o:Observation)
        WHERE o.context STARTS WITH $runId
@@ -299,6 +300,23 @@ async function verify() {
     info("Memory persistence", `${distCount} Distillation node(s) found — memory pipeline active`);
   } else {
     info("Memory persistence", "No Distillation nodes — expected if <10 observations with sufficient variance");
+  }
+
+  // ── Cleanup: Remove phantom "bloom_architect" Bloom if it exists ──────
+
+  console.log("\n── Cleanup: phantom Bloom nodes ──");
+  const phantomResult = await runQuery(
+    `MATCH (b:Bloom { id: "bloom_architect" })
+     WHERE NOT EXISTS { MATCH (b)<-[:CONTAINS]-() }
+     DETACH DELETE b
+     RETURN count(b) AS deleted`,
+    {},
+  );
+  const phantomDeleted = phantomResult.records[0]?.get("deleted") ?? 0;
+  if (phantomDeleted > 0) {
+    console.log(`  [CLEANUP] Deleted phantom Bloom node "bloom_architect" (${phantomDeleted} removed)`);
+  } else {
+    console.log("  No phantom Bloom nodes found");
   }
 
   // ── Summary ────────────────────────────────────────────────────────────

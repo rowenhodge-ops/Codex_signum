@@ -360,7 +360,7 @@ Memory operations (compaction, distillation) are currently stubs (`src/memory/`)
 *Run the Architect pipeline against the graph-wired system. Confirm the structural wiring from M-9.1–9.4 works before building Part 2 on top of it.*
 
 **Pre-requisites (confirmed during M-9.3 review):**
-1. `scripts/architect.ts` must add `{ graphEnabled: true, architectBloomId: "bloom_architect" }` to `createBootstrapTaskExecutor()` call
+1. `scripts/architect.ts` must add `{ graphEnabled: true, architectBloomId: "architect" }` to `createBootstrapTaskExecutor()` call
 2. **ΦL conditioning deferral:** M-9.3 writes Observations via `recordObservation()` (raw graph write), not `writeObservation()` (full conditioning path). The bootstrap executor lacks `PatternHealthContext` and `SignalPipeline` instances. Observations exist in the graph and are linked to the Architect Bloom, but ΦL is not recomputed inline. Verification must either: (a) trigger a conditioning pass over accumulated Observations after the pipeline run, or (b) accept that ΦL recomputation is deferred until a full graph-feeder context runs.
 
 - Architect pipeline run with analytical intent (similar to M-8.R1)

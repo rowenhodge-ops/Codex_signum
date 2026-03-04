@@ -280,7 +280,7 @@ async function main(): Promise<void> {
   const modelExecutor = createBootstrapModelExecutor({ vertexAvailable });
   const { executor: taskExecutor, writeManifest } = createBootstrapTaskExecutor(modelExecutor, {
     graphEnabled: true,
-    architectBloomId: "bloom_architect",
+    architectBloomId: "architect",
   });
 
   // Execute plan
