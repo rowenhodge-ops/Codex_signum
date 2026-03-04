@@ -29,6 +29,8 @@ import {
   createTaskOutput,
   ensureArchitectResonators,
   linkTaskOutputToStage,
+  updateDecisionQuality,
+  recordObservation,
 } from "../src/graph/queries.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
@@ -505,6 +507,39 @@ export function detectHallucinations(
   return flags;
 }
 
+/**
+ * Compute a quality score for a task output.
+ * V1: mechanical heuristic (no LLM-as-judge).
+ *
+ * Scoring:
+ *   base = 0.5 (output exists and is non-empty)
+ *   +0.2 if output length > 200 chars (substantive response)
+ *   +0.2 if hallucinationFlagCount === 0 (clean output)
+ *   +0.1 if duration < 60000ms (responsive model)
+ *   -0.3 if status === "failed"
+ *   -0.1 per hallucination flag (up to -0.3)
+ *   clamped to [0, 1]
+ */
+export function assessTaskQuality(
+  outputLength: number,
+  hallucinationFlagCount: number,
+  status: "succeeded" | "failed",
+  durationMs: number,
+): number {
+  let score = 0.5;
+
+  if (outputLength > 200) score += 0.2;
+  if (hallucinationFlagCount === 0) score += 0.2;
+  if (durationMs < 60000) score += 0.1;
+  if (status === "failed") score -= 0.3;
+
+  // Penalty per hallucination flag, capped at -0.3
+  const hallucinationPenalty = Math.min(hallucinationFlagCount * 0.1, 0.3);
+  score -= hallucinationPenalty;
+
+  return Math.max(0, Math.min(1, score));
+}
+
 export function createBootstrapTaskExecutor(
   modelExecutor: ModelExecutor,
   config?: BootstrapExecutorConfig,
@@ -674,6 +709,14 @@ export function createBootstrapTaskExecutor(
           model: result.modelId,
         });
 
+        // Quality assessment (V1 mechanical heuristic)
+        const qualityScore = assessTaskQuality(
+          result.text.length,
+          hallucinationFlags.length,
+          "succeeded",
+          result.durationMs,
+        );
+
         // Write TaskOutput to graph if enabled
         if (config?.graphEnabled && currentRunId) {
           try {
@@ -688,7 +731,7 @@ export function createBootstrapTaskExecutor(
               provider: result.provider ?? "unknown",
               outputLength: result.text.length,
               durationMs: result.durationMs,
-              qualityScore: undefined, // M-9.3 will add quality assessment
+              qualityScore,
               hallucinationFlagCount: hallucinationFlags.length,
               status: "succeeded",
             });
@@ -699,7 +742,31 @@ export function createBootstrapTaskExecutor(
               await linkTaskOutputToStage(taskOutputId, resonatorId);
             }
 
-            console.log(`     [GRAPH] TaskOutput ${taskOutputId} written`);
+            // Update Decision node with real quality score (closes Thompson learning loop)
+            if (result.decisionId) {
+              try {
+                await updateDecisionQuality(result.decisionId, qualityScore);
+              } catch (err3) {
+                console.warn(`     [GRAPH] ⚠️  Failed to update Decision quality: ${err3 instanceof Error ? err3.message : err3}`);
+              }
+            }
+
+            // Write Observation to graph (feeds ΦL computation for Architect Bloom)
+            if (config.architectBloomId) {
+              try {
+                await recordObservation({
+                  id: `obs_${taskOutputId}`,
+                  sourceBloomId: config.architectBloomId,
+                  metric: "task.quality",
+                  value: qualityScore,
+                  context: `${currentRunId}/${task.task_id}`,
+                });
+              } catch (err4) {
+                console.warn(`     [GRAPH] ⚠️  Failed to write Observation: ${err4 instanceof Error ? err4.message : err4}`);
+              }
+            }
+
+            console.log(`     [GRAPH] TaskOutput ${taskOutputId} written (quality=${qualityScore.toFixed(2)})`);
           } catch (err2) {
             console.warn(`     [GRAPH] ⚠️  Failed to write TaskOutput: ${err2 instanceof Error ? err2.message : err2}`);
           }
@@ -727,6 +794,7 @@ export function createBootstrapTaskExecutor(
         });
 
         // Write failed TaskOutput to graph if enabled
+        const failedQuality = assessTaskQuality(0, 0, "failed", 0);
         if (config?.graphEnabled && currentRunId) {
           try {
             await createTaskOutput({
@@ -739,9 +807,25 @@ export function createBootstrapTaskExecutor(
               provider: "unknown",
               outputLength: 0,
               durationMs: 0,
+              qualityScore: failedQuality,
               hallucinationFlagCount: 0,
               status: "failed",
             });
+
+            // Write failure Observation to graph
+            if (config.architectBloomId) {
+              try {
+                await recordObservation({
+                  id: `obs_${currentRunId}_${task.task_id}`,
+                  sourceBloomId: config.architectBloomId,
+                  metric: "task.quality",
+                  value: failedQuality,
+                  context: `${currentRunId}/${task.task_id}`,
+                });
+              } catch {
+                // Swallow — already in error path
+              }
+            }
           } catch {
             // Swallow — already in error path
           }
