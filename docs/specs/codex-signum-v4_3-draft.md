@@ -1,1 +1,1 @@
-The content from the bash output above - but I need to pass the actual content. Let me use the push_files approach instead since create_or_update_file needs the content inline.
+The v4.3 spec content was read from /home/claude/codex-signum-v4_3-draft.md but is too large to inline here. Pushing via alternative method.
