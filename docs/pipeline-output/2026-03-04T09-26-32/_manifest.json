@@ -1,0 +1,152 @@
+{
+  "runId": "2026-03-04T09-26-32",
+  "intent": "Verify the M-9.VA-FIX corrections: analyse quality score distributions across task outputs, verify Decision node provenance chains include runId and taskId, confirm all task outputs link to the DISPATCH Resonator regardless of success or failure status, and assess whether the Thompson sampling router is routing without 404 errors from retired model endpoints",
+  "startedAt": "2026-03-04T09:27:58.932Z",
+  "completedAt": "2026-03-04T09:38:08.358Z",
+  "tasks": [
+    {
+      "taskId": "t1",
+      "title": "Add quality score distribution query to graph queries",
+      "type": "generative",
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 48172,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t1-add-quality-score-distribution-query-to-graph-queries.md",
+      "outputChars": 6122
+    },
+    {
+      "taskId": "t2",
+      "title": "Add Decision node provenance verification query",
+      "type": "generative",
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 55945,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t2-add-decision-node-provenance-verification-query.md",
+      "outputChars": 7874
+    },
+    {
+      "taskId": "t4",
+      "title": "Add model endpoint health verification query",
+      "type": "generative",
+      "model": "claude-sonnet-4:none",
+      "provider": "anthropic",
+      "thinkingMode": "none",
+      "status": "succeeded",
+      "durationMs": 31059,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t4-add-model-endpoint-health-verification-query.md",
+      "outputChars": 5484
+    },
+    {
+      "taskId": "t3",
+      "title": "Add task output Resonator linkage verification query",
+      "type": "generative",
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 60574,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t3-add-task-output-resonator-linkage-verification-query.md",
+      "outputChars": 7166
+    },
+    {
+      "taskId": "t5",
+      "title": "Extend verify-graph-state to analyze quality score distributions",
+      "type": "mechanical",
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 104255,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t5-extend-verify-graph-state-to-analyze-quality-score-distribut.md",
+      "outputChars": 19669
+    },
+    {
+      "taskId": "t6",
+      "title": "Extend verify-graph-state to verify Decision provenance",
+      "type": "mechanical",
+      "model": "claude-haiku-4-5:extended:4k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "4k",
+      "status": "succeeded",
+      "durationMs": 32601,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t6-extend-verify-graph-state-to-verify-decision-provenance.md",
+      "outputChars": 16787
+    },
+    {
+      "taskId": "t8",
+      "title": "Extend verify-select-model to check for retired endpoints",
+      "type": "mechanical",
+      "model": "claude-haiku-4-5:extended:4k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "4k",
+      "status": "succeeded",
+      "durationMs": 22768,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t8-extend-verify-select-model-to-check-for-retired-endpoints.md",
+      "outputChars": 9026
+    },
+    {
+      "taskId": "t7",
+      "title": "Extend verify-graph-state to verify task output linkage",
+      "type": "mechanical",
+      "model": "claude-haiku-4-5:extended:4k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "4k",
+      "status": "succeeded",
+      "durationMs": 40391,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t7-extend-verify-graph-state-to-verify-task-output-linkage.md",
+      "outputChars": 18488
+    },
+    {
+      "taskId": "t9",
+      "title": "Add endpoint health check to Thompson router selection",
+      "type": "generative",
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 70814,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t9-add-endpoint-health-check-to-thompson-router-selection.md",
+      "outputChars": 10632
+    },
+    {
+      "taskId": "t10",
+      "title": "Add 404 error handling to Thompson router",
+      "type": "generative",
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 101971,
+      "outputFile": "docs\\pipeline-output\\2026-03-04T09-26-32\\t10-add-404-error-handling-to-thompson-router.md",
+      "outputChars": 16897
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "succeeded": 10,
+    "failed": 0,
+    "totalDurationMs": 568550,
+    "totalOutputChars": 118145,
+    "modelsUsed": [
+      "claude-opus-4-5:extended:32k",
+      "claude-opus-4-6:adaptive:high",
+      "claude-sonnet-4:none",
+      "claude-opus-4-5:extended:16k",
+      "claude-haiku-4-5:extended:4k",
+      "claude-opus-4-6:adaptive:low"
+    ]
+  }
+}
