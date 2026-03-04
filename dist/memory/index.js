@@ -13,4 +13,6 @@ export { DEFAULT_COMPACTION_CONFIG, computeCompactionStats, computeObservationWe
 export { distillPerformanceProfile, distillRoutingHints, distillThresholdCalibration, } from "./distillation.js";
 // Memory Flow Coordinator
 export { computeDownwardFlow, computeUpwardFlow } from "./flow.js";
+// Graph-backed memory operations (M-9.4)
+export { runCompaction, checkAndDistill, processMemoryAfterExecution, } from "./graph-operations.js";
 //# sourceMappingURL=index.js.map

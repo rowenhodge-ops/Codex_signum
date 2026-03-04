@@ -46,6 +46,14 @@ export {
   countObservationsForBloom,
   // Distillations
   createDistillation,
+  // Memory persistence (M-9.4)
+  getCompactableObservations,
+  deleteObservations,
+  getActiveDistillationIds,
+  getObservationsForDistillation,
+  createStructuredDistillation,
+  getDistillationsForBloom,
+  supersededDistillation,
   // Context Clusters
   ensureContextCluster,
   // Human Feedback
@@ -97,6 +105,7 @@ export type {
   DecisionOutcomeProps,
   ObservationProps,
   DistillationProps,
+  StructuredDistillationProps,
   ContextClusterProps,
   ArmStats,
   HumanFeedbackProps,

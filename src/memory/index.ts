@@ -56,3 +56,15 @@ export type {
   UpwardFlowInput,
   UpwardFlowResult,
 } from "./flow.js";
+
+// Graph-backed memory operations (M-9.4)
+export {
+  runCompaction,
+  checkAndDistill,
+  processMemoryAfterExecution,
+} from "./graph-operations.js";
+export type {
+  CompactionResult,
+  DistillationResult,
+  MemoryProcessingResult,
+} from "./graph-operations.js";

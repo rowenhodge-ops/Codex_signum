@@ -19,6 +19,8 @@ recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTas
 recordObservation, getObservationsForBloom, countObservationsForBloom, 
 // Distillations
 createDistillation, 
+// Memory persistence (M-9.4)
+getCompactableObservations, deleteObservations, getActiveDistillationIds, getObservationsForDistillation, createStructuredDistillation, getDistillationsForBloom, supersededDistillation, 
 // Context Clusters
 ensureContextCluster, 
 // Human Feedback
