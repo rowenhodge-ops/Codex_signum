@@ -99,6 +99,8 @@ export async function selectModel(
     contextClusterId,
     qualityRequirement: request.qualityRequirement,
     costCeiling: request.costCeiling,
+    runId: request.runId,
+    taskId: request.taskId,
   });
 
   const selectedSeed = seedRecords.find(

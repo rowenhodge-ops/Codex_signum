@@ -24,7 +24,7 @@ import {
   getPipelineStageHealth,
   getPipelineRunStats,
 } from "../../src/graph/queries.js";
-import type { DecisionOutcomeProps } from "../../src/graph/queries.js";
+import type { DecisionProps, DecisionOutcomeProps } from "../../src/graph/queries.js";
 import type { ModelExecutorResult } from "../../src/patterns/architect/types.js";
 import {
   assessTaskQuality,
@@ -73,6 +73,36 @@ describe("recordDecisionOutcome", () => {
     expect(outcome.thinkingTokens).toBeUndefined();
     expect(outcome.errorType).toBeUndefined();
     expect(outcome.notes).toBeUndefined();
+  });
+});
+
+// ============ DecisionProps runId/taskId ============
+
+describe("DecisionProps runId/taskId", () => {
+  it("accepts runId and taskId", () => {
+    const props: DecisionProps = {
+      id: "dec_test_runid",
+      taskType: "analytical",
+      complexity: "moderate",
+      selectedSeedId: "claude-opus-4-6:adaptive:low",
+      wasExploratory: false,
+      runId: "2026-03-04T05-30-28",
+      taskId: "t1",
+    };
+    expect(props.runId).toBe("2026-03-04T05-30-28");
+    expect(props.taskId).toBe("t1");
+  });
+
+  it("runId and taskId are optional (backward compat)", () => {
+    const props: DecisionProps = {
+      id: "dec_test_no_runid",
+      taskType: "coding",
+      complexity: "trivial",
+      selectedSeedId: "claude-sonnet-4-6:adaptive:low",
+      wasExploratory: true,
+    };
+    expect(props.runId).toBeUndefined();
+    expect(props.taskId).toBeUndefined();
   });
 });
 

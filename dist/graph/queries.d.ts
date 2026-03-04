@@ -60,6 +60,10 @@ export interface DecisionProps {
     contextClusterId?: string;
     qualityRequirement?: number;
     costCeiling?: number;
+    /** Pipeline run ID — enables human feedback queries */
+    runId?: string;
+    /** Task ID within the pipeline run — enables per-task feedback */
+    taskId?: string;
 }
 /** Properties for recording a Decision Outcome */
 export interface DecisionOutcomeProps {

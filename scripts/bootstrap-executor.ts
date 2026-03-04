@@ -722,6 +722,8 @@ export function createBootstrapModelExecutor(
           complexity,
           qualityRequirement: context?.qualityRequirement ?? 0.7,
           callerPatternId: "architect",
+          runId: context?.runId,
+          taskId: context?.taskId,
         });
 
         const providerClass = classifyProvider(selection.provider);

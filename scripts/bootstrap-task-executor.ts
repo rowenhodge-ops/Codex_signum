@@ -619,6 +619,8 @@ export function createBootstrapTaskExecutor(
               : task.estimated_complexity === "high"
                 ? "complex"
                 : "moderate",
+          runId: currentRunId ?? undefined,
+          taskId: task.task_id,
         });
 
         console.log(

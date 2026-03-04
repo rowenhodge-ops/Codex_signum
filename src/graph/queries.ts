@@ -86,6 +86,10 @@ export interface DecisionProps {
   contextClusterId?: string;
   qualityRequirement?: number;
   costCeiling?: number;
+  /** Pipeline run ID — enables human feedback queries */
+  runId?: string;
+  /** Task ID within the pipeline run — enables per-task feedback */
+  taskId?: string;
 }
 
 /** Properties for recording a Decision Outcome */
@@ -416,6 +420,8 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
          wasExploratory: $wasExploratory,
          qualityRequirement: $qualityRequirement,
          costCeiling: $costCeiling,
+         runId: $runId,
+         taskId: $taskId,
          timestamp: datetime(),
          status: 'pending'
        })
@@ -439,6 +445,8 @@ export async function recordDecision(props: DecisionProps): Promise<void> {
         contextClusterId: props.contextClusterId ?? null,
         qualityRequirement: props.qualityRequirement ?? null,
         costCeiling: props.costCeiling ?? null,
+        runId: props.runId ?? null,
+        taskId: props.taskId ?? null,
       },
     );
   });

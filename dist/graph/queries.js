@@ -187,6 +187,8 @@ export async function recordDecision(props) {
          wasExploratory: $wasExploratory,
          qualityRequirement: $qualityRequirement,
          costCeiling: $costCeiling,
+         runId: $runId,
+         taskId: $taskId,
          timestamp: datetime(),
          status: 'pending'
        })
@@ -209,6 +211,8 @@ export async function recordDecision(props) {
             contextClusterId: props.contextClusterId ?? null,
             qualityRequirement: props.qualityRequirement ?? null,
             costCeiling: props.costCeiling ?? null,
+            runId: props.runId ?? null,
+            taskId: props.taskId ?? null,
         });
     });
 }

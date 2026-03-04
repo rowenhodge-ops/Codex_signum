@@ -65,6 +65,10 @@ export interface SelectModelRequest {
 	requiresInterleavedThinking?: boolean;
 	requiresStructuredOutput?: boolean;
 	maxCostPer1kOutput?: number;
+	/** Pipeline run ID — threaded to Decision node for human feedback */
+	runId?: string;
+	/** Task ID within the pipeline run */
+	taskId?: string;
 }
 
 /** Output from selectModel — what the caller gets */

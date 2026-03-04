@@ -311,6 +311,10 @@ export interface ModelExecutorContext {
   complexity?: "simple" | "moderate" | "complex";
   /** Quality requirement (0-1) */
   qualityRequirement?: number;
+  /** Pipeline run ID — threaded to Decision node for human feedback */
+  runId?: string;
+  /** Task ID within the pipeline run */
+  taskId?: string;
 }
 
 export interface ModelExecutorResult {

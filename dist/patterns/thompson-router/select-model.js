@@ -72,6 +72,8 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
         contextClusterId,
         qualityRequirement: request.qualityRequirement,
         costCeiling: request.costCeiling,
+        runId: request.runId,
+        taskId: request.taskId,
     });
     const selectedSeed = seedRecords.find((record) => String(record.get("s").properties.id) === decision.selectedModelId);
     const seedProps = selectedSeed?.get("s").properties ?? {};
