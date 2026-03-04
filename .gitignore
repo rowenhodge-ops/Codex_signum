@@ -28,3 +28,6 @@ docs/Journal/
 
 # Patches
 *.patch
+
+# Temporary working files
+.tmp-*
