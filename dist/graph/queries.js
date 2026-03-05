@@ -1204,4 +1204,96 @@ export async function getHypothesisStatus() {
         observesMilestone: r.get("observesMilestone"),
     }));
 }
+/**
+ * Get grammar elements, optionally filtered by category (seedType).
+ * Answers: "What morphemes/axioms/rules exist and what's their implementation status?"
+ */
+export async function getGrammarElements(category) {
+    const whereClause = category
+        ? "WHERE s.seedType = $category"
+        : "";
+    const result = await runQuery(`MATCH (:Bloom {type: 'grammar-reference'})-[:CONTAINS]->(:Bloom {type: 'grammar-category'})-[:CONTAINS]->(s:Seed)
+     ${whereClause}
+     RETURN s.id AS id, s.seedType AS seedType, s.name AS name,
+            s.description AS description, s.specSource AS specSource,
+            s.implementationStatus AS implementationStatus,
+            s.implementationNotes AS implementationNotes,
+            s.codeLocation AS codeLocation
+     ORDER BY s.seedType, s.id`, category ? { category } : {}, "READ");
+    return result.records.map((r) => ({
+        id: r.get("id"),
+        seedType: r.get("seedType"),
+        name: r.get("name"),
+        description: r.get("description"),
+        specSource: r.get("specSource"),
+        implementationStatus: r.get("implementationStatus"),
+        implementationNotes: r.get("implementationNotes"),
+        codeLocation: r.get("codeLocation") ?? null,
+    }));
+}
+/**
+ * Get implementation coverage summary for all grammar elements.
+ * Answers: "How much of the grammar is implemented?"
+ */
+export async function getGrammarCoverage() {
+    const result = await runQuery(`MATCH (:Bloom {type: 'grammar-reference'})-[:CONTAINS]->(:Bloom {type: 'grammar-category'})-[:CONTAINS]->(s:Seed)
+     RETURN s.implementationStatus AS status, count(s) AS cnt`, {}, "READ");
+    const counts = {};
+    let total = 0;
+    for (const r of result.records) {
+        const status = r.get("status");
+        const cnt = r.get("cnt");
+        counts[status] = cnt;
+        total += cnt;
+    }
+    return {
+        total,
+        complete: counts["complete"] ?? 0,
+        partial: counts["partial"] ?? 0,
+        typesOnly: counts["types-only"] ?? 0,
+        notStarted: counts["not-started"] ?? 0,
+        aspirational: counts["aspirational"] ?? 0,
+    };
+}
+/**
+ * Get axiom dependency chains (DAG).
+ * Answers: "What axioms depend on A2 Visible State?"
+ */
+export async function getAxiomDependencies(axiomId) {
+    const whereClause = axiomId ? "WHERE a.id = $axiomId" : "";
+    const result = await runQuery(`MATCH (a:Seed {seedType: 'axiom'})
+     ${whereClause}
+     OPTIONAL MATCH (a)-[:DEPENDS_ON]->(dep:Seed {seedType: 'axiom'})
+     OPTIONAL MATCH (rev:Seed {seedType: 'axiom'})-[:DEPENDS_ON]->(a)
+     RETURN a.id AS axiomId, a.name AS axiomName,
+            collect(DISTINCT dep.id) AS dependsOn,
+            collect(DISTINCT rev.id) AS dependedOnBy
+     ORDER BY a.id`, axiomId ? { axiomId } : {}, "READ");
+    return result.records.map((r) => ({
+        axiomId: r.get("axiomId"),
+        axiomName: r.get("axiomName"),
+        dependsOn: r.get("dependsOn").filter(Boolean),
+        dependedOnBy: r.get("dependedOnBy").filter(Boolean),
+    }));
+}
+/**
+ * Get anti-pattern to axiom VIOLATES mappings.
+ * Answers: "Which anti-patterns violate A2?"
+ */
+export async function getAntiPatternViolations(axiomId) {
+    const whereClause = axiomId ? "WHERE ax.id = $axiomId" : "";
+    const result = await runQuery(`MATCH (ap:Seed {seedType: 'anti-pattern'})-[:VIOLATES]->(ax:Seed {seedType: 'axiom'})
+     ${whereClause}
+     RETURN ap.id AS antiPatternId, ap.name AS antiPatternName,
+            ax.id AS violatesAxiom, ax.name AS violatesAxiomName,
+            ap.implementationStatus AS implementationStatus
+     ORDER BY ax.id, ap.id`, axiomId ? { axiomId } : {}, "READ");
+    return result.records.map((r) => ({
+        antiPatternId: r.get("antiPatternId"),
+        antiPatternName: r.get("antiPatternName"),
+        violatesAxiom: r.get("violatesAxiom"),
+        violatesAxiomName: r.get("violatesAxiomName"),
+        implementationStatus: r.get("implementationStatus"),
+    }));
+}
 //# sourceMappingURL=queries.js.map

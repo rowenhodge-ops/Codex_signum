@@ -538,4 +538,59 @@ export interface HypothesisStatusEntry {
  * Returns hypothesis data with OBSERVES relationship targets.
  */
 export declare function getHypothesisStatus(): Promise<HypothesisStatusEntry[]>;
+/** Grammar element entry from the graph */
+export interface GrammarElementEntry {
+    id: string;
+    seedType: string;
+    name: string;
+    description: string;
+    specSource: string;
+    implementationStatus: string;
+    implementationNotes: string;
+    codeLocation: string | null;
+}
+/**
+ * Get grammar elements, optionally filtered by category (seedType).
+ * Answers: "What morphemes/axioms/rules exist and what's their implementation status?"
+ */
+export declare function getGrammarElements(category?: string): Promise<GrammarElementEntry[]>;
+/** Grammar implementation coverage summary */
+export interface GrammarCoverageEntry {
+    total: number;
+    complete: number;
+    partial: number;
+    typesOnly: number;
+    notStarted: number;
+    aspirational: number;
+}
+/**
+ * Get implementation coverage summary for all grammar elements.
+ * Answers: "How much of the grammar is implemented?"
+ */
+export declare function getGrammarCoverage(): Promise<GrammarCoverageEntry>;
+/** Axiom dependency chain entry */
+export interface AxiomDependencyEntry {
+    axiomId: string;
+    axiomName: string;
+    dependsOn: string[];
+    dependedOnBy: string[];
+}
+/**
+ * Get axiom dependency chains (DAG).
+ * Answers: "What axioms depend on A2 Visible State?"
+ */
+export declare function getAxiomDependencies(axiomId?: string): Promise<AxiomDependencyEntry[]>;
+/** Anti-pattern violation entry */
+export interface AntiPatternViolationEntry {
+    antiPatternId: string;
+    antiPatternName: string;
+    violatesAxiom: string;
+    violatesAxiomName: string;
+    implementationStatus: string;
+}
+/**
+ * Get anti-pattern to axiom VIOLATES mappings.
+ * Answers: "Which anti-patterns violate A2?"
+ */
+export declare function getAntiPatternViolations(axiomId?: string): Promise<AntiPatternViolationEntry[]>;
 //# sourceMappingURL=queries.d.ts.map

@@ -35,6 +35,8 @@ failPipelineRun, updateTaskOutputQuality, getTaskOutput, linkDecisionToPipelineR
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Ecosystem queries (M-9.8)
 getMilestoneOverview, getFutureTestsForMilestone, getHypothesisStatus, 
+// Grammar reference queries (M-9.7a)
+getGrammarElements, getGrammarCoverage, getAxiomDependencies, getAntiPatternViolations, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Inline conditioning write path

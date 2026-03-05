@@ -127,6 +127,23 @@ export interface SurveyOutput {
             evidenceStrength: number;
             observesMilestone: string;
         }>;
+        /** Grammar implementation coverage summary (M-9.7a) */
+        grammarCoverage?: {
+            total: number;
+            complete: number;
+            partial: number;
+            typesOnly: number;
+            notStarted: number;
+            aspirational: number;
+        };
+        /** Anti-pattern to axiom violation mappings (M-9.7a) */
+        antiPatternViolations?: Array<{
+            antiPatternId: string;
+            antiPatternName: string;
+            violatesAxiom: string;
+            violatesAxiomName: string;
+            implementationStatus: string;
+        }>;
     } | null;
     gapAnalysis: {
         /** Components/functions confirmed to exist and work */

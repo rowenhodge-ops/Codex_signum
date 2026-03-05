@@ -683,6 +683,54 @@ async function inspectGraphState(session, blindSpots) {
     catch {
         // Non-fatal: ecosystem not bootstrapped
     }
+    // ── Grammar reference queries (M-9.7a) ────────────────────────────────────
+    // Non-fatal: if grammar reference not bootstrapped, fields stay undefined.
+    // Grammar implementation coverage
+    try {
+        const coverageResult = await session.run(`MATCH (:Bloom {type: 'grammar-reference'})-[:CONTAINS]->(:Bloom {type: 'grammar-category'})-[:CONTAINS]->(s:Seed)
+       RETURN s.implementationStatus AS status, count(s) AS cnt`);
+        if (coverageResult.records.length > 0) {
+            const counts = {};
+            let total = 0;
+            for (const r of coverageResult.records) {
+                const status = r.get("status");
+                const cnt = r.get("cnt");
+                counts[status] = cnt;
+                total += cnt;
+            }
+            state.grammarCoverage = {
+                total,
+                complete: counts["complete"] ?? 0,
+                partial: counts["partial"] ?? 0,
+                typesOnly: counts["types-only"] ?? 0,
+                notStarted: counts["not-started"] ?? 0,
+                aspirational: counts["aspirational"] ?? 0,
+            };
+        }
+    }
+    catch {
+        // Non-fatal: grammar reference not bootstrapped
+    }
+    // Anti-pattern violations
+    try {
+        const violationsResult = await session.run(`MATCH (ap:Seed {seedType: 'anti-pattern'})-[:VIOLATES]->(ax:Seed {seedType: 'axiom'})
+       RETURN ap.id AS antiPatternId, ap.name AS antiPatternName,
+              ax.id AS violatesAxiom, ax.name AS violatesAxiomName,
+              ap.implementationStatus AS implementationStatus
+       ORDER BY ax.id, ap.id`);
+        if (violationsResult.records.length > 0) {
+            state.antiPatternViolations = violationsResult.records.map((r) => ({
+                antiPatternId: r.get("antiPatternId"),
+                antiPatternName: r.get("antiPatternName"),
+                violatesAxiom: r.get("violatesAxiom"),
+                violatesAxiomName: r.get("violatesAxiomName"),
+                implementationStatus: r.get("implementationStatus"),
+            }));
+        }
+    }
+    catch {
+        // Non-fatal: grammar reference not bootstrapped
+    }
     return state;
 }
 /**
