@@ -2162,3 +2162,179 @@ export async function getAntiPatternViolations(
     implementationStatus: r.get("implementationStatus") as string,
   }));
 }
+
+// ============ MORPHEME TOPOLOGY QUERIES (M-9.7b) ============
+
+/** Pattern topology entry — a pattern with its stages and data flows */
+export interface PatternTopologyEntry {
+  patternId: string;
+  patternName: string;
+  patternType: string;
+  stages: Array<{ id: string; role: string; name: string }>;
+  flows: Array<{ from: string; to: string }>;
+}
+
+/**
+ * Get all patterns with their stages (Resonators) and data flows.
+ * Returns the runtime topology of each pattern.
+ *
+ * @param patternId - Optional filter for a specific pattern
+ */
+export async function getPatternTopology(
+  patternId?: string,
+): Promise<PatternTopologyEntry[]> {
+  const whereClause = patternId ? "WHERE p.id = $patternId" : "";
+  const stageResult = await runQuery(
+    `MATCH (p:Bloom)-[:CONTAINS]->(r:Resonator)
+     ${whereClause}
+     RETURN p.id AS patternId, p.name AS patternName, p.type AS patternType,
+            r.id AS stageId, r.role AS role, r.name AS stageName
+     ORDER BY p.id, r.id`,
+    patternId ? { patternId } : {},
+    "READ",
+  );
+
+  const flowResult = await runQuery(
+    `MATCH (r1:Resonator)-[:FLOWS_TO]->(r2:Resonator)
+     ${patternId ? "WHERE r1.patternId = $patternId" : ""}
+     RETURN r1.id AS fromId, r2.id AS toId, r1.patternId AS patternId`,
+    patternId ? { patternId } : {},
+    "READ",
+  );
+
+  // Group by pattern
+  const patterns = new Map<string, PatternTopologyEntry>();
+
+  for (const r of stageResult.records) {
+    const pid = r.get("patternId") as string;
+    if (!patterns.has(pid)) {
+      patterns.set(pid, {
+        patternId: pid,
+        patternName: r.get("patternName") as string,
+        patternType: r.get("patternType") as string,
+        stages: [],
+        flows: [],
+      });
+    }
+    patterns.get(pid)!.stages.push({
+      id: r.get("stageId") as string,
+      role: r.get("role") as string,
+      name: r.get("stageName") as string,
+    });
+  }
+
+  for (const r of flowResult.records) {
+    const pid = r.get("patternId") as string;
+    if (patterns.has(pid)) {
+      patterns.get(pid)!.flows.push({
+        from: r.get("fromId") as string,
+        to: r.get("toId") as string,
+      });
+    }
+  }
+
+  return Array.from(patterns.values());
+}
+
+/** Visualisation node entry */
+export interface VisNodeEntry {
+  id: string;
+  label: string;
+  type: string;
+  name: string;
+  properties: Record<string, unknown>;
+}
+
+/** Visualisation relationship entry */
+export interface VisRelationshipEntry {
+  from: string;
+  to: string;
+  type: string;
+}
+
+/** Full visualisation topology */
+export interface VisualisationTopology {
+  nodes: VisNodeEntry[];
+  relationships: VisRelationshipEntry[];
+}
+
+/**
+ * Get the full graph topology for visualisation.
+ * Returns all morpheme nodes (Bloom, Seed, Resonator, Helix, Grid)
+ * and their relationships.
+ */
+export async function getVisualisationTopology(): Promise<VisualisationTopology> {
+  // Get all morpheme nodes
+  const nodeResult = await runQuery(
+    `MATCH (n)
+     WHERE n:Bloom OR n:Seed OR n:Resonator OR n:Helix OR n:Grid
+     RETURN n.id AS id,
+            labels(n)[0] AS label,
+            COALESCE(n.type, n.seedType, '') AS type,
+            COALESCE(n.name, n.id) AS name,
+            properties(n) AS props
+     ORDER BY labels(n)[0], n.id`,
+    {},
+    "READ",
+  );
+
+  // Get all relationships between morpheme nodes
+  const relResult = await runQuery(
+    `MATCH (a)-[r]->(b)
+     WHERE (a:Bloom OR a:Seed OR a:Resonator OR a:Helix OR a:Grid)
+       AND (b:Bloom OR b:Seed OR b:Resonator OR b:Helix OR b:Grid)
+     RETURN a.id AS fromId, b.id AS toId, type(r) AS relType
+     ORDER BY type(r), a.id`,
+    {},
+    "READ",
+  );
+
+  const nodes: VisNodeEntry[] = nodeResult.records.map((r: Neo4jRecord) => ({
+    id: r.get("id") as string,
+    label: r.get("label") as string,
+    type: r.get("type") as string,
+    name: r.get("name") as string,
+    properties: r.get("props") as Record<string, unknown>,
+  }));
+
+  const relationships: VisRelationshipEntry[] = relResult.records.map(
+    (r: Neo4jRecord) => ({
+      from: r.get("fromId") as string,
+      to: r.get("toId") as string,
+      type: r.get("relType") as string,
+    }),
+  );
+
+  return { nodes, relationships };
+}
+
+/** Grammar instance mapping entry */
+export interface GrammarInstanceEntry {
+  instanceId: string;
+  instanceLabel: string;
+  grammarElementId: string;
+  grammarElementName: string;
+}
+
+/**
+ * Get INSTANTIATES mappings — which runtime elements are instances
+ * of which grammar definitions.
+ */
+export async function getGrammarInstances(): Promise<GrammarInstanceEntry[]> {
+  const result = await runQuery(
+    `MATCH (instance)-[:INSTANTIATES]->(def:Seed {seedType: 'morpheme'})
+     RETURN instance.id AS instanceId,
+            labels(instance)[0] AS instanceLabel,
+            def.id AS grammarElementId,
+            def.name AS grammarElementName
+     ORDER BY def.name, instance.id`,
+    {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    instanceId: r.get("instanceId") as string,
+    instanceLabel: r.get("instanceLabel") as string,
+    grammarElementId: r.get("grammarElementId") as string,
+    grammarElementName: r.get("grammarElementName") as string,
+  }));
+}

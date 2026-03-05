@@ -1296,4 +1296,103 @@ export async function getAntiPatternViolations(axiomId) {
         implementationStatus: r.get("implementationStatus"),
     }));
 }
+/**
+ * Get all patterns with their stages (Resonators) and data flows.
+ * Returns the runtime topology of each pattern.
+ *
+ * @param patternId - Optional filter for a specific pattern
+ */
+export async function getPatternTopology(patternId) {
+    const whereClause = patternId ? "WHERE p.id = $patternId" : "";
+    const stageResult = await runQuery(`MATCH (p:Bloom)-[:CONTAINS]->(r:Resonator)
+     ${whereClause}
+     RETURN p.id AS patternId, p.name AS patternName, p.type AS patternType,
+            r.id AS stageId, r.role AS role, r.name AS stageName
+     ORDER BY p.id, r.id`, patternId ? { patternId } : {}, "READ");
+    const flowResult = await runQuery(`MATCH (r1:Resonator)-[:FLOWS_TO]->(r2:Resonator)
+     ${patternId ? "WHERE r1.patternId = $patternId" : ""}
+     RETURN r1.id AS fromId, r2.id AS toId, r1.patternId AS patternId`, patternId ? { patternId } : {}, "READ");
+    // Group by pattern
+    const patterns = new Map();
+    for (const r of stageResult.records) {
+        const pid = r.get("patternId");
+        if (!patterns.has(pid)) {
+            patterns.set(pid, {
+                patternId: pid,
+                patternName: r.get("patternName"),
+                patternType: r.get("patternType"),
+                stages: [],
+                flows: [],
+            });
+        }
+        patterns.get(pid).stages.push({
+            id: r.get("stageId"),
+            role: r.get("role"),
+            name: r.get("stageName"),
+        });
+    }
+    for (const r of flowResult.records) {
+        const pid = r.get("patternId");
+        if (patterns.has(pid)) {
+            patterns.get(pid).flows.push({
+                from: r.get("fromId"),
+                to: r.get("toId"),
+            });
+        }
+    }
+    return Array.from(patterns.values());
+}
+/**
+ * Get the full graph topology for visualisation.
+ * Returns all morpheme nodes (Bloom, Seed, Resonator, Helix, Grid)
+ * and their relationships.
+ */
+export async function getVisualisationTopology() {
+    // Get all morpheme nodes
+    const nodeResult = await runQuery(`MATCH (n)
+     WHERE n:Bloom OR n:Seed OR n:Resonator OR n:Helix OR n:Grid
+     RETURN n.id AS id,
+            labels(n)[0] AS label,
+            COALESCE(n.type, n.seedType, '') AS type,
+            COALESCE(n.name, n.id) AS name,
+            properties(n) AS props
+     ORDER BY labels(n)[0], n.id`, {}, "READ");
+    // Get all relationships between morpheme nodes
+    const relResult = await runQuery(`MATCH (a)-[r]->(b)
+     WHERE (a:Bloom OR a:Seed OR a:Resonator OR a:Helix OR a:Grid)
+       AND (b:Bloom OR b:Seed OR b:Resonator OR b:Helix OR b:Grid)
+     RETURN a.id AS fromId, b.id AS toId, type(r) AS relType
+     ORDER BY type(r), a.id`, {}, "READ");
+    const nodes = nodeResult.records.map((r) => ({
+        id: r.get("id"),
+        label: r.get("label"),
+        type: r.get("type"),
+        name: r.get("name"),
+        properties: r.get("props"),
+    }));
+    const relationships = relResult.records.map((r) => ({
+        from: r.get("fromId"),
+        to: r.get("toId"),
+        type: r.get("relType"),
+    }));
+    return { nodes, relationships };
+}
+/**
+ * Get INSTANTIATES mappings — which runtime elements are instances
+ * of which grammar definitions.
+ */
+export async function getGrammarInstances() {
+    const result = await runQuery(`MATCH (instance)-[:INSTANTIATES]->(def:Seed {seedType: 'morpheme'})
+     RETURN instance.id AS instanceId,
+            labels(instance)[0] AS instanceLabel,
+            def.id AS grammarElementId,
+            def.name AS grammarElementName
+     ORDER BY def.name, instance.id`, {}, "READ");
+    return result.records.map((r) => ({
+        instanceId: r.get("instanceId"),
+        instanceLabel: r.get("instanceLabel"),
+        grammarElementId: r.get("grammarElementId"),
+        grammarElementName: r.get("grammarElementName"),
+    }));
+}
 //# sourceMappingURL=queries.js.map

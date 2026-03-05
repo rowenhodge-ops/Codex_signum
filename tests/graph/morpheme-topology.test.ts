@@ -169,3 +169,24 @@ describe("Morpheme Topology — Data Contract", () => {
     expect(grammarRefIds).toHaveLength(4);
   });
 });
+
+// ── Barrel Export Tests ──
+
+describe("Morpheme Topology — Barrel Exports", () => {
+  it("re-exports all M-9.7b query functions from package root", async () => {
+    const root = await import("../../src/index.js");
+
+    expect(typeof root.getPatternTopology).toBe("function");
+    expect(typeof root.getVisualisationTopology).toBe("function");
+    expect(typeof root.getGrammarInstances).toBe("function");
+  });
+
+  it("re-exports all M-9.7b types from graph index", async () => {
+    // Type-level check: importing the types should not throw
+    const graphModule = await import("../../src/graph/index.js");
+
+    expect(typeof graphModule.getPatternTopology).toBe("function");
+    expect(typeof graphModule.getVisualisationTopology).toBe("function");
+    expect(typeof graphModule.getGrammarInstances).toBe("function");
+  });
+});

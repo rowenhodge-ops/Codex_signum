@@ -101,6 +101,10 @@ export {
   getGrammarCoverage,
   getAxiomDependencies,
   getAntiPatternViolations,
+  // Morpheme topology queries (M-9.7b)
+  getPatternTopology,
+  getVisualisationTopology,
+  getGrammarInstances,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -142,6 +146,12 @@ export type {
   GrammarCoverageEntry,
   AxiomDependencyEntry,
   AntiPatternViolationEntry,
+  // Morpheme topology types (M-9.7b)
+  PatternTopologyEntry,
+  VisNodeEntry,
+  VisRelationshipEntry,
+  VisualisationTopology,
+  GrammarInstanceEntry,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

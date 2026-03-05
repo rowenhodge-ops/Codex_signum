@@ -593,4 +593,63 @@ export interface AntiPatternViolationEntry {
  * Answers: "Which anti-patterns violate A2?"
  */
 export declare function getAntiPatternViolations(axiomId?: string): Promise<AntiPatternViolationEntry[]>;
+/** Pattern topology entry — a pattern with its stages and data flows */
+export interface PatternTopologyEntry {
+    patternId: string;
+    patternName: string;
+    patternType: string;
+    stages: Array<{
+        id: string;
+        role: string;
+        name: string;
+    }>;
+    flows: Array<{
+        from: string;
+        to: string;
+    }>;
+}
+/**
+ * Get all patterns with their stages (Resonators) and data flows.
+ * Returns the runtime topology of each pattern.
+ *
+ * @param patternId - Optional filter for a specific pattern
+ */
+export declare function getPatternTopology(patternId?: string): Promise<PatternTopologyEntry[]>;
+/** Visualisation node entry */
+export interface VisNodeEntry {
+    id: string;
+    label: string;
+    type: string;
+    name: string;
+    properties: Record<string, unknown>;
+}
+/** Visualisation relationship entry */
+export interface VisRelationshipEntry {
+    from: string;
+    to: string;
+    type: string;
+}
+/** Full visualisation topology */
+export interface VisualisationTopology {
+    nodes: VisNodeEntry[];
+    relationships: VisRelationshipEntry[];
+}
+/**
+ * Get the full graph topology for visualisation.
+ * Returns all morpheme nodes (Bloom, Seed, Resonator, Helix, Grid)
+ * and their relationships.
+ */
+export declare function getVisualisationTopology(): Promise<VisualisationTopology>;
+/** Grammar instance mapping entry */
+export interface GrammarInstanceEntry {
+    instanceId: string;
+    instanceLabel: string;
+    grammarElementId: string;
+    grammarElementName: string;
+}
+/**
+ * Get INSTANTIATES mappings — which runtime elements are instances
+ * of which grammar definitions.
+ */
+export declare function getGrammarInstances(): Promise<GrammarInstanceEntry[]>;
 //# sourceMappingURL=queries.d.ts.map

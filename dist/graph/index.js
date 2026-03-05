@@ -37,6 +37,8 @@ getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL,
 getMilestoneOverview, getFutureTestsForMilestone, getHypothesisStatus, 
 // Grammar reference queries (M-9.7a)
 getGrammarElements, getGrammarCoverage, getAxiomDependencies, getAntiPatternViolations, 
+// Morpheme topology queries (M-9.7b)
+getPatternTopology, getVisualisationTopology, getGrammarInstances, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Inline conditioning write path
