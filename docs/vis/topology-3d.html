@@ -1,0 +1,5143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Signum — Morpheme Topology</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Consolas', 'Monaco', monospace; overflow: hidden; }
+  #container { width: 100vw; height: 100vh; }
+  #info {
+    position: absolute; top: 12px; left: 12px; z-index: 100;
+    background: rgba(10, 10, 15, 0.85); border: 1px solid #333;
+    padding: 12px 16px; border-radius: 6px; max-width: 320px;
+    font-size: 12px; line-height: 1.5;
+  }
+  #info h1 { font-size: 14px; color: #88ccff; margin-bottom: 6px; }
+  #info .stat { color: #aaa; }
+  #info .stat b { color: #e0e0e0; }
+  #tooltip {
+    position: absolute; display: none; z-index: 200;
+    background: rgba(10, 10, 15, 0.92); border: 1px solid #555;
+    padding: 8px 12px; border-radius: 4px; font-size: 11px;
+    max-width: 300px; pointer-events: none;
+  }
+  #tooltip .tt-label { color: #88ccff; font-weight: bold; }
+  #tooltip .tt-type { color: #aaa; font-style: italic; }
+  #tooltip .tt-desc { color: #ccc; margin-top: 4px; }
+  #legend {
+    position: absolute; bottom: 12px; left: 12px; z-index: 100;
+    background: rgba(10, 10, 15, 0.85); border: 1px solid #333;
+    padding: 10px 14px; border-radius: 6px; font-size: 11px;
+  }
+  #legend .item { display: flex; align-items: center; margin: 3px 0; }
+  #legend .swatch { width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+  #filters {
+    position: absolute; top: 12px; right: 12px; z-index: 100;
+    background: rgba(10, 10, 15, 0.85); border: 1px solid #333;
+    padding: 10px 14px; border-radius: 6px; font-size: 11px;
+  }
+  #filters label { display: block; margin: 3px 0; cursor: pointer; }
+  #filters input { margin-right: 6px; }
+</style>
+</head>
+<body>
+<div id="container"></div>
+
+<div id="info">
+  <h1>Codex Signum — Morpheme Topology</h1>
+  <div class="stat">Nodes: <b id="node-count">0</b></div>
+  <div class="stat">Relationships: <b id="rel-count">0</b></div>
+  <div class="stat" style="margin-top: 6px; color: #666;">Click node for details. Scroll to zoom. Drag to rotate.</div>
+</div>
+
+<div id="tooltip">
+  <div class="tt-label"></div>
+  <div class="tt-type"></div>
+  <div class="tt-desc"></div>
+</div>
+
+<div id="legend">
+  <div class="item"><div class="swatch" style="background: #ffffff;"></div> Seed (origin)</div>
+  <div class="item"><div class="swatch" style="background: #66bbff;"></div> Bloom (scope)</div>
+  <div class="item"><div class="swatch" style="background: #ff8844;"></div> Resonator (transform)</div>
+  <div class="item"><div class="swatch" style="background: #88cc88;"></div> Grid (structure)</div>
+  <div class="item"><div class="swatch" style="background: #cc66ff;"></div> Helix (learning)</div>
+</div>
+
+<div id="filters">
+  <label><input type="checkbox" data-label="Seed" checked> Seeds</label>
+  <label><input type="checkbox" data-label="Bloom" checked> Blooms</label>
+  <label><input type="checkbox" data-label="Resonator" checked> Resonators</label>
+  <label><input type="checkbox" data-label="Grid" checked> Grids</label>
+  <label><input type="checkbox" data-label="Helix" checked> Helixes</label>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── Embedded topology data ──
+const TOPOLOGY = {
+  "nodes": [
+    {
+      "id": "M-1",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Foundation",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 21,
+          "nanosecond": 569000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 1,
+        "name": "Foundation",
+        "description": "Neo4j schema, type system, ΦL/ΨH/εR computation, dampening, cascade prevention, adaptive thresholds, constitutional rule engine, memory types",
+        "id": "M-1",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 1,
+          "nanosecond": 331000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-10",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Memory Operations",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 35,
+          "nanosecond": 535000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 10,
+        "name": "Memory Operations",
+        "description": "Full compaction, distillation, institutional knowledge",
+        "id": "M-10",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 13,
+          "nanosecond": 835000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-11",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Research Pattern",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 35,
+          "nanosecond": 978000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 11,
+        "name": "Research Pattern",
+        "description": "Systematic evidence synthesis",
+        "id": "M-11",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 14,
+          "nanosecond": 203000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-12",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Constitutional Evolution",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 36,
+          "nanosecond": 661000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 12,
+        "name": "Constitutional Evolution",
+        "description": "Evidence-based amendment mechanism",
+        "id": "M-12",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 14,
+          "nanosecond": 694000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-13",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "UI",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 34,
+          "nanosecond": 586000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 13,
+        "name": "UI",
+        "description": "Graph vis + Opus chat — the agent gets a face",
+        "id": "M-13",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 13,
+          "nanosecond": 51000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-14",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Self-Recursive Learning L1-L3",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 37,
+          "nanosecond": 146000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 14,
+        "name": "Self-Recursive Learning L1-L3",
+        "description": "The system evolves itself",
+        "id": "M-14",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 15,
+          "nanosecond": 67000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-15",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Pattern Exchange Protocol",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 37,
+          "nanosecond": 552000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 15,
+        "name": "Pattern Exchange Protocol",
+        "description": "Federated deployment sharing",
+        "id": "M-15",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 15,
+          "nanosecond": 439000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-16",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "v4.3 Spec Canonicalisation",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 33,
+          "nanosecond": 268000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 16,
+        "name": "v4.3 Spec Canonicalisation",
+        "description": "Axiom reduction, Assayer types, governance",
+        "id": "M-16",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 11,
+          "nanosecond": 883000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-17",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Engineering Bridge v2.1",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 33,
+          "nanosecond": 706000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 17,
+        "name": "Engineering Bridge v2.1",
+        "description": "Stale formulas, Bridge View Principle, deferred computations",
+        "id": "M-17",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 12,
+          "nanosecond": 274000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-18",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Assayer Implementation",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 35,
+          "nanosecond": 98000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 18,
+        "name": "Assayer Implementation",
+        "description": "4 stages, 4 modes, compliance corpus, FMEA",
+        "id": "M-18",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 13,
+          "nanosecond": 463000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-19",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Hypothesis Tracking + Research Pipeline",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 38,
+          "nanosecond": 52000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 19,
+        "name": "Hypothesis Tracking + Research Pipeline",
+        "description": "Helix nodes, evidence accumulation, paper readiness",
+        "id": "M-19",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 15,
+          "nanosecond": 819000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-2",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Signal Conditioning",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 21,
+          "nanosecond": 962000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 2,
+        "name": "Signal Conditioning",
+        "description": "7-stage pipeline. Nelson Rules. Structural review + triggers. Immune response.",
+        "id": "M-2",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 1,
+          "nanosecond": 711000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-4",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Patterns in Core",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 22,
+          "nanosecond": 494000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 4,
+        "name": "Patterns in Core",
+        "description": "Thompson Router, DevAgent, Architect — live in core library",
+        "id": "M-4",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 2,
+          "nanosecond": 95000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-5",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Architect Bootstrap",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 22,
+          "nanosecond": 886000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 5,
+        "name": "Architect Bootstrap",
+        "description": "SURVEY, DECOMPOSE, CLASSIFY, SEQUENCE, GATE, DISPATCH, ADAPT",
+        "id": "M-5",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 2,
+          "nanosecond": 491000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-6",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Thompson Sampling Integration",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 23,
+          "nanosecond": 269000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 6,
+        "name": "Thompson Sampling Integration",
+        "description": "Live model selection via Bayesian posterior updates. Decision nodes in graph.",
+        "id": "M-6",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 2,
+          "nanosecond": 871000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-7",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "First Self-Examination",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 23,
+          "nanosecond": 658000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 7,
+        "name": "First Self-Examination",
+        "description": "Dampening fix, observer removal, reconciliation between spec and code",
+        "id": "M-7",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 3,
+          "nanosecond": 260000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-7B",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Spec Review & Axiom Uplift",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 24,
+          "nanosecond": 74000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 7.2,
+        "name": "Spec Review & Axiom Uplift",
+        "description": "Three pipeline runs. Bridge View Principle, Dimensional Collapse, Axiom Dependency Declaration.",
+        "id": "M-7B",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 3,
+          "nanosecond": 639000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-7C",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Grammar Refactor",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 24,
+          "nanosecond": 467000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 7.3,
+        "name": "Grammar Refactor",
+        "description": "Agent → Seed, Pattern → Bloom, relationship renames, ELIMINATED_ENTITIES",
+        "id": "M-7C",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 4,
+          "nanosecond": 11000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Optimisation Runs",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 24,
+          "nanosecond": 941000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8,
+        "name": "Optimisation Runs",
+        "description": "R0-R3 reviews, human feedback CLI, DevAgent self-hosting CLI",
+        "id": "M-8",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 4,
+          "nanosecond": 491000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8.INT",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Architect Adaptive Routing",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 34,
+          "nanosecond": 149000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8.6,
+        "name": "Architect Adaptive Routing",
+        "description": "CLASSIFY→route. Per-task FMEA advisory. Agent becomes substrate.",
+        "id": "M-8.INT",
+        "type": "milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 12,
+          "nanosecond": 679000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8.QG",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Quality Gates",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 26,
+          "nanosecond": 638000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8.5,
+        "name": "Quality Gates",
+        "id": "M-8.QG",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 6,
+          "nanosecond": 63000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8A",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Report Consolidation & Compliance Review",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 25,
+          "nanosecond": 313000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8.1,
+        "name": "Report Consolidation & Compliance Review",
+        "id": "M-8A",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 4,
+          "nanosecond": 843000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8B",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Comprehensive Lean Review",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 25,
+          "nanosecond": 749000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8.2,
+        "name": "Comprehensive Lean Review",
+        "id": "M-8B",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 5,
+          "nanosecond": 255000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-8C",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Codex-Native Topology Refactor",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 26,
+          "nanosecond": 225000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 8.3,
+        "name": "Codex-Native Topology Refactor",
+        "id": "M-8C",
+        "type": "milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 5,
+          "nanosecond": 639000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9",
+      "label": "Bloom",
+      "type": "milestone",
+      "name": "Structural Compliance",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 26,
+          "nanosecond": 993000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9,
+        "name": "Structural Compliance",
+        "description": "The system's thesis is 'state is structural.' This milestone makes it true for the pipeline itself.",
+        "id": "M-9",
+        "type": "milestone",
+        "status": "active",
+        "phiL": 0.5,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 6,
+          "nanosecond": 441000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.1",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Neo4j Schema for Pipeline Topology",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 27,
+          "nanosecond": 364000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.1,
+        "testCount": 1101,
+        "name": "Neo4j Schema for Pipeline Topology",
+        "id": "M-9.1",
+        "commitSha": "7d70666",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 6,
+          "nanosecond": 841000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.2",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Pipeline Executor Writes to Graph",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 27,
+          "nanosecond": 781000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.2,
+        "testCount": 1108,
+        "name": "Pipeline Executor Writes to Graph",
+        "id": "M-9.2",
+        "commitSha": "b4a0850",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 7,
+          "nanosecond": 263000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.3",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Decision Lifecycle Completion",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 28,
+          "nanosecond": 154000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.3,
+        "testCount": 1133,
+        "name": "Decision Lifecycle Completion",
+        "id": "M-9.3",
+        "commitSha": "3815dee",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 7,
+          "nanosecond": 647000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.4",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Memory Persistence as Intended",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 28,
+          "nanosecond": 554000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.4,
+        "testCount": 1176,
+        "name": "Memory Persistence as Intended",
+        "id": "M-9.4",
+        "commitSha": "3f86f2e",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 8,
+          "nanosecond": 31000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.5",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Test Reconciliation",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 30,
+          "nanosecond": 287000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.5,
+        "testCount": 1196,
+        "name": "Test Reconciliation",
+        "id": "M-9.5",
+        "commitSha": "8547edd",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 9,
+          "nanosecond": 568000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.6",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Model Expansion — Llama 4",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 31,
+          "nanosecond": 167000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.6,
+        "testCount": 1293,
+        "completedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 8,
+          "second": 46,
+          "nanosecond": 416000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "name": "Model Expansion — Llama 4",
+        "id": "M-9.6",
+        "commitSha": "3ab815d",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 10,
+          "nanosecond": 343000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.7a",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Grammar Reference Document",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 31,
+          "nanosecond": 738000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.71,
+        "completedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 1,
+          "second": 18,
+          "nanosecond": 220000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "name": "Grammar Reference Document",
+        "id": "M-9.7a",
+        "commitSha": "1b62ff1",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 10,
+          "nanosecond": 743000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.7b",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Morpheme Mapping + 3D Topology Vis",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 32,
+          "nanosecond": 218000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.72,
+        "name": "Morpheme Mapping + 3D Topology Vis",
+        "id": "M-9.7b",
+        "type": "sub-milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 11,
+          "nanosecond": 135000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.8",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Ecosystem Bootstrap",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 30,
+          "nanosecond": 703000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.8,
+        "name": "Ecosystem Bootstrap",
+        "description": "Roadmap in graph, hypothesis Helixes, SURVEY reads from Neo4j",
+        "id": "M-9.8",
+        "commitSha": "2c64f68",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 9,
+          "nanosecond": 947000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.V",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Full Verification Run",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 32,
+          "nanosecond": 804000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.9,
+        "name": "Full Verification Run",
+        "id": "M-9.V",
+        "type": "sub-milestone",
+        "status": "planned",
+        "phiL": 0.3,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 11,
+          "nanosecond": 520000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.VA",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Partial Verification",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 28,
+          "nanosecond": 943000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.41,
+        "name": "Partial Verification",
+        "id": "M-9.VA",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 8,
+          "nanosecond": 412000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.VA-FIX",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Pipeline Self-Diagnostic Bug Fixes",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 29,
+          "nanosecond": 434000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.42,
+        "testCount": 1182,
+        "name": "Pipeline Self-Diagnostic Bug Fixes",
+        "id": "M-9.VA-FIX",
+        "commitSha": "1e1d4d5",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 8,
+          "nanosecond": 807000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "M-9.VA-V",
+      "label": "Bloom",
+      "type": "sub-milestone",
+      "name": "Post-Fix Verification",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 29,
+          "nanosecond": 857000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "sequence": 9.43,
+        "testCount": 1182,
+        "name": "Post-Fix Verification",
+        "id": "M-9.VA-V",
+        "commitSha": "d4facec",
+        "type": "sub-milestone",
+        "status": "complete",
+        "phiL": 0.9,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 9,
+          "nanosecond": 191000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "R-27",
+      "label": "Bloom",
+      "type": "backlog",
+      "name": "Deployable model substrate (GPU provisioning)",
+      "properties": {
+        "name": "Deployable model substrate (GPU provisioning)",
+        "description": "GPU-provisioned models: Llama 3.1 70B/8B, Llama 3.3 70B, Gemma 3 12B, Gemma 2 27B, Mixtral 8x7B/8x22B, Mistral Nemo/7B, GPT-OSS 20B",
+        "id": "R-27",
+        "type": "backlog",
+        "status": "planned",
+        "phiL": 0.1
+      }
+    },
+    {
+      "id": "R-28",
+      "label": "Bloom",
+      "type": "backlog",
+      "name": "Anti-drift fine-tuning recipe (M-14+)",
+      "properties": {
+        "name": "Anti-drift fine-tuning recipe (M-14+)",
+        "description": "SFT on real tasks, contrastive negatives against architectural drift, DPO/ORPO preferring graph-native state, hard gate evaluation set",
+        "id": "R-28",
+        "type": "backlog",
+        "status": "planned",
+        "phiL": 0.1
+      }
+    },
+    {
+      "id": "architect",
+      "label": "Bloom",
+      "type": "",
+      "name": "Architect Pipeline",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 16,
+          "nanosecond": 703000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "connectionCount": 0,
+        "observationCount": 10,
+        "domain": "core",
+        "name": "Architect Pipeline",
+        "description": "7-stage intent-to-execution planning",
+        "morphemeKinds": [
+          "bloom"
+        ],
+        "id": "architect",
+        "state": "created",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 30,
+          "nanosecond": 322000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "dev-agent",
+      "label": "Bloom",
+      "type": "",
+      "name": "DevAgent Pipeline",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 16,
+          "nanosecond": 383000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "connectionCount": 0,
+        "observationCount": 0,
+        "domain": "core",
+        "name": "DevAgent Pipeline",
+        "description": "4-stage coding pipeline with correction helix",
+        "morphemeKinds": [
+          "bloom",
+          "helix"
+        ],
+        "id": "dev-agent",
+        "state": "created",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 29,
+          "nanosecond": 945000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "model-sentinel",
+      "label": "Bloom",
+      "type": "",
+      "name": "Model Sentinel",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 17,
+          "nanosecond": 24000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "connectionCount": 0,
+        "observationCount": 0,
+        "domain": "core",
+        "name": "Model Sentinel",
+        "description": "Provider API probing and model discovery",
+        "morphemeKinds": [
+          "resonator"
+        ],
+        "id": "model-sentinel",
+        "state": "design",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 30,
+          "nanosecond": 849000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "roadmap-v7",
+      "label": "Bloom",
+      "type": "roadmap",
+      "name": "Codex Signum Canonical Roadmap",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 21,
+          "nanosecond": 78000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "name": "Codex Signum Canonical Roadmap",
+        "id": "roadmap-v7",
+        "type": "roadmap",
+        "version": 7,
+        "status": "active",
+        "phiL": 0.5,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 0,
+          "nanosecond": 947000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "test-suite:dev-agent",
+      "label": "Bloom",
+      "type": "test-suite",
+      "name": "DevAgent Pipeline Tests",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 14,
+          "second": 53,
+          "nanosecond": 346000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "file": "tests/conformance/dev-agent.test.ts",
+        "name": "DevAgent Pipeline Tests",
+        "id": "test-suite:dev-agent",
+        "type": "test-suite",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 32,
+          "nanosecond": 421000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "test-suite:hierarchical-health",
+      "label": "Bloom",
+      "type": "test-suite",
+      "name": "Hierarchical Health Tests",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 14,
+          "second": 53,
+          "nanosecond": 738000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "file": "tests/conformance/hierarchical-health.test.ts",
+        "name": "Hierarchical Health Tests",
+        "id": "test-suite:hierarchical-health",
+        "type": "test-suite",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 32,
+          "nanosecond": 809000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "test-suite:immune-response",
+      "label": "Bloom",
+      "type": "test-suite",
+      "name": "Immune Response Tests",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 14,
+          "second": 54,
+          "nanosecond": 113000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "file": "tests/conformance/immune-response.test.ts",
+        "name": "Immune Response Tests",
+        "id": "test-suite:immune-response",
+        "type": "test-suite",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 33,
+          "nanosecond": 177000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "thompson-router",
+      "label": "Bloom",
+      "type": "",
+      "name": "Thompson Router",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 16,
+          "nanosecond": 55000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "connectionCount": 0,
+        "observationCount": 0,
+        "domain": "core",
+        "name": "Thompson Router",
+        "description": "Bayesian model selection via Thompson Sampling",
+        "morphemeKinds": [
+          "resonator"
+        ],
+        "id": "thompson-router",
+        "state": "created",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 29,
+          "nanosecond": 250000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "H-1",
+      "label": "Helix",
+      "type": "hypothesis",
+      "name": "H-1",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 54,
+          "nanosecond": 779000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "paper": "Paper 1 (Thompson context-blocking)",
+        "observationCount": 0,
+        "claim": "Context-blocked posteriors outperform global posteriors",
+        "id": "H-1",
+        "type": "hypothesis",
+        "status": "proposed",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 30,
+          "nanosecond": 205000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "evidenceStrength": 0.1
+      }
+    },
+    {
+      "id": "H-2",
+      "label": "Helix",
+      "type": "hypothesis",
+      "name": "H-2",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 55,
+          "nanosecond": 199000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "paper": "Paper 1 (Thompson context-blocking)",
+        "observationCount": 0,
+        "claim": "Bias-as-strength outperforms naive best-overall selection",
+        "id": "H-2",
+        "type": "hypothesis",
+        "status": "proposed",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 30,
+          "nanosecond": 601000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "evidenceStrength": 0.1
+      }
+    },
+    {
+      "id": "H-5",
+      "label": "Helix",
+      "type": "hypothesis",
+      "name": "H-5",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 9,
+          "second": 55,
+          "nanosecond": 582000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "paper": "Paper 4 (Structural intelligence)",
+        "observationCount": 0,
+        "claim": "Structural learning persists across complete model substitution",
+        "id": "H-5",
+        "type": "hypothesis",
+        "status": "proposed",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 12,
+          "minute": 52,
+          "second": 30,
+          "nanosecond": 953000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "evidenceStrength": 0.1
+      }
+    },
+    {
+      "id": "architect_ADAPT",
+      "label": "Resonator",
+      "type": "",
+      "name": "ADAPT",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 28,
+          "second": 0,
+          "nanosecond": 104000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "ADAPT",
+        "name": "ADAPT",
+        "id": "architect_ADAPT"
+      }
+    },
+    {
+      "id": "architect_CLASSIFY",
+      "label": "Resonator",
+      "type": "",
+      "name": "CLASSIFY",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 633000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "CLASSIFY",
+        "name": "CLASSIFY",
+        "id": "architect_CLASSIFY"
+      }
+    },
+    {
+      "id": "architect_DECOMPOSE",
+      "label": "Resonator",
+      "type": "",
+      "name": "DECOMPOSE",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 516000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "DECOMPOSE",
+        "name": "DECOMPOSE",
+        "id": "architect_DECOMPOSE"
+      }
+    },
+    {
+      "id": "architect_DISPATCH",
+      "label": "Resonator",
+      "type": "",
+      "name": "DISPATCH",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 999000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "DISPATCH",
+        "name": "DISPATCH",
+        "id": "architect_DISPATCH"
+      }
+    },
+    {
+      "id": "architect_GATE",
+      "label": "Resonator",
+      "type": "",
+      "name": "GATE",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 880000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "GATE",
+        "name": "GATE",
+        "id": "architect_GATE"
+      }
+    },
+    {
+      "id": "architect_SEQUENCE",
+      "label": "Resonator",
+      "type": "",
+      "name": "SEQUENCE",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 777000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "SEQUENCE",
+        "name": "SEQUENCE",
+        "id": "architect_SEQUENCE"
+      }
+    },
+    {
+      "id": "architect_SURVEY",
+      "label": "Resonator",
+      "type": "",
+      "name": "SURVEY",
+      "properties": {
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 4,
+          "hour": 9,
+          "minute": 27,
+          "second": 59,
+          "nanosecond": 223000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "stage": "SURVEY",
+        "name": "SURVEY",
+        "id": "architect_SURVEY"
+      }
+    },
+    {
+      "id": "chirp-2:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Chirp 2",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "speech_to_text"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 42,
+          "nanosecond": 845000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Chirp 2",
+        "model": "chirp-2@001",
+        "id": "chirp-2:default",
+        "baseModelId": "chirp-2",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 23,
+          "nanosecond": 971000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "claude-3-5-haiku:none",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude 3.5 Haiku (Retired)",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [],
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 14,
+          "nanosecond": 965000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "name": "Claude 3.5 Haiku (Retired)",
+        "model": "claude-3-5-haiku-20241022",
+        "id": "claude-3-5-haiku:none",
+        "baseModelId": "claude-3-5-haiku",
+        "region": "direct",
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 27,
+          "nanosecond": 899000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "claude-3-7-sonnet:extended:16k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude 3.7 Sonnet (Retired)",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [],
+        "thinkingMode": "extended",
+        "thinkingParameter": "16k",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 15,
+          "nanosecond": 275000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "name": "Claude 3.7 Sonnet (Retired)",
+        "model": "claude-3-7-sonnet-20250219",
+        "id": "claude-3-7-sonnet:extended:16k",
+        "baseModelId": "claude-3-7-sonnet",
+        "region": "direct",
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 28,
+          "nanosecond": 244000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "claude-3-haiku:none",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude 3 Haiku (Retired)",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [],
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 14,
+          "nanosecond": 591000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "name": "Claude 3 Haiku (Retired)",
+        "model": "claude-3-haiku-20240307",
+        "id": "claude-3-haiku:none",
+        "baseModelId": "claude-3-haiku",
+        "region": "direct",
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 27,
+          "nanosecond": 267000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "claude-3-opus:none",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude 3 Opus (Retired)",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [],
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 15,
+          "nanosecond": 635000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "name": "Claude 3 Opus (Retired)",
+        "model": "claude-3-opus-20240229",
+        "id": "claude-3-opus:none",
+        "baseModelId": "claude-3-opus",
+        "region": "direct",
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 28,
+          "nanosecond": 674000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "claude-haiku-4-5:extended:4k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Haiku 4.5 (Extended 4k)",
+      "properties": {
+        "avgLatencyMs": 3000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 7,
+          "nanosecond": 692000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-haiku-4-5-20251001",
+        "id": "claude-haiku-4-5:extended:4k",
+        "baseModelId": "claude-haiku-4-5",
+        "supportsWebSearch": false,
+        "costPer1kInput": 0.0008,
+        "costPer1kOutput": 0.004,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 7,
+          "nanosecond": 759000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "4k",
+        "supportsInterleavedThinking": false,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Haiku 4.5 (Extended 4k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-haiku-4-5:extended:8k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Haiku 4.5 (Extended 8k)",
+      "properties": {
+        "avgLatencyMs": 4000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 7,
+          "nanosecond": 385000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-haiku-4-5-20251001",
+        "id": "claude-haiku-4-5:extended:8k",
+        "baseModelId": "claude-haiku-4-5",
+        "supportsWebSearch": false,
+        "costPer1kInput": 0.0008,
+        "costPer1kOutput": 0.004,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 7,
+          "nanosecond": 422000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "8k",
+        "supportsInterleavedThinking": false,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Haiku 4.5 (Extended 8k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-haiku-4-5:none",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Haiku 4.5 (Raw Speed)",
+      "properties": {
+        "avgLatencyMs": 1500,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 8,
+          "nanosecond": 2000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-haiku-4-5-20251001",
+        "id": "claude-haiku-4-5:none",
+        "baseModelId": "claude-haiku-4-5",
+        "supportsWebSearch": false,
+        "costPer1kInput": 0.0008,
+        "costPer1kOutput": 0.004,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 8,
+          "nanosecond": 108000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "supportsInterleavedThinking": false,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Haiku 4.5 (Raw Speed)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-5:extended:16k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.5 (Extended 16k)",
+      "properties": {
+        "avgLatencyMs": 15000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 6,
+          "nanosecond": 137000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-5",
+        "id": "claude-opus-4-5:extended:16k",
+        "baseModelId": "claude-opus-4-5",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 5,
+          "nanosecond": 231000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "16k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Opus 4.5 (Extended 16k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-5:extended:32k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.5 (Extended 32k)",
+      "properties": {
+        "avgLatencyMs": 20000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 5,
+          "nanosecond": 830000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-5",
+        "id": "claude-opus-4-5:extended:32k",
+        "baseModelId": "claude-opus-4-5",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 4,
+          "nanosecond": 898000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "planning",
+          "strategic"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "32k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Opus 4.5 (Extended 32k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-5:extended:8k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.5 (Extended 8k)",
+      "properties": {
+        "avgLatencyMs": 10000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 6,
+          "nanosecond": 444000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-5",
+        "id": "claude-opus-4-5:extended:8k",
+        "baseModelId": "claude-opus-4-5",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 5,
+          "nanosecond": 698000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "analytical"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "8k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Opus 4.5 (Extended 8k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-6:adaptive:high",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.6 (Adaptive High)",
+      "properties": {
+        "avgLatencyMs": 12000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 3,
+          "nanosecond": 977000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-6",
+        "id": "claude-opus-4-6:adaptive:high",
+        "baseModelId": "claude-opus-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 1,
+          "nanosecond": 992000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "planning",
+          "strategic"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 128000,
+        "thinkingParameter": "high",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Opus 4.6 (Adaptive High)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-6:adaptive:low",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.6 (Adaptive Low)",
+      "properties": {
+        "avgLatencyMs": 5000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 4,
+          "nanosecond": 597000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-6",
+        "id": "claude-opus-4-6:adaptive:low",
+        "baseModelId": "claude-opus-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 2,
+          "nanosecond": 917000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 128000,
+        "thinkingParameter": "low",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Opus 4.6 (Adaptive Low)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-6:adaptive:max",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.6 (Adaptive Max)",
+      "properties": {
+        "avgLatencyMs": 15000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 3,
+          "nanosecond": 603000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-6",
+        "id": "claude-opus-4-6:adaptive:max",
+        "baseModelId": "claude-opus-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 1,
+          "nanosecond": 246000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "planning",
+          "strategic",
+          "extended_thinking"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 128000,
+        "thinkingParameter": "max",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Opus 4.6 (Adaptive Max)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4-6:adaptive:medium",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4.6 (Adaptive Medium)",
+      "properties": {
+        "avgLatencyMs": 8000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 4,
+          "nanosecond": 289000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-6",
+        "id": "claude-opus-4-6:adaptive:medium",
+        "baseModelId": "claude-opus-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 2,
+          "nanosecond": 568000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 128000,
+        "thinkingParameter": "medium",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Opus 4.6 (Adaptive Medium)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-opus-4:extended:16k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Opus 4 (Extended 16k)",
+      "properties": {
+        "avgLatencyMs": 15000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 8,
+          "nanosecond": 683000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-opus-4-20250514",
+        "id": "claude-opus-4:extended:16k",
+        "baseModelId": "claude-opus-4",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.015,
+        "costPer1kOutput": 0.075,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 8,
+          "nanosecond": 551000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "16k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Opus 4 (Extended 16k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-5:extended:16k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4.5 (Extended 16k)",
+      "properties": {
+        "avgLatencyMs": 10000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 6,
+          "nanosecond": 750000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-5",
+        "id": "claude-sonnet-4-5:extended:16k",
+        "baseModelId": "claude-sonnet-4-5",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 6,
+          "nanosecond": 117000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "16k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Sonnet 4.5 (Extended 16k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-5:extended:8k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4.5 (Extended 8k)",
+      "properties": {
+        "avgLatencyMs": 7000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 7,
+          "nanosecond": 69000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-5",
+        "id": "claude-sonnet-4-5:extended:8k",
+        "baseModelId": "claude-sonnet-4-5",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 6,
+          "nanosecond": 734000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "generative"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "8k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Sonnet 4.5 (Extended 8k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-6:adaptive:high",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4.6 (Adaptive High)",
+      "properties": {
+        "avgLatencyMs": 8000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 4,
+          "nanosecond": 904000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-6",
+        "id": "claude-sonnet-4-6:adaptive:high",
+        "baseModelId": "claude-sonnet-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 3,
+          "nanosecond": 521000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "high",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Sonnet 4.6 (Adaptive High)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-6:adaptive:low",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4.6 (Adaptive Low)",
+      "properties": {
+        "avgLatencyMs": 3000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 5,
+          "nanosecond": 524000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-6",
+        "id": "claude-sonnet-4-6:adaptive:low",
+        "baseModelId": "claude-sonnet-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 4,
+          "nanosecond": 194000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "generative",
+          "routine"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "low",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Sonnet 4.6 (Adaptive Low)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-6:adaptive:medium",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4.6 (Adaptive Medium)",
+      "properties": {
+        "avgLatencyMs": 5000,
+        "thinkingMode": "adaptive",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 5,
+          "nanosecond": 215000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-6",
+        "id": "claude-sonnet-4-6:adaptive:medium",
+        "baseModelId": "claude-sonnet-4-6",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 3,
+          "nanosecond": 851000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "generative"
+        ],
+        "supportsPrefilling": false,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "medium",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": true,
+        "name": "Claude Sonnet 4.6 (Adaptive Medium)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4:extended:8k",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4 (Extended 8k)",
+      "properties": {
+        "avgLatencyMs": 6000,
+        "thinkingMode": "extended",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 8,
+          "nanosecond": 992000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-20250514",
+        "id": "claude-sonnet-4:extended:8k",
+        "baseModelId": "claude-sonnet-4",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 9,
+          "nanosecond": 96000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "generative"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "thinkingParameter": "8k",
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Sonnet 4 (Extended 8k)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "claude-sonnet-4:none",
+      "label": "Seed",
+      "type": "",
+      "name": "Claude Sonnet 4 (Raw)",
+      "properties": {
+        "avgLatencyMs": 3000,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 9,
+          "nanosecond": 298000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "messages",
+        "provider": "anthropic",
+        "maxContextWindow": 200000,
+        "model": "claude-sonnet-4-20250514",
+        "id": "claude-sonnet-4:none",
+        "baseModelId": "claude-sonnet-4",
+        "supportsWebSearch": true,
+        "costPer1kInput": 0.003,
+        "costPer1kOutput": 0.015,
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 10,
+          "nanosecond": 314000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine"
+        ],
+        "supportsPrefilling": true,
+        "maxOutputTokens": 64000,
+        "supportsInterleavedThinking": true,
+        "supportsAdaptiveThinking": false,
+        "name": "Claude Sonnet 4 (Raw)",
+        "supportsComputerUse": true,
+        "region": "direct",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": true,
+        "status": "active"
+      }
+    },
+    {
+      "id": "codestral-2:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Codestral 2",
+      "properties": {
+        "avgLatencyMs": 2500,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 14,
+          "nanosecond": 283000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "rawPredict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Codestral 2",
+        "maxContextWindow": 262144,
+        "model": "codestral-2",
+        "id": "codestral-2:default",
+        "baseModelId": "codestral-2",
+        "costPer1kInput": 0.0003,
+        "region": "europe-west4",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0009,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 18,
+          "nanosecond": 268000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "form-parser-v1:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Form Parser v1",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "document_processing",
+          "form_extraction"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 41,
+          "nanosecond": 444000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Form Parser v1",
+        "model": "pretrained-form-parser@001",
+        "id": "form-parser-v1:default",
+        "baseModelId": "form-parser-v1",
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 21,
+          "nanosecond": 963000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-1.5-flash:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 1.5 Flash (Retired)",
+      "properties": {
+        "avgLatencyMs": 1200,
+        "probeFailures": 0,
+        "capabilities": [
+          "routine"
+        ],
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 10,
+          "nanosecond": 900000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "generateContent",
+        "provider": "vertex-ai",
+        "name": "Gemini 1.5 Flash (Retired)",
+        "maxContextWindow": 1048576,
+        "model": "gemini-1.5-flash",
+        "id": "gemini-1.5-flash:default",
+        "baseModelId": "gemini-1.5-flash",
+        "costPer1kInput": 0.000075,
+        "region": "us-central1",
+        "costPer1kOutput": 0.0003,
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 12,
+          "nanosecond": 992000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-1.5-pro:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 1.5 Pro (Retired)",
+      "properties": {
+        "avgLatencyMs": 6000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "analytical"
+        ],
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 11,
+          "nanosecond": 357000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "generateContent",
+        "provider": "vertex-ai",
+        "name": "Gemini 1.5 Pro (Retired)",
+        "maxContextWindow": 2097152,
+        "model": "gemini-1.5-pro",
+        "id": "gemini-1.5-pro:default",
+        "baseModelId": "gemini-1.5-pro",
+        "costPer1kInput": 0.00125,
+        "region": "us-central1",
+        "costPer1kOutput": 0.005,
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 13,
+          "nanosecond": 668000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.0-flash-lite:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.0 Flash Lite",
+      "properties": {
+        "avgLatencyMs": 1000,
+        "probeFailures": 0,
+        "capabilities": [
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 10,
+          "nanosecond": 579000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 2.0 Flash Lite",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.0-flash-lite",
+        "id": "gemini-2.0-flash-lite:default",
+        "baseModelId": "gemini-2.0-flash-lite",
+        "costPer1kInput": 0.000075,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0003,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 12,
+          "nanosecond": 347000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.0-flash:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.0 Flash",
+      "properties": {
+        "avgLatencyMs": 1500,
+        "probeFailures": 0,
+        "capabilities": [
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 10,
+          "nanosecond": 273000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 2.0 Flash",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.0-flash",
+        "id": "gemini-2.0-flash:default",
+        "baseModelId": "gemini-2.0-flash",
+        "costPer1kInput": 0.0001,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0004,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 12,
+          "nanosecond": 3000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.5-flash-lite:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.5 Flash Lite",
+      "properties": {
+        "avgLatencyMs": 1500,
+        "probeFailures": 0,
+        "capabilities": [
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 32768,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 12,
+          "nanosecond": 951000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 2.5 Flash Lite",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.5-flash-lite",
+        "id": "gemini-2.5-flash-lite:default",
+        "baseModelId": "gemini-2.5-flash-lite",
+        "costPer1kInput": 0.0001,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0004,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 16,
+          "nanosecond": 230000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.5-flash-preview-04-17:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.5 Flash Preview (Retired)",
+      "properties": {
+        "avgLatencyMs": 2000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine"
+        ],
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 11,
+          "nanosecond": 714000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "generateContent",
+        "provider": "vertex-ai",
+        "name": "Gemini 2.5 Flash Preview (Retired)",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.5-flash-preview-04-17",
+        "id": "gemini-2.5-flash-preview-04-17:default",
+        "baseModelId": "gemini-2.5-flash-preview",
+        "costPer1kInput": 0.00015,
+        "region": "us-central1",
+        "costPer1kOutput": 0.0006,
+        "status": "retired",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 14,
+          "nanosecond": 329000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.5-flash:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.5 Flash",
+      "properties": {
+        "avgLatencyMs": 2000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 9,
+          "nanosecond": 606000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 2.5 Flash",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.5-flash",
+        "id": "gemini-2.5-flash:default",
+        "baseModelId": "gemini-2.5-flash",
+        "costPer1kInput": 0.00015,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0006,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 10,
+          "nanosecond": 944000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-2.5-pro:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 2.5 Pro",
+      "properties": {
+        "avgLatencyMs": 8000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 9,
+          "nanosecond": 965000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 2.5 Pro",
+        "maxContextWindow": 1048576,
+        "model": "gemini-2.5-pro",
+        "id": "gemini-2.5-pro:default",
+        "baseModelId": "gemini-2.5-pro",
+        "costPer1kInput": 0.00125,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.01,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 11,
+          "nanosecond": 668000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-3-flash-preview:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 3 Flash Preview",
+      "properties": {
+        "avgLatencyMs": 2500,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "routine",
+          "fast_commands"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 12,
+          "nanosecond": 338000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 3 Flash Preview",
+        "maxContextWindow": 1048576,
+        "model": "gemini-3-flash-preview",
+        "id": "gemini-3-flash-preview:default",
+        "baseModelId": "gemini-3-flash-preview",
+        "costPer1kInput": 0.0002,
+        "region": "global",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.0008,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 15,
+          "nanosecond": 538000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-3-pro-preview:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 3 Pro Preview",
+      "properties": {
+        "avgLatencyMs": 10000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 12,
+          "nanosecond": 26000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 3 Pro Preview",
+        "maxContextWindow": 1048576,
+        "model": "gemini-3-pro-preview",
+        "id": "gemini-3-pro-preview:default",
+        "baseModelId": "gemini-3-pro-preview",
+        "costPer1kInput": 0.00125,
+        "region": "global",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.01,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 14,
+          "nanosecond": 899000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gemini-3.1-pro-preview:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Gemini 3.1 Pro Preview",
+      "properties": {
+        "avgLatencyMs": 11000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical",
+          "planning"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 65536,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 12,
+          "nanosecond": 645000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "generateContent",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Gemini 3.1 Pro Preview",
+        "maxContextWindow": 1048576,
+        "model": "gemini-3.1-pro-preview",
+        "id": "gemini-3.1-pro-preview:default",
+        "baseModelId": "gemini-3.1-pro-preview",
+        "costPer1kInput": 0.00125,
+        "region": "global",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.01,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 15,
+          "nanosecond": 896000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "gpt-oss-120b:default",
+      "label": "Seed",
+      "type": "",
+      "name": "GPT-OSS 120B",
+      "properties": {
+        "avgLatencyMs": 5000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "analytical",
+          "generative"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 16384,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 39,
+          "nanosecond": 55000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "rawPredict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "GPT-OSS 120B",
+        "maxContextWindow": 131072,
+        "model": "gpt-oss-120b-maas@001",
+        "id": "gpt-oss-120b:default",
+        "baseModelId": "gpt-oss-120b",
+        "costPer1kInput": 0.003,
+        "region": "us-central1",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.012,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 18,
+          "nanosecond": 618000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "imagen-4.0-fast:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Imagen 4.0 Fast",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "image_generation"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 45,
+          "nanosecond": 645000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Imagen 4.0 Fast",
+        "model": "imagen-4.0-fast-generate-001",
+        "id": "imagen-4.0-fast:default",
+        "baseModelId": "imagen-4.0-fast",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 26,
+          "nanosecond": 113000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "imagen-4.0-ultra:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Imagen 4.0 Ultra",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "image_generation"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 46,
+          "nanosecond": 305000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Imagen 4.0 Ultra",
+        "model": "imagen-4.0-ultra-generate-001",
+        "id": "imagen-4.0-ultra:default",
+        "baseModelId": "imagen-4.0-ultra",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 26,
+          "nanosecond": 915000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "imagen-4.0:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Imagen 4.0",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "image_generation"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 45,
+          "nanosecond": 5000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Imagen 4.0",
+        "model": "imagen-4.0-generate-001",
+        "id": "imagen-4.0:default",
+        "baseModelId": "imagen-4.0",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 25,
+          "nanosecond": 418000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "imagetext-v1:default",
+      "label": "Seed",
+      "type": "",
+      "name": "ImageText v1",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "image_captioning",
+          "visual_qa"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 40,
+          "nanosecond": 302000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "ImageText v1",
+        "model": "imagetext@001",
+        "id": "imagetext-v1:default",
+        "baseModelId": "imagetext-v1",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 20,
+          "nanosecond": 565000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "imagetext-v2:default",
+      "label": "Seed",
+      "type": "",
+      "name": "ImageText v2",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "image_captioning",
+          "visual_qa"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 41,
+          "nanosecond": 97000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "ImageText v2",
+        "model": "imagetext@002",
+        "id": "imagetext-v2:default",
+        "baseModelId": "imagetext-v2",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 21,
+          "nanosecond": 150000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "lyria-002:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Lyria 002",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "audio_generation"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 43,
+          "nanosecond": 261000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Lyria 002",
+        "model": "lyria-002",
+        "id": "lyria-002:default",
+        "baseModelId": "lyria-002",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 24,
+          "nanosecond": 417000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "mistral-large-3:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Mistral Large 3",
+      "properties": {
+        "avgLatencyMs": 4500,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "review",
+          "analytical"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 13,
+          "nanosecond": 620000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "rawPredict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Mistral Large 3",
+        "maxContextWindow": 131072,
+        "model": "mistral-large-3",
+        "id": "mistral-large-3:default",
+        "baseModelId": "mistral-large-3",
+        "costPer1kInput": 0.004,
+        "region": "europe-west4",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.012,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 17,
+          "nanosecond": 270000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "mistral-medium-3:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Mistral Medium 3",
+      "properties": {
+        "avgLatencyMs": 3000,
+        "probeFailures": 0,
+        "capabilities": [
+          "code_generation",
+          "generative"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 13,
+          "nanosecond": 264000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "rawPredict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Mistral Medium 3",
+        "maxContextWindow": 131072,
+        "model": "mistral-medium-3",
+        "id": "mistral-medium-3:default",
+        "baseModelId": "mistral-medium-3",
+        "costPer1kInput": 0.002,
+        "region": "europe-west4",
+        "supportsStructuredOutputs": true,
+        "supportsExtendedThinking": false,
+        "costPer1kOutput": 0.006,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 16,
+          "nanosecond": 865000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "mistral-small-2503:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Mistral Small",
+      "properties": {
+        "avgLatencyMs": 2000,
+        "probeFailures": 0,
+        "capabilities": [
+          "routine",
+          "generative"
+        ],
+        "thinkingMode": "default",
+        "maxOutputTokens": 8192,
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 1,
+          "hour": 22,
+          "minute": 42,
+          "second": 13,
+          "nanosecond": 928000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "endpoint": "rawPredict",
+        "provider": "vertex-ai",
+        "name": "Mistral Small",
+        "maxContextWindow": 131072,
+        "model": "mistral-small-2503",
+        "id": "mistral-small-2503:default",
+        "baseModelId": "mistral-small",
+        "costPer1kInput": 0.001,
+        "region": "europe-west4",
+        "costPer1kOutput": 0.003,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 17,
+          "nanosecond": 826000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "pretrained-ocr-v1:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Pretrained OCR v1",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "ocr",
+          "document_processing"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 39,
+          "nanosecond": 508000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Pretrained OCR v1",
+        "model": "pretrained-ocr@001",
+        "id": "pretrained-ocr-v1:default",
+        "baseModelId": "pretrained-ocr-v1",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 18,
+          "nanosecond": 980000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "pretrained-ocr-v2:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Pretrained OCR v2",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "ocr",
+          "document_processing"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 39,
+          "nanosecond": 854000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Pretrained OCR v2",
+        "model": "pretrained-ocr@002",
+        "id": "pretrained-ocr-v2:default",
+        "baseModelId": "pretrained-ocr-v2",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 19,
+          "nanosecond": 779000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "translate-llm:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Translate LLM",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "translation"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 42,
+          "nanosecond": 57000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Translate LLM",
+        "model": "translate-llm",
+        "id": "translate-llm:default",
+        "baseModelId": "translate-llm",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 22,
+          "nanosecond": 910000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    },
+    {
+      "id": "video-speech-transcription:default",
+      "label": "Seed",
+      "type": "",
+      "name": "Video Speech Transcription",
+      "properties": {
+        "probeFailures": 0,
+        "capabilities": [
+          "speech_to_text",
+          "transcription"
+        ],
+        "supportsPrefilling": false,
+        "thinkingMode": "none",
+        "createdAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 9,
+          "second": 44,
+          "nanosecond": 32000000,
+          "timeZoneOffsetSeconds": 0
+        },
+        "supportsInterleavedThinking": false,
+        "endpoint": "predict",
+        "supportsAdaptiveThinking": false,
+        "provider": "vertex-ai",
+        "name": "Video Speech Transcription",
+        "model": "video-speech-transcription@001",
+        "id": "video-speech-transcription:default",
+        "baseModelId": "video-speech-transcription",
+        "region": "us-central1",
+        "supportsStructuredOutputs": false,
+        "supportsExtendedThinking": false,
+        "status": "active",
+        "updatedAt": {
+          "year": 2026,
+          "month": 3,
+          "day": 5,
+          "hour": 14,
+          "minute": 17,
+          "second": 24,
+          "nanosecond": 840000000,
+          "timeZoneOffsetSeconds": 0
+        }
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "M-9",
+      "to": "M-9.1",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.2",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.3",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.4",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.VA",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.VA-FIX",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.VA-V",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.5",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.8",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.6",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.7a",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.7b",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "M-9",
+      "to": "M-9.V",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_SURVEY",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_DECOMPOSE",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_CLASSIFY",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_SEQUENCE",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_GATE",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_DISPATCH",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "architect",
+      "to": "architect_ADAPT",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-1",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-2",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-4",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-5",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-6",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-7",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-7B",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-7C",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8A",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8B",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8C",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8.QG",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-9",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-16",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-17",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-8.INT",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-13",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-18",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-10",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-11",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-12",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-14",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-15",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "roadmap-v7",
+      "to": "M-19",
+      "type": "CONTAINS"
+    },
+    {
+      "from": "H-1",
+      "to": "M-9",
+      "type": "OBSERVES"
+    },
+    {
+      "from": "H-2",
+      "to": "M-9",
+      "type": "OBSERVES"
+    },
+    {
+      "from": "H-5",
+      "to": "M-10",
+      "type": "OBSERVES"
+    }
+  ]
+};
+
+document.getElementById('node-count').textContent = TOPOLOGY.nodes.length;
+document.getElementById('rel-count').textContent = TOPOLOGY.relationships.length;
+
+// ── Morpheme visual encoding ──
+const MORPHEME_CONFIG = {
+  Seed:      { color: 0xffffff, size: 0.3, segments: 16, emissive: 0x222222 },
+  Bloom:     { color: 0x66bbff, size: 0.6, segments: 32, emissive: 0x112244 },
+  Resonator: { color: 0xff8844, size: 0.4, segments: 8,  emissive: 0x331100 },
+  Grid:      { color: 0x88cc88, size: 0.5, segments: 4,  emissive: 0x113311 },
+  Helix:     { color: 0xcc66ff, size: 0.45, segments: 12, emissive: 0x220033 },
+};
+
+const REL_COLORS = {
+  CONTAINS: 0x334455,
+  FLOWS_TO: 0x44aaff,
+  SCOPED_TO: 0x555555,
+  OBSERVES: 0xcc66ff,
+  INSTANTIATES: 0x336633,
+  DEPENDS_ON: 0xaa6633,
+  VIOLATES: 0xff3333,
+};
+
+// ── Scene setup ──
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0f);
+scene.fog = new THREE.FogExp2(0x0a0a0f, 0.008);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(0, 30, 60);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.getElementById('container').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 5;
+controls.maxDistance = 200;
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x444466, 0.6);
+scene.add(ambient);
+const directional = new THREE.DirectionalLight(0xffffff, 0.8);
+directional.position.set(20, 40, 30);
+scene.add(directional);
+const point = new THREE.PointLight(0x4488ff, 0.4, 100);
+point.position.set(-10, 20, -10);
+scene.add(point);
+
+// ── Force-directed layout ──
+const nodeMap = new Map();
+const meshMap = new Map();
+const positions = new Map();
+
+// Group nodes by label for layout
+const groups = {};
+TOPOLOGY.nodes.forEach(n => {
+  if (!groups[n.label]) groups[n.label] = [];
+  groups[n.label].push(n);
+});
+
+// Initial positions: group by label with some structure
+let idx = 0;
+const labelOffsets = {
+  Bloom: { x: 0, y: 0, z: 0, spread: 15 },
+  Resonator: { x: 0, y: -5, z: 0, spread: 20 },
+  Seed: { x: 0, y: 10, z: 0, spread: 25 },
+  Grid: { x: -20, y: -10, z: 0, spread: 5 },
+  Helix: { x: 20, y: -10, z: 0, spread: 5 },
+};
+
+TOPOLOGY.nodes.forEach(n => {
+  const offset = labelOffsets[n.label] || { x: 0, y: 0, z: 0, spread: 15 };
+  const angle = (idx / TOPOLOGY.nodes.length) * Math.PI * 2;
+  const r = offset.spread * (0.3 + Math.random() * 0.7);
+  positions.set(n.id, {
+    x: offset.x + r * Math.cos(angle) + (Math.random() - 0.5) * 5,
+    y: offset.y + (Math.random() - 0.5) * 8,
+    z: offset.z + r * Math.sin(angle) + (Math.random() - 0.5) * 5,
+    vx: 0, vy: 0, vz: 0,
+  });
+  nodeMap.set(n.id, n);
+  idx++;
+});
+
+// Build adjacency for force simulation
+const edges = TOPOLOGY.relationships.map(r => ({
+  source: r.from, target: r.to, type: r.type
+}));
+
+// Force simulation (simple spring-electric)
+function simulateForces(iterations) {
+  const nodes = Array.from(positions.entries());
+  const k = 8; // ideal spring length
+  const repulsion = 200;
+  const attraction = 0.01;
+  const damping = 0.85;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    // Repulsion between all pairs
+    for (let i = 0; i < nodes.length; i++) {
+      const [id1, p1] = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const [id2, p2] = nodes[j];
+        let dx = p1.x - p2.x, dy = p1.y - p2.y, dz = p1.z - p2.z;
+        let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.1;
+        let force = repulsion / (dist * dist);
+        let fx = (dx / dist) * force, fy = (dy / dist) * force, fz = (dz / dist) * force;
+        p1.vx += fx; p1.vy += fy; p1.vz += fz;
+        p2.vx -= fx; p2.vy -= fy; p2.vz -= fz;
+      }
+    }
+
+    // Attraction along edges
+    for (const edge of edges) {
+      const p1 = positions.get(edge.source);
+      const p2 = positions.get(edge.target);
+      if (!p1 || !p2) continue;
+      let dx = p2.x - p1.x, dy = p2.y - p1.y, dz = p2.z - p1.z;
+      let dist = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.1;
+      let force = attraction * (dist - k);
+      // CONTAINS edges pull harder
+      if (edge.type === 'CONTAINS') force *= 3;
+      let fx = (dx / dist) * force, fy = (dy / dist) * force, fz = (dz / dist) * force;
+      p1.vx += fx; p1.vy += fy; p1.vz += fz;
+      p2.vx -= fx; p2.vy -= fy; p2.vz -= fz;
+    }
+
+    // Apply velocities with damping
+    for (const [, p] of nodes) {
+      p.x += p.vx; p.y += p.vy; p.z += p.vz;
+      p.vx *= damping; p.vy *= damping; p.vz *= damping;
+    }
+  }
+}
+
+simulateForces(150);
+
+// ── Create 3D objects ──
+function createNodeMesh(node) {
+  const config = MORPHEME_CONFIG[node.label] || MORPHEME_CONFIG.Seed;
+  let geometry;
+
+  switch (node.label) {
+    case 'Resonator':
+      geometry = new THREE.OctahedronGeometry(config.size);
+      break;
+    case 'Grid':
+      geometry = new THREE.BoxGeometry(config.size * 1.5, config.size * 0.3, config.size * 1.5);
+      break;
+    case 'Helix':
+      geometry = new THREE.TorusGeometry(config.size * 0.6, config.size * 0.2, 8, 16);
+      break;
+    case 'Bloom':
+      geometry = new THREE.SphereGeometry(config.size, config.segments, config.segments);
+      break;
+    default:
+      geometry = new THREE.SphereGeometry(config.size, config.segments, config.segments);
+  }
+
+  const material = new THREE.MeshPhongMaterial({
+    color: config.color,
+    emissive: config.emissive,
+    transparent: node.label === 'Bloom',
+    opacity: node.label === 'Bloom' ? 0.6 : 1.0,
+    shininess: 60,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  const pos = positions.get(node.id);
+  mesh.position.set(pos.x, pos.y, pos.z);
+  mesh.userData = node;
+  return mesh;
+}
+
+// Create node meshes
+const nodeGroup = new THREE.Group();
+TOPOLOGY.nodes.forEach(n => {
+  const mesh = createNodeMesh(n);
+  meshMap.set(n.id, mesh);
+  nodeGroup.add(mesh);
+});
+scene.add(nodeGroup);
+
+// Create edges
+const edgeGroup = new THREE.Group();
+function createEdges() {
+  // Clear existing
+  while (edgeGroup.children.length > 0) {
+    const child = edgeGroup.children[0];
+    child.geometry?.dispose();
+    child.material?.dispose();
+    edgeGroup.remove(child);
+  }
+
+  TOPOLOGY.relationships.forEach(r => {
+    const fromMesh = meshMap.get(r.from);
+    const toMesh = meshMap.get(r.to);
+    if (!fromMesh || !toMesh || !fromMesh.visible || !toMesh.visible) return;
+
+    const points = [fromMesh.position.clone(), toMesh.position.clone()];
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const color = REL_COLORS[r.type] || 0x444444;
+    const material = new THREE.LineBasicMaterial({
+      color, transparent: true,
+      opacity: r.type === 'FLOWS_TO' ? 0.7 : 0.3,
+    });
+    const line = new THREE.Line(geometry, material);
+    line.userData = { type: r.type, from: r.from, to: r.to };
+    edgeGroup.add(line);
+  });
+}
+createEdges();
+scene.add(edgeGroup);
+
+// Create node labels (sprite-based)
+const labelGroup = new THREE.Group();
+function createLabel(text, position, color) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 256; canvas.height = 64;
+  ctx.fillStyle = 'transparent';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.font = 'bold 20px Consolas, monospace';
+  ctx.fillStyle = color || '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.fillText(text.length > 20 ? text.slice(0, 18) + '..' : text, 128, 36);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.8 });
+  const sprite = new THREE.Sprite(material);
+  sprite.position.copy(position);
+  sprite.position.y += 0.8;
+  sprite.scale.set(4, 1, 1);
+  return sprite;
+}
+
+TOPOLOGY.nodes.forEach(n => {
+  const mesh = meshMap.get(n.id);
+  if (!mesh) return;
+  const config = MORPHEME_CONFIG[n.label] || MORPHEME_CONFIG.Seed;
+  const colorHex = '#' + config.color.toString(16).padStart(6, '0');
+  const label = createLabel(n.name, mesh.position, colorHex);
+  label.userData = { nodeId: n.id };
+  labelGroup.add(label);
+});
+scene.add(labelGroup);
+
+// ── FLOWS_TO animated particles ──
+const particleGroup = new THREE.Group();
+const flowParticles = [];
+
+TOPOLOGY.relationships.filter(r => r.type === 'FLOWS_TO').forEach(r => {
+  const fromMesh = meshMap.get(r.from);
+  const toMesh = meshMap.get(r.to);
+  if (!fromMesh || !toMesh) return;
+
+  const geo = new THREE.SphereGeometry(0.1, 6, 6);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x44aaff });
+  const particle = new THREE.Mesh(geo, mat);
+  particle.userData = { from: fromMesh.position, to: toMesh.position, t: Math.random() };
+  particleGroup.add(particle);
+  flowParticles.push(particle);
+});
+scene.add(particleGroup);
+
+// ── Raycaster for interaction ──
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+
+renderer.domElement.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(nodeGroup.children);
+
+  if (intersects.length > 0) {
+    const node = intersects[0].object.userData;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+    tooltip.querySelector('.tt-label').textContent = node.name;
+    tooltip.querySelector('.tt-type').textContent = node.label + (node.type ? ' (' + node.type + ')' : '');
+    tooltip.querySelector('.tt-desc').textContent = node.properties?.description || node.id;
+    renderer.domElement.style.cursor = 'pointer';
+  } else {
+    tooltip.style.display = 'none';
+    renderer.domElement.style.cursor = 'default';
+  }
+});
+
+// ── Filters ──
+document.querySelectorAll('#filters input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const label = cb.dataset.label;
+    const visible = cb.checked;
+    TOPOLOGY.nodes.forEach(n => {
+      if (n.label === label) {
+        const mesh = meshMap.get(n.id);
+        if (mesh) mesh.visible = visible;
+      }
+    });
+    // Toggle labels
+    labelGroup.children.forEach(sprite => {
+      if (sprite.userData.nodeId) {
+        const node = nodeMap.get(sprite.userData.nodeId);
+        if (node && node.label === label) sprite.visible = visible;
+      }
+    });
+    createEdges();
+  });
+});
+
+// ── Animation loop ──
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  // Animate FLOWS_TO particles
+  const time = Date.now() * 0.001;
+  flowParticles.forEach(p => {
+    p.userData.t = (p.userData.t + 0.003) % 1;
+    const t = p.userData.t;
+    p.position.lerpVectors(p.userData.from, p.userData.to, t);
+  });
+
+  // Subtle Resonator pulse
+  meshMap.forEach((mesh, id) => {
+    const node = nodeMap.get(id);
+    if (node && node.label === 'Resonator') {
+      const scale = 1 + 0.05 * Math.sin(time * 2 + mesh.position.x);
+      mesh.scale.set(scale, scale, scale);
+    }
+    if (node && node.label === 'Helix') {
+      mesh.rotation.z = time * 0.5;
+    }
+  });
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── Resize ──
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
