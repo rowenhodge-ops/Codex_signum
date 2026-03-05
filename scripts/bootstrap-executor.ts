@@ -487,6 +487,50 @@ async function callVertexMistral(
   return { text, durationMs: Date.now() - start };
 }
 
+// ── Vertex AI OpenAI Open-Weight (rawPredict, OpenAI chat format) ────────
+
+async function callVertexOpenAI(
+  apiModelString: string,
+  prompt: string,
+): Promise<ProviderCallResult> {
+  const token = await getVertexToken();
+  if (!token) {
+    const err = new Error("[INFRASTRUCTURE] Vertex AI credentials not available");
+    (err as any).isInfrastructure = true;
+    throw err;
+  }
+
+  const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/openai/models/${apiModelString}:rawPredict`;
+
+  const requestBody = {
+    model: apiModelString,
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: getMaxOutputTokens(apiModelString),
+  };
+
+  const start = Date.now();
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Vertex OpenAI API ${response.status}: ${errText}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const text = data.choices?.[0]?.message?.content ?? "";
+
+  return { text, durationMs: Date.now() - start };
+}
+
 /**
  * Determine if a Vertex AI model uses rawPredict (Mistral/Codestral)
  * vs generateContent (Gemini). Based on model ID prefix.
@@ -494,6 +538,15 @@ async function callVertexMistral(
 function isVertexMistralModel(apiModelString: string): boolean {
   const m = apiModelString.toLowerCase();
   return m.startsWith("mistral") || m.startsWith("codestral");
+}
+
+/**
+ * Determine if a Vertex AI model is an OpenAI open-weight model
+ * served via rawPredict (publishers/openai). Based on model ID prefix.
+ */
+function isVertexOpenAIModel(apiModelString: string): boolean {
+  const m = apiModelString.toLowerCase();
+  return m.startsWith("gpt-oss");
 }
 
 /** Per-model max output tokens — prevents 400 errors from exceeding model limits */
@@ -505,6 +558,7 @@ function getMaxOutputTokens(modelId: string): number {
   if (m.includes("gemini-3")) return 65536;
   if (m.includes("gemini")) return 16384;
   if (m.includes("mistral") || m.includes("codestral")) return 8192;
+  if (m.includes("gpt-oss")) return 16384;
   return 16384; // Anthropic default
 }
 
@@ -773,6 +827,8 @@ export function createBootstrapModelExecutor(
           } else if (providerClass === "vertex") {
             if (isVertexMistralModel(selection.apiModelString)) {
               result = await callVertexMistral(selection.apiModelString, prompt);
+            } else if (isVertexOpenAIModel(selection.apiModelString)) {
+              result = await callVertexOpenAI(selection.apiModelString, prompt);
             } else {
               result = await callVertexGemini(selection.apiModelString, prompt);
             }
