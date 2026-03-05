@@ -117,8 +117,9 @@ function getRoadmapMilestones(): MilestoneData[] {
     // Sub-milestones of M-9 Part 2
     { id: "M-9.5", name: "Test Reconciliation", status: "complete", phiL: 0.9, sequence: 9.5, type: "sub-milestone", parentId: "M-9",
       commitSha: "8547edd", testCount: 1196 },
-    { id: "M-9.8", name: "Ecosystem Bootstrap", status: "active", phiL: 0.5, sequence: 9.8, type: "sub-milestone", parentId: "M-9",
-      description: "Roadmap in graph, hypothesis Helixes, SURVEY reads from Neo4j" },
+    { id: "M-9.8", name: "Ecosystem Bootstrap", status: "complete", phiL: 0.9, sequence: 9.8, type: "sub-milestone", parentId: "M-9",
+      description: "Roadmap in graph, hypothesis Helixes, SURVEY reads from Neo4j",
+      commitSha: "2c64f68" },
     { id: "M-9.6", name: "Model Expansion — Llama 4", status: "planned", phiL: 0.3, sequence: 9.6, type: "sub-milestone", parentId: "M-9" },
     { id: "M-9.7a", name: "Grammar Reference Document", status: "planned", phiL: 0.3, sequence: 9.71, type: "sub-milestone", parentId: "M-9" },
     { id: "M-9.7b", name: "Morpheme Mapping + 3D Topology Vis", status: "planned", phiL: 0.3, sequence: 9.72, type: "sub-milestone", parentId: "M-9" },
