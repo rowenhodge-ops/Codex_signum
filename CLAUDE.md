@@ -59,15 +59,18 @@ src/
 │   │   ├── pipeline.ts    # Pipeline with lifecycle hooks (afterStage, afterPipeline)
 │   │   └── index.ts
 │   ├── thompson-router/   # Thompson sampling model selection
+│   ├── assayer/           # Structural integrity verification (v4.3 Assayer pattern)
+│   │   ├── types.ts       # AssayerVerdict, ComplianceResult, pattern type definitions
+│   │   └── index.ts
 │   └── feedback/          # Feedback functions + types (formerly observer/)
 │
 ├── resilience/            # Circuit breaker, retry logic
 │   └── circuit-breaker.ts # MUST use: exponential backoff + full jitter + 5-10 half-open probes
 │
 ├── constitutional/        # Governance layer
-│   ├── rule-engine.ts     # Constitutional rule evaluation
+│   ├── engine.ts          # Constitutional rule + axiom evaluation
 │   ├── evolution.ts       # Amendment mechanism (may be stub — Tier 1/2/3 taxonomy)
-│   └── cascade-prevention.ts  # propagateDegradation() with topology-aware dampening
+│   └── index.ts
 │
 ├── memory/                # Four-stratum memory operations
 │   ├── compaction.ts      # Stratum 2: continuous exponential decay, weight = e^(-λ × age)
@@ -374,7 +377,7 @@ When in doubt about how something should be computed:
 
 | Question | Reference |
 |---|---|
-| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` |
+| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` (v4.3 draft is canonical for axioms — 9 axioms, Symbiosis removed) |
 | How to compute ΦL, ΨH, εR? | Engineering Bridge v2.0 §Part 2 |
 | Dampening, cascade, hysteresis parameters? | Engineering Bridge v2.0 §Part 3 |
 | Signal conditioning pipeline? | Engineering Bridge v2.0 §Part 4 |
@@ -388,6 +391,7 @@ When in doubt about how something should be computed:
 | Pattern Exchange Protocol? | `codex-signum-pattern-exchange-protocol.md` |
 | Lean process maps? | `codex-signum-lean-process-maps-v2.md` |
 | Research corpus index? | `codex-signum-research-index.md` |
+| Assayer pattern (structural integrity verification)? | `09_codex-signum-assayer-pattern-design.md` + `src/patterns/assayer/types.ts` |
 
 **The Engineering Bridge is the implementation authority.** If you need to know *what* to build, read the Bridge. If you need to know *why*, read the Codex v3.0.
 
@@ -551,8 +555,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 841 | `npm test` at HEAD `a89ce0e` |
-| Barrel exports | 214 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1369 | `npm test` at HEAD `225e0a0` |
+| Barrel exports | 264 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 
@@ -579,7 +583,7 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
 | Manual analysis bypass | Agent does analytical work itself when the Architect pipeline exists and is operational | Fix the failing pipeline stage, then retry. The Architect does analytical work. If DECOMPOSE fails, fix DECOMPOSE — don't write the analysis manually. This is the single most important anti-pattern for this repo. |
-| Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "9 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 10 axioms, 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
+| Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "10 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel, Symbiosis) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 9 axioms (v4.3), 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
 
 ---
 
