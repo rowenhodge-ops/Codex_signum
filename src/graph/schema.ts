@@ -51,6 +51,10 @@ export const RELATIONSHIP_TYPES = {
   // Grammar reference (M-9.7a)
   DEPENDS_ON: "DEPENDS_ON",       // Seed (axiom) → Seed (axiom) — axiom DAG
   VIOLATES: "VIOLATES",           // Seed (anti-pattern) → Seed (axiom) — which axiom an anti-pattern violates
+
+  // Morpheme topology (M-9.7b)
+  FLOWS_TO: "FLOWS_TO",           // Resonator → Resonator — data flow (Line morpheme)
+  INSTANTIATES: "INSTANTIATES",   // Runtime node → Seed (grammar ref) — "is an instance of"
 } as const;
 
 export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
@@ -159,6 +163,10 @@ const SCHEMA_STATEMENTS: string[] = [
   "CREATE INDEX bloom_sequence IF NOT EXISTS FOR (b:Bloom) ON (b.sequence)",
   "CREATE INDEX helix_type IF NOT EXISTS FOR (h:Helix) ON (h.type)",
   "CREATE INDEX seed_seed_type IF NOT EXISTS FOR (s:Seed) ON (s.seedType)",
+
+  // Morpheme topology indexes (M-9.7b)
+  "CREATE INDEX resonator_role IF NOT EXISTS FOR (r:Resonator) ON (r.role)",
+  "CREATE INDEX resonator_pattern IF NOT EXISTS FOR (r:Resonator) ON (r.patternId)",
 
   // Indexes for pipeline topology queries
   "CREATE INDEX pipeline_run_bloom IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.bloomId)",

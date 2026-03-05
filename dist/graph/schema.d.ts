@@ -18,6 +18,8 @@ export declare const RELATIONSHIP_TYPES: {
     readonly OBSERVES: "OBSERVES";
     readonly DEPENDS_ON: "DEPENDS_ON";
     readonly VIOLATES: "VIOLATES";
+    readonly FLOWS_TO: "FLOWS_TO";
+    readonly INSTANTIATES: "INSTANTIATES";
 };
 export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
 /**
