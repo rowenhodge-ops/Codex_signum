@@ -9,13 +9,19 @@
  * Tests for pure trigger logic live in structural-triggers.test.ts.
  * Tests here verify the orchestration contract and types.
  *
+ * @future(M-18) tests assert the full event-triggered structural review
+ * pipeline: 6 trigger types → structural review → 5 diagnostic computations
+ * → graph persistence → observable structural signals.
+ *
+ * @see codex-signum-v4_3-draft.md §Event-Triggered Structural Review
  * @see engineering-bridge-v2.0.md §Part 8 "Structural Review"
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   checkStructuralTriggers,
 } from "../../src/computation/structural-triggers.js";
 import type { TriggerInputState } from "../../src/computation/structural-triggers.js";
+import type { StructuralReviewResult } from "../../src/computation/structural-review.js";
 
 // ── Trigger firing (pure, testable without graph) ─────────────────────────
 
@@ -87,12 +93,130 @@ describe("checkStructuralTriggers — immune trigger conditions", () => {
   });
 });
 
-// ── Integration (requires Neo4j) ──────────────────────────────────────────
+// ── @future(M-18): Event-Triggered Structural Review ─────────────────────
+// These tests assert the v4.3 spec contracts for the immune response
+// orchestration. Expected to FAIL until M-18 wires the full pipeline.
+//
+// v4.3 §Event-Triggered Structural Review specifies:
+// - 6 trigger types automatically assembled from live system state
+// - Triggers feed into structural review (5 diagnostics)
+// - Review results persist to graph as ThresholdEvent/Observation
+// - Trigger input state assembled from real graph state (not caller-provided)
+// - System automatically detects when to run review (not explicitly called)
 
-describe("evaluateAndReviewIfNeeded (integration — requires Neo4j)", () => {
-  it.todo("returns null when no triggers fire (healthy system)");
-  it.todo("returns review result when at least one trigger fires");
-  it.todo("review result contains all 5 diagnostics");
-  it.todo("fired trigger IDs are included in result");
-  it.todo("does not query graph if no triggers fire (early exit)");
+describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
+  // Mock the graph queries module for controlled testing
+  vi.mock("../../src/graph/queries.js", () => ({
+    getPatternAdjacency: vi.fn().mockResolvedValue([
+      { from: "bloom-a", to: "bloom-b", weight: 1.0 },
+      { from: "bloom-b", to: "bloom-c", weight: 0.8 },
+      { from: "bloom-a", to: "bloom-c", weight: 0.5 },
+    ]),
+    getPatternsWithHealth: vi.fn().mockResolvedValue([
+      { id: "bloom-a", phiL: 0.9, state: "active", degree: 2 },
+      { id: "bloom-b", phiL: 0.3, state: "active", degree: 2 },
+      { id: "bloom-c", phiL: 0.7, state: "active", degree: 2 },
+    ]),
+  }));
+
+  it("@future(M-18) assembles TriggerInputState from live graph state automatically", async () => {
+    // Per v4.3 spec: the immune response system should automatically
+    // assemble TriggerInputState from the live graph. Currently the caller
+    // must construct this state manually. M-18 should provide:
+    // assembleTriggerState(): Promise<TriggerInputState>
+    // that queries the graph for λ₂, friction, cascade depth, εR, ΦL velocity, Ω gradients
+    const immuneModule = await import("../../src/computation/immune-response.js");
+
+    // Per spec: automatic state assembly function must exist
+    expect((immuneModule as Record<string, unknown>).assembleTriggerState).toBeDefined();
+    expect(typeof (immuneModule as Record<string, unknown>).assembleTriggerState).toBe("function");
+  });
+
+  it("@future(M-18) review result persists to graph as structural Observation", async () => {
+    const { evaluateAndReviewIfNeeded } = await import(
+      "../../src/computation/immune-response.js"
+    );
+    const unhealthyState: TriggerInputState = {
+      ...healthyState,
+      currentLambda2: 0.05,
+      previousLambda2: 0.9,
+    };
+    const result = await evaluateAndReviewIfNeeded(unhealthyState);
+
+    expect(result).not.toBeNull();
+    // Per v4.3 spec: structural review results must persist to graph
+    // The review result should include a reference to the persisted Observation
+    const review = result!.review as StructuralReviewResult & {
+      persistedObservationId?: string;
+    };
+    expect(review.persistedObservationId).toBeDefined();
+    expect(typeof review.persistedObservationId).toBe("string");
+  });
+
+  it("@future(M-18) review result contains all 5 diagnostics with actionable recommendations", async () => {
+    const { evaluateAndReviewIfNeeded } = await import(
+      "../../src/computation/immune-response.js"
+    );
+    const triggerState: TriggerInputState = {
+      ...healthyState,
+      currentCascadeDepth: 2,
+    };
+    const result = await evaluateAndReviewIfNeeded(triggerState);
+
+    expect(result).not.toBeNull();
+    const review = result!.review as StructuralReviewResult & {
+      recommendations?: Array<{ diagnostic: string; action: string; severity: string }>;
+    };
+    // Per v4.3 spec: review MUST include actionable recommendations
+    // derived from the 5 diagnostics, not just raw numbers
+    expect(review.recommendations).toBeDefined();
+    expect(Array.isArray(review.recommendations)).toBe(true);
+    expect(review.recommendations!.length).toBeGreaterThan(0);
+    // Each recommendation should reference a diagnostic and suggest action
+    for (const rec of review.recommendations!) {
+      expect(rec.diagnostic).toBeDefined();
+      expect(rec.action).toBeDefined();
+      expect(rec.severity).toBeDefined();
+    }
+  });
+
+  it("@future(M-18) fired triggers produce ThresholdEvent nodes in graph", async () => {
+    const { evaluateAndReviewIfNeeded } = await import(
+      "../../src/computation/immune-response.js"
+    );
+    const multiTriggerState: TriggerInputState = {
+      ...healthyState,
+      currentCascadeDepth: 2,
+      ecosystemPhiLVelocity: -0.08,
+    };
+    const result = await evaluateAndReviewIfNeeded(multiTriggerState);
+
+    expect(result).not.toBeNull();
+    // Per v4.3 spec: each fired trigger should produce a ThresholdEvent
+    // persisted to the graph with trigger type, timestamp, and severity
+    const triggers = result!.triggers as Array<{
+      trigger: string;
+      thresholdEventId?: string;
+    }>;
+    for (const trigger of triggers) {
+      expect(trigger.thresholdEventId).toBeDefined();
+      expect(typeof trigger.thresholdEventId).toBe("string");
+    }
+  });
+
+  it("@future(M-18) does not query graph if no triggers fire (early exit)", async () => {
+    const queries = await import("../../src/graph/queries.js");
+    vi.mocked(queries.getPatternAdjacency).mockClear();
+    vi.mocked(queries.getPatternsWithHealth).mockClear();
+
+    const { evaluateAndReviewIfNeeded } = await import(
+      "../../src/computation/immune-response.js"
+    );
+    const result = await evaluateAndReviewIfNeeded(healthyState);
+
+    expect(result).toBeNull();
+    // Graph queries should NOT have been called — early exit
+    expect(queries.getPatternAdjacency).not.toHaveBeenCalled();
+    expect(queries.getPatternsWithHealth).not.toHaveBeenCalled();
+  });
 });

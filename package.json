@@ -24,6 +24,7 @@
     "test:watch": "vitest",
     "test:conformance": "vitest run --reporter=verbose tests/conformance/",
     "test:spec-compliance": "vitest run --reporter=verbose --config vitest.spec-compliance.config.ts",
+    "test:future": "vitest run --reporter=verbose --config vitest.config.future.ts || true",
     "bootstrap": "npx tsx src/bootstrap.ts",
     "bootstrap:force": "npx tsx src/bootstrap.ts --force",
     "graph:check": "npx tsx src/graph/healthCheck.ts",
