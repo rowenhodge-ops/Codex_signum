@@ -6,11 +6,14 @@ import { describe, expect, it } from "vitest";
 import {
   getRoadmapMilestones,
   getHypotheses,
+  getFutureTests,
+  getTestSuites,
   statusToPhiL,
 } from "../../scripts/bootstrap-ecosystem.js";
 import type {
   MilestoneData,
   HypothesisData,
+  FutureTestData,
 } from "../../scripts/bootstrap-ecosystem.js";
 import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
 
@@ -146,6 +149,71 @@ describe("Ecosystem Bootstrap — Relationship Types", () => {
 
   it("OBSERVES relationship type is registered", () => {
     expect(RELATIONSHIP_TYPES.OBSERVES).toBe("OBSERVES");
+  });
+});
+
+describe("Ecosystem Bootstrap — Test Suites", () => {
+  const suites = getTestSuites();
+
+  it("returns 3 test suites", () => {
+    expect(suites).toHaveLength(3);
+    const ids = suites.map((s) => s.id);
+    expect(ids).toContain("test-suite:dev-agent");
+    expect(ids).toContain("test-suite:hierarchical-health");
+    expect(ids).toContain("test-suite:immune-response");
+  });
+
+  it("each suite has file path", () => {
+    for (const s of suites) {
+      expect(s.file).toMatch(/^tests\/conformance\//);
+    }
+  });
+});
+
+describe("Ecosystem Bootstrap — Future Test Seeds", () => {
+  const tests = getFutureTests();
+
+  it("returns 18 future-scoped tests", () => {
+    expect(tests).toHaveLength(18);
+  });
+
+  it("7 tests target M-10 (dev-agent)", () => {
+    const m10 = tests.filter((t) => t.targetMilestone === "M-10");
+    expect(m10).toHaveLength(7);
+  });
+
+  it("6 tests target M-9.V (hierarchical-health)", () => {
+    const m9v = tests.filter((t) => t.targetMilestone === "M-9.V");
+    expect(m9v).toHaveLength(6);
+  });
+
+  it("5 tests target M-18 (immune-response)", () => {
+    const m18 = tests.filter((t) => t.targetMilestone === "M-18");
+    expect(m18).toHaveLength(5);
+  });
+
+  it("all test IDs are unique", () => {
+    const ids = tests.map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("each test references a valid suite", () => {
+    const suiteIds = new Set(getTestSuites().map((s) => s.id));
+    for (const t of tests) {
+      expect(suiteIds.has(t.suiteId)).toBe(true);
+    }
+  });
+
+  it("target milestones exist in roadmap data", () => {
+    const milestoneIds = new Set(getRoadmapMilestones().map((m) => m.id));
+    for (const t of tests) {
+      expect(milestoneIds.has(t.targetMilestone)).toBe(true);
+    }
+  });
+
+  it("most future-scoped tests have status 'fail' (correctly failing)", () => {
+    const failing = tests.filter((t) => t.status === "fail");
+    expect(failing.length).toBeGreaterThanOrEqual(15);
   });
 });
 

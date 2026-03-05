@@ -306,6 +306,135 @@ async function createObservesRelationship(
   });
 }
 
+// ── Test Seeds ──────────────────────────────────────────────────────────────
+
+interface FutureTestData {
+  id: string;
+  name: string;
+  file: string;
+  suiteId: string;
+  targetMilestone: string;
+  /** "pass" if the @future test currently passes (shouldn't happen), "fail" if correctly failing */
+  status: "pass" | "fail";
+}
+
+/**
+ * Hardcoded @future test data extracted from test files.
+ * These are the 18 converted @future tests from M-9.5.
+ */
+function getFutureTests(): FutureTestData[] {
+  return [
+    // dev-agent.test.ts — 7 @future(M-10)
+    { id: "test:dev-agent:run-returns-result", name: "successful run returns PipelineResult with all 4 stages completed",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:correction-helix", name: "quality below threshold triggers correction helix",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:max-retries", name: "max retries reached returns failure result with best available",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:constitutional-check", name: "constitutional check fires and result includes compliance evaluation",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:after-stage-hook", name: "afterStage lifecycle hook is called for each stage",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:after-pipeline-hook", name: "afterPipeline lifecycle hook is called with full result",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+    { id: "test:dev-agent:thompson-memory", name: "memory records decision and outcome for Thompson Sampling",
+      file: "tests/conformance/dev-agent.test.ts", suiteId: "test-suite:dev-agent", targetMilestone: "M-10", status: "fail" },
+
+    // hierarchical-health.test.ts — 6 @future(M-9.V)
+    { id: "test:hierarchical-health:bottom-up-walk", name: "bottom-up walk computes deepest containers first",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "fail" },
+    { id: "test:hierarchical-health:4-factor-phi-l", name: "health includes 4-factor ΦL decomposition with maturity modifier",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "fail" },
+    { id: "test:hierarchical-health:dampening", name: "aggregation applies topology-aware dampening to propagation",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "fail" },
+    { id: "test:hierarchical-health:cascade-limit", name: "cascade limit enforced: propagation stops at depth 2",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "fail" },
+    { id: "test:hierarchical-health:signal-conditioned", name: "leaf node health includes signal-conditioned ΦL",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "fail" },
+    { id: "test:hierarchical-health:empty-graph", name: "empty graph returns empty map",
+      file: "tests/conformance/hierarchical-health.test.ts", suiteId: "test-suite:hierarchical-health", targetMilestone: "M-9.V", status: "pass" },
+
+    // immune-response.test.ts — 5 @future(M-18)
+    { id: "test:immune-response:assembles-state", name: "assembles TriggerInputState from live graph state automatically",
+      file: "tests/conformance/immune-response.test.ts", suiteId: "test-suite:immune-response", targetMilestone: "M-18", status: "fail" },
+    { id: "test:immune-response:persists-to-graph", name: "review result persists to graph as structural Observation",
+      file: "tests/conformance/immune-response.test.ts", suiteId: "test-suite:immune-response", targetMilestone: "M-18", status: "fail" },
+    { id: "test:immune-response:5-diagnostics", name: "review result contains all 5 diagnostics with actionable recommendations",
+      file: "tests/conformance/immune-response.test.ts", suiteId: "test-suite:immune-response", targetMilestone: "M-18", status: "fail" },
+    { id: "test:immune-response:threshold-events", name: "fired triggers produce ThresholdEvent nodes in graph",
+      file: "tests/conformance/immune-response.test.ts", suiteId: "test-suite:immune-response", targetMilestone: "M-18", status: "fail" },
+    { id: "test:immune-response:early-exit", name: "does not query graph if no triggers fire (early exit)",
+      file: "tests/conformance/immune-response.test.ts", suiteId: "test-suite:immune-response", targetMilestone: "M-18", status: "pass" },
+  ];
+}
+
+function getTestSuites(): Array<{ id: string; name: string; file: string }> {
+  return [
+    { id: "test-suite:dev-agent", name: "DevAgent Pipeline Tests", file: "tests/conformance/dev-agent.test.ts" },
+    { id: "test-suite:hierarchical-health", name: "Hierarchical Health Tests", file: "tests/conformance/hierarchical-health.test.ts" },
+    { id: "test-suite:immune-response", name: "Immune Response Tests", file: "tests/conformance/immune-response.test.ts" },
+  ];
+}
+
+async function createTestSuiteBloom(suite: { id: string; name: string; file: string }): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MERGE (b:Bloom {id: $id})
+       ON CREATE SET
+         b.name = $name,
+         b.type = "test-suite",
+         b.file = $file,
+         b.createdAt = datetime()
+       ON MATCH SET
+         b.name = $name,
+         b.file = $file,
+         b.updatedAt = datetime()`,
+      suite,
+    );
+  });
+}
+
+async function createTestSeed(test: FutureTestData): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MERGE (s:Seed {id: $id})
+       ON CREATE SET
+         s.name = $name,
+         s.seedType = "test",
+         s.file = $file,
+         s.status = $status,
+         s.futureTarget = $targetMilestone,
+         s.createdAt = datetime()
+       ON MATCH SET
+         s.name = $name,
+         s.status = $status,
+         s.futureTarget = $targetMilestone,
+         s.updatedAt = datetime()`,
+      {
+        id: test.id,
+        name: test.name,
+        file: test.file,
+        status: test.status,
+        targetMilestone: test.targetMilestone,
+      },
+    );
+  });
+}
+
+async function createScopedToRelationship(
+  testId: string,
+  milestoneId: string,
+): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MATCH (s:Seed {id: $testId})
+       MATCH (m:Bloom {id: $milestoneId})
+       MERGE (s)-[:${RELATIONSHIP_TYPES.SCOPED_TO}]->(m)`,
+      { testId, milestoneId },
+    );
+  });
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -359,14 +488,44 @@ async function main(): Promise<void> {
   }
   console.log(`✅ OBSERVES: hypotheses → milestones`);
 
+  // 7. Create test-suite Blooms
+  const testSuites = getTestSuites();
+  for (const suite of testSuites) {
+    await createTestSuiteBloom(suite);
+  }
+  console.log(`✅ Test-suite Blooms: ${testSuites.length}`);
+
+  // 8. Create test Seed nodes
+  const futureTests = getFutureTests();
+  for (const test of futureTests) {
+    await createTestSeed(test);
+  }
+  console.log(`✅ Test Seeds: ${futureTests.length} @future tests`);
+
+  // 9. CONTAINS: test-suite → test Seeds
+  for (const test of futureTests) {
+    await createContainsRelationship(test.suiteId, test.id);
+  }
+  console.log(`✅ CONTAINS: test-suites → ${futureTests.length} test Seeds`);
+
+  // 10. SCOPED_TO: test Seed → milestone Bloom
+  for (const test of futureTests) {
+    await createScopedToRelationship(test.id, test.targetMilestone);
+  }
+  console.log(`✅ SCOPED_TO: ${futureTests.length} test Seeds → milestone Blooms`);
+
   // Summary
+  const totalBlooms = 1 + milestones.length + testSuites.length;
   console.log("\n── Summary ──");
-  console.log(`  Bloom nodes: ${1 + milestones.length} (1 roadmap + ${majorMilestones.length} milestones + ${subMilestones.length} sub-milestones)`);
+  console.log(`  Bloom nodes: ${totalBlooms} (1 roadmap + ${majorMilestones.length} milestones + ${subMilestones.length} sub-milestones + ${testSuites.length} test-suites)`);
+  console.log(`  Seed nodes: ${futureTests.length} (test Seeds)`);
   console.log(`  Helix nodes: ${hypotheses.length}`);
-  console.log(`  CONTAINS relationships: ${majorMilestones.length + subMilestones.length}`);
+  console.log(`  CONTAINS relationships: ${majorMilestones.length + subMilestones.length + futureTests.length}`);
+  console.log(`  SCOPED_TO relationships: ${futureTests.length}`);
   console.log(`  OBSERVES relationships: ${hypotheses.length}`);
   console.log("\nDone. Verify with:");
   console.log("  MATCH (m:Bloom {type: 'milestone'}) RETURN m.id, m.phiL, m.status ORDER BY m.sequence");
+  console.log("  MATCH (t:Seed {seedType: 'test'})-[:SCOPED_TO]->(m:Bloom) RETURN m.id, count(t) AS testCount");
 }
 
 const invokedPath = process.argv[1];
@@ -386,11 +545,16 @@ if (isDirectRun) {
 export {
   getRoadmapMilestones,
   getHypotheses,
+  getFutureTests,
+  getTestSuites,
   statusToPhiL,
   createRoadmapBloom,
   createMilestoneBloom,
   createContainsRelationship,
   createHypothesisHelix,
   createObservesRelationship,
+  createTestSuiteBloom,
+  createTestSeed,
+  createScopedToRelationship,
 };
-export type { MilestoneData, HypothesisData };
+export type { MilestoneData, HypothesisData, FutureTestData };
