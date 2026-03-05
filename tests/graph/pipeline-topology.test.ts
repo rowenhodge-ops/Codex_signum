@@ -305,11 +305,14 @@ describe("RELATIONSHIP_TYPES registry", () => {
     expect(RELATIONSHIP_TYPES.PROCESSED).toBe("PROCESSED");
   });
 
-  it("has exactly 12 relationship types", () => {
-    expect(Object.keys(RELATIONSHIP_TYPES)).toHaveLength(12);
+  it("has exactly 14 relationship types", () => {
+    expect(Object.keys(RELATIONSHIP_TYPES)).toHaveLength(14);
     // M-9.8: ecosystem bootstrap relationships
     expect(RELATIONSHIP_TYPES.SCOPED_TO).toBe("SCOPED_TO");
     expect(RELATIONSHIP_TYPES.OBSERVES).toBe("OBSERVES");
+    // M-9.7a: grammar reference relationships
+    expect(RELATIONSHIP_TYPES.DEPENDS_ON).toBe("DEPENDS_ON");
+    expect(RELATIONSHIP_TYPES.VIOLATES).toBe("VIOLATES");
   });
 
   it("RelationshipType is a valid type alias", () => {
@@ -338,6 +341,6 @@ describe("Pipeline Lifecycle Extensions — Package-level barrel re-exports", ()
 
     // Schema exports
     expect(typeof root.RELATIONSHIP_TYPES).toBe("object");
-    expect(Object.keys(root.RELATIONSHIP_TYPES)).toHaveLength(12);
+    expect(Object.keys(root.RELATIONSHIP_TYPES)).toHaveLength(14);
   });
 });

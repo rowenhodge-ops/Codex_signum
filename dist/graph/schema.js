@@ -39,6 +39,9 @@ export const RELATIONSHIP_TYPES = {
     // Ecosystem bootstrap (M-9.8)
     SCOPED_TO: "SCOPED_TO", // Seed (test) → Bloom (milestone) — test validates milestone
     OBSERVES: "OBSERVES", // Helix (hypothesis) → Bloom (milestone) — evidence accumulation
+    // Grammar reference (M-9.7a)
+    DEPENDS_ON: "DEPENDS_ON", // Seed (axiom) → Seed (axiom) — axiom DAG
+    VIOLATES: "VIOLATES", // Seed (anti-pattern) → Seed (axiom) — which axiom an anti-pattern violates
 };
 // ============ SCHEMA DEFINITION ============
 /**
