@@ -255,9 +255,11 @@ async function createContainsRelationship(
   childId: string,
 ): Promise<void> {
   await writeTransaction(async (tx) => {
+    // Child can be Bloom (milestone/sub-milestone) or Seed (test)
     await tx.run(
       `MATCH (parent:Bloom {id: $parentId})
-       MATCH (child:Bloom {id: $childId})
+       MATCH (child {id: $childId})
+       WHERE child:Bloom OR child:Seed
        MERGE (parent)-[:${RELATIONSHIP_TYPES.CONTAINS}]->(child)`,
       { parentId, childId },
     );
