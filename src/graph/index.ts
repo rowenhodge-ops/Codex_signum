@@ -92,6 +92,10 @@ export {
   getBloomAdjacency,
   getBloomsWithHealth,
   updateBloomPhiL,
+  // Ecosystem queries (M-9.8)
+  getMilestoneOverview,
+  getFutureTestsForMilestone,
+  getHypothesisStatus,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -124,6 +128,10 @@ export type {
   CalibrationMetrics,
   PipelineRunProps,
   TaskOutputProps,
+  // Ecosystem types (M-9.8)
+  MilestoneOverviewEntry,
+  FutureTestEntry,
+  HypothesisStatusEntry,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

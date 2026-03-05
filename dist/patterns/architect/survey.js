@@ -611,6 +611,78 @@ async function inspectGraphState(session, blindSpots) {
             resolution: "Check if Pattern nodes have constitutional_violations property",
         });
     }
+    // ── Ecosystem queries (M-9.8) ──────────────────────────────────────────────
+    // These are non-fatal: if ecosystem hasn't been bootstrapped, fields stay undefined.
+    // Milestone overview
+    try {
+        const milestoneResult = await session.run(`MATCH (b:Bloom)
+       WHERE b.type IN ['milestone', 'sub-milestone']
+       OPTIONAL MATCH (b)-[:CONTAINS]->(child:Bloom)
+       OPTIONAL MATCH (test:Seed)-[:SCOPED_TO]->(b)
+       RETURN b.id AS id, b.name AS name, b.type AS type,
+              b.status AS status, b.phiL AS phiL,
+              count(DISTINCT child) AS childCount,
+              count(DISTINCT test) AS testCount
+       ORDER BY b.sequence`);
+        if (milestoneResult.records.length > 0) {
+            state.milestoneOverview = milestoneResult.records.map((r) => ({
+                id: r.get("id"),
+                name: r.get("name"),
+                type: r.get("type"),
+                status: r.get("status"),
+                phiL: r.get("phiL") ?? 0,
+                childCount: typeof r.get("childCount") === "number" ? r.get("childCount") : 0,
+                testCount: typeof r.get("testCount") === "number" ? r.get("testCount") : 0,
+            }));
+        }
+    }
+    catch {
+        // Non-fatal: ecosystem not bootstrapped
+    }
+    // Future tests by milestone
+    try {
+        const testResult = await session.run(`MATCH (s:Seed { seedType: 'test' })-[:SCOPED_TO]->(b:Bloom)
+       WHERE b.type IN ['milestone', 'sub-milestone']
+       RETURN b.id AS milestoneId, s.id AS testId, s.name AS testName, s.status AS testStatus
+       ORDER BY b.id, s.id`);
+        if (testResult.records.length > 0) {
+            const byMilestone = {};
+            for (const r of testResult.records) {
+                const mid = r.get("milestoneId");
+                if (!byMilestone[mid])
+                    byMilestone[mid] = [];
+                byMilestone[mid].push({
+                    id: r.get("testId"),
+                    name: r.get("testName"),
+                    status: r.get("testStatus"),
+                });
+            }
+            state.futureTestsByMilestone = byMilestone;
+        }
+    }
+    catch {
+        // Non-fatal: ecosystem not bootstrapped
+    }
+    // Hypothesis statuses
+    try {
+        const hypResult = await session.run(`MATCH (h:Helix { type: 'hypothesis' })-[:OBSERVES]->(b:Bloom)
+       RETURN h.id AS id, h.claim AS claim, h.status AS status,
+              h.evidenceStrength AS evidenceStrength,
+              b.id AS observesMilestone
+       ORDER BY h.id`);
+        if (hypResult.records.length > 0) {
+            state.hypothesisStatuses = hypResult.records.map((r) => ({
+                id: r.get("id"),
+                claim: r.get("claim"),
+                status: r.get("status"),
+                evidenceStrength: r.get("evidenceStrength") ?? 0,
+                observesMilestone: r.get("observesMilestone"),
+            }));
+        }
+    }
+    catch {
+        // Non-fatal: ecosystem not bootstrapped
+    }
     return state;
 }
 /**

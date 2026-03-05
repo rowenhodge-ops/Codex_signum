@@ -496,4 +496,46 @@ export declare function getDistillationsForBloom(bloomId: string, activeOnly?: b
  * Sets supersededAt timestamp.
  */
 export declare function supersededDistillation(distillationId: string): Promise<void>;
+/** Milestone overview entry from the ecosystem graph */
+export interface MilestoneOverviewEntry {
+    id: string;
+    name: string;
+    type: "milestone" | "sub-milestone";
+    status: string;
+    phiL: number;
+    sequence: number;
+    parentId?: string;
+    childCount: number;
+    testCount: number;
+}
+/**
+ * Get an overview of all milestones in the ecosystem graph.
+ * Returns milestone Blooms with child counts and test counts.
+ */
+export declare function getMilestoneOverview(): Promise<MilestoneOverviewEntry[]>;
+/** Future test entry from the ecosystem graph */
+export interface FutureTestEntry {
+    id: string;
+    name: string;
+    status: string;
+    suiteId: string;
+}
+/**
+ * Get all future-scoped test Seeds targeting a specific milestone.
+ * Returns test Seed nodes connected via SCOPED_TO.
+ */
+export declare function getFutureTestsForMilestone(milestoneId: string): Promise<FutureTestEntry[]>;
+/** Hypothesis status entry from the ecosystem graph */
+export interface HypothesisStatusEntry {
+    id: string;
+    claim: string;
+    status: string;
+    evidenceStrength: number;
+    observesMilestone: string;
+}
+/**
+ * Get all hypothesis Helix nodes with their observed milestone.
+ * Returns hypothesis data with OBSERVES relationship targets.
+ */
+export declare function getHypothesisStatus(): Promise<HypothesisStatusEntry[]>;
 //# sourceMappingURL=queries.d.ts.map

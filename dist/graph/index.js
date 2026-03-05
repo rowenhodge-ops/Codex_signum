@@ -33,6 +33,8 @@ getPipelineStageHealth, getPipelineRunStats,
 failPipelineRun, updateTaskOutputQuality, getTaskOutput, linkDecisionToPipelineRun, getDecisionsForRun, getCompactionHistory, getModelPerformance, getStagePerformance, getRunComparison, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
+// Ecosystem queries (M-9.8)
+getMilestoneOverview, getFutureTestsForMilestone, getHypothesisStatus, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Inline conditioning write path

@@ -826,6 +826,84 @@ async function inspectGraphState(
     });
   }
 
+  // ── Ecosystem queries (M-9.8) ──────────────────────────────────────────────
+  // These are non-fatal: if ecosystem hasn't been bootstrapped, fields stay undefined.
+
+  // Milestone overview
+  try {
+    const milestoneResult = await session.run(
+      `MATCH (b:Bloom)
+       WHERE b.type IN ['milestone', 'sub-milestone']
+       OPTIONAL MATCH (b)-[:CONTAINS]->(child:Bloom)
+       OPTIONAL MATCH (test:Seed)-[:SCOPED_TO]->(b)
+       RETURN b.id AS id, b.name AS name, b.type AS type,
+              b.status AS status, b.phiL AS phiL,
+              count(DISTINCT child) AS childCount,
+              count(DISTINCT test) AS testCount
+       ORDER BY b.sequence`,
+    );
+    if (milestoneResult.records.length > 0) {
+      state.milestoneOverview = milestoneResult.records.map((r) => ({
+        id: r.get("id") as string,
+        name: r.get("name") as string,
+        type: r.get("type") as "milestone" | "sub-milestone",
+        status: r.get("status") as string,
+        phiL: (r.get("phiL") as number) ?? 0,
+        childCount: typeof r.get("childCount") === "number" ? (r.get("childCount") as number) : 0,
+        testCount: typeof r.get("testCount") === "number" ? (r.get("testCount") as number) : 0,
+      }));
+    }
+  } catch {
+    // Non-fatal: ecosystem not bootstrapped
+  }
+
+  // Future tests by milestone
+  try {
+    const testResult = await session.run(
+      `MATCH (s:Seed { seedType: 'test' })-[:SCOPED_TO]->(b:Bloom)
+       WHERE b.type IN ['milestone', 'sub-milestone']
+       RETURN b.id AS milestoneId, s.id AS testId, s.name AS testName, s.status AS testStatus
+       ORDER BY b.id, s.id`,
+    );
+    if (testResult.records.length > 0) {
+      const byMilestone: Record<string, Array<{ id: string; name: string; status: string }>> = {};
+      for (const r of testResult.records) {
+        const mid = r.get("milestoneId") as string;
+        if (!byMilestone[mid]) byMilestone[mid] = [];
+        byMilestone[mid].push({
+          id: r.get("testId") as string,
+          name: r.get("testName") as string,
+          status: r.get("testStatus") as string,
+        });
+      }
+      state.futureTestsByMilestone = byMilestone;
+    }
+  } catch {
+    // Non-fatal: ecosystem not bootstrapped
+  }
+
+  // Hypothesis statuses
+  try {
+    const hypResult = await session.run(
+      `MATCH (h:Helix { type: 'hypothesis' })-[:OBSERVES]->(b:Bloom)
+       RETURN h.id AS id, h.claim AS claim, h.status AS status,
+              h.evidenceStrength AS evidenceStrength,
+              b.id AS observesMilestone
+       ORDER BY h.id`,
+    );
+    if (hypResult.records.length > 0) {
+      state.hypothesisStatuses = hypResult.records.map((r) => ({
+        id: r.get("id") as string,
+        claim: r.get("claim") as string,
+        status: r.get("status") as string,
+        evidenceStrength: (r.get("evidenceStrength") as number) ?? 0,
+        observesMilestone: r.get("observesMilestone") as string,
+      }));
+    }
+  } catch {
+    // Non-fatal: ecosystem not bootstrapped
+  }
+
   return state;
 }
 

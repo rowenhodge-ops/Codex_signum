@@ -103,6 +103,30 @@ export interface SurveyOutput {
         thresholdEvents: string[];
         /** Constitutional alerts from graph */
         constitutionalAlerts: string[];
+        /** Ecosystem milestone overview (M-9.8) — null if ecosystem not bootstrapped */
+        milestoneOverview?: Array<{
+            id: string;
+            name: string;
+            type: "milestone" | "sub-milestone";
+            status: string;
+            phiL: number;
+            childCount: number;
+            testCount: number;
+        }>;
+        /** Future-scoped tests by milestone (M-9.8) */
+        futureTestsByMilestone?: Record<string, Array<{
+            id: string;
+            name: string;
+            status: string;
+        }>>;
+        /** Hypothesis statuses from graph (M-9.8) */
+        hypothesisStatuses?: Array<{
+            id: string;
+            claim: string;
+            status: string;
+            evidenceStrength: number;
+            observesMilestone: string;
+        }>;
     } | null;
     gapAnalysis: {
         /** Components/functions confirmed to exist and work */

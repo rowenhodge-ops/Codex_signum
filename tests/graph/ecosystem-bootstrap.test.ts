@@ -10,12 +10,13 @@ import {
   getTestSuites,
   statusToPhiL,
 } from "../../scripts/bootstrap-ecosystem.js";
-import type {
-  MilestoneData,
-  HypothesisData,
-  FutureTestData,
-} from "../../scripts/bootstrap-ecosystem.js";
 import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
+import type {
+  MilestoneOverviewEntry,
+  FutureTestEntry,
+  HypothesisStatusEntry,
+} from "../../src/graph/queries.js";
+import type { SurveyOutput } from "../../src/patterns/architect/types.js";
 
 // ── Data Validation Tests (no Neo4j required) ──────────────────────────────
 
@@ -214,6 +215,81 @@ describe("Ecosystem Bootstrap — Future Test Seeds", () => {
   it("most future-scoped tests have status 'fail' (correctly failing)", () => {
     const failing = tests.filter((t) => t.status === "fail");
     expect(failing.length).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe("Ecosystem Bootstrap — Query function type contracts", () => {
+  it("MilestoneOverviewEntry has correct shape", () => {
+    const entry: MilestoneOverviewEntry = {
+      id: "M-9",
+      name: "Test",
+      type: "milestone",
+      status: "active",
+      phiL: 0.5,
+      sequence: 9,
+      childCount: 3,
+      testCount: 7,
+    };
+    expect(entry.id).toBe("M-9");
+    expect(entry.type).toBe("milestone");
+  });
+
+  it("FutureTestEntry has correct shape", () => {
+    const entry: FutureTestEntry = {
+      id: "test:dev-agent:run-returns-result",
+      name: "run returns result",
+      status: "fail",
+      suiteId: "test-suite:dev-agent",
+    };
+    expect(entry.id).toBeTruthy();
+    expect(entry.suiteId).toBeTruthy();
+  });
+
+  it("HypothesisStatusEntry has correct shape", () => {
+    const entry: HypothesisStatusEntry = {
+      id: "H-1",
+      claim: "Test claim",
+      status: "proposed",
+      evidenceStrength: 0.1,
+      observesMilestone: "M-9",
+    };
+    expect(entry.evidenceStrength).toBe(0.1);
+    expect(entry.observesMilestone).toBe("M-9");
+  });
+});
+
+describe("Ecosystem Bootstrap — SurveyOutput graphState ecosystem fields", () => {
+  it("graphState supports optional ecosystem fields", () => {
+    const graphState: NonNullable<SurveyOutput["graphState"]> = {
+      bloomHealth: {},
+      activeCascades: 0,
+      thresholdEvents: [],
+      constitutionalAlerts: [],
+      milestoneOverview: [
+        { id: "M-9", name: "Thompson", type: "milestone", status: "active", phiL: 0.5, childCount: 8, testCount: 7 },
+      ],
+      futureTestsByMilestone: {
+        "M-10": [{ id: "test:dev-agent:run", name: "run", status: "fail" }],
+      },
+      hypothesisStatuses: [
+        { id: "H-1", claim: "test", status: "proposed", evidenceStrength: 0.1, observesMilestone: "M-9" },
+      ],
+    };
+    expect(graphState.milestoneOverview).toHaveLength(1);
+    expect(graphState.futureTestsByMilestone!["M-10"]).toHaveLength(1);
+    expect(graphState.hypothesisStatuses).toHaveLength(1);
+  });
+
+  it("graphState ecosystem fields are optional (backward compatible)", () => {
+    const graphState: NonNullable<SurveyOutput["graphState"]> = {
+      bloomHealth: { "bloom-1": 0.8 },
+      activeCascades: 0,
+      thresholdEvents: [],
+      constitutionalAlerts: [],
+    };
+    expect(graphState.milestoneOverview).toBeUndefined();
+    expect(graphState.futureTestsByMilestone).toBeUndefined();
+    expect(graphState.hypothesisStatuses).toBeUndefined();
   });
 });
 

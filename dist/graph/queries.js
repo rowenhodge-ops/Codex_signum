@@ -1141,4 +1141,67 @@ export async function supersededDistillation(distillationId) {
        SET di.supersededAt = datetime()`, { id: distillationId });
     });
 }
+/**
+ * Get an overview of all milestones in the ecosystem graph.
+ * Returns milestone Blooms with child counts and test counts.
+ */
+export async function getMilestoneOverview() {
+    const result = await runQuery(`MATCH (b:Bloom)
+     WHERE b.type IN ['milestone', 'sub-milestone']
+     OPTIONAL MATCH (b)-[:CONTAINS]->(child:Bloom)
+     OPTIONAL MATCH (test:Seed)-[:SCOPED_TO]->(b)
+     RETURN b.id AS id, b.name AS name, b.type AS type,
+            b.status AS status, b.phiL AS phiL, b.sequence AS sequence,
+            b.parentId AS parentId,
+            count(DISTINCT child) AS childCount,
+            count(DISTINCT test) AS testCount
+     ORDER BY b.sequence`, {}, "READ");
+    return result.records.map((r) => ({
+        id: r.get("id"),
+        name: r.get("name"),
+        type: r.get("type"),
+        status: r.get("status"),
+        phiL: r.get("phiL") ?? 0,
+        sequence: r.get("sequence") ?? 0,
+        parentId: r.get("parentId"),
+        childCount: typeof r.get("childCount") === "number" ? r.get("childCount") : 0,
+        testCount: typeof r.get("testCount") === "number" ? r.get("testCount") : 0,
+    }));
+}
+/**
+ * Get all future-scoped test Seeds targeting a specific milestone.
+ * Returns test Seed nodes connected via SCOPED_TO.
+ */
+export async function getFutureTestsForMilestone(milestoneId) {
+    const result = await runQuery(`MATCH (s:Seed)-[:SCOPED_TO]->(b:Bloom { id: $milestoneId })
+     WHERE s.seedType = 'test'
+     OPTIONAL MATCH (suite:Bloom)-[:CONTAINS]->(s)
+     RETURN s.id AS id, s.name AS name, s.status AS status,
+            suite.id AS suiteId
+     ORDER BY s.id`, { milestoneId }, "READ");
+    return result.records.map((r) => ({
+        id: r.get("id"),
+        name: r.get("name"),
+        status: r.get("status"),
+        suiteId: r.get("suiteId") ?? "",
+    }));
+}
+/**
+ * Get all hypothesis Helix nodes with their observed milestone.
+ * Returns hypothesis data with OBSERVES relationship targets.
+ */
+export async function getHypothesisStatus() {
+    const result = await runQuery(`MATCH (h:Helix { type: 'hypothesis' })-[:OBSERVES]->(b:Bloom)
+     RETURN h.id AS id, h.claim AS claim, h.status AS status,
+            h.evidenceStrength AS evidenceStrength,
+            b.id AS observesMilestone
+     ORDER BY h.id`, {}, "READ");
+    return result.records.map((r) => ({
+        id: r.get("id"),
+        claim: r.get("claim"),
+        status: r.get("status"),
+        evidenceStrength: r.get("evidenceStrength") ?? 0,
+        observesMilestone: r.get("observesMilestone"),
+    }));
+}
 //# sourceMappingURL=queries.js.map

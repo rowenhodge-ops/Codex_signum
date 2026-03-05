@@ -1891,3 +1891,115 @@ export async function supersededDistillation(
     );
   });
 }
+
+// ============ ECOSYSTEM QUERIES (M-9.8) ============
+
+/** Milestone overview entry from the ecosystem graph */
+export interface MilestoneOverviewEntry {
+  id: string;
+  name: string;
+  type: "milestone" | "sub-milestone";
+  status: string;
+  phiL: number;
+  sequence: number;
+  parentId?: string;
+  childCount: number;
+  testCount: number;
+}
+
+/**
+ * Get an overview of all milestones in the ecosystem graph.
+ * Returns milestone Blooms with child counts and test counts.
+ */
+export async function getMilestoneOverview(): Promise<MilestoneOverviewEntry[]> {
+  const result = await runQuery(
+    `MATCH (b:Bloom)
+     WHERE b.type IN ['milestone', 'sub-milestone']
+     OPTIONAL MATCH (b)-[:CONTAINS]->(child:Bloom)
+     OPTIONAL MATCH (test:Seed)-[:SCOPED_TO]->(b)
+     RETURN b.id AS id, b.name AS name, b.type AS type,
+            b.status AS status, b.phiL AS phiL, b.sequence AS sequence,
+            b.parentId AS parentId,
+            count(DISTINCT child) AS childCount,
+            count(DISTINCT test) AS testCount
+     ORDER BY b.sequence`,
+    {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    id: r.get("id") as string,
+    name: r.get("name") as string,
+    type: r.get("type") as "milestone" | "sub-milestone",
+    status: r.get("status") as string,
+    phiL: (r.get("phiL") as number) ?? 0,
+    sequence: (r.get("sequence") as number) ?? 0,
+    parentId: r.get("parentId") as string | undefined,
+    childCount: typeof r.get("childCount") === "number" ? (r.get("childCount") as number) : 0,
+    testCount: typeof r.get("testCount") === "number" ? (r.get("testCount") as number) : 0,
+  }));
+}
+
+/** Future test entry from the ecosystem graph */
+export interface FutureTestEntry {
+  id: string;
+  name: string;
+  status: string;
+  suiteId: string;
+}
+
+/**
+ * Get all future-scoped test Seeds targeting a specific milestone.
+ * Returns test Seed nodes connected via SCOPED_TO.
+ */
+export async function getFutureTestsForMilestone(
+  milestoneId: string,
+): Promise<FutureTestEntry[]> {
+  const result = await runQuery(
+    `MATCH (s:Seed)-[:SCOPED_TO]->(b:Bloom { id: $milestoneId })
+     WHERE s.seedType = 'test'
+     OPTIONAL MATCH (suite:Bloom)-[:CONTAINS]->(s)
+     RETURN s.id AS id, s.name AS name, s.status AS status,
+            suite.id AS suiteId
+     ORDER BY s.id`,
+    { milestoneId },
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    id: r.get("id") as string,
+    name: r.get("name") as string,
+    status: r.get("status") as string,
+    suiteId: (r.get("suiteId") as string) ?? "",
+  }));
+}
+
+/** Hypothesis status entry from the ecosystem graph */
+export interface HypothesisStatusEntry {
+  id: string;
+  claim: string;
+  status: string;
+  evidenceStrength: number;
+  observesMilestone: string;
+}
+
+/**
+ * Get all hypothesis Helix nodes with their observed milestone.
+ * Returns hypothesis data with OBSERVES relationship targets.
+ */
+export async function getHypothesisStatus(): Promise<HypothesisStatusEntry[]> {
+  const result = await runQuery(
+    `MATCH (h:Helix { type: 'hypothesis' })-[:OBSERVES]->(b:Bloom)
+     RETURN h.id AS id, h.claim AS claim, h.status AS status,
+            h.evidenceStrength AS evidenceStrength,
+            b.id AS observesMilestone
+     ORDER BY h.id`,
+    {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    id: r.get("id") as string,
+    claim: r.get("claim") as string,
+    status: r.get("status") as string,
+    evidenceStrength: (r.get("evidenceStrength") as number) ?? 0,
+    observesMilestone: r.get("observesMilestone") as string,
+  }));
+}
