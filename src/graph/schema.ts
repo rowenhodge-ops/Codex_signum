@@ -43,6 +43,10 @@ export const RELATIONSHIP_TYPES = {
   EXECUTED_IN: "EXECUTED_IN",     // PipelineRun → Bloom (where the run happened)
   PRODUCED: "PRODUCED",           // PipelineRun → TaskOutput (output provenance)
   PROCESSED: "PROCESSED",         // Resonator → TaskOutput (stage assignment)
+
+  // Ecosystem bootstrap (M-9.8)
+  SCOPED_TO: "SCOPED_TO",         // Seed (test) → Bloom (milestone) — test validates milestone
+  OBSERVES: "OBSERVES",           // Helix (hypothesis) → Bloom (milestone) — evidence accumulation
 } as const;
 
 export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
@@ -145,6 +149,12 @@ const SCHEMA_STATEMENTS: string[] = [
 
   // Observation data integrity
   "CREATE CONSTRAINT observation_timestamp_required IF NOT EXISTS FOR (o:Observation) REQUIRE o.timestamp IS NOT NULL",
+
+  // Ecosystem bootstrap indexes (M-9.8)
+  "CREATE INDEX bloom_type IF NOT EXISTS FOR (b:Bloom) ON (b.type)",
+  "CREATE INDEX bloom_sequence IF NOT EXISTS FOR (b:Bloom) ON (b.sequence)",
+  "CREATE INDEX helix_type IF NOT EXISTS FOR (h:Helix) ON (h.type)",
+  "CREATE INDEX seed_seed_type IF NOT EXISTS FOR (s:Seed) ON (s.seedType)",
 
   // Indexes for pipeline topology queries
   "CREATE INDEX pipeline_run_bloom IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.bloomId)",
@@ -379,8 +389,8 @@ export async function verifySchema(): Promise<{
   return {
     constraintCount,
     indexCount,
-    // We expect at least 18 constraints and 14 indexes (M-9.5: +3 NOT NULL constraints)
-    healthy: constraintCount >= 18 && indexCount >= 14,
+    // We expect at least 18 constraints and 18 indexes (M-9.8: +4 ecosystem indexes)
+    healthy: constraintCount >= 18 && indexCount >= 18,
   };
 }
 

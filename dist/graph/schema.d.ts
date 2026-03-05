@@ -14,6 +14,8 @@ export declare const RELATIONSHIP_TYPES: {
     readonly EXECUTED_IN: "EXECUTED_IN";
     readonly PRODUCED: "PRODUCED";
     readonly PROCESSED: "PROCESSED";
+    readonly SCOPED_TO: "SCOPED_TO";
+    readonly OBSERVES: "OBSERVES";
 };
 export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
 /**
