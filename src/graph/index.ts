@@ -21,7 +21,9 @@ export {
   migrateSchema,
   verifySchema,
   seedConstitutionalRules,
+  RELATIONSHIP_TYPES,
 } from "./schema.js";
+export type { RelationshipType } from "./schema.js";
 export {
   // Seeds (formerly Agents)
   createSeed,
@@ -75,6 +77,16 @@ export {
   // Pipeline Analytics
   getPipelineStageHealth,
   getPipelineRunStats,
+  // Pipeline Lifecycle Extensions (M-9.5)
+  failPipelineRun,
+  updateTaskOutputQuality,
+  getTaskOutput,
+  linkDecisionToPipelineRun,
+  getDecisionsForRun,
+  getCompactionHistory,
+  getModelPerformance,
+  getStagePerformance,
+  getRunComparison,
   // Topology
   getBloomDegree,
   getBloomAdjacency,

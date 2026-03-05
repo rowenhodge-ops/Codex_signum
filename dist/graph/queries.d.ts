@@ -333,6 +333,59 @@ export declare function getPipelineRunStats(architectBloomId: string, limit?: nu
     durationMs: number;
     startedAt: string;
 }>>;
+/** Mark a PipelineRun as failed with an error message */
+export declare function failPipelineRun(runId: string, error: string): Promise<void>;
+/** Update the qualityScore on an existing TaskOutput node */
+export declare function updateTaskOutputQuality(taskOutputId: string, qualityScore: number): Promise<void>;
+/** Get a single TaskOutput by ID */
+export declare function getTaskOutput(taskOutputId: string): Promise<Neo4jRecord | null>;
+/** Link a Decision node to the PipelineRun it was made during */
+export declare function linkDecisionToPipelineRun(decisionId: string, runId: string): Promise<void>;
+/** Get all Decision nodes linked to a PipelineRun */
+export declare function getDecisionsForRun(runId: string): Promise<Neo4jRecord[]>;
+/** Get compaction history for a bloom — observation deletion audit trail */
+export declare function getCompactionHistory(bloomId: string, limit?: number): Promise<Array<{
+    distillationId: string;
+    observationCount: number;
+    confidence: number;
+    createdAt: Date;
+}>>;
+/** Get aggregate model performance across all pipeline runs */
+export declare function getModelPerformance(limit?: number): Promise<Array<{
+    modelUsed: string;
+    provider: string;
+    taskCount: number;
+    avgQuality: number;
+    avgDurationMs: number;
+    successRate: number;
+}>>;
+/** Get performance stats per pipeline stage (Resonator-level) */
+export declare function getStagePerformance(architectBloomId: string): Promise<Array<{
+    stage: string;
+    taskCount: number;
+    avgQuality: number;
+    avgDurationMs: number;
+    successRate: number;
+}>>;
+/** Compare two pipeline runs side-by-side */
+export declare function getRunComparison(runIdA: string, runIdB: string): Promise<{
+    runA: {
+        id: string;
+        intent: string;
+        taskCount: number;
+        overallQuality: number;
+        durationMs: number;
+        status: string;
+    } | null;
+    runB: {
+        id: string;
+        intent: string;
+        taskCount: number;
+        overallQuality: number;
+        durationMs: number;
+        status: string;
+    } | null;
+}>;
 /** @deprecated Use SeedProps */
 export type AgentProps = SeedProps;
 /** @deprecated Use BloomProps */

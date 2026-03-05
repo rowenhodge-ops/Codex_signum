@@ -15,7 +15,19 @@ import {
   queryTaskOutputsByModel,
   ensureArchitectResonators,
   linkTaskOutputToStage,
+  // M-9.5 additions
+  failPipelineRun,
+  updateTaskOutputQuality,
+  getTaskOutput,
+  linkDecisionToPipelineRun,
+  getDecisionsForRun,
+  getCompactionHistory,
+  getModelPerformance,
+  getStagePerformance,
+  getRunComparison,
 } from "../../src/graph/queries.js";
+import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
+import type { RelationshipType } from "../../src/graph/schema.js";
 
 // ============ SCHEMA TESTS ============
 
@@ -222,5 +234,107 @@ describe("Pipeline Topology — Schema statements", () => {
     const schema = await import("../../src/graph/schema.js");
     expect(typeof schema.migrateSchema).toBe("function");
     expect(typeof schema.verifySchema).toBe("function");
+  });
+});
+
+// ============ M-9.5 PIPELINE LIFECYCLE EXTENSIONS ============
+
+describe("Pipeline Lifecycle Extensions (M-9.5) — Exports", () => {
+  it("exports failPipelineRun as a function", () => {
+    expect(typeof failPipelineRun).toBe("function");
+  });
+
+  it("exports updateTaskOutputQuality as a function", () => {
+    expect(typeof updateTaskOutputQuality).toBe("function");
+  });
+
+  it("exports getTaskOutput as a function", () => {
+    expect(typeof getTaskOutput).toBe("function");
+  });
+
+  it("exports linkDecisionToPipelineRun as a function", () => {
+    expect(typeof linkDecisionToPipelineRun).toBe("function");
+  });
+
+  it("exports getDecisionsForRun as a function", () => {
+    expect(typeof getDecisionsForRun).toBe("function");
+  });
+
+  it("exports getCompactionHistory as a function", () => {
+    expect(typeof getCompactionHistory).toBe("function");
+  });
+
+  it("exports getModelPerformance as a function", () => {
+    expect(typeof getModelPerformance).toBe("function");
+  });
+
+  it("exports getStagePerformance as a function", () => {
+    expect(typeof getStagePerformance).toBe("function");
+  });
+
+  it("exports getRunComparison as a function", () => {
+    expect(typeof getRunComparison).toBe("function");
+  });
+});
+
+// ============ RELATIONSHIP TYPE REGISTRY ============
+
+describe("RELATIONSHIP_TYPES registry", () => {
+  it("is an object with string values", () => {
+    expect(typeof RELATIONSHIP_TYPES).toBe("object");
+    for (const [key, value] of Object.entries(RELATIONSHIP_TYPES)) {
+      expect(typeof value).toBe("string");
+      // Keys should be UPPER_SNAKE_CASE
+      expect(key).toMatch(/^[A-Z_]+$/);
+      // Values should match keys (canonical)
+      expect(value).toMatch(/^[A-Z_]+$/);
+    }
+  });
+
+  it("contains all relationship types used in queries.ts", () => {
+    // These are the relationships used in the current query set
+    expect(RELATIONSHIP_TYPES.CONTAINS).toBe("CONTAINS");
+    expect(RELATIONSHIP_TYPES.ROUTED_TO).toBe("ROUTED_TO");
+    expect(RELATIONSHIP_TYPES.ORIGINATED_FROM).toBe("ORIGINATED_FROM");
+    expect(RELATIONSHIP_TYPES.IN_CONTEXT).toBe("IN_CONTEXT");
+    expect(RELATIONSHIP_TYPES.DECIDED_DURING).toBe("DECIDED_DURING");
+    expect(RELATIONSHIP_TYPES.OBSERVED_IN).toBe("OBSERVED_IN");
+    expect(RELATIONSHIP_TYPES.DISTILLED_FROM).toBe("DISTILLED_FROM");
+    expect(RELATIONSHIP_TYPES.EXECUTED_IN).toBe("EXECUTED_IN");
+    expect(RELATIONSHIP_TYPES.PRODUCED).toBe("PRODUCED");
+    expect(RELATIONSHIP_TYPES.PROCESSED).toBe("PROCESSED");
+  });
+
+  it("has exactly 10 relationship types", () => {
+    expect(Object.keys(RELATIONSHIP_TYPES)).toHaveLength(10);
+  });
+
+  it("RelationshipType is a valid type alias", () => {
+    // Type-level check: a valid RelationshipType value should be assignable
+    const rel: RelationshipType = RELATIONSHIP_TYPES.CONTAINS;
+    expect(rel).toBe("CONTAINS");
+  });
+});
+
+// ============ M-9.5 BARREL RE-EXPORT TESTS ============
+
+describe("Pipeline Lifecycle Extensions — Package-level barrel re-exports", () => {
+  it("re-exports all M-9.5 symbols from package root", async () => {
+    const root = await import("../../src/index.js");
+
+    // Query functions
+    expect(typeof root.failPipelineRun).toBe("function");
+    expect(typeof root.updateTaskOutputQuality).toBe("function");
+    expect(typeof root.getTaskOutput).toBe("function");
+    expect(typeof root.linkDecisionToPipelineRun).toBe("function");
+    expect(typeof root.getDecisionsForRun).toBe("function");
+    expect(typeof root.getCompactionHistory).toBe("function");
+    expect(typeof root.getModelPerformance).toBe("function");
+    expect(typeof root.getStagePerformance).toBe("function");
+    expect(typeof root.getRunComparison).toBe("function");
+
+    // Schema exports
+    expect(typeof root.RELATIONSHIP_TYPES).toBe("object");
+    expect(Object.keys(root.RELATIONSHIP_TYPES)).toHaveLength(10);
   });
 });

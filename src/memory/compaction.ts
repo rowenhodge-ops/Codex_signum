@@ -97,7 +97,16 @@ export function computePracticalWindow(config: CompactionConfig): number {
   return -Math.log(config.compactionThreshold) / config.decayConstant;
 }
 
-/** Observation metadata needed for compaction decisions */
+/**
+ * Observation metadata needed for compaction decisions.
+ *
+ * NOTE: `signalProcessed` is currently a dead read — no code path sets it to `true`.
+ * This is architecturally intentional: the signal conditioning pipeline (M-9.V vertical
+ * compute) is not yet wired into the observation write path. When it is, the pipeline
+ * will set `signalProcessed = true` after conditioning, and compaction will begin
+ * reclaiming those observations. Until then, all observations remain non-compactable
+ * on this criterion, which is the safe default.
+ */
 export interface CompactableObservation {
   id: string;
   timestamp: Date;

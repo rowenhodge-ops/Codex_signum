@@ -1,4 +1,22 @@
 /**
+ * Canonical registry of all relationship types used in the graph.
+ * Queries MUST use these constants — never inline relationship type strings.
+ * Adding a new relationship type requires adding it here first.
+ */
+export declare const RELATIONSHIP_TYPES: {
+    readonly CONTAINS: "CONTAINS";
+    readonly ROUTED_TO: "ROUTED_TO";
+    readonly ORIGINATED_FROM: "ORIGINATED_FROM";
+    readonly IN_CONTEXT: "IN_CONTEXT";
+    readonly DECIDED_DURING: "DECIDED_DURING";
+    readonly OBSERVED_IN: "OBSERVED_IN";
+    readonly DISTILLED_FROM: "DISTILLED_FROM";
+    readonly EXECUTED_IN: "EXECUTED_IN";
+    readonly PRODUCED: "PRODUCED";
+    readonly PROCESSED: "PROCESSED";
+};
+export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
+/**
  * Apply the full Codex schema to Neo4j.
  * Idempotent — safe to run multiple times.
  */

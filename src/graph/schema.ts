@@ -18,6 +18,35 @@
 
 import { writeTransaction } from "./client.js";
 
+// ============ RELATIONSHIP TYPE REGISTRY ============
+
+/**
+ * Canonical registry of all relationship types used in the graph.
+ * Queries MUST use these constants — never inline relationship type strings.
+ * Adding a new relationship type requires adding it here first.
+ */
+export const RELATIONSHIP_TYPES = {
+  // Topology
+  CONTAINS: "CONTAINS",           // parent → child containment (Bloom → Resonator, etc.)
+
+  // Decision lifecycle
+  ROUTED_TO: "ROUTED_TO",         // Decision → Seed (model selection)
+  ORIGINATED_FROM: "ORIGINATED_FROM", // Decision → Bloom (context)
+  IN_CONTEXT: "IN_CONTEXT",       // Decision → ContextCluster (Thompson grouping)
+  DECIDED_DURING: "DECIDED_DURING", // Decision → PipelineRun (provenance)
+
+  // Observations & memory
+  OBSERVED_IN: "OBSERVED_IN",     // Observation → Bloom (source)
+  DISTILLED_FROM: "DISTILLED_FROM", // Distillation → Observation (aggregation)
+
+  // Pipeline topology
+  EXECUTED_IN: "EXECUTED_IN",     // PipelineRun → Bloom (where the run happened)
+  PRODUCED: "PRODUCED",           // PipelineRun → TaskOutput (output provenance)
+  PROCESSED: "PROCESSED",         // Resonator → TaskOutput (stage assignment)
+} as const;
+
+export type RelationshipType = typeof RELATIONSHIP_TYPES[keyof typeof RELATIONSHIP_TYPES];
+
 // ============ SCHEMA DEFINITION ============
 
 /**
@@ -108,9 +137,14 @@ const SCHEMA_STATEMENTS: string[] = [
 
   // PipelineRun nodes (execution instances of Architect pattern)
   "CREATE CONSTRAINT pipeline_run_id_unique IF NOT EXISTS FOR (pr:PipelineRun) REQUIRE pr.id IS UNIQUE",
+  "CREATE CONSTRAINT pipeline_run_started_at_required IF NOT EXISTS FOR (pr:PipelineRun) REQUIRE pr.startedAt IS NOT NULL",
 
   // TaskOutput nodes (individual task results within a run)
   "CREATE CONSTRAINT task_output_id_unique IF NOT EXISTS FOR (to:TaskOutput) REQUIRE to.id IS UNIQUE",
+  "CREATE CONSTRAINT task_output_run_id_required IF NOT EXISTS FOR (to:TaskOutput) REQUIRE to.runId IS NOT NULL",
+
+  // Observation data integrity
+  "CREATE CONSTRAINT observation_timestamp_required IF NOT EXISTS FOR (o:Observation) REQUIRE o.timestamp IS NOT NULL",
 
   // Indexes for pipeline topology queries
   "CREATE INDEX pipeline_run_bloom IF NOT EXISTS FOR (pr:PipelineRun) ON (pr.bloomId)",
@@ -345,8 +379,8 @@ export async function verifySchema(): Promise<{
   return {
     constraintCount,
     indexCount,
-    // We expect at least 15 constraints and 14 indexes
-    healthy: constraintCount >= 15 && indexCount >= 14,
+    // We expect at least 18 constraints and 14 indexes (M-9.5: +3 NOT NULL constraints)
+    healthy: constraintCount >= 18 && indexCount >= 14,
   };
 }
 

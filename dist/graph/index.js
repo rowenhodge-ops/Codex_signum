@@ -7,7 +7,7 @@
  * @module codex-signum-core/graph
  */
 export { getDriver, getSession, closeDriver, runQuery, writeTransaction, readTransaction, healthCheck, } from "./client.js";
-export { migrateSchema, verifySchema, seedConstitutionalRules, } from "./schema.js";
+export { migrateSchema, verifySchema, seedConstitutionalRules, RELATIONSHIP_TYPES, } from "./schema.js";
 export { 
 // Seeds (formerly Agents)
 createSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability, 
@@ -29,6 +29,8 @@ recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibra
 ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, ensureArchitectResonators, linkTaskOutputToStage, 
 // Pipeline Analytics
 getPipelineStageHealth, getPipelineRunStats, 
+// Pipeline Lifecycle Extensions (M-9.5)
+failPipelineRun, updateTaskOutputQuality, getTaskOutput, linkDecisionToPipelineRun, getDecisionsForRun, getCompactionHistory, getModelPerformance, getStagePerformance, getRunComparison, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Backward compatibility aliases (deprecated)
