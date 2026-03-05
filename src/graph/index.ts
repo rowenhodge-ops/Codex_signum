@@ -96,6 +96,11 @@ export {
   getMilestoneOverview,
   getFutureTestsForMilestone,
   getHypothesisStatus,
+  // Grammar reference queries (M-9.7a)
+  getGrammarElements,
+  getGrammarCoverage,
+  getAxiomDependencies,
+  getAntiPatternViolations,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -132,6 +137,11 @@ export type {
   MilestoneOverviewEntry,
   FutureTestEntry,
   HypothesisStatusEntry,
+  // Grammar reference types (M-9.7a)
+  GrammarElementEntry,
+  GrammarCoverageEntry,
+  AxiomDependencyEntry,
+  AntiPatternViolationEntry,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

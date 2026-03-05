@@ -2003,3 +2003,162 @@ export async function getHypothesisStatus(): Promise<HypothesisStatusEntry[]> {
     observesMilestone: r.get("observesMilestone") as string,
   }));
 }
+
+// ============ GRAMMAR REFERENCE QUERIES (M-9.7a) ============
+
+/** Grammar element entry from the graph */
+export interface GrammarElementEntry {
+  id: string;
+  seedType: string;
+  name: string;
+  description: string;
+  specSource: string;
+  implementationStatus: string;
+  implementationNotes: string;
+  codeLocation: string | null;
+}
+
+/**
+ * Get grammar elements, optionally filtered by category (seedType).
+ * Answers: "What morphemes/axioms/rules exist and what's their implementation status?"
+ */
+export async function getGrammarElements(
+  category?: string,
+): Promise<GrammarElementEntry[]> {
+  const whereClause = category
+    ? "WHERE s.seedType = $category"
+    : "";
+  const result = await runQuery(
+    `MATCH (:Bloom {type: 'grammar-reference'})-[:CONTAINS]->(:Bloom {type: 'grammar-category'})-[:CONTAINS]->(s:Seed)
+     ${whereClause}
+     RETURN s.id AS id, s.seedType AS seedType, s.name AS name,
+            s.description AS description, s.specSource AS specSource,
+            s.implementationStatus AS implementationStatus,
+            s.implementationNotes AS implementationNotes,
+            s.codeLocation AS codeLocation
+     ORDER BY s.seedType, s.id`,
+    category ? { category } : {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    id: r.get("id") as string,
+    seedType: r.get("seedType") as string,
+    name: r.get("name") as string,
+    description: r.get("description") as string,
+    specSource: r.get("specSource") as string,
+    implementationStatus: r.get("implementationStatus") as string,
+    implementationNotes: r.get("implementationNotes") as string,
+    codeLocation: (r.get("codeLocation") as string) ?? null,
+  }));
+}
+
+/** Grammar implementation coverage summary */
+export interface GrammarCoverageEntry {
+  total: number;
+  complete: number;
+  partial: number;
+  typesOnly: number;
+  notStarted: number;
+  aspirational: number;
+}
+
+/**
+ * Get implementation coverage summary for all grammar elements.
+ * Answers: "How much of the grammar is implemented?"
+ */
+export async function getGrammarCoverage(): Promise<GrammarCoverageEntry> {
+  const result = await runQuery(
+    `MATCH (:Bloom {type: 'grammar-reference'})-[:CONTAINS]->(:Bloom {type: 'grammar-category'})-[:CONTAINS]->(s:Seed)
+     RETURN s.implementationStatus AS status, count(s) AS cnt`,
+    {},
+    "READ",
+  );
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const r of result.records) {
+    const status = r.get("status") as string;
+    const cnt = r.get("cnt") as number;
+    counts[status] = cnt;
+    total += cnt;
+  }
+  return {
+    total,
+    complete: counts["complete"] ?? 0,
+    partial: counts["partial"] ?? 0,
+    typesOnly: counts["types-only"] ?? 0,
+    notStarted: counts["not-started"] ?? 0,
+    aspirational: counts["aspirational"] ?? 0,
+  };
+}
+
+/** Axiom dependency chain entry */
+export interface AxiomDependencyEntry {
+  axiomId: string;
+  axiomName: string;
+  dependsOn: string[];
+  dependedOnBy: string[];
+}
+
+/**
+ * Get axiom dependency chains (DAG).
+ * Answers: "What axioms depend on A2 Visible State?"
+ */
+export async function getAxiomDependencies(
+  axiomId?: string,
+): Promise<AxiomDependencyEntry[]> {
+  const whereClause = axiomId ? "WHERE a.id = $axiomId" : "";
+  const result = await runQuery(
+    `MATCH (a:Seed {seedType: 'axiom'})
+     ${whereClause}
+     OPTIONAL MATCH (a)-[:DEPENDS_ON]->(dep:Seed {seedType: 'axiom'})
+     OPTIONAL MATCH (rev:Seed {seedType: 'axiom'})-[:DEPENDS_ON]->(a)
+     RETURN a.id AS axiomId, a.name AS axiomName,
+            collect(DISTINCT dep.id) AS dependsOn,
+            collect(DISTINCT rev.id) AS dependedOnBy
+     ORDER BY a.id`,
+    axiomId ? { axiomId } : {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    axiomId: r.get("axiomId") as string,
+    axiomName: r.get("axiomName") as string,
+    dependsOn: (r.get("dependsOn") as string[]).filter(Boolean),
+    dependedOnBy: (r.get("dependedOnBy") as string[]).filter(Boolean),
+  }));
+}
+
+/** Anti-pattern violation entry */
+export interface AntiPatternViolationEntry {
+  antiPatternId: string;
+  antiPatternName: string;
+  violatesAxiom: string;
+  violatesAxiomName: string;
+  implementationStatus: string;
+}
+
+/**
+ * Get anti-pattern to axiom VIOLATES mappings.
+ * Answers: "Which anti-patterns violate A2?"
+ */
+export async function getAntiPatternViolations(
+  axiomId?: string,
+): Promise<AntiPatternViolationEntry[]> {
+  const whereClause = axiomId ? "WHERE ax.id = $axiomId" : "";
+  const result = await runQuery(
+    `MATCH (ap:Seed {seedType: 'anti-pattern'})-[:VIOLATES]->(ax:Seed {seedType: 'axiom'})
+     ${whereClause}
+     RETURN ap.id AS antiPatternId, ap.name AS antiPatternName,
+            ax.id AS violatesAxiom, ax.name AS violatesAxiomName,
+            ap.implementationStatus AS implementationStatus
+     ORDER BY ax.id, ap.id`,
+    axiomId ? { axiomId } : {},
+    "READ",
+  );
+  return result.records.map((r: Neo4jRecord) => ({
+    antiPatternId: r.get("antiPatternId") as string,
+    antiPatternName: r.get("antiPatternName") as string,
+    violatesAxiom: r.get("violatesAxiom") as string,
+    violatesAxiomName: r.get("violatesAxiomName") as string,
+    implementationStatus: r.get("implementationStatus") as string,
+  }));
+}

@@ -11,6 +11,13 @@ import {
 } from "../../scripts/bootstrap-grammar-reference.js";
 import type { GrammarElement, CategoryData } from "../../scripts/bootstrap-grammar-reference.js";
 import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
+import type {
+  GrammarElementEntry,
+  GrammarCoverageEntry,
+  AxiomDependencyEntry,
+  AntiPatternViolationEntry,
+} from "../../src/graph/queries.js";
+import type { SurveyOutput } from "../../src/patterns/architect/types.js";
 
 // ── Data Validation Tests (no Neo4j required) ──────────────────────────────
 
@@ -355,5 +362,119 @@ describe("Grammar Reference Bootstrap — Operational Records", () => {
     for (const el of ops.elements) {
       expect(el.implementationStatus).toBe("complete");
     }
+  });
+});
+
+// ── Query Type Shape Tests (no Neo4j required) ───────────────────────────────
+
+describe("Grammar Reference — Query types are correctly exported", () => {
+  it("GrammarElementEntry has required fields", () => {
+    // Type-level check: construct a valid entry
+    const entry: GrammarElementEntry = {
+      id: "test:id",
+      seedType: "test",
+      name: "Test",
+      description: "Test entry",
+      specSource: "test",
+      implementationStatus: "complete",
+      implementationNotes: "test",
+      codeLocation: null,
+    };
+    expect(entry.id).toBe("test:id");
+    expect(entry.codeLocation).toBeNull();
+  });
+
+  it("GrammarCoverageEntry has required fields", () => {
+    const entry: GrammarCoverageEntry = {
+      total: 47,
+      complete: 20,
+      partial: 10,
+      typesOnly: 5,
+      notStarted: 5,
+      aspirational: 7,
+    };
+    expect(entry.total).toBe(47);
+  });
+
+  it("AxiomDependencyEntry has required fields", () => {
+    const entry: AxiomDependencyEntry = {
+      axiomId: "axiom:A1-fidelity",
+      axiomName: "A1 Fidelity",
+      dependsOn: ["axiom:A2-visible-state"],
+      dependedOnBy: [],
+    };
+    expect(entry.dependsOn).toHaveLength(1);
+  });
+
+  it("AntiPatternViolationEntry has required fields", () => {
+    const entry: AntiPatternViolationEntry = {
+      antiPatternId: "ap:shadow-system",
+      antiPatternName: "Shadow System",
+      violatesAxiom: "axiom:A2-visible-state",
+      violatesAxiomName: "A2 Visible State",
+      implementationStatus: "complete",
+    };
+    expect(entry.violatesAxiom).toBe("axiom:A2-visible-state");
+  });
+});
+
+describe("Grammar Reference — SURVEY graphState type compatibility", () => {
+  it("SurveyOutput.graphState includes grammar coverage fields", () => {
+    // Type-level check: verify the graphState shape includes M-9.7a fields
+    const graphState: NonNullable<SurveyOutput["graphState"]> = {
+      bloomHealth: {},
+      activeCascades: 0,
+      thresholdEvents: [],
+      constitutionalAlerts: [],
+      grammarCoverage: {
+        total: 47,
+        complete: 20,
+        partial: 10,
+        typesOnly: 5,
+        notStarted: 5,
+        aspirational: 7,
+      },
+      antiPatternViolations: [
+        {
+          antiPatternId: "ap:shadow-system",
+          antiPatternName: "Shadow System",
+          violatesAxiom: "axiom:A2-visible-state",
+          violatesAxiomName: "A2 Visible State",
+          implementationStatus: "complete",
+        },
+      ],
+    };
+    expect(graphState.grammarCoverage!.total).toBe(47);
+    expect(graphState.antiPatternViolations).toHaveLength(1);
+  });
+
+  it("grammar fields are optional (backward compatible)", () => {
+    // Existing code that doesn't set grammar fields should still work
+    const graphState: NonNullable<SurveyOutput["graphState"]> = {
+      bloomHealth: {},
+      activeCascades: 0,
+      thresholdEvents: [],
+      constitutionalAlerts: [],
+    };
+    expect(graphState.grammarCoverage).toBeUndefined();
+    expect(graphState.antiPatternViolations).toBeUndefined();
+  });
+});
+
+describe("Grammar Reference — Barrel re-exports", () => {
+  it("query functions are exported from graph barrel", async () => {
+    const graphModule = await import("../../src/graph/index.js");
+    expect(typeof graphModule.getGrammarElements).toBe("function");
+    expect(typeof graphModule.getGrammarCoverage).toBe("function");
+    expect(typeof graphModule.getAxiomDependencies).toBe("function");
+    expect(typeof graphModule.getAntiPatternViolations).toBe("function");
+  });
+
+  it("query functions are exported from package root", async () => {
+    const root = await import("../../src/index.js");
+    expect(typeof root.getGrammarElements).toBe("function");
+    expect(typeof root.getGrammarCoverage).toBe("function");
+    expect(typeof root.getAxiomDependencies).toBe("function");
+    expect(typeof root.getAntiPatternViolations).toBe("function");
   });
 });
