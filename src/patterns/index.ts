@@ -138,6 +138,19 @@ export type {
   MockTaskExecutorOptions,
 } from "./architect/index.js";
 
+// Assayer Pattern — structural validation types (pipeline implementation is M-18)
+export type {
+  AntiPatternMatch,
+  AxiomResult,
+  ClaimDependency,
+  ClaimValidation,
+  ComplianceResult,
+  InvocationMode,
+  PostFlightResult,
+  ProposalType,
+  StructuralClaim,
+} from "./assayer/index.js";
+
 // Retrospective — deterministic graph queries, no LLM
 export {
   runRetrospective,
