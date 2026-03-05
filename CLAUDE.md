@@ -2,6 +2,36 @@
 
 ## For Claude Code (and any coding agent)
 
+---
+
+## ⛔ MANDATORY: Pipeline-First Execution
+
+**ALL milestone work MUST be executed through the Architect or DevAgent pipeline.**
+
+You are NOT PERMITTED to execute manual task lists as raw sequential instructions. If you receive a prompt structured as sequential tasks (Task 0, Task 1, Task 2...), you MUST:
+
+1. **STOP.** Do not execute the tasks directly.
+2. **Extract the intent** from the prompt.
+3. **Invoke the pipeline:**
+   - Analytical/documentation work: `npx tsx scripts/architect.ts plan "<intent>" [flags]`
+   - Coding tasks: `npx tsx scripts/dev-agent.ts run "<task>" --files=<paths> [flags]`
+4. **Let the pipeline run** through its stages. Do not short-circuit, skip stages, or "help" by doing work outside the pipeline.
+
+**Only exceptions — must be explicitly tagged in the prompt:**
+
+| Tag | Meaning | Example |
+|-----|---------|---------|
+| `[PIPELINE-PREP]` | Modifying the pipeline itself, or wiring prerequisites the pipeline needs before it can run | Updating CLAUDE.md governance, wiring `graphEnabled`, extending verify-graph-state.ts |
+| `[NO-PIPELINE]` | Pure mechanical work with no analytical component | File renames, config edits, formatting fixes |
+
+**If the pipeline fails, fix the pipeline. Do not do the work manually.**
+
+**Why this rule exists:** The Architect and DevAgent pipelines write structural records to Neo4j (PipelineRun, TaskOutput, Decision, Observation nodes). Thompson posteriors update from outcomes. The system learns from its own execution. When work bypasses the pipeline, the system is blind to what happened — no structural representation, no learning, no quality assessment. Every manual bypass makes the system’s thesis (“state is structural”) false for that piece of work.
+
+**This is not a guideline. It is a structural enforcement rule. Violation is the single most damaging anti-pattern for this repo.**
+
+---
+
 This is the core library for the Codex Signum protocol — a semantic encoding where **state is structural**. Consumer applications (like DND-Manager) import from this package. This repo is the single source of truth for all grammar-level infrastructure.
 
 ---
@@ -582,7 +612,7 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Substrate-agnostic logic in consumer | `parallelDecompose()` and `scorePlan()` placed in DND instead of core | If it uses only core types and any consumer benefits → it belongs in core (Rule 11) |
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
-| Manual analysis bypass | Agent does analytical work itself when the Architect pipeline exists and is operational | Fix the failing pipeline stage, then retry. The Architect does analytical work. If DECOMPOSE fails, fix DECOMPOSE — don't write the analysis manually. This is the single most important anti-pattern for this repo. |
+| **⛔ Manual analysis bypass** | **MOST CRITICAL ANTI-PATTERN.** Agent executes sequential task lists directly instead of invoking `scripts/architect.ts plan` or `scripts/dev-agent.ts run`. Every bypass means no PipelineRun, no TaskOutput, no Decision nodes, no Thompson learning — the system is blind to what happened. If you find yourself executing “Task 0... Task 1... Task 2...” from a prompt, STOP and invoke the pipeline instead. | Pipeline-First Execution rule (top of this document). If the pipeline fails, fix it — don’t work around it. |
 | Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "10 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel, Symbiosis) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 9 axioms (v4.3), 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
 
 ---
