@@ -189,8 +189,8 @@ describe("checkConsistency", () => {
 // ── Constants tests ──────────────────────────────────────────────────────
 
 describe("canonical constants", () => {
-  it("has exactly 10 axiom names", () => {
-    expect(CANONICAL_AXIOM_NAMES).toHaveLength(10);
+  it("has exactly 9 axiom names (v4.3: Symbiosis removed)", () => {
+    expect(CANONICAL_AXIOM_NAMES).toHaveLength(9);
   });
 
   it("has exactly 7 pipeline stages", () => {

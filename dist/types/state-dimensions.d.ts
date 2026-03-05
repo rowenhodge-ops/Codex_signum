@@ -18,7 +18,7 @@
  * The factors are FIXED — they define what ΦL measures.
  */
 export interface PhiLFactors {
-    /** Fraction of 10 axioms satisfied (binary per axiom, 0.0–1.0) */
+    /** Fraction of 9 axioms satisfied (binary per axiom, 0.0–1.0) */
     axiomCompliance: number;
     /** Can origin be traced? (0.0 = unknown, 1.0 = full chain documented) */
     provenanceClarity: number;

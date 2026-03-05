@@ -233,9 +233,9 @@ export function isSynthesisTask(task: Task, isLastPhase: boolean): boolean {
 
 /** Canonical reference constants for consistency checking */
 export const CANONICAL_AXIOM_NAMES = [
-  "Symbiosis", "Transparency", "Fidelity", "Visible State",
-  "Minimal Authority", "Provenance", "Reversibility",
-  "Semantic Stability", "Comprehension Primacy", "Adaptive Pressure",
+  "Fidelity", "Visible State", "Transparency",
+  "Provenance", "Reversibility", "Minimal Authority",
+  "Semantic Stability", "Adaptive Pressure", "Comprehension Primacy",
 ] as const;
 
 export const CANONICAL_PIPELINE_STAGES = [
@@ -262,7 +262,7 @@ export interface ConsistencyReport {
 /**
  * Scan all task outputs for consistency issues:
  * 1. Percentage values with same label but >20% relative difference
- * 2. Axiom names not matching the canonical 10
+ * 2. Axiom names not matching the canonical 9
  * 3. Pipeline stage names not in SURVEY/DECOMPOSE/.../ADAPT
  */
 export function checkConsistency(
@@ -309,7 +309,7 @@ export function checkConsistency(
       if (!canonicalLower.has(found.toLowerCase())) {
         issues.push({
           type: "wrong-axiom-name",
-          description: `Non-canonical axiom name "${found}" (not in the 10 canonical axioms)`,
+          description: `Non-canonical axiom name "${found}" (not in the 9 canonical axioms)`,
           tasks: [taskId],
         });
       }
@@ -400,6 +400,8 @@ export const ELIMINATED_ENTITIES = [
   "codexStats",
   "health dashboard",
   "monitoring overlay",
+  "Symbiosis",
+  "symbiosis",
 ] as const;
 
 export interface HallucinationFlag {
@@ -459,15 +461,15 @@ export function detectHallucinations(
     }
   }
 
-  // Check for wrong axiom count (common hallucination: "9 axioms" or "12 axioms")
+  // Check for wrong axiom count (common hallucination: "10 axioms" or "12 axioms")
   const axiomCountMatch = output.match(/(\d+)\s+axioms?/i);
   if (axiomCountMatch) {
     const count = parseInt(axiomCountMatch[1], 10);
-    if (count !== 10) {
+    if (count !== 9) {
       flags.push({
         level: "content",
         severity: "warning",
-        description: `Claims ${count} axioms (canonical count is 10)`,
+        description: `Claims ${count} axioms (canonical count is 9)`,
       });
     }
   }

@@ -5,7 +5,9 @@
 /**
  * Codex Signum — Constitutional Engine
  *
- * Evaluates and enforces the 10 axioms + constitutional rules.
+ * Evaluates and enforces axioms + constitutional rules.
+ * NOTE: Still evaluates 10 fields (including Symbiosis) for interface compatibility.
+ * v4.3 canonical count is 9 (Symbiosis absorbed into A2+A9). Structural migration pending.
  * The engine is a constraint solver that checks actions against
  * the governance framework before allowing them to proceed.
  *
@@ -67,7 +69,7 @@ export interface ConstitutionalEvaluation {
 // ============ AXIOM EVALUATION ============
 
 /**
- * Evaluate all 10 axioms against the current context.
+ * Evaluate axioms against the current context.
  *
  * This is a structural check — it verifies that the system
  * is operating within its own rules.

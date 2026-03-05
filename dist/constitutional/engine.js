@@ -4,7 +4,7 @@
 import { computeAxiomComplianceFraction } from "../types/constitutional.js";
 // ============ AXIOM EVALUATION ============
 /**
- * Evaluate all 10 axioms against the current context.
+ * Evaluate axioms against the current context.
  *
  * This is a structural check — it verifies that the system
  * is operating within its own rules.

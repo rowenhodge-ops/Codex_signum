@@ -126,7 +126,9 @@ export interface ArchitectureDecisionRecord {
     };
 }
 /**
- * The ten axioms. Binary compliance per axiom.
+ * Axiom compliance. Binary compliance per axiom.
+ * NOTE: Interface retains 10 fields (including Symbiosis) for backward compatibility.
+ * v4.3 canonical count is 9 (Symbiosis absorbed into A2+A9). Structural migration pending.
  */
 export interface AxiomCompliance {
     /** A1: Symbiosis — enables collaboration between intelligences */
