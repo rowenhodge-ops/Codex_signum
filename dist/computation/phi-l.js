@@ -93,7 +93,7 @@ export function computeTrend(currentEffective, previousEffective) {
 // ============ FACTOR EXTRACTORS ============
 /**
  * Compute axiomCompliance factor from a compliance record.
- * Binary per axiom — fraction of 10 axioms satisfied.
+ * Binary per axiom — fraction of axioms satisfied.
  */
 export function computeAxiomComplianceFactor(compliance) {
     const axiomKeys = Object.keys(compliance);

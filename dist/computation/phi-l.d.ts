@@ -70,7 +70,7 @@ export declare function computeRawPhiL(factors: PhiLFactors, weights: PhiLWeight
 export declare function computeTrend(currentEffective: number, previousEffective?: number): PhiLTrend;
 /**
  * Compute axiomCompliance factor from a compliance record.
- * Binary per axiom — fraction of 10 axioms satisfied.
+ * Binary per axiom — fraction of axioms satisfied.
  */
 export declare function computeAxiomComplianceFactor(compliance: Record<string, boolean>): number;
 /**
