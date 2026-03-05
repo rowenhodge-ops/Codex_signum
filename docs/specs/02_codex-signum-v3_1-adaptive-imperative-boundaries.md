@@ -1,3 +1,5 @@
+> **Superseded.** Content absorbed into v4.3 spec (`docs/specs/codex-signum-v4_3-draft.md`). This file is retained for historical reference.
+
 # Codex Signum v3.1 Addendum Sketch: Adaptive Imperative Boundaries
 
 ## Evolving Boundary Conditions with Immune-Memory Learning

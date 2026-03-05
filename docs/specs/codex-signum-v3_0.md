@@ -1,3 +1,5 @@
+> **Superseded.** This document is superseded by v4.3 (`docs/specs/codex-signum-v4_3-draft.md`). Key changes: axiom count reduced from 10 to 9 (Symbiosis absorbed into A2 Visible State + A9 Comprehension Primacy), axiom DAG introduced, Assayer pattern added, evidence-based Constitutional Evolution gates. This file is retained for historical reference and SURVEY corpus discovery.
+
 # Codex Signum
 
 ## A Semantic Encoding Where State Is Structural
