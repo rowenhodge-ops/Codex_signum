@@ -7,9 +7,10 @@ import {
   getCategories,
   getAxiomDependencies,
   getAntiPatternViolations,
+  getMorphemeVisualProps,
   GRAMMAR_REF_ID,
 } from "../../scripts/bootstrap-grammar-reference.js";
-import type { GrammarElement, CategoryData } from "../../scripts/bootstrap-grammar-reference.js";
+import type { GrammarElement, CategoryData, MorphemeVisualProps } from "../../scripts/bootstrap-grammar-reference.js";
 import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
 import type {
   GrammarElementEntry,
@@ -458,6 +459,102 @@ describe("Grammar Reference — SURVEY graphState type compatibility", () => {
     };
     expect(graphState.grammarCoverage).toBeUndefined();
     expect(graphState.antiPatternViolations).toBeUndefined();
+  });
+});
+
+// ── Morpheme Visual Enrichment Tests (M-16.3.2) ─────────────────────────────
+
+describe("Grammar Reference — Morpheme Visual Properties", () => {
+  const visProps = getMorphemeVisualProps();
+  const morphemeIds = [
+    "morpheme:seed",
+    "morpheme:line",
+    "morpheme:bloom",
+    "morpheme:resonator",
+    "morpheme:grid",
+    "morpheme:helix",
+  ];
+
+  it("provides visual properties for all 6 morphemes", () => {
+    expect(Object.keys(visProps)).toHaveLength(6);
+    for (const id of morphemeIds) {
+      expect(visProps[id]).toBeDefined();
+    }
+  });
+
+  it("all morpheme visual props have baseShape", () => {
+    for (const id of morphemeIds) {
+      expect(visProps[id].baseShape).toBeTruthy();
+    }
+  });
+
+  it("all morpheme visual props have minSizePx and detailThresholdPx", () => {
+    for (const id of morphemeIds) {
+      expect(typeof visProps[id].minSizePx).toBe("number");
+      expect(typeof visProps[id].detailThresholdPx).toBe("number");
+      expect(visProps[id].detailThresholdPx).toBeGreaterThan(visProps[id].minSizePx);
+    }
+  });
+
+  it("all morpheme visual props have state dimension encodings", () => {
+    for (const id of morphemeIds) {
+      expect(visProps[id].phiL_encoding).toBeTruthy();
+      expect(visProps[id].psiH_encoding).toBeTruthy();
+      expect(visProps[id].epsilonR_encoding).toBeTruthy();
+    }
+  });
+
+  it("all morpheme visual props have defaultHue", () => {
+    for (const id of morphemeIds) {
+      expect(visProps[id].defaultHue).toBeTruthy();
+    }
+  });
+
+  // Spot checks against vis research data (§2.1 table)
+  it("Seed has baseShape=circle, minSizePx=4", () => {
+    expect(visProps["morpheme:seed"].baseShape).toBe("circle");
+    expect(visProps["morpheme:seed"].minSizePx).toBe(4);
+  });
+
+  it("Line has baseShape=directed-edge, minSizePx=1", () => {
+    expect(visProps["morpheme:line"].baseShape).toBe("directed-edge");
+    expect(visProps["morpheme:line"].minSizePx).toBe(1);
+  });
+
+  it("Bloom has detailThresholdPx=60", () => {
+    expect(visProps["morpheme:bloom"].detailThresholdPx).toBe(60);
+  });
+
+  it("Resonator has baseShape=triangle, minSizePx=8", () => {
+    expect(visProps["morpheme:resonator"].baseShape).toBe("triangle");
+    expect(visProps["morpheme:resonator"].minSizePx).toBe(8);
+  });
+
+  it("Grid has baseShape=square, detailThresholdPx=30", () => {
+    expect(visProps["morpheme:grid"].baseShape).toBe("square");
+    expect(visProps["morpheme:grid"].detailThresholdPx).toBe(30);
+  });
+
+  it("Helix has baseShape=spiral, minSizePx=12", () => {
+    expect(visProps["morpheme:helix"].baseShape).toBe("spiral");
+    expect(visProps["morpheme:helix"].minSizePx).toBe(12);
+  });
+
+  it("shapes are all distinct (pre-attentive requirement)", () => {
+    const shapes = morphemeIds.map((id) => visProps[id].baseShape);
+    expect(new Set(shapes).size).toBe(6);
+  });
+
+  it("MorphemeVisualProps type has correct shape", () => {
+    const props: MorphemeVisualProps = visProps["morpheme:seed"];
+    expect(props.baseShape).toBe("circle");
+    expect(props.rendering).toBeTruthy();
+    expect(typeof props.minSizePx).toBe("number");
+    expect(typeof props.detailThresholdPx).toBe("number");
+    expect(props.phiL_encoding).toBeTruthy();
+    expect(props.psiH_encoding).toBeTruthy();
+    expect(props.epsilonR_encoding).toBeTruthy();
+    expect(props.defaultHue).toBeTruthy();
   });
 });
 

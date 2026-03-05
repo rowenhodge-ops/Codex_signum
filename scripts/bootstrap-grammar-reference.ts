@@ -148,6 +148,97 @@ function getCategories(): CategoryData[] {
   ];
 }
 
+// ── Morpheme Visual Properties (from codex-signum-visualisation-research.md) ──
+
+interface MorphemeVisualProps {
+  /** §2.1 Shape Language — base geometry */
+  baseShape: string;
+  /** §2.1 — rendering description */
+  rendering: string;
+  /** §2.1 — minimum size at ecosystem zoom (px) */
+  minSizePx: number;
+  /** §2.1 — threshold at which labels/detail appear (px) */
+  detailThresholdPx: number;
+  /** §2.2 — how ΦL maps to visual properties */
+  phiL_encoding: string;
+  /** §2.2 — how ΨH manifests visually */
+  psiH_encoding: string;
+  /** §2.2 — how εR manifests visually */
+  epsilonR_encoding: string;
+  /** §2.3 — default hue category (domain-dependent at runtime) */
+  defaultHue: string;
+}
+
+function getMorphemeVisualProps(): Record<string, MorphemeVisualProps> {
+  // State encodings shared across all morphemes (§2.2)
+  const phiL = "Brightness (lightness channel + glow intensity). Saturation = stability. Pulsation rate = activity (1-2s active, 8s+ dormant).";
+  const psiH = "Synchronised pulsation between resonant elements. Colour temperature clash for strained (friction 0.5-0.8). Interference pattern on connecting Line for dissonant (friction > 0.8).";
+  const epsilonR = "Shimmer/micro-movement. Rigid (εR=0): still, frost visual. Stable (0.01-0.10): faint shimmer. Adaptive (0.10-0.30): gentle breathing. Unstable (>0.30): rapid flickering.";
+
+  return {
+    "morpheme:seed": {
+      baseShape: "circle",
+      rendering: "Filled circle with radial gradient glow. Brightness = ΦL.",
+      minSizePx: 4,
+      detailThresholdPx: 20,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+    "morpheme:line": {
+      baseShape: "directed-edge",
+      rendering: "Bézier curve with animated particles. Speed = urgency, brightness = volume.",
+      minSizePx: 1,
+      detailThresholdPx: 3,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+    "morpheme:bloom": {
+      baseShape: "circle-boundary",
+      rendering: "Dashed or petal-segment circle. Open C-shape (receptive) or closed (protected). Translucent fill.",
+      minSizePx: 20,
+      detailThresholdPx: 60,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+    "morpheme:resonator": {
+      baseShape: "triangle",
+      rendering: "Filled triangle. Δ apex-up = output/decision made. ∇ apex-down = input/pending. Pulse rate = activity.",
+      minSizePx: 8,
+      detailThresholdPx: 24,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+    "morpheme:grid": {
+      baseShape: "square",
+      rendering: "Square with internal grid texture. Solid border = sealed vault.",
+      minSizePx: 12,
+      detailThresholdPx: 30,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+    "morpheme:helix": {
+      baseShape: "spiral",
+      rendering: "Multi-strand spiral. Translucency shifts between strands. Tight = Correction, medium = Learning, wide = Evolutionary.",
+      minSizePx: 12,
+      detailThresholdPx: 30,
+      phiL_encoding: phiL,
+      psiH_encoding: psiH,
+      epsilonR_encoding: epsilonR,
+      defaultHue: "domain-dependent",
+    },
+  };
+}
+
 /** Axiom DAG: axiomId → list of axiomIds it depends on. From v4.3 §Axiom Dependency Structure. */
 function getAxiomDependencies(): Array<{ from: string; to: string }> {
   return [
@@ -303,6 +394,38 @@ async function createViolatesRel(antiPatternId: string, axiomId: string): Promis
   });
 }
 
+async function enrichMorphemeSeedVisuals(
+  morphemeId: string,
+  props: MorphemeVisualProps,
+): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MATCH (s:Seed {id: $id})
+       SET s.baseShape = $baseShape,
+           s.rendering = $rendering,
+           s.minSizePx = $minSizePx,
+           s.detailThresholdPx = $detailThresholdPx,
+           s.phiL_encoding = $phiL_encoding,
+           s.psiH_encoding = $psiH_encoding,
+           s.epsilonR_encoding = $epsilonR_encoding,
+           s.defaultHue = $defaultHue,
+           s.visSource = "codex-signum-visualisation-research.md §2.1, §2.2, §2.3",
+           s.updatedAt = datetime()`,
+      {
+        id: morphemeId,
+        baseShape: props.baseShape,
+        rendering: props.rendering,
+        minSizePx: props.minSizePx,
+        detailThresholdPx: props.detailThresholdPx,
+        phiL_encoding: props.phiL_encoding,
+        psiH_encoding: props.psiH_encoding,
+        epsilonR_encoding: props.epsilonR_encoding,
+        defaultHue: props.defaultHue,
+      },
+    );
+  });
+}
+
 async function createScopedToRel(fromId: string, milestoneId: string): Promise<void> {
   await writeTransaction(async (tx) => {
     await tx.run(
@@ -389,7 +512,20 @@ async function main(): Promise<void> {
   }
   console.log(`✅ VIOLATES: ${violations.length} anti-pattern → axiom mappings`);
 
-  // 7. SCOPED_TO: grammar-ref → M-9.7a milestone (if exists)
+  // 7. Enrich morpheme Seeds with visual properties (M-16.3.2)
+  const visProps = getMorphemeVisualProps();
+  let enrichedCount = 0;
+  for (const [morphemeId, props] of Object.entries(visProps)) {
+    try {
+      await enrichMorphemeSeedVisuals(morphemeId, props);
+      enrichedCount++;
+    } catch (err) {
+      console.warn(`  ⚠ Failed to enrich ${morphemeId}:`, err);
+    }
+  }
+  console.log(`✅ Visual enrichment: ${enrichedCount} morpheme Seeds with rendering properties`);
+
+  // 8. SCOPED_TO: grammar-ref → M-9.7a milestone (if exists)
   try {
     await createScopedToRel(GRAMMAR_REF_ID, "M-9.7a");
     console.log(`✅ SCOPED_TO: ${GRAMMAR_REF_ID} → M-9.7a`);
@@ -429,6 +565,7 @@ export {
   getCategories,
   getAxiomDependencies,
   getAntiPatternViolations,
+  getMorphemeVisualProps,
   GRAMMAR_REF_ID,
   createGrammarRefBloom,
   createCategoryBloom,
@@ -437,5 +574,6 @@ export {
   createDependsOnRel,
   createViolatesRel,
   createScopedToRel,
+  enrichMorphemeSeedVisuals,
 };
-export type { GrammarElement, CategoryData };
+export type { GrammarElement, CategoryData, MorphemeVisualProps };
