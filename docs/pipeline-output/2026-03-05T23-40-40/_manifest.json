@@ -1,0 +1,31 @@
+{
+  "runId": "2026-03-05T23-40-40",
+  "intent": "Produce Engineering Bridge v2.1 — a complete replacement for the stale v2.0 document. The Bridge translates the Codex Signum v4.3 spec into concrete engineering rules. Scope: (1) Audit every formula in Bridge v2.0 against actual source code in src/computation/ and the v4.3 spec at docs/specs/codex-signum-v4_3-draft.md — correct stale formulas including dampening (budget-capped min(gamma_base, s/k) not the old k-1 divisor), axiom count (9 not 10), and unified hub dampening. (2) Codify the Bridge View Principle as a normative constraint: every Bridge formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. (3) Document build experience from 6 months of implementation — Thompson informed priors and context-blocked posteriors in src/patterns/thompson-router/, three-layer hallucination detection in scripts/bootstrap-task-executor.ts, CLAUDE.md governance files as persistent agent context, convergence data from M-9.VA verification runs. (4) Specify the vertical wiring interface between pipeline observations and state dimension computation — for each of the 7 interface points (Observation to Conditioning, Conditioning to PhiL, PhiL to Maturity, Node to Container, Graph to PsiH, State to Events, Recovery to Hysteresis), read the code on both sides and document what function produces data, what function consumes it, what glue is missing, and which milestone implements the connection. (5) Document PsiH temporal decomposition from src/computation/psi-h.ts and epsilon-R spectral calibration internals from src/computation/epsilon-r.ts. (6) Add supersession notice to v2.0. All output in clean UTF-8. The final document goes to docs/specs/codex-signum-engineering-bridge-v2_1.md.",
+  "startedAt": "2026-03-05T23:48:46.341Z",
+  "completedAt": "2026-03-05T23:50:04.077Z",
+  "tasks": [
+    {
+      "taskId": "survey-1772754039441-vmy1vi_t1",
+      "title": "Placeholder task — LLM decomposition failed",
+      "type": "generative",
+      "model": "claude-opus-4-6:adaptive:max",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "max",
+      "status": "succeeded",
+      "durationMs": 65830,
+      "outputFile": "docs\\pipeline-output\\2026-03-05T23-40-40\\survey-1772754039441-vmy1vi_t1-placeholder-task-llm-decomposition-failed.md",
+      "outputChars": 10659
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "totalDurationMs": 65830,
+    "totalOutputChars": 10659,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:max"
+    ]
+  }
+}
