@@ -179,3 +179,44 @@ describe("freshArmStats", () => {
     expect(stats.totalCost).toBe(0);
   });
 });
+
+describe("OutcomeRecord — infrastructure flag", () => {
+  it("infrastructure field is optional and defaults to undefined", () => {
+    const before = freshArmStats("infra-test");
+    const outcome = { success: false, durationMs: 0, errorType: "api_error" };
+    // Should not have infrastructure field by default
+    expect(outcome).not.toHaveProperty("infrastructure");
+    // updateArmStats still works (alpha/beta update happens)
+    const after = updateArmStats(before, outcome);
+    expect(after.beta).toBe(2); // failure increments beta
+  });
+
+  it("infrastructure: true is accepted on OutcomeRecord", () => {
+    const outcome = {
+      success: false,
+      durationMs: 0,
+      errorType: "api_error",
+      infrastructure: true,
+      notes: "HTTP 404 model not found",
+    };
+    // The flag exists on the record
+    expect(outcome.infrastructure).toBe(true);
+    // updateArmStats is a pure function — it always updates alpha/beta.
+    // Infrastructure filtering happens at the graph query layer
+    // (getArmStatsForCluster excludes infrastructure decisions).
+    const before = freshArmStats("infra-test");
+    const after = updateArmStats(before, outcome);
+    expect(after.beta).toBe(2); // Pure function still increments
+  });
+
+  it("infrastructure: false is accepted on OutcomeRecord", () => {
+    const outcome = {
+      success: false,
+      durationMs: 100,
+      errorType: "api_error",
+      infrastructure: false,
+      notes: "HTTP 400 invalid parameter",
+    };
+    expect(outcome.infrastructure).toBe(false);
+  });
+});

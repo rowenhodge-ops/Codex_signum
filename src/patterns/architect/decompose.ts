@@ -8,7 +8,7 @@
  * Calls an LLM via the injected ModelExecutor to produce a real
  * task decomposition. Falls back to stub on LLM or parse failure.
  *
- * Moved from DND-Manager agent/patterns/architect/decompose.ts.
+ * Originally in consumer repo agent/patterns/architect/decompose.ts.
  * Verdict: SPLIT — removed DND-specific `createArchitectLLM` import,
  * refactored to accept ModelExecutor as a parameter.
  */
@@ -53,43 +53,61 @@ export async function decompose(
 ): Promise<TaskGraph> {
   const intentId = survey.intent_id;
 
-  try {
-    const prompt = buildDecomposePrompt(intent, survey, repoPath);
+  const MAX_DECOMPOSE_ATTEMPTS = 2;
 
-    const result = await modelExecutor.execute(prompt, {
-      taskType: "planning",
-      complexity: "complex",
-      qualityRequirement: 0.7,
-    });
+  for (let attempt = 1; attempt <= MAX_DECOMPOSE_ATTEMPTS; attempt++) {
+    try {
+      const prompt = buildDecomposePrompt(intent, survey, repoPath);
 
-    console.log(`  DECOMPOSE: Model ${result.modelId} returned ${result.text.length} chars (${result.durationMs}ms)`);
+      const result = await modelExecutor.execute(prompt, {
+        taskType: "planning",
+        complexity: "complex",
+        qualityRequirement: 0.7,
+      });
 
-    const parsed = parseTaskGraph(result.text, intentId);
+      console.log(`  DECOMPOSE: Model ${result.modelId} returned ${result.text.length} chars (${result.durationMs}ms)`);
 
-    if (parsed) {
-      console.log(`  DECOMPOSE: Parsed ${parsed.tasks.length} tasks in ${parsed.phases.length} phases (confidence: ${parsed.decomposition_confidence.toFixed(2)})`);
-
-      // Validate file paths if repoPath provided
-      if (repoPath) {
-        const fileWarnings = validateFilePaths(parsed, repoPath);
-        if (fileWarnings.length > 0) {
-          console.warn(`  DECOMPOSE: ${fileWarnings.length} non-existent file path(s) in task graph:`);
-          for (const w of fileWarnings) {
-            console.warn(`    ⚠️  ${w}`);
-          }
-        }
+      if (result.text.length === 0 && attempt < MAX_DECOMPOSE_ATTEMPTS) {
+        console.warn(`  DECOMPOSE: Empty response from ${result.modelId} — retrying (attempt ${attempt + 1}/${MAX_DECOMPOSE_ATTEMPTS}). Thompson will route to a different model.`);
+        continue;
       }
 
-      return parsed;
-    }
+      const parsed = parseTaskGraph(result.text, intentId);
 
-    console.error(`  DECOMPOSE: parseTaskGraph returned null. First 500 chars of response:\n${result.text.slice(0, 500)}`);
-  } catch (err) {
-    console.error(`  DECOMPOSE: LLM call failed:`, err instanceof Error ? err.message : err);
+      if (parsed) {
+        console.log(`  DECOMPOSE: Parsed ${parsed.tasks.length} tasks in ${parsed.phases.length} phases (confidence: ${parsed.decomposition_confidence.toFixed(2)})`);
+
+        // Validate file paths if repoPath provided
+        if (repoPath) {
+          const fileWarnings = validateFilePaths(parsed, repoPath);
+          if (fileWarnings.length > 0) {
+            console.warn(`  DECOMPOSE: ${fileWarnings.length} non-existent file path(s) in task graph:`);
+            for (const w of fileWarnings) {
+              console.warn(`    ⚠️  ${w}`);
+            }
+          }
+        }
+
+        return parsed;
+      }
+
+      console.error(`  DECOMPOSE: parseTaskGraph returned null. First 500 chars of response:
+${result.text.slice(0, 500)}`);
+      if (attempt < MAX_DECOMPOSE_ATTEMPTS) {
+        console.warn(`  DECOMPOSE: Retrying decomposition (attempt ${attempt + 1}/${MAX_DECOMPOSE_ATTEMPTS}). Thompson will route to a different model.`);
+        continue;
+      }
+    } catch (err) {
+      console.error(`  DECOMPOSE: LLM call failed:`, err instanceof Error ? err.message : err);
+      if (attempt < MAX_DECOMPOSE_ATTEMPTS) {
+        console.warn(`  DECOMPOSE: Retrying after error (attempt ${attempt + 1}/${MAX_DECOMPOSE_ATTEMPTS}).`);
+        continue;
+      }
+    }
   }
 
-  // Fallback: return stub
-  console.warn(`  DECOMPOSE: Falling back to stub plan.`);
+  // Fallback: return stub only after all attempts exhausted
+  console.warn(`  DECOMPOSE: All ${MAX_DECOMPOSE_ATTEMPTS} attempts failed. Falling back to stub plan.`);
   return createStubTaskGraph(intent, intentId);
 }
 

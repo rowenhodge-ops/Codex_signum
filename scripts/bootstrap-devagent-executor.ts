@@ -23,6 +23,9 @@ import {
   classifyProvider,
   getAvailableProviders,
 } from "./bootstrap-executor.js";
+import { selectModel } from "../src/patterns/thompson-router/select-model.js";
+
+const MAX_RETRIES = 10;
 
 /**
  * Create a DevAgent model executor using raw fetch().
@@ -46,40 +49,91 @@ export function createDevAgentExecutor(
     prompt: string,
     stage: PipelineStage,
   ) => {
-    const arm = armMap.get(modelId);
-    if (!arm) {
-      throw new Error(
-        `Model ${modelId} not found in configured arms. Available: ${[...armMap.keys()].join(", ")}`,
+    // Retry loop: mirrors bootstrap-executor pattern.
+    // On infrastructure errors, re-select via Thompson.
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const arm = armMap.get(modelId);
+      if (!arm) {
+        throw new Error(
+          `Model ${modelId} not found in configured arms. Available: ${[...armMap.keys()].join(", ")}`,
+        );
+      }
+
+      const providerClass = classifyProvider(arm.provider);
+
+      if (!availableProviders.has(providerClass)) {
+        console.warn(
+          `  [DevAgent:${stage}] No API key for ${providerClass} (model: ${modelId}) — re-selecting (${attempt + 1}/${MAX_RETRIES})`,
+        );
+        // Re-select via Thompson with capability filter
+        const reselection = await selectModel({
+          taskType: stage,
+          complexity: "moderate",
+          requiredCapabilities: ["code_generation"],
+        });
+        await reselection.recordOutcome({
+          success: false,
+          qualityScore: 0.0,
+          durationMs: 0,
+          errorType: "no_api_key",
+          infrastructure: true,
+          notes: `No API key for ${providerClass}`,
+        });
+        modelId = reselection.selectedSeedId;
+        continue;
+      }
+
+      console.log(
+        `  [DevAgent:${stage}] Calling ${modelId} (${arm.provider} → ${providerClass})`,
       );
+
+      try {
+        const result = await callModelDirect(
+          {
+            provider: arm.provider,
+            apiModelString: arm.model,
+            thinkingMode: arm.thinkingMode,
+            thinkingParameter: arm.thinkingParameter,
+          },
+          prompt,
+          vertexAvailable,
+        );
+
+        return {
+          output: result.text,
+          durationMs: result.durationMs,
+          cost: 0,
+        };
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isInfrastructure = /(404|429|5d{2}|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|credentials|auth|not servable)/i.test(errMsg);
+
+        console.warn(
+          `  [DevAgent:${stage}] ${isInfrastructure ? "Infrastructure" : "Model"} error for ${modelId} — re-selecting (${attempt + 1}/${MAX_RETRIES}): ${errMsg.slice(0, 200)}`,
+        );
+
+        // Re-select via Thompson with capability filter
+        const reselection = await selectModel({
+          taskType: stage,
+          complexity: "moderate",
+          requiredCapabilities: ["code_generation"],
+        });
+        await reselection.recordOutcome({
+          success: false,
+          qualityScore: 0.0,
+          durationMs: 0,
+          errorType: "api_error",
+          infrastructure: isInfrastructure,
+          notes: errMsg,
+        });
+        modelId = reselection.selectedSeedId;
+        continue;
+      }
     }
 
-    const providerClass = classifyProvider(arm.provider);
-    if (!availableProviders.has(providerClass)) {
-      throw new Error(
-        `No API key for provider ${providerClass} (model: ${modelId}). Available providers: ${[...availableProviders].join(", ")}`,
-      );
-    }
-
-    console.log(
-      `  [DevAgent:${stage}] Calling ${modelId} (${arm.provider} → ${providerClass})`,
+    throw new Error(
+      `All ${MAX_RETRIES} model selections failed for DevAgent stage ${stage}. Available providers: [${[...availableProviders].join(", ")}]`,
     );
-
-    const result = await callModelDirect(
-      {
-        provider: arm.provider,
-        apiModelString: arm.model,
-        thinkingMode: arm.thinkingMode,
-        thinkingParameter: arm.thinkingParameter,
-      },
-      prompt,
-      vertexAvailable,
-    );
-
-    return {
-      output: result.text,
-      durationMs: result.durationMs,
-      cost: 0, // Cost tracking is future work
-    };
   };
 
   const assessor: QualityAssessor = async (

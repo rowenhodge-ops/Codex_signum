@@ -22,6 +22,12 @@ export interface OutcomeRecord {
     errorType?: string;
     /** Optional notes */
     notes?: string;
+    /**
+     * Infrastructure failure — the model was not at fault.
+     * When true, the Decision node is written for audit trail but
+     * alpha/beta posteriors are NOT updated.
+     */
+    infrastructure?: boolean;
 }
 /**
  * Update ArmStats after an outcome (pure function).

@@ -778,6 +778,7 @@ export function createBootstrapModelExecutor(
           callerPatternId: "architect",
           runId: context?.runId,
           taskId: context?.taskId,
+          requiredCapabilities: ["code_generation"],
         });
 
         const providerClass = classifyProvider(selection.provider);
@@ -795,6 +796,7 @@ export function createBootstrapModelExecutor(
             qualityScore: 0.0,
             durationMs: 0,
             errorType: "no_provider",
+            infrastructure: true,
             notes: `Unsupported provider ${selection.provider}`,
           });
           continue;
@@ -809,6 +811,7 @@ export function createBootstrapModelExecutor(
             qualityScore: 0.0,
             durationMs: 0,
             errorType: "no_api_key",
+            infrastructure: true,
             notes: `No API key for provider ${providerClass} (${selection.provider})`,
           });
           continue;
@@ -867,6 +870,7 @@ export function createBootstrapModelExecutor(
             qualityScore: 0.0,
             durationMs: 0,
             errorType: "api_error",
+            infrastructure: /(404|429|5d{2}|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|credentials|auth|not servable)/i.test(errMsg),
             notes: errMsg,
           });
           continue;

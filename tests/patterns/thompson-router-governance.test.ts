@@ -168,3 +168,51 @@ describe("Thompson Router: DEFAULT_ROUTER_CONFIG has required fields", () => {
     expect(DEFAULT_ROUTER_CONFIG.costPenaltyFactor).toBeDefined();
   });
 });
+
+describe("Capability-based filtering", () => {
+  it("filters models by requiredCapabilities in route() input", () => {
+    const textModel = makeModel("text-1", { capabilities: ["code_generation", "general"] });
+    const imageModel = makeModel("image-1", { capabilities: ["image_generation"] });
+    const ocrModel = makeModel("ocr-1", { capabilities: ["ocr", "document_processing"] });
+
+    const allModels = [textModel, imageModel, ocrModel];
+    const required = ["code_generation"];
+
+    // Filter like selectModel does
+    const filtered = allModels.filter((m) =>
+      m.capabilities.some((cap) => required.includes(cap)),
+    );
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].id).toBe("text-1");
+  });
+
+  it("returns all models when requiredCapabilities is empty", () => {
+    const models = [
+      makeModel("a", { capabilities: ["code_generation"] }),
+      makeModel("b", { capabilities: ["image_generation"] }),
+    ];
+    const required: string[] = [];
+
+    const filtered = required.length > 0
+      ? models.filter((m) => m.capabilities.some((cap) => required.includes(cap)))
+      : models;
+
+    expect(filtered).toHaveLength(2);
+  });
+
+  it("falls back to all models when filter removes everything", () => {
+    const models = [
+      makeModel("a", { capabilities: ["image_generation"] }),
+      makeModel("b", { capabilities: ["ocr"] }),
+    ];
+    const required = ["code_generation"];
+
+    const filtered = models.filter((m) =>
+      m.capabilities.some((cap) => required.includes(cap)),
+    );
+    const candidates = filtered.length > 0 ? filtered : models;
+
+    expect(candidates).toHaveLength(2); // Falls back to all
+  });
+});

@@ -69,6 +69,8 @@ export interface SelectModelRequest {
 	runId?: string;
 	/** Task ID within the pipeline run */
 	taskId?: string;
+	/** Required capabilities — only Seeds with at least one matching capability are considered */
+	requiredCapabilities?: string[];
 }
 
 /** Output from selectModel — what the caller gets */

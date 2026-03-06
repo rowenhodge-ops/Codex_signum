@@ -104,6 +104,7 @@ export interface DecisionOutcomeProps {
   thinkingTokens?: number;
   errorType?: string;
   notes?: string;
+  infrastructure?: boolean;
 }
 
 /** Properties for recording an Observation */
@@ -468,6 +469,7 @@ export async function recordDecisionOutcome(
            d.thinkingTokens = $thinkingTokens,
            d.errorType = $errorType,
            d.notes = $notes,
+           d.infrastructure = $infrastructure,
            d.completedAt = datetime()`,
       {
         ...props,
@@ -477,6 +479,7 @@ export async function recordDecisionOutcome(
         thinkingTokens: props.thinkingTokens ?? null,
         errorType: props.errorType ?? null,
         notes: props.notes ?? null,
+        infrastructure: props.infrastructure ?? null,
       },
     );
   });
@@ -489,7 +492,7 @@ export async function getDecisionsForCluster(
 ): Promise<Neo4jRecord[]> {
   const result = await runQuery(
     `MATCH (d:Decision)-[:IN_CONTEXT]->(cc:ContextCluster { id: $clusterId })
-     WHERE d.status = 'completed'
+     WHERE d.status = 'completed' AND (d.infrastructure IS NULL OR d.infrastructure = false)
      MATCH (d)-[:ROUTED_TO]->(s:Seed)
      RETURN d, s
      ORDER BY d.timestamp DESC

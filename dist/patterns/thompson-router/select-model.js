@@ -42,6 +42,12 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
             status: String(seed.status ?? "active"),
         };
     });
+    // Filter by required capabilities if specified
+    const filteredModels = request.requiredCapabilities && request.requiredCapabilities.length > 0
+        ? models.filter((m) => m.capabilities.some((cap) => request.requiredCapabilities.includes(cap)))
+        : models;
+    // Fall back to all models if filter removes everything
+    const candidateModels = filteredModels.length > 0 ? filteredModels : models;
     const context = {
         taskType: request.taskType,
         complexity: request.complexity,
@@ -59,7 +65,7 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
     });
     const armStats = await getArmStatsForCluster(contextClusterId);
     const decisionCount = armStats.reduce((sum, stat) => sum + stat.totalTrials, 0);
-    const decision = route(context, models, armStats, decisionCount, config);
+    const decision = route(context, candidateModels, armStats, decisionCount, config);
     const decisionId = `dec_${uuid()}`;
     await recordDecision({
         id: decisionId,
@@ -91,6 +97,7 @@ export async function selectModel(request, config = DEFAULT_ROUTER_CONFIG) {
             cost: outcome.cost,
             errorType: outcome.errorType,
             notes: outcome.notes,
+            infrastructure: outcome.infrastructure,
         });
     };
     return {

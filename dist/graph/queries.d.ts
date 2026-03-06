@@ -77,6 +77,7 @@ export interface DecisionOutcomeProps {
     thinkingTokens?: number;
     errorType?: string;
     notes?: string;
+    infrastructure?: boolean;
 }
 /** Properties for recording an Observation */
 export interface ObservationProps {
