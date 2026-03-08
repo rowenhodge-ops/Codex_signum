@@ -32,6 +32,141 @@ You are NOT PERMITTED to execute manual task lists as raw sequential instruction
 
 ---
 
+## ⛔ MANDATORY: Graph-Native Data Creation
+
+All data written to Neo4j MUST follow Codex morpheme semantics. The graph is not a database — it is the structural encoding of system state. Every node, every relationship, every property must be legible, connected, and faithful to what it represents.
+
+### The Five Rules
+
+**Rule 1: Seed first, then evolve.**
+Every piece of data enters the graph as a Seed. A Seed is "an atomic unit, datum, coherent unit" (v4.3 spec). It MUST have:
+
+- `id` — unique identifier
+- `seedType` — what kind of datum this is (e.g. "exit-criterion", "backlog", "test", "pipeline-output")
+- `content` — the actual data. A Seed with only an id and name is a bare stub, not a datum. Bare stubs violate A1 (Fidelity).
+- `status` — current state
+- `createdAt` — provenance timestamp (A4)
+
+Seeds evolve by gaining relationships (Lines), being contained by Blooms, accumulating Observations, or being transformed by Resonators. They are never created in isolation with the expectation that "we'll fill it in later."
+
+**Rule 2: No node without a relationship.**
+A node with zero relationships is structurally invisible. Per the spec: "A Seed with no inbound or outbound Lines is Dormant — present but not participating in any flow." Dormant Seeds are acceptable ONLY when they genuinely represent latent capability awaiting connection. A backlog item that has a known target milestone is NOT dormant — it should have a SCOPED_TO relationship.
+
+Every node creation MUST be accompanied by at least one relationship creation in the same transaction:
+
+- Seed → CONTAINS from parent Bloom
+- Seed → SCOPED_TO target Bloom (if applicable)
+- Bloom → CONTAINS from parent Bloom (G3 containment)
+- Bloom → DEPENDS_ON prerequisite Bloom (if dependency exists)
+
+**Rule 3: Containment is parent → child. Always.**
+G3 (Containment): "A Bloom enclosing other morphemes defines scope." The parent declares what it contains.
+
+- `(parent)-[:CONTAINS]->(child)` ✅
+- `(child)-[:PART_OF]->(parent)` ❌ NEVER
+- `(child)-[:BELONGS_TO]->(parent)` ❌ NEVER
+
+No exceptions. No "it's the same thing in reverse." Direction encodes semantics (G2). Parent → child is scope declaration. Child → parent is a different semantic (provenance, attribution) that uses different relationship types.
+
+**Rule 4: Blooms define scope through what they CONTAIN, not through properties.**
+A Bloom's scope is the set of morphemes it contains. A Bloom with `scope: "do X, Y, Z"` as a string property but no child Seeds for X, Y, Z is not a scope boundary — it's a label with a description. The graph structure must be self-describing:
+
+- Milestone exit criteria → Seed nodes CONTAINED by the milestone Bloom
+- Milestone sub-tasks → Bloom nodes CONTAINED by the milestone Bloom
+- Milestone dependencies → DEPENDS_ON Lines between Blooms
+
+If you need to know "what does this milestone require?", the answer is a CONTAINS traversal, not a property read.
+
+**Rule 5: State dimensions derive from structure, not manual assignment.**
+
+- `phiL` on a parent Bloom derives from its children (complete ratio), not from a hardcoded value
+- `status` on a parent Bloom derives from its children (all-complete/some-complete/none), not from manual SET
+- The only exception is leaf nodes (Seeds, terminal Blooms with no children) where status is set directly by the stamp operation
+
+### Milestone Bloom Stamp Protocol
+
+Every sub-milestone stamp is THREE operations, not one. Missing any step breaks the structural hierarchy.
+
+Step 1 — Stamp the sub-milestone:
+
+```cypher
+MERGE (b:Bloom {id: $subMilestoneId})
+SET b.status = 'complete', b.phiL = 0.9,
+    b.commitSha = $commitSha, b.testCount = $testCount,
+    b.completedAt = datetime()
+```
+
+Step 2 — Wire to parent (MANDATORY — without this edge the sub-milestone is structurally invisible):
+
+```cypher
+MATCH (parent:Bloom {id: $parentId}), (b:Bloom {id: $subMilestoneId})
+MERGE (parent)-[:CONTAINS]->(b)
+```
+
+Step 3 — Recalculate parent status from children:
+
+```cypher
+MATCH (child:Bloom)<-[:CONTAINS]-(parent:Bloom {id: $parentId})
+WITH parent,
+     count(child) AS total,
+     count(CASE WHEN child.status = 'complete' THEN 1 END) AS done
+SET parent.status = CASE
+      WHEN done = total THEN 'complete'
+      WHEN done > 0 THEN 'active'
+      ELSE 'planned' END,
+    parent.phiL = CASE
+      WHEN done = total THEN 0.9
+      WHEN done > 0 THEN 0.5
+      ELSE 0.3 END,
+    parent.updatedAt = datetime()
+```
+
+Gate rule: Bloom stamps require Ro's in-session review before execution.
+
+### Backlog Seed Creation Protocol
+
+Every backlog refinement (R-N) enters the graph as:
+
+```cypher
+MERGE (s:Seed {id: $id})
+SET s.seedType = "backlog",
+    s.name = $name,
+    s.content = $description,    // MANDATORY — what this item actually is
+    s.status = $status,
+    s.target = $targetMilestone,
+    s.createdAt = datetime()
+
+// Wire to target milestone if one exists
+WITH s
+MATCH (m:Bloom {id: $targetMilestone})
+MERGE (s)-[:SCOPED_TO]->(m)
+```
+
+### Exit Criteria Seed Creation Protocol
+
+Every exit criterion for a milestone enters the graph as:
+
+```cypher
+MERGE (s:Seed {id: $milestoneId + ':ec-' + $number})
+SET s.seedType = "exit-criterion",
+    s.content = $criterionText,    // MANDATORY — what must be true for completion
+    s.status = $status,
+    s.createdAt = datetime()
+
+// Wire to parent milestone
+WITH s
+MATCH (m:Bloom {id: $milestoneId})
+MERGE (m)-[:CONTAINS]->(s)
+```
+
+### DEPENDS_ON Direction Convention
+
+Dependency edges follow forward flow: `(prerequisite)-[:DEPENDS_ON]->(dependent)`.
+
+"M-9 DEPENDS_ON M-9.V" means M-9 must complete before M-9.V can begin. The critical path reads top-to-bottom as prerequisite → dependent.
+
+---
+
 This is the core library for the Codex Signum protocol — a semantic encoding where **state is structural**. Consumer applications (like DND-Manager) import from this package. This repo is the single source of truth for all grammar-level infrastructure.
 
 ---
@@ -636,6 +771,10 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
 | **⛔ Manual analysis bypass** | **MOST CRITICAL ANTI-PATTERN.** Agent executes sequential task lists directly instead of invoking `scripts/architect.ts plan` or `scripts/dev-agent.ts run`. Every bypass means no PipelineRun, no TaskOutput, no Decision nodes, no Thompson learning — the system is blind to what happened. If you find yourself executing “Task 0... Task 1... Task 2...” from a prompt, STOP and invoke the pipeline instead. | Pipeline-First Execution rule (top of this document). If the pipeline fails, fix it — don’t work around it. |
 | Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "10 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel, Symbiosis) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 9 axioms (v4.3), 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
+| **Orphaned sub-milestone** | `MERGE (b:Bloom {id: 'M-9.5'}) SET b.status = 'complete'` with no CONTAINS edge to parent | Sub-milestone is structurally invisible. No CONTAINS edge = doesn't exist in the hierarchy. The edge IS the containment, not the naming convention. |
+| **Bare stub Seed** | `MERGE (s:Seed {id: 'R-33'}) SET s.name = 'Typed containment'` with no content, no relationships | A1 Fidelity: representation doesn't match what the item actually is. A Seed is "an atomic datum" — data has content. Every Seed must have content and at least one relationship. |
+| **Manual parent status** | `SET parent.status = 'complete', parent.phiL = 0.9` without checking children | A1 Fidelity: status must derive from structure. Parent status = f(children), not a manual assignment. Use the three-step stamp protocol. |
+| **Reverse containment** | `(child)-[:PART_OF]->(parent)` or `(child)-[:BELONGS_TO]->(parent)` | G3 violation. Containment is parent → child. The encloser declares its scope. Always CONTAINS, always parent → child. |
 
 ---
 
