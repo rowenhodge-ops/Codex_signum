@@ -43,8 +43,11 @@ describe("A4 Visible State: Neo4j schema defines health on Bloom nodes", () => {
 });
 
 describe("A4 Visible State: graph queries write to Bloom nodes", () => {
-  const queriesPath = path.resolve("src/graph/queries.ts");
-  const queriesContent = fs.readFileSync(queriesPath, "utf-8");
+  const queriesDir = path.resolve("src/graph/queries");
+  const queriesContent = fs.readdirSync(queriesDir)
+    .filter((f: string) => f.endsWith(".ts"))
+    .map((f: string) => fs.readFileSync(path.join(queriesDir, f), "utf-8"))
+    .join("\n");
 
   it("updateBloomPhiL writes ΦL to Bloom nodes in the graph", () => {
     expect(queriesContent).toContain("updateBloomPhiL");

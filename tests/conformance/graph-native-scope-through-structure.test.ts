@@ -18,7 +18,7 @@
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 4
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { BloomProps } from "../../src/graph/queries.js";
 import { RELATIONSHIP_TYPES } from "../../src/graph/schema.js";
@@ -152,10 +152,11 @@ describe("Rule 4: Ecosystem bootstrap — milestone scope via CONTAINS children"
 // ── Query functions: scope queries use CONTAINS traversal ────────────────────
 
 describe("Rule 4: Query functions — scope via CONTAINS traversal", () => {
-  const queriesContent = readFileSync(
-    join(process.cwd(), "src", "graph", "queries.ts"),
-    "utf-8",
-  );
+  const queriesDir = join(process.cwd(), "src", "graph", "queries");
+  const queriesContent = readdirSync(queriesDir)
+    .filter((f: string) => f.endsWith(".ts"))
+    .map((f: string) => readFileSync(join(queriesDir, f), "utf-8"))
+    .join("\n");
 
   it("getContainmentTree function exists for CONTAINS traversal", () => {
     expect(queriesContent).toContain("export async function getContainmentTree");

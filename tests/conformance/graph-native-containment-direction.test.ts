@@ -142,11 +142,12 @@ describe("Rule 3: Source code — no PART_OF or BELONGS_TO anywhere", () => {
 // ── CONTAINS direction in Cypher queries ─────────────────────────────────────
 
 describe("Rule 3: Cypher queries — CONTAINS arrow direction is always parent→child", () => {
-  // Read the main query file to verify all CONTAINS usage
-  const queriesContent = readFileSync(
-    join(process.cwd(), "src", "graph", "queries.ts"),
-    "utf-8",
-  );
+  // Read all query module files to verify all CONTAINS usage
+  const queriesDir = join(process.cwd(), "src", "graph", "queries");
+  const queriesContent = readdirSync(queriesDir)
+    .filter((f: string) => f.endsWith(".ts"))
+    .map((f: string) => readFileSync(join(queriesDir, f), "utf-8"))
+    .join("\n");
 
   it("all CONTAINS Cypher patterns use forward arrow (->)", () => {
     const lines = queriesContent.split("\n");

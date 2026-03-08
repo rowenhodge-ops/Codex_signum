@@ -39,7 +39,10 @@ describe("A7 Reversibility: Observations are append-only", () => {
   });
 
   it("graph queries for observations use CREATE or MERGE-on-id (not MERGE-on-content)", () => {
-    const queriesContent = fs.readFileSync("src/graph/queries.ts", "utf-8");
+    const queriesContent = fs.readdirSync("src/graph/queries")
+      .filter((f: string) => f.endsWith(".ts"))
+      .map((f: string) => fs.readFileSync(`src/graph/queries/${f}`, "utf-8"))
+      .join("\n");
     // recordObservation should create new nodes, not overwrite existing
     // Check that the function exists
     expect(queriesContent).toContain("recordObservation");

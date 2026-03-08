@@ -31,9 +31,16 @@ describe("G1 Proximity: schema uses typed relationships only", () => {
   });
 });
 
+// Helper: read all query module source files
+const readAllQueryModules = () =>
+  fs.readdirSync("src/graph/queries")
+    .filter((f: string) => f.endsWith(".ts"))
+    .map((f: string) => fs.readFileSync(`src/graph/queries/${f}`, "utf-8"))
+    .join("\n");
+
 describe("G1 Proximity: graph writes create named relationships", () => {
   const writeObsContent = fs.readFileSync("src/graph/write-observation.ts", "utf-8");
-  const queriesContent = fs.readFileSync("src/graph/queries.ts", "utf-8");
+  const queriesContent = readAllQueryModules();
 
   it("ThresholdEvent uses THRESHOLD_CROSSED_BY relationship", () => {
     expect(writeObsContent).toContain("THRESHOLD_CROSSED_BY");
@@ -46,7 +53,7 @@ describe("G1 Proximity: graph writes create named relationships", () => {
 });
 
 describe("G1 Proximity: graph queries use typed relationships", () => {
-  const queriesContent = fs.readFileSync("src/graph/queries.ts", "utf-8");
+  const queriesContent = readAllQueryModules();
 
   it("Decision → Seed uses ROUTED_TO relationship", () => {
     expect(queriesContent).toContain("ROUTED_TO");
