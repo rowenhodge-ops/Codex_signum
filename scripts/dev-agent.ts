@@ -37,6 +37,7 @@ import {
   recordDecision,
   recordDecisionOutcome,
   ensureContextCluster,
+  tryCreateAndLinkSeed,
 } from "../src/graph/queries.js";
 import { createDevAgentExecutor } from "./bootstrap-devagent-executor.js";
 import { verifyProviderAuth, getAvailableProviders, classifyProvider } from "./bootstrap-executor.js";
@@ -358,12 +359,30 @@ async function main() {
     `# DevAgent Output: ${cliArgs.taskDescription}\n\n${result.finalOutput}`,
   );
 
-  // Write per-stage outputs
-  for (const stage of result.stages) {
+  // Write per-stage outputs + create pipeline output Seeds
+  for (let i = 0; i < result.stages.length; i++) {
+    const stage = result.stages[i];
     writeFileSync(
       join(outputDir, `${stage.stage}.md`),
       `# ${stage.stage.toUpperCase()} (${stage.modelId})\n\nQuality: ${stage.qualityScore.toFixed(2)} | Duration: ${stage.durationMs}ms\n\n${stage.output}`,
     );
+
+    // Write pipeline output Seed to graph (non-fatal)
+    if (graphAvailable) {
+      await tryCreateAndLinkSeed({
+        id: `${runId}:${stage.stage}`,
+        name: `DevAgent ${stage.stage} output`,
+        seedType: "pipeline-output",
+        content: stage.output,
+        qualityScore: stage.qualityScore > 0 ? stage.qualityScore : null, // REVIEW: null not 1.0 for unassessed
+        modelId: stage.modelId,
+        charCount: stage.output.length,
+        durationMs: stage.durationMs,
+        runId,
+        taskId: stage.stage,
+        order: i,
+      });
+    }
   }
 
   // Write manifest

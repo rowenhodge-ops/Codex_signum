@@ -31,6 +31,7 @@ import {
   linkTaskOutputToStage,
   updateDecisionQuality,
   recordObservation,
+  tryCreateAndLinkSeed,
 } from "../src/graph/queries.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
 
@@ -808,6 +809,21 @@ export function createBootstrapTaskExecutor(
           } catch (err2) {
             console.warn(`     [GRAPH] ⚠️  Failed to write TaskOutput: ${err2 instanceof Error ? err2.message : err2}`);
           }
+
+          // Write pipeline output Seed (graph-native content representation)
+          await tryCreateAndLinkSeed({
+            id: `${currentRunId}:${task.task_id}`,
+            name: task.title,
+            seedType: "pipeline-output",
+            content: result.text,
+            qualityScore,
+            modelId: result.modelId,
+            charCount: result.text.length,
+            durationMs: result.durationMs,
+            runId: currentRunId,
+            taskId: task.task_id,
+            order: manifestTasks.length - 1,
+          });
         }
 
         return {
@@ -898,6 +914,21 @@ export function createBootstrapTaskExecutor(
           } catch {
             // Swallow — already in error path
           }
+
+          // Write failure Seed (graph-native content representation)
+          await tryCreateAndLinkSeed({
+            id: `${currentRunId}:${task.task_id}`,
+            name: task.title,
+            seedType: "pipeline-output",
+            content: err instanceof Error ? err.message : String(err),
+            qualityScore: failedQuality,
+            modelId: null,
+            charCount: 0,
+            durationMs: 0,
+            runId: currentRunId,
+            taskId: task.task_id,
+            order: manifestTasks.length - 1,
+          });
         }
 
         return {
