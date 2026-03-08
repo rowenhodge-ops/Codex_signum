@@ -19,13 +19,20 @@ export {
 } from "./survey.js";
 
 // Pipeline stages
-export { classify } from "./classify.js";
+export { classify, classifyTask } from "./classify.js";
 export { sequence } from "./sequence.js";
 export { gate } from "./gate.js";
 export { adapt } from "./adapt.js";
 export { decompose, validateFilePaths } from "./decompose.js";
 export { buildDecomposePrompt, getDirectoryListing } from "./decompose-prompt.js";
-export { dispatch, type DispatchOptions } from "./dispatch.js";
+export {
+  dispatch,
+  registerDeterministicExecutor,
+  clearDeterministicExecutors,
+  getDeterministicExecutorCount,
+  MECHANICAL_CONFIDENCE_THRESHOLD,
+  type DispatchOptions,
+} from "./dispatch.js";
 export { executePlan } from "./architect.js";
 
 // Parallel decompose (Best-of-N strategy)
@@ -57,8 +64,11 @@ export type {
 // Types — Pipeline
 export type {
   AdaptationScope,
+  ClassificationLayer,
+  ClassificationResult,
   ComplexityEstimate,
   Dependency,
+  DeterministicExecutor,
   EffortEstimate,
   ExecutionPlan,
   GateDecision,
@@ -75,7 +85,9 @@ export type {
   TaskExecutionContext,
   TaskExecutor,
   TaskGraph,
+  TaskInputType,
   TaskOutcome,
+  TaskOutputType,
   TaskType,
 } from "./types.js";
 

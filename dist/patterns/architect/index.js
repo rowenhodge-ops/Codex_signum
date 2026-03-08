@@ -11,13 +11,13 @@
 // Existing survey (core's rich spec cross-reference version)
 export { survey, extractClaims, discoverDocumentSources, parseHypotheses, } from "./survey.js";
 // Pipeline stages
-export { classify } from "./classify.js";
+export { classify, classifyTask } from "./classify.js";
 export { sequence } from "./sequence.js";
 export { gate } from "./gate.js";
 export { adapt } from "./adapt.js";
 export { decompose, validateFilePaths } from "./decompose.js";
 export { buildDecomposePrompt, getDirectoryListing } from "./decompose-prompt.js";
-export { dispatch } from "./dispatch.js";
+export { dispatch, registerDeterministicExecutor, clearDeterministicExecutors, getDeterministicExecutorCount, MECHANICAL_CONFIDENCE_THRESHOLD, } from "./dispatch.js";
 export { executePlan } from "./architect.js";
 // Parallel decompose (Best-of-N strategy)
 export { parallelDecompose, scorePlan } from "./parallel-decompose.js";

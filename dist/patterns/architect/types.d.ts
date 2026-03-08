@@ -173,12 +173,25 @@ export interface SpecAssertion {
     /** Category: parameter value, interface requirement, architectural rule */
     category: "parameter" | "interface" | "architecture" | "behaviour";
 }
-export type TaskType = "mechanical" | "generative";
+export type TaskType = "deterministic" | "mechanical" | "generative";
 export type EffortEstimate = "small" | "medium" | "large" | "epic";
 export type ComplexityEstimate = "trivial" | "low" | "medium" | "high";
 export type GateDecision = "approve" | "modify" | "abort";
 export type AdaptationScope = "task" | "phase" | "plan";
 export type PlanStatus = "surveying" | "decomposing" | "classifying" | "sequencing" | "gated" | "executing" | "adapting" | "completed" | "aborted";
+/** Classification layer that decided the task type */
+export type ClassificationLayer = "content_shape" | "file_type" | "keyword" | "default";
+/** Result of multi-layer task classification */
+export interface ClassificationResult {
+    type: TaskType;
+    confidence: number;
+    signals: string[];
+    layer: ClassificationLayer;
+}
+/** Input data shape hint from DECOMPOSE */
+export type TaskInputType = "json_manifest" | "source_code" | "prose" | "mixed";
+/** Output data shape hint from DECOMPOSE */
+export type TaskOutputType = "graph_nodes" | "source_code" | "document" | "mixed";
 export interface Task {
     task_id: string;
     title: string;
@@ -191,6 +204,10 @@ export interface Task {
     specification_refs: string[];
     verification: string;
     commit_message: string;
+    input_type?: TaskInputType;
+    output_type?: TaskOutputType;
+    data_sources?: string[];
+    classification?: ClassificationResult;
 }
 export interface Dependency {
     from: string;
@@ -259,6 +276,7 @@ export interface TaskOutcome {
     output?: string;
     error?: string;
     adaptations_applied: number;
+    metadata?: Record<string, unknown>;
 }
 export interface PlanState {
     plan_id: string;
@@ -329,5 +347,18 @@ export interface TaskExecutionContext {
     /** Plan-level context */
     planId: string;
     intent: string;
+    /** Pipeline run ID (for graph linking) */
+    runId?: string;
+}
+/**
+ * DeterministicExecutor — handles tasks that need no LLM.
+ * Structured data transforms (JSON manifest → graph nodes, etc.)
+ * are routed here instead of through ModelExecutor.
+ */
+export interface DeterministicExecutor {
+    /** Execute a deterministic task — no LLM involved */
+    execute(task: Task, context: TaskExecutionContext): Promise<TaskOutcome>;
+    /** Check whether this executor can handle the given task */
+    canHandle(task: Task): boolean;
 }
 //# sourceMappingURL=types.d.ts.map

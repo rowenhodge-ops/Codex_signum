@@ -6,13 +6,13 @@
  * @module codex-signum-core/patterns/architect
  */
 export { survey, extractClaims, discoverDocumentSources, parseHypotheses, } from "./survey.js";
-export { classify } from "./classify.js";
+export { classify, classifyTask } from "./classify.js";
 export { sequence } from "./sequence.js";
 export { gate } from "./gate.js";
 export { adapt } from "./adapt.js";
 export { decompose, validateFilePaths } from "./decompose.js";
 export { buildDecomposePrompt, getDirectoryListing } from "./decompose-prompt.js";
-export { dispatch, type DispatchOptions } from "./dispatch.js";
+export { dispatch, registerDeterministicExecutor, clearDeterministicExecutors, getDeterministicExecutorCount, MECHANICAL_CONFIDENCE_THRESHOLD, type DispatchOptions, } from "./dispatch.js";
 export { executePlan } from "./architect.js";
 export { parallelDecompose, scorePlan } from "./parallel-decompose.js";
 export type { ParallelDecomposeOptions, ScoredPlan } from "./parallel-decompose.js";
@@ -23,7 +23,7 @@ export type { MockModelExecutorOptions } from "./mock-model-executor.js";
 export { createMockTaskExecutor } from "./mock-task-executor.js";
 export type { MockTaskExecutorOptions } from "./mock-task-executor.js";
 export type { BlindSpot, DocumentSource, ExtractedClaim, GapItem, SpecAssertion, SurveyInput, SurveyOutput, TrackedHypothesis, } from "./types.js";
-export type { AdaptationScope, ComplexityEstimate, Dependency, EffortEstimate, ExecutionPlan, GateDecision, GateResponse, ModelExecutor, ModelExecutorContext, ModelExecutorResult, Phase, PipelineSurveyOutput, PlanQualityMetrics, PlanState, PlanStatus, Task, TaskExecutionContext, TaskExecutor, TaskGraph, TaskOutcome, TaskType, } from "./types.js";
+export type { AdaptationScope, ClassificationLayer, ClassificationResult, ComplexityEstimate, Dependency, DeterministicExecutor, EffortEstimate, ExecutionPlan, GateDecision, GateResponse, ModelExecutor, ModelExecutorContext, ModelExecutorResult, Phase, PipelineSurveyOutput, PlanQualityMetrics, PlanState, PlanStatus, Task, TaskExecutionContext, TaskExecutor, TaskGraph, TaskInputType, TaskOutcome, TaskOutputType, TaskType, } from "./types.js";
 export type { AdaptationResult } from "./adapt.js";
 export type { GateOptions } from "./gate.js";
 export type { ArchitectConfig } from "./architect.js";

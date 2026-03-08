@@ -1,6 +1,30 @@
 // Copyright 2024-2026 Rowen Hodge
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
+/** Minimum confidence for mechanical classification to use DevAgent path */
+export const MECHANICAL_CONFIDENCE_THRESHOLD = 0.6;
+// Registry of deterministic executors
+const deterministicExecutors = [];
+/**
+ * Register a DeterministicExecutor for handling structured data transforms.
+ * Executors are checked in registration order — first match wins.
+ */
+export function registerDeterministicExecutor(executor) {
+    deterministicExecutors.push(executor);
+}
+/**
+ * Clear all registered deterministic executors.
+ * Primarily for testing — resets the registry between test runs.
+ */
+export function clearDeterministicExecutors() {
+    deterministicExecutors.length = 0;
+}
+/**
+ * Get the count of registered deterministic executors.
+ */
+export function getDeterministicExecutorCount() {
+    return deterministicExecutors.length;
+}
 export async function dispatch(planState, taskExecutor, options) {
     const { task_graph, execution_plan } = planState;
     if (!task_graph || !execution_plan) {
@@ -23,7 +47,7 @@ export async function dispatch(planState, taskExecutor, options) {
             });
             continue;
         }
-        // Execute via injected TaskExecutor
+        // Build execution context
         const context = {
             repoPath: options?.repoPath ?? "",
             dryRun: options?.dryRun ?? false,
@@ -32,7 +56,7 @@ export async function dispatch(planState, taskExecutor, options) {
             intent: planState.intent,
         };
         try {
-            const outcome = await taskExecutor.execute(task, context);
+            const outcome = await dispatchTask(task, taskExecutor, context);
             outcomes.push(outcome);
         }
         catch (error) {
@@ -50,6 +74,28 @@ export async function dispatch(planState, taskExecutor, options) {
         status: "completed",
         updated_at: new Date().toISOString(),
     };
+}
+/**
+ * Route a single task to the appropriate executor based on classification.
+ */
+async function dispatchTask(task, taskExecutor, context) {
+    const classification = task.classification ?? {
+        type: task.type,
+        confidence: 1.0,
+        signals: [],
+        layer: "default",
+    };
+    // Route 1: Deterministic — no LLM
+    if (classification.type === "deterministic") {
+        const executor = deterministicExecutors.find((e) => e.canHandle(task));
+        if (executor) {
+            return executor.execute(task, context);
+        }
+        // No registered executor — fall through to generative
+    }
+    // Route 2 & 3: Both go through TaskExecutor (consumer decides internal routing)
+    // The classification is available on the task for the executor to inspect
+    return taskExecutor.execute(task, context);
 }
 function checkDependencies(taskId, dependencies, outcomes) {
     const requiredDeps = dependencies

@@ -176,10 +176,19 @@ export function readFileContext(task: Task, repoPath: string): string {
 
 // ── Run manifest ────────────────────────────────────────────────────────────
 
+export interface ManifestClassification {
+  type: string;
+  confidence: number;
+  signals: string[];
+  layer: string;
+}
+
 export interface ManifestTask {
   taskId: string;
   title: string;
   type: string;
+  executionPath: string;
+  classification: ManifestClassification;
   model: string;
   provider: string;
   thinkingMode: string;
@@ -708,6 +717,13 @@ export function createBootstrapTaskExecutor(
           taskId: task.task_id,
           title: task.title,
           type: task.type,
+          executionPath: "generative",
+          classification: {
+            type: task.classification?.type ?? task.type,
+            confidence: task.classification?.confidence ?? 1.0,
+            signals: task.classification?.signals ?? [],
+            layer: task.classification?.layer ?? "default",
+          },
           model: result.modelId,
           provider: result.provider ?? "unknown",
           thinkingMode: result.thinkingMode ?? "default",
@@ -837,6 +853,13 @@ export function createBootstrapTaskExecutor(
           taskId: task.task_id,
           title: task.title,
           type: task.type,
+          executionPath: "generative",
+          classification: {
+            type: task.classification?.type ?? task.type,
+            confidence: task.classification?.confidence ?? 1.0,
+            signals: task.classification?.signals ?? [],
+            layer: task.classification?.layer ?? "default",
+          },
           model: "unknown",
           provider: "unknown",
           thinkingMode: "unknown",

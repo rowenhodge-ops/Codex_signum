@@ -12,7 +12,7 @@ export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agen
 // Feedback functions + types (formerly observer — Observer class removed per state-is-structural axiom)
 export { checkCorrectionScale, checkLearningScale, checkEvolutionaryScale, } from "./feedback/index.js";
 // Architect Pattern — SURVEY + Pipeline stages
-export { survey, extractClaims, discoverDocumentSources, parseHypotheses, classify, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, executePlan, parallelDecompose, scorePlan, selectReasoningTier, createMockModelExecutor, createMockTaskExecutor, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, 
+export { survey, extractClaims, discoverDocumentSources, parseHypotheses, classify, classifyTask, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, registerDeterministicExecutor, clearDeterministicExecutors, getDeterministicExecutorCount, MECHANICAL_CONFIDENCE_THRESHOLD, executePlan, parallelDecompose, scorePlan, selectReasoningTier, createMockModelExecutor, createMockTaskExecutor, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, 
 // Quality gates — source verification
 detectUnsourcedReferences, DOCUMENT_NAME_MAP, extractPathReferences, resolveDocumentReferences, validateFilePaths, getDirectoryListing, } from "./architect/index.js";
 // Retrospective — deterministic graph queries, no LLM

@@ -8,8 +8,8 @@
  * Builds a structured prompt that instructs the LLM to produce a TaskGraph
  * from intent + survey output. Response format is JSON.
  *
- * Moved from DND-Manager agent/patterns/architect/decompose-prompt.ts.
- * Verdict: GENERIC — pure prompt building, no DND imports.
+ * Origin: consumer repo agent/patterns/architect/decompose-prompt.ts.
+ * Verdict: GENERIC — pure prompt building, no consumer imports.
  */
 
 import { readdirSync, statSync } from "node:fs";
@@ -112,7 +112,7 @@ CRITICAL RESPONSE FORMAT RULES:
 
 The JSON must match this exact structure:
 
-{"tasks":[{"task_id":"t1","title":"Short imperative title","description":"What to do and why","acceptance_criteria":["Testable criterion"],"type":"mechanical","phase":"phase_1","estimated_complexity":"medium","files_affected":["src/example.ts"],"specification_refs":["doc reference"],"verification":"npx tsc --noEmit","commit_message":"fix: description"}],"dependencies":[{"from":"t1","to":"t2","type":"hard"}],"phases":[{"phase_id":"phase_1","title":"Phase title","description":"Phase description","tasks":["t1"],"gate":"human","gate_criteria":"Human reviews output"}],"estimated_total_effort":"medium","assumptions":["Assumption 1"]}
+{"tasks":[{"task_id":"t1","title":"Short imperative title","description":"What to do and why","acceptance_criteria":["Testable criterion"],"type":"mechanical","phase":"phase_1","estimated_complexity":"medium","files_affected":["src/example.ts"],"specification_refs":["doc reference"],"verification":"npx tsc --noEmit","commit_message":"fix: description","input_type":"source_code","output_type":"source_code","data_sources":["src/example.ts"]}],"dependencies":[{"from":"t1","to":"t2","type":"hard"}],"phases":[{"phase_id":"phase_1","title":"Phase title","description":"Phase description","tasks":["t1"],"gate":"human","gate_criteria":"Human reviews output"}],"estimated_total_effort":"medium","assumptions":["Assumption 1"]}
 
 Field reference:
 - task_id: unique string (e.g. t1, t2, t3)
@@ -121,6 +121,9 @@ Field reference:
 - dependencies.type: "hard" (blocking) or "soft" (beneficial but not blocking)
 - phases.gate: "auto" or "human"
 - estimated_total_effort: "small" | "medium" | "large" | "epic"
+- input_type (optional): "json_manifest" | "source_code" | "prose" | "mixed" — what data the task reads
+- output_type (optional): "graph_nodes" | "source_code" | "document" | "mixed" — what the task produces
+- data_sources (optional): array of file paths or data references the task consumes
 
 ## Constraints
 - Maximum ${MAX_TASKS_PER_PLAN} tasks.
@@ -133,5 +136,6 @@ Field reference:
 - Group tasks into phases with human gates between phases.
 - Be conservative with complexity estimates — prefer overestimating.
 - If the intent is ambiguous, state assumptions explicitly.
-- Every task_id referenced in dependencies and phases.tasks MUST exist in the tasks array.`;
+- Every task_id referenced in dependencies and phases.tasks MUST exist in the tasks array.
+- For each task, when determinable, include input_type, output_type, and data_sources. These enable the pipeline to route deterministic tasks (structured data transforms like JSON→graph nodes) to script executors instead of LLMs. Only include them when confident — omitting is fine.`;
 }

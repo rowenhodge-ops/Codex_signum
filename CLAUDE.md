@@ -170,6 +170,28 @@ tests/                     # All tests
 dist/                      # Compiled output — COMMITTED to repo
 ```
 
+### Dispatch Routing
+
+DISPATCH routes tasks based on CLASSIFY output. Classification is layered:
+
+| Layer | Signal | What It Detects |
+|-------|--------|----------------|
+| 1. Content-shape | `input_type` + `output_type` from DECOMPOSE | Structured data transforms, code-to-code transforms |
+| 2. File-type | `files_affected` extensions + operation keywords | Structured data files with transform ops, source code with rename/move ops |
+| 3. Keyword | Title + description keyword matching | Generative vs mechanical based on action verbs |
+
+Routing table:
+
+| Task Type | Confidence | Execution Path |
+|-----------|-----------|----------------|
+| deterministic | any (with registered executor) | DeterministicExecutor — no LLM, script execution |
+| deterministic | any (no executor) | Falls back to generative LLM |
+| mechanical | ≥ 0.6 | DevAgent: SCOPE → EXECUTE → REVIEW → VALIDATE |
+| mechanical | < 0.6 | LLM (single call — uncertain classification) |
+| generative | any | LLM (single call via Thompson) |
+
+All paths record outcomes. Thompson learns from generative and mechanical paths. Deterministic paths record TaskOutcome for audit but don't update Thompson posteriors (no model selection involved).
+
 ---
 
 ## Non-Negotiable Rules
@@ -585,8 +607,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1369 | `npm test` at HEAD `225e0a0` |
-| Barrel exports | 264 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1413 | `npm test` at HEAD |
+| Barrel exports | 269 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 
