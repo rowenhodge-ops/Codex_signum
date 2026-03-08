@@ -74,4 +74,31 @@ These items were identified during M-8A/M-8B analysis but are not yet scheduled:
 
 ---
 
-*Updated after M-7C close-out (2026-03-02).*
+## Fidelity Stream: Codex-Native Protocol Milestones
+
+Source: Fidelity Stream Map v1 (2026-03-09 session)
+
+### Tier 1: Codex-Native Inter-Stage Protocol ⏳
+
+Eliminate Category A waste translations. No architecture changes.
+
+| # | Item | Scope | Depends On | Status |
+|---|------|-------|-----------|--------|
+| R-39 | Morpheme Instantiation Layer | Write layer speaks Codex grammar | R-34 ✅ | ⏳ |
+| R-40 | Structured DECOMPOSE Input | SurveyOutput as JSON blocks, not prose | R-39 | 📋 |
+| R-41 | Conditional DevAgent SCOPE Bypass | Skip LLM re-interpretation when Architect pre-classified | R-39 | 📋 |
+| R-42 | Hybrid Prompt Template | JSON header + prose body | R-40 | 📋 |
+
+### Tier 2: Pipeline Architecture Upgrades 📋
+
+Fix Category B boundaries. Architecture changes required.
+
+| # | Item | Scope | Depends On | Status |
+|---|------|-------|-----------|--------|
+| R-43 | Tool-Use DECOMPOSE Output | Anthropic tool API for TaskGraph | R-40 | 📋 |
+| R-44 | Graph-Derived Context Transfer | SURVEY --mode=context-transfer | R-39 | 📋 |
+| R-45 | Structured Corrections + Deterministic VALIDATE | Typed issue lists, machine-checkable criteria split | R-41 | 📋 |
+
+---
+
+*Updated after Fidelity Stream Map seeding (2026-03-09).*
