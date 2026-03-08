@@ -175,6 +175,12 @@ const SCHEMA_STATEMENTS: string[] = [
   "CREATE INDEX task_output_run IF NOT EXISTS FOR (to:TaskOutput) ON (to.runId)",
   "CREATE INDEX task_output_model IF NOT EXISTS FOR (to:TaskOutput) ON (to.modelUsed)",
   "CREATE INDEX task_output_status IF NOT EXISTS FOR (to:TaskOutput) ON (to.status)",
+
+  // Composite indexes for confirmed multi-property query patterns (R-37)
+  // Decision: getArmStatsForCluster filters on d.status + d.infrastructure
+  "CREATE INDEX decision_status_infra IF NOT EXISTS FOR (d:Decision) ON (d.status, d.infrastructure)",
+  // TaskOutput: queryTaskOutputsByModel filters on to.modelUsed + to.qualityScore
+  "CREATE INDEX taskoutput_model_quality IF NOT EXISTS FOR (to:TaskOutput) ON (to.modelUsed, to.qualityScore)",
 ];
 
 // ============ SCHEMA MIGRATION ============
@@ -401,8 +407,8 @@ export async function verifySchema(): Promise<{
   return {
     constraintCount,
     indexCount,
-    // We expect at least 18 constraints and 18 indexes (M-9.8: +4 ecosystem indexes)
-    healthy: constraintCount >= 18 && indexCount >= 18,
+    // We expect at least 18 constraints and 20 indexes (R-37: +2 composite indexes)
+    healthy: constraintCount >= 18 && indexCount >= 20,
   };
 }
 
