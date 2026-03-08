@@ -212,7 +212,10 @@ async function main() {
   const models: RoutableModel[] = ALL_ARMS
     .filter((arm) => {
       const pc = classifyProvider(arm.provider);
-      return (arm.status ?? "active") === "active" && availableProviders.has(pc);
+      // Must be active, have available provider, AND have code_generation capability
+      return (arm.status ?? "active") === "active"
+        && availableProviders.has(pc)
+        && (arm.capabilities ?? []).includes("code_generation");
     })
     .map((arm) => ({
       id: arm.id,
@@ -224,16 +227,51 @@ async function main() {
       status: (arm.status ?? "active") as RoutableModel["status"],
     }));
 
-  console.log(`\nAvailable models: ${models.length}`);
+  console.log(`\nAvailable models: ${models.length} (filtered to code_generation capable)`);
 
   // Resolve preset
   const stages = PIPELINE_PRESETS[cliArgs.preset] ?? PIPELINE_PRESETS.full;
   console.log(`Pipeline: ${stages.join(" -> ")} (preset: ${cliArgs.preset})`);
 
+  // Read file contents for context injection
+  let fileContext = "";
+  if (cliArgs.files.length > 0) {
+    const FILE_CAP = 32_000; // 32K per file cap (matches Architect analytical cap)
+    const TOTAL_CAP = 120_000; // 120K total budget
+    let totalChars = 0;
+
+    for (const filePath of cliArgs.files) {
+      const resolved = resolve(repoPath, filePath);
+      if (!existsSync(resolved)) {
+        console.warn(`  Warning: file not found: ${filePath}`);
+        continue;
+      }
+      try {
+        let content = readFileSync(resolved, "utf-8");
+        if (content.length > FILE_CAP) {
+          content = content.slice(0, FILE_CAP) + `\n\n[... truncated at ${FILE_CAP} chars]`;
+        }
+        if (totalChars + content.length > TOTAL_CAP) {
+          console.warn(`  Warning: total file context budget (${TOTAL_CAP} chars) reached, skipping ${filePath}`);
+          break;
+        }
+        fileContext += `\n\n=== FILE: ${filePath} ===\n${content}\n=== END: ${filePath} ===\n`;
+        totalChars += content.length;
+        console.log(`  Injected: ${filePath} (${content.length} chars)`);
+      } catch (err) {
+        console.warn(`  Warning: could not read ${filePath}: ${err}`);
+      }
+    }
+  }
+
   // Build task
+  const taskPrompt = fileContext
+    ? `${cliArgs.taskDescription}\n\n--- REFERENCE FILES ---\n${fileContext}\n--- END REFERENCE FILES ---`
+    : cliArgs.taskDescription;
+
   const task: AgentTask = {
     id: `da-${Date.now()}`,
-    prompt: cliArgs.taskDescription,
+    prompt: taskPrompt,
     taskType: cliArgs.domain,
     complexity: cliArgs.complexity,
     domain: cliArgs.domain,
