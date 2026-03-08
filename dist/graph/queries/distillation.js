@@ -54,8 +54,8 @@ export async function createStructuredDistillation(props) {
          phiLTrend: $phiLTrend,
          phiLVariance: $phiLVariance,
          successRate: $successRate,
-         windowStart: $windowStart,
-         windowEnd: $windowEnd,
+         windowStart: datetime($windowStart),
+         windowEnd: datetime($windowEnd),
          preferredModels: $preferredModels,
          avoidModels: $avoidModels,
          createdAt: datetime()
