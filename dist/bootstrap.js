@@ -1094,6 +1094,8 @@ export const CORE_BLOOMS = [
     {
         id: "thompson-router",
         name: "Thompson Router",
+        type: "pattern",
+        status: "active",
         description: "Bayesian model selection via Thompson Sampling",
         morphemeKinds: ["resonator"],
         domain: "core",
@@ -1101,6 +1103,8 @@ export const CORE_BLOOMS = [
     {
         id: "dev-agent",
         name: "DevAgent Pipeline",
+        type: "pattern",
+        status: "active",
         description: "4-stage coding pipeline with correction helix",
         morphemeKinds: ["bloom", "helix"],
         domain: "core",
@@ -1108,6 +1112,8 @@ export const CORE_BLOOMS = [
     {
         id: "architect",
         name: "Architect Pipeline",
+        type: "pattern",
+        status: "active",
         description: "7-stage intent-to-execution planning",
         morphemeKinds: ["bloom"],
         domain: "core",
@@ -1115,10 +1121,11 @@ export const CORE_BLOOMS = [
     {
         id: "model-sentinel",
         name: "Model Sentinel",
+        type: "pattern",
+        status: "design",
         description: "Provider API probing and model discovery",
         morphemeKinds: ["resonator"],
         domain: "core",
-        state: "design",
     },
 ];
 export async function bootstrapBlooms(force = false) {
@@ -1136,7 +1143,7 @@ export async function bootstrapBlooms(force = false) {
         try {
             await createBloom(bloom);
             seeded++;
-            console.log(`  ✅ ${bloom.id} (${bloom.state ?? "created"})`);
+            console.log(`  ✅ ${bloom.id} (${bloom.status})`);
         }
         catch (err) {
             console.error(`  ❌ ${bloom.id}: ${err instanceof Error ? err.message : err}`);

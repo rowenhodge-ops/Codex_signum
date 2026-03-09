@@ -20,6 +20,10 @@ export interface SeedProps {
   thinkingMode: "adaptive" | "extended" | "none" | "default";
   thinkingParameter?: string;
 
+  // === Content (A1: representation must match actual state) ===
+  // Auto-derived from provider/model/thinkingMode if not provided
+  content?: string;
+
   // === Capabilities ===
   capabilities?: string[];
   supportsAdaptiveThinking?: boolean;
@@ -53,14 +57,38 @@ export interface SeedProps {
   probeFailures?: number;
 }
 
+/**
+ * Properties for creating a data Seed node.
+ * Used for: exit criteria, backlog items, grammar elements, test markers,
+ * and any non-substrate Seed that represents data rather than compute.
+ *
+ * v4.3 §Seed: "Origin, instance, datum, coherent unit."
+ * A Seed without content is not a Seed — it's a label (A1 violation).
+ */
+export interface DataSeedProps {
+  id: string;
+  name: string;
+  seedType: string;
+  content: string;
+  status: string;
+  description?: string;
+  phiL?: number;
+  [key: string]: unknown;
+}
+
 // ============ SEED QUERIES ============
 
 export async function createSeed(props: SeedProps): Promise<void> {
+  // A1: auto-derive content from model configuration if not provided
+  const content = props.content ?? `${props.provider}/${props.model} [${props.thinkingMode}]`;
+
   await writeTransaction(async (tx) => {
     await tx.run(
       `MERGE (s:Seed { id: $id })
        ON CREATE SET
          s.name = $name,
+         s.seedType = COALESCE($seedType, 'model'),
+         s.content = $content,
          s.provider = $provider,
          s.model = $model,
          s.baseModelId = $baseModelId,
@@ -89,6 +117,7 @@ export async function createSeed(props: SeedProps): Promise<void> {
          s.createdAt = datetime()
        ON MATCH SET
          s.name = $name,
+         s.content = $content,
          s.provider = $provider,
          s.model = $model,
          s.baseModelId = $baseModelId,
@@ -117,6 +146,8 @@ export async function createSeed(props: SeedProps): Promise<void> {
          s.updatedAt = datetime()`,
       {
         ...props,
+        content,
+        seedType: "model",
         baseModelId: props.baseModelId,
         thinkingMode: props.thinkingMode,
         thinkingParameter: props.thinkingParameter ?? null,

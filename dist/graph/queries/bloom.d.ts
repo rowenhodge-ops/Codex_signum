@@ -3,10 +3,13 @@ import type { Record as Neo4jRecord } from "neo4j-driver";
 export interface BloomProps {
     id: string;
     name: string;
+    type: string;
+    status: string;
     description?: string;
-    state?: string;
     morphemeKinds?: string[];
     domain?: string;
+    phiL?: number;
+    [key: string]: unknown;
 }
 export declare function createBloom(props: BloomProps): Promise<void>;
 export declare function getBloom(id: string): Promise<Neo4jRecord | null>;

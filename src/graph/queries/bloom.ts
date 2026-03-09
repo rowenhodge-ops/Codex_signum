@@ -11,10 +11,13 @@ import { runQuery, writeTransaction } from "../client.js";
 export interface BloomProps {
   id: string;
   name: string;
+  type: string;              // REQUIRED — milestone, sub-milestone, pattern, etc.
+  status: string;            // REQUIRED — planned, active, complete, created
   description?: string;
-  state?: string; // IntegrationState
-  morphemeKinds?: string[]; // which morpheme types compose this bloom
+  morphemeKinds?: string[];  // which morpheme types compose this bloom
   domain?: string;
+  phiL?: number;
+  [key: string]: unknown;
 }
 
 // ============ BLOOM QUERIES ============
@@ -25,26 +28,32 @@ export async function createBloom(props: BloomProps): Promise<void> {
       `MERGE (b:Bloom { id: $id })
        ON CREATE SET
          b.name = $name,
+         b.type = $type,
+         b.status = $status,
          b.description = $description,
-         b.state = $state,
          b.morphemeKinds = $morphemeKinds,
          b.domain = $domain,
+         b.phiL = $phiL,
          b.createdAt = datetime(),
          b.observationCount = 0,
          b.connectionCount = 0
        ON MATCH SET
          b.name = $name,
+         b.type = $type,
+         b.status = $status,
          b.description = $description,
-         b.state = $state,
          b.morphemeKinds = $morphemeKinds,
          b.domain = $domain,
+         b.phiL = COALESCE($phiL, b.phiL),
          b.updatedAt = datetime()`,
       {
         ...props,
+        type: props.type,
+        status: props.status,
         description: props.description ?? null,
-        state: props.state ?? "created",
         morphemeKinds: props.morphemeKinds ?? [],
         domain: props.domain ?? null,
+        phiL: props.phiL ?? null,
       },
     );
   });
@@ -66,7 +75,7 @@ export async function updateBloomState(
   await writeTransaction(async (tx) => {
     await tx.run(
       `MATCH (b:Bloom { id: $id })
-       SET b.state = $state, b.updatedAt = datetime()`,
+       SET b.status = $state, b.updatedAt = datetime()`,
       { id, state },
     );
   });
@@ -149,7 +158,7 @@ export async function getBloomsWithHealth(): Promise<
      WITH b, count(r) AS degree
      RETURN b.id AS id,
             coalesce(b.phiL, 0.5) AS phiL,
-            coalesce(b.state, 'created') AS state,
+            coalesce(b.status, b.state, 'created') AS state,
             degree
      ORDER BY b.id`,
     {},

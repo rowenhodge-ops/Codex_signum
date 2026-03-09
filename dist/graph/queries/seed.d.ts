@@ -8,6 +8,7 @@ export interface SeedProps {
     baseModelId: string;
     thinkingMode: "adaptive" | "extended" | "none" | "default";
     thinkingParameter?: string;
+    content?: string;
     capabilities?: string[];
     supportsAdaptiveThinking?: boolean;
     supportsExtendedThinking?: boolean;
@@ -28,6 +29,24 @@ export interface SeedProps {
     lastProbed?: string;
     lastUsed?: string;
     probeFailures?: number;
+}
+/**
+ * Properties for creating a data Seed node.
+ * Used for: exit criteria, backlog items, grammar elements, test markers,
+ * and any non-substrate Seed that represents data rather than compute.
+ *
+ * v4.3 §Seed: "Origin, instance, datum, coherent unit."
+ * A Seed without content is not a Seed — it's a label (A1 violation).
+ */
+export interface DataSeedProps {
+    id: string;
+    name: string;
+    seedType: string;
+    content: string;
+    status: string;
+    description?: string;
+    phiL?: number;
+    [key: string]: unknown;
 }
 export declare function createSeed(props: SeedProps): Promise<void>;
 export declare function getSeed(id: string): Promise<Neo4jRecord | null>;

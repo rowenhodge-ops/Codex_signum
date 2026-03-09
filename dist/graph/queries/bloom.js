@@ -8,25 +8,31 @@ export async function createBloom(props) {
         await tx.run(`MERGE (b:Bloom { id: $id })
        ON CREATE SET
          b.name = $name,
+         b.type = $type,
+         b.status = $status,
          b.description = $description,
-         b.state = $state,
          b.morphemeKinds = $morphemeKinds,
          b.domain = $domain,
+         b.phiL = $phiL,
          b.createdAt = datetime(),
          b.observationCount = 0,
          b.connectionCount = 0
        ON MATCH SET
          b.name = $name,
+         b.type = $type,
+         b.status = $status,
          b.description = $description,
-         b.state = $state,
          b.morphemeKinds = $morphemeKinds,
          b.domain = $domain,
+         b.phiL = COALESCE($phiL, b.phiL),
          b.updatedAt = datetime()`, {
             ...props,
+            type: props.type,
+            status: props.status,
             description: props.description ?? null,
-            state: props.state ?? "created",
             morphemeKinds: props.morphemeKinds ?? [],
             domain: props.domain ?? null,
+            phiL: props.phiL ?? null,
         });
     });
 }
@@ -37,7 +43,7 @@ export async function getBloom(id) {
 export async function updateBloomState(id, state) {
     await writeTransaction(async (tx) => {
         await tx.run(`MATCH (b:Bloom { id: $id })
-       SET b.state = $state, b.updatedAt = datetime()`, { id, state });
+       SET b.status = $state, b.updatedAt = datetime()`, { id, state });
     });
 }
 /** Increment bloom connection count and recalculate state */
@@ -91,7 +97,7 @@ export async function getBloomsWithHealth() {
      WITH b, count(r) AS degree
      RETURN b.id AS id,
             coalesce(b.phiL, 0.5) AS phiL,
-            coalesce(b.state, 'created') AS state,
+            coalesce(b.status, b.state, 'created') AS state,
             degree
      ORDER BY b.id`, {}, "READ");
     return result.records.map((rec) => ({

@@ -128,8 +128,8 @@ const SCHEMA_STATEMENTS: string[] = [
   "CREATE INDEX seed_base_model IF NOT EXISTS FOR (s:Seed) ON (s.baseModelId)",
   "CREATE INDEX seed_last_probed IF NOT EXISTS FOR (s:Seed) ON (s.lastProbed)",
 
-  // Blooms by state (integration lifecycle)
-  "CREATE INDEX bloom_state IF NOT EXISTS FOR (b:Bloom) ON (b.state)",
+  // Blooms by status (integration lifecycle)
+  "CREATE INDEX bloom_status IF NOT EXISTS FOR (b:Bloom) ON (b.status)",
 
   // Constitutional Rules by status (active rules)
   "CREATE INDEX rule_status IF NOT EXISTS FOR (r:ConstitutionalRule) ON (r.status)",

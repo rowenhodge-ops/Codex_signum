@@ -4,10 +4,14 @@
 import { runQuery, writeTransaction } from "../client.js";
 // ============ SEED QUERIES ============
 export async function createSeed(props) {
+    // A1: auto-derive content from model configuration if not provided
+    const content = props.content ?? `${props.provider}/${props.model} [${props.thinkingMode}]`;
     await writeTransaction(async (tx) => {
         await tx.run(`MERGE (s:Seed { id: $id })
        ON CREATE SET
          s.name = $name,
+         s.seedType = COALESCE($seedType, 'model'),
+         s.content = $content,
          s.provider = $provider,
          s.model = $model,
          s.baseModelId = $baseModelId,
@@ -36,6 +40,7 @@ export async function createSeed(props) {
          s.createdAt = datetime()
        ON MATCH SET
          s.name = $name,
+         s.content = $content,
          s.provider = $provider,
          s.model = $model,
          s.baseModelId = $baseModelId,
@@ -63,6 +68,8 @@ export async function createSeed(props) {
          s.probeFailures = COALESCE($probeFailures, s.probeFailures),
          s.updatedAt = datetime()`, {
             ...props,
+            content,
+            seedType: "model",
             baseModelId: props.baseModelId,
             thinkingMode: props.thinkingMode,
             thinkingParameter: props.thinkingParameter ?? null,

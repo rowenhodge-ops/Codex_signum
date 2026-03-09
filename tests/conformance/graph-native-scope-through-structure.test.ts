@@ -36,13 +36,14 @@ import {
 
 describe("Rule 4: BloomProps — scope is structural, not a property", () => {
   it("BloomProps does not encourage a 'scope' string field", () => {
-    // Construct a valid BloomProps — it should have id, name, description, state,
-    // morphemeKinds, domain. NOT a 'scope' text field.
+    // Construct a valid BloomProps — it should have id, name, type, status,
+    // description, morphemeKinds, domain. NOT a 'scope' text field.
     const bloom: BloomProps = {
       id: "test-bloom",
       name: "Test Bloom",
+      type: "test-suite",
+      status: "active",
       description: "What this bloom is about",
-      state: "active",
       morphemeKinds: ["seed", "resonator"],
       domain: "testing",
     };
@@ -62,6 +63,8 @@ describe("Rule 4: BloomProps — scope is structural, not a property", () => {
     const minimalBloom: BloomProps = {
       id: "minimal",
       name: "Minimal Bloom",
+      type: "test-suite",
+      status: "created",
     };
     expect(minimalBloom.id).toBeTruthy();
     expect(minimalBloom.name).toBeTruthy();

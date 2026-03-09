@@ -218,7 +218,7 @@ describe("CORE_BLOOMS registry", () => {
   it("model-sentinel is in design state", () => {
     const sentinel = CORE_BLOOMS.find((p) => p.id === "model-sentinel");
     expect(sentinel).toBeDefined();
-    expect(sentinel!.state).toBe("design");
+    expect(sentinel!.status).toBe("design");
   });
 
   it("bootstrapBlooms is a function", () => {
