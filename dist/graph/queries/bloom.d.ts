@@ -44,6 +44,20 @@ export declare function getBloomsWithHealth(): Promise<Array<{
  * Store computed ΦL on a bloom node.
  */
 export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
+/**
+ * Create a Bloom AND wire it to a parent — atomically in one transaction.
+ * G3: containment is parent→child. Non-root Blooms MUST have a parent.
+ */
+export declare function createContainedBloom(props: BloomProps, parentId: string, relationship?: 'CONTAINS' | 'HAS_MILESTONE' | 'HAS_PHASE' | 'HAS_STAGE'): Promise<void>;
+/**
+ * Update a Bloom's status with inline parent status recalculation.
+ * G3 health derivation: parent status = f(children), not manual assignment.
+ */
+export declare function updateBloomStatus(bloomId: string, status: string, options?: {
+    phiL?: number;
+    commitSha?: string;
+    testCount?: number;
+}): Promise<void>;
 /** @deprecated Use BloomProps */
 export type PatternProps = BloomProps;
 /** @deprecated Use createBloom */

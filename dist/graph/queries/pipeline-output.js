@@ -59,16 +59,46 @@ export async function linkSeedToPipelineRun(seedId, runId, order) {
 }
 /**
  * Shared helper: create a pipeline output Seed and link it to its PipelineRun.
+ * Atomic — single transaction creates node AND relationship.
  * Non-fatal — logs a warning on failure, never throws.
  * (REVIEW correction: DRY helper used by both Architect and DevAgent paths)
  */
 export async function tryCreateAndLinkSeed(props) {
     try {
-        await createPipelineOutputSeed(props);
-        const linked = await linkSeedToPipelineRun(props.id, props.runId, props.order);
-        if (!linked) {
-            console.warn(`  [GRAPH] ⚠️  Seed ${props.id} created but PipelineRun ${props.runId} not found for CONTAINS link`);
-        }
+        await writeTransaction(async (tx) => {
+            // Create/update the Seed node
+            await tx.run(`MERGE (s:Seed { id: $id })
+         ON CREATE SET
+           s.name = $name,
+           s.seedType = $seedType,
+           s.content = $content,
+           s.qualityScore = $qualityScore,
+           s.modelId = $modelId,
+           s.charCount = $charCount,
+           s.durationMs = $durationMs,
+           s.runId = $runId,
+           s.taskId = $taskId,
+           s.\`order\` = $order,
+           s.createdAt = datetime()
+         ON MATCH SET
+           s.content = $content,
+           s.qualityScore = $qualityScore,
+           s.modelId = $modelId,
+           s.charCount = $charCount,
+           s.durationMs = $durationMs,
+           s.updatedAt = datetime()`, {
+                id: props.id, name: props.name, seedType: props.seedType,
+                content: props.content, qualityScore: props.qualityScore,
+                modelId: props.modelId, charCount: props.charCount,
+                durationMs: props.durationMs, runId: props.runId,
+                taskId: props.taskId, order: props.order,
+            });
+            // Wire CONTAINS from PipelineRun — SAME TRANSACTION
+            await tx.run(`MATCH (pr:PipelineRun { id: $runId }), (s:Seed { id: $seedId })
+         MERGE (pr)-[r:CONTAINS]->(s)
+         ON CREATE SET r.\`order\` = $order, r.createdAt = datetime()
+         ON MATCH SET r.\`order\` = $order, r.updatedAt = datetime()`, { runId: props.runId, seedId: props.id, order: props.order });
+        });
     }
     catch (err) {
         console.warn(`  [GRAPH] ⚠️  Failed to create/link pipeline output Seed ${props.id}: ${err instanceof Error ? err.message : err}`);

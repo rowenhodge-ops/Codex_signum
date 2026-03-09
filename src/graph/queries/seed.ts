@@ -229,6 +229,112 @@ export async function listActiveSeedsByCapability(requirements: {
   return result.records;
 }
 
+// ============ DATA SEED CREATION (R-39) ============
+
+/**
+ * Create or update a data Seed node.
+ * Throws on empty content (A1 violation: a Seed is "a datum, coherent unit").
+ */
+export async function createDataSeed(props: DataSeedProps): Promise<void> {
+  if (!props.content || props.content.trim() === '') {
+    throw new Error(
+      `A1 violation: Seed ${props.id} has no content. ` +
+      `A Seed is "a datum, coherent unit" — it must contain data.`
+    );
+  }
+
+  const { id, name, seedType, content, status, description, phiL, ...rest } = props;
+  // Filter out index-signature keys that are already handled
+  const extraKeys = Object.keys(rest).filter(k => typeof rest[k] !== 'undefined');
+
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MERGE (s:Seed { id: $id })
+       ON CREATE SET
+         s.name = $name,
+         s.seedType = $seedType,
+         s.content = $content,
+         s.status = $status,
+         s.description = $description,
+         s.phiL = $phiL,
+         s.createdAt = datetime()
+       ON MATCH SET
+         s.name = $name,
+         s.content = $content,
+         s.status = $status,
+         s.description = COALESCE($description, s.description),
+         s.phiL = COALESCE($phiL, s.phiL),
+         s.updatedAt = datetime()`,
+      { id, name, seedType, content, status, description: description ?? null, phiL: phiL ?? null },
+    );
+    // Write additional properties if present
+    if (extraKeys.length > 0) {
+      const safeParams: Record<string, unknown> = { id };
+      const setClauses: string[] = [];
+      for (const k of extraKeys) {
+        const paramName = `extra_${k}`;
+        safeParams[paramName] = rest[k];
+        setClauses.push(`s.\`${k}\` = $${paramName}`);
+      }
+      await tx.run(
+        `MATCH (s:Seed { id: $id }) SET ${setClauses.join(', ')}`,
+        safeParams,
+      );
+    }
+  });
+}
+
+/**
+ * Create a data Seed AND wire it to a parent Bloom — atomically in one transaction.
+ * G3: containment is parent→child. The parent declares what it contains.
+ */
+export async function createContainedDataSeed(
+  props: DataSeedProps,
+  parentBloomId: string,
+  relationship: 'CONTAINS' | 'SCOPED_TO' = 'CONTAINS',
+): Promise<void> {
+  if (!props.content || props.content.trim() === '') {
+    throw new Error(
+      `A1 violation: Seed ${props.id} has no content. ` +
+      `A Seed is "a datum, coherent unit" — it must contain data.`
+    );
+  }
+
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MERGE (s:Seed { id: $id })
+       ON CREATE SET
+         s.name = $name, s.seedType = $seedType, s.content = $content,
+         s.status = $status, s.description = $description,
+         s.phiL = $phiL, s.createdAt = datetime()
+       ON MATCH SET
+         s.name = $name, s.content = $content, s.status = $status,
+         s.description = COALESCE($description, s.description),
+         s.phiL = COALESCE($phiL, s.phiL),
+         s.updatedAt = datetime()`,
+      {
+        id: props.id, name: props.name, seedType: props.seedType,
+        content: props.content, status: props.status,
+        description: props.description ?? null, phiL: props.phiL ?? null,
+      },
+    );
+    // Wire to parent — SAME TRANSACTION (G3: parent→child)
+    if (relationship === 'CONTAINS') {
+      await tx.run(
+        `MATCH (p:Bloom { id: $parentId }), (s:Seed { id: $seedId })
+         MERGE (p)-[:CONTAINS]->(s)`,
+        { parentId: parentBloomId, seedId: props.id },
+      );
+    } else {
+      await tx.run(
+        `MATCH (p:Bloom { id: $parentId }), (s:Seed { id: $seedId })
+         MERGE (s)-[:SCOPED_TO]->(p)`,
+        { parentId: parentBloomId, seedId: props.id },
+      );
+    }
+  });
+}
+
 // ============ BACKWARD COMPATIBILITY (remove in M-8) ============
 
 /** @deprecated Use SeedProps */

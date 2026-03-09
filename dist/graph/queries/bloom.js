@@ -118,6 +118,65 @@ export async function updateBloomPhiL(bloomId, phiL, trend) {
            b.phiLComputedAt = datetime()`, { bloomId, phiL, trend });
     });
 }
+// ============ ATOMIC CREATION + STATUS DERIVATION (R-39) ============
+/**
+ * Create a Bloom AND wire it to a parent — atomically in one transaction.
+ * G3: containment is parent→child. Non-root Blooms MUST have a parent.
+ */
+export async function createContainedBloom(props, parentId, relationship = 'CONTAINS') {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MERGE (b:Bloom { id: $id })
+       ON CREATE SET
+         b.name = $name, b.type = $type, b.status = $status,
+         b.description = $description, b.phiL = $phiL,
+         b.createdAt = datetime(), b.observationCount = 0, b.connectionCount = 0
+       ON MATCH SET
+         b.name = $name, b.type = $type, b.status = $status,
+         b.description = $description,
+         b.phiL = COALESCE($phiL, b.phiL),
+         b.updatedAt = datetime()`, {
+            id: props.id, name: props.name, type: props.type,
+            status: props.status, description: props.description ?? null,
+            phiL: props.phiL ?? null,
+        });
+        await tx.run(`MATCH (p { id: $parentId }), (b:Bloom { id: $bloomId })
+       MERGE (p)-[:${relationship}]->(b)`, { parentId, bloomId: props.id });
+    });
+}
+/**
+ * Update a Bloom's status with inline parent status recalculation.
+ * G3 health derivation: parent status = f(children), not manual assignment.
+ */
+export async function updateBloomStatus(bloomId, status, options) {
+    await writeTransaction(async (tx) => {
+        // Step 1: Update the target bloom
+        await tx.run(`MATCH (b:Bloom { id: $id })
+       SET b.status = $status,
+           b.phiL = COALESCE($phiL, b.phiL),
+           b.commitSha = COALESCE($commitSha, b.commitSha),
+           b.testCount = COALESCE($testCount, b.testCount),
+           b.updatedAt = datetime()`, {
+            id: bloomId, status,
+            phiL: options?.phiL ?? null,
+            commitSha: options?.commitSha ?? null,
+            testCount: options?.testCount ?? null,
+        });
+        // Step 2: Recalculate parent status from children (G3 health derivation)
+        // Uses parent→child traversal to find the parent that CONTAINS this bloom
+        await tx.run(`MATCH (parent:Bloom)-[:CONTAINS|HAS_MILESTONE|HAS_PHASE|HAS_STAGE]->(b:Bloom { id: $id })
+       WITH parent
+       MATCH (parent)-[:CONTAINS|HAS_MILESTONE|HAS_PHASE|HAS_STAGE]->(child:Bloom)
+       WITH parent,
+            count(child) AS total,
+            count(CASE WHEN child.status = 'complete' THEN 1 END) AS done
+       SET parent.status = CASE
+             WHEN done = total THEN 'complete'
+             WHEN done > 0 THEN 'active'
+             ELSE parent.status END,
+           parent.phiL = toFloat(done) / toFloat(total),
+           parent.updatedAt = datetime()`, { id: bloomId });
+    });
+}
 /** @deprecated Use createBloom */
 export const createPattern = createBloom;
 /** @deprecated Use getBloom */

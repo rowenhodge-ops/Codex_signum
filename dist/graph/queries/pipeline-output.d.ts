@@ -28,6 +28,7 @@ export declare function createPipelineOutputSeed(props: PipelineOutputSeedProps)
 export declare function linkSeedToPipelineRun(seedId: string, runId: string, order: number): Promise<boolean>;
 /**
  * Shared helper: create a pipeline output Seed and link it to its PipelineRun.
+ * Atomic — single transaction creates node AND relationship.
  * Non-fatal — logs a warning on failure, never throws.
  * (REVIEW correction: DRY helper used by both Architect and DevAgent paths)
  */
