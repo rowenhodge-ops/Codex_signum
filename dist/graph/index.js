@@ -10,9 +10,9 @@ export { getDriver, getSession, closeDriver, runQuery, writeTransaction, readTra
 export { migrateSchema, verifySchema, seedConstitutionalRules, RELATIONSHIP_TYPES, } from "./schema.js";
 export { 
 // Seeds (formerly Agents)
-createSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability, 
+createSeed, createDataSeed, createContainedDataSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability, 
 // Blooms (formerly Patterns)
-createBloom, getBloom, updateBloomState, connectBlooms, 
+createBloom, createContainedBloom, getBloom, updateBloomState, updateBloomStatus, connectBlooms, 
 // Decisions
 recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, 
 // Observations

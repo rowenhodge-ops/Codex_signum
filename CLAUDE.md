@@ -742,8 +742,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1413 | `npm test` at HEAD |
-| Barrel exports | 269 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1509 | `npm test` at HEAD |
+| Barrel exports | 273 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 
@@ -775,6 +775,7 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | **Bare stub Seed** | `MERGE (s:Seed {id: 'R-33'}) SET s.name = 'Typed containment'` with no content, no relationships | A1 Fidelity: representation doesn't match what the item actually is. A Seed is "an atomic datum" — data has content. Every Seed must have content and at least one relationship. |
 | **Manual parent status** | `SET parent.status = 'complete', parent.phiL = 0.9` without checking children | A1 Fidelity: status must derive from structure. Parent status = f(children), not a manual assignment. Use the three-step stamp protocol. |
 | **Reverse containment** | `(child)-[:PART_OF]->(parent)` or `(child)-[:BELONGS_TO]->(parent)` | G3 violation. Containment is parent → child. The encloser declares its scope. Always CONTAINS, always parent → child. |
+| **Compliance-as-Monitoring** | Tests that scan the graph for data quality violations after creation. Conformance test suites. Validation scripts that check "does every Seed have content?" as a monitoring pass. | A2/A3 violation: state is structural — compliance should be a property of the creation path, not a separate verification layer. R-39 fixed this: `DataSeedProps` requires content at the type level, `createDataSeed()` throws on empty content, Neo4j constraints reject null. Enforcement is structural. |
 
 ---
 

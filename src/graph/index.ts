@@ -27,13 +27,17 @@ export type { RelationshipType } from "./schema.js";
 export {
   // Seeds (formerly Agents)
   createSeed,
+  createDataSeed,
+  createContainedDataSeed,
   getSeed,
   listActiveSeeds,
   listActiveSeedsByCapability,
   // Blooms (formerly Patterns)
   createBloom,
+  createContainedBloom,
   getBloom,
   updateBloomState,
+  updateBloomStatus,
   connectBlooms,
   // Decisions
   recordDecision,
@@ -125,6 +129,7 @@ export {
 // Re-export query types
 export type {
   SeedProps,
+  DataSeedProps,
   BloomProps,
   DecisionProps,
   DecisionOutcomeProps,
