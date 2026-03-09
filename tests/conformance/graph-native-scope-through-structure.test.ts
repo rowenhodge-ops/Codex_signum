@@ -16,6 +16,12 @@
  * 4. Milestone structure is discoverable via graph traversal
  *
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 4
+ *
+ * R-39 SUPERSESSION: The morpheme instantiation layer now provides structural
+ * enforcement for this rule via BloomProps (no scope property in the type) and
+ * createContainedBloom/createContainedDataSeed (scope defined by containment
+ * edges, not properties). These tests are retained as documentation of what
+ * the structure enforces, not as the enforcement mechanism.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";

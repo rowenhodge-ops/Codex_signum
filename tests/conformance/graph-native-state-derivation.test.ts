@@ -13,6 +13,13 @@
  *  where status is set directly."
  *
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 5
+ *
+ * R-39 SUPERSESSION: The morpheme instantiation layer now provides structural
+ * enforcement for this rule via updateBloomStatus(), which includes inline
+ * parent status recalculation from children in the same transaction. Manual
+ * parent status assignment is replaced by derived computation. These tests
+ * are retained as documentation of what the structure enforces, not as the
+ * enforcement mechanism.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";

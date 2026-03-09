@@ -13,6 +13,12 @@
  * are Dormant — present but not participating in any flow.
  *
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 2
+ *
+ * R-39 SUPERSESSION: The morpheme instantiation layer now provides structural
+ * enforcement for this rule via createContainedDataSeed() and createContainedBloom(),
+ * which create node + relationship atomically in a single transaction. These tests
+ * are retained as documentation of what the structure enforces, not as the
+ * enforcement mechanism.
  */
 import { describe, expect, it } from "vitest";
 import {

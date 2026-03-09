@@ -13,6 +13,12 @@
  * not just identity fields. Bare stubs violate A1 (Fidelity).
  *
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 1
+ *
+ * R-39 SUPERSESSION: The morpheme instantiation layer now provides structural
+ * enforcement for this rule via DataSeedProps (content required at compile time),
+ * createDataSeed() (empty-string guard at runtime), and Neo4j constraints
+ * (seed_content_required). These tests are retained as documentation of what
+ * the structure enforces, not as the enforcement mechanism.
  */
 import { describe, expect, it } from "vitest";
 import type { PipelineOutputSeedProps } from "../../src/graph/queries.js";

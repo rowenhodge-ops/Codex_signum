@@ -16,6 +16,13 @@
  * 3. The RELATIONSHIP_TYPES registry does not include reverse containment
  *
  * Source: CLAUDE.md §Graph-Native Data Creation — Rule 3
+ *
+ * R-39 SUPERSESSION: The morpheme instantiation layer now provides structural
+ * enforcement for this rule via createContainedDataSeed(parentBloomId) and
+ * createContainedBloom(parentId), whose function signatures only accept
+ * parent→child direction. Reverse containment is unrepresentable. These tests
+ * are retained as documentation of what the structure enforces, not as the
+ * enforcement mechanism.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
