@@ -136,6 +136,15 @@ const SCHEMA_STATEMENTS = [
     "CREATE INDEX decision_status_infra IF NOT EXISTS FOR (d:Decision) ON (d.status, d.infrastructure)",
     // TaskOutput: queryTaskOutputsByModel filters on to.modelUsed + to.qualityScore
     "CREATE INDEX taskoutput_model_quality IF NOT EXISTS FOR (to:TaskOutput) ON (to.modelUsed, to.qualityScore)",
+    // R-39: Morpheme property existence constraints
+    // Enforces v4.3 spec: Seeds must have content, seedType, status; Blooms must have type, status.
+    // If AuraDB Free tier rejects these, migrateSchema() logs the error and continues —
+    // Layers 1 (TypeScript types) and 2 (function runtime guards) carry the enforcement load.
+    "CREATE CONSTRAINT seed_content_required IF NOT EXISTS FOR (s:Seed) REQUIRE s.content IS NOT NULL",
+    "CREATE CONSTRAINT seed_seedtype_required IF NOT EXISTS FOR (s:Seed) REQUIRE s.seedType IS NOT NULL",
+    "CREATE CONSTRAINT seed_status_required IF NOT EXISTS FOR (s:Seed) REQUIRE s.status IS NOT NULL",
+    "CREATE CONSTRAINT bloom_type_required IF NOT EXISTS FOR (b:Bloom) REQUIRE b.type IS NOT NULL",
+    "CREATE CONSTRAINT bloom_status_required IF NOT EXISTS FOR (b:Bloom) REQUIRE b.status IS NOT NULL",
 ];
 // ============ SCHEMA MIGRATION ============
 /**
@@ -314,8 +323,8 @@ export async function verifySchema() {
     return {
         constraintCount,
         indexCount,
-        // We expect at least 18 constraints and 20 indexes (R-37: +2 composite indexes)
-        healthy: constraintCount >= 18 && indexCount >= 20,
+        // We expect at least 23 constraints (R-39: +5 property existence) and 20 indexes
+        healthy: constraintCount >= 23 && indexCount >= 20,
     };
 }
 /**
