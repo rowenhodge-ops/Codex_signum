@@ -4,15 +4,20 @@ node_modules/
 .env.*.local
 *.tsbuildinfo
 coverage/
-*.log
 .DS_Store
 Thumbs.db
 
-# Development artifacts (not public)
-docs/Audits/
-docs/Plans/
-docs/Prompts/
-docs/Journal/
+# Build artifacts
+dist/
+
+# Development artifacts (not public) — LOWERCASE to match actual paths
+docs/audits/
+docs/plans/
+docs/prompts/
+
+# Journal is tracked (public narrative of development)
+# docs/journal/
+
 # pipeline-output is tracked (evidence must be committed)
 
 # Obsidian / Smart Environment (never commit)
@@ -21,7 +26,7 @@ docs/Journal/
 *.ajson
 
 # Claude Code workspaces
-.claude/
+.claude/settings.local.json
 
 # Context transfer documents (session-specific, not public)
 *context-transfer*
@@ -31,3 +36,59 @@ docs/Journal/
 
 # Temporary working files
 .tmp-*
+
+# Log files (stray build/test logs at root)
+*.log
+
+# ============================================================
+# Business / Personal / Consulting — NEVER commit to public repo
+# ============================================================
+
+# Initium consulting pattern outputs
+*initium*
+*Initium*
+
+# Business plans, pricing, strategy docs
+*business-plan*
+*pricing-strategy*
+*negotiat*
+*competitive-landscape*
+*strategic-synthesis*
+*strategic-briefing*
+*strategic-analysis*
+
+# Market research and consulting deliverables
+*market-analysis*
+*assessment-market*
+*consulting-opportunit*
+*intelligence-briefing*
+
+# Personal/financial documents
+*financial-independence*
+*investment-strategy*
+*family-resilience*
+*macro-threat*
+*portfolio*
+
+# Binary document formats (business docs that might land in tree)
+# Keep spec PDFs in docs/ but block stray ones at root
+/*.docx
+/*.pdf
+/*.pptx
+/*.xlsx
+
+# Specific known consulting research patterns
+*JISC*
+*AUKUS*
+*EU-AI-Act*
+*ISO-42001*
+*APAC*
+*Singapore*
+*guardian-agents*
+*fortress-revenue*
+*cybernetics-of-one*
+*agentic-governance-gap*
+*defensive-routines*
+*argyris*
+*checkland*
+*physical-ai-trajectory*
