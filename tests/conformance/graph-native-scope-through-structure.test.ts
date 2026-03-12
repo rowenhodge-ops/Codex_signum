@@ -110,11 +110,12 @@ describe("Rule 4: Grammar reference — scope defined by CONTAINS children", () 
     }
   });
 
-  it("axiom category contains exactly 9 axiom elements (not a count property)", () => {
+  it("axiom category contains exactly 8 axiom elements (not a count property)", () => {
     const axiomCat = categories.find((c) => c.id === "cat:axioms");
     expect(axiomCat).toBeDefined();
     // The count comes from traversal (cat.elements.length), not from a stored property
-    expect(axiomCat!.elements).toHaveLength(9);
+    // v5.0: 8 axioms (A5 Reversibility removed)
+    expect(axiomCat!.elements).toHaveLength(8);
   });
 });
 

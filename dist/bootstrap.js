@@ -1118,15 +1118,6 @@ export const CORE_BLOOMS = [
         morphemeKinds: ["bloom"],
         domain: "core",
     },
-    {
-        id: "model-sentinel",
-        name: "Model Sentinel",
-        type: "pattern",
-        status: "design",
-        description: "Provider API probing and model discovery",
-        morphemeKinds: ["resonator"],
-        domain: "core",
-    },
 ];
 export async function bootstrapBlooms(force = false) {
     if (!force) {

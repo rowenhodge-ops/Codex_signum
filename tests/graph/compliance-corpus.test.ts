@@ -23,9 +23,9 @@ describe("Compliance Corpus — Grid Identity", () => {
 describe("Compliance Corpus — Grammar Seed Counts", () => {
   const categories = getCategories();
 
-  it("axioms category has 9 elements (post v4.0)", () => {
+  it("axioms category has 8 elements (v5.0 — A5 removed)", () => {
     const axioms = categories.find((c) => c.id === "cat:axioms")!;
-    expect(axioms.elements).toHaveLength(9);
+    expect(axioms.elements).toHaveLength(8);
   });
 
   it("grammar-rules category has 5 elements", () => {
@@ -33,9 +33,11 @@ describe("Compliance Corpus — Grammar Seed Counts", () => {
     expect(rules.elements).toHaveLength(5);
   });
 
-  it("anti-patterns category has 12 elements", () => {
-    const aps = categories.find((c) => c.id === "cat:anti-patterns")!;
-    expect(aps.elements).toHaveLength(12);
+  it("anti-patterns category has 10 canonical + 8 implementation incidents", () => {
+    const canonical = categories.find((c) => c.id === "cat:anti-patterns")!;
+    expect(canonical.elements).toHaveLength(10);
+    const incidents = categories.find((c) => c.id === "cat:implementation-incidents")!;
+    expect(incidents.elements).toHaveLength(8);
   });
 });
 
@@ -113,8 +115,8 @@ describe("Compliance Corpus — Bridge View Principle", () => {
 });
 
 describe("Compliance Corpus — Detection Heuristics", () => {
-  it("has exactly 12 detection heuristics (one per anti-pattern)", () => {
-    expect(DETECTION_HEURISTICS).toHaveLength(12);
+  it("has exactly 18 detection heuristics (one per anti-pattern)", () => {
+    expect(DETECTION_HEURISTICS).toHaveLength(18);
   });
 
   it("all heuristics have required fields", () => {
@@ -132,7 +134,10 @@ describe("Compliance Corpus — Detection Heuristics", () => {
 
   it("every anti-pattern from grammar reference has a detection heuristic", () => {
     const categories = getCategories();
-    const apIds = categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id);
+    const apIds = [
+      ...categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
+      ...categories.find((c) => c.id === "cat:implementation-incidents")!.elements.map((e) => e.id),
+    ];
     const heuristicIds = new Set(DETECTION_HEURISTICS.map((h) => h.antiPatternId));
 
     for (const apId of apIds) {
@@ -162,9 +167,10 @@ describe("Compliance Corpus — Detection Heuristics", () => {
 describe("Compliance Corpus — Consistency Checks", () => {
   it("all heuristic anti-pattern IDs exist in grammar reference", () => {
     const categories = getCategories();
-    const apIds = new Set(
-      categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
-    );
+    const apIds = new Set([
+      ...categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
+      ...categories.find((c) => c.id === "cat:implementation-incidents")!.elements.map((e) => e.id),
+    ]);
 
     for (const h of DETECTION_HEURISTICS) {
       expect(apIds.has(h.antiPatternId)).toBe(true);

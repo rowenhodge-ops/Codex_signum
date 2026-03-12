@@ -6,7 +6,7 @@
  * Codex Signum — Agent Seeding Script
  *
  * Thin wrapper around src/bootstrap.ts for convenience.
- * Seeds Agent nodes, Pattern nodes, and informed priors in Neo4j.
+ * Seeds Seed nodes, Bloom nodes, and informed priors in Neo4j.
  *
  * Usage:
  *   npx tsx scripts/seed-agents.ts          # Skip if already seeded
@@ -16,8 +16,8 @@
  *   - Neo4j running (bolt://localhost:7687)
  */
 import {
-  bootstrapAgents,
-  bootstrapPatterns,
+  bootstrapSeeds,
+  bootstrapBlooms,
   seedAnalyticalPriors,
   seedInformedPriors,
 } from "../src/bootstrap.js";
@@ -43,8 +43,8 @@ async function main(): Promise<void> {
     const seededRules = await seedConstitutionalRules();
     console.log(`Constitutional rules seeded: ${seededRules}`);
 
-    await bootstrapAgents(force);
-    await bootstrapPatterns(force);
+    await bootstrapSeeds(force);
+    await bootstrapBlooms(force);
 
     if (
       force ||

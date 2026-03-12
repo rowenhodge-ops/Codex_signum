@@ -192,16 +192,15 @@ describe("ContextClusterProps — contract shape", () => {
 // ── Contract: CORE_BLOOMS ──
 
 describe("CORE_BLOOMS registry", () => {
-  it("has exactly 4 patterns", () => {
-    expect(CORE_BLOOMS).toHaveLength(4);
+  it("has exactly 3 patterns", () => {
+    expect(CORE_BLOOMS).toHaveLength(3);
   });
 
-  it("contains the 4 expected pattern IDs", () => {
+  it("contains the 3 expected pattern IDs", () => {
     const ids = CORE_BLOOMS.map((p) => p.id);
     expect(ids).toContain("thompson-router");
     expect(ids).toContain("dev-agent");
     expect(ids).toContain("architect");
-    expect(ids).toContain("model-sentinel");
   });
 
   it("all patterns have required fields", () => {
@@ -215,10 +214,9 @@ describe("CORE_BLOOMS registry", () => {
     }
   });
 
-  it("model-sentinel is in design state", () => {
+  it("model-sentinel is not in CORE_BLOOMS (eliminated anti-pattern)", () => {
     const sentinel = CORE_BLOOMS.find((p) => p.id === "model-sentinel");
-    expect(sentinel).toBeDefined();
-    expect(sentinel!.status).toBe("design");
+    expect(sentinel).toBeUndefined();
   });
 
   it("bootstrapBlooms is a function", () => {

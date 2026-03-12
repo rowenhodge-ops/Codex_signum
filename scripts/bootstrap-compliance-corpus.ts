@@ -68,6 +68,12 @@ const DETECTION_HEURISTICS: DetectionHeuristic[] = [
   { antiPatternId: "ap:bare-number-health", detectionHeuristic: "Look for: health: number, phiL: number, functions accepting/returning bare number where PhiLOutput is required" },
   { antiPatternId: "ap:static-retention", detectionHeuristic: "Look for: fixed time windows for data retention, age > N deletion instead of exponential decay weighting, missing weight = e^(-λ × age)" },
   { antiPatternId: "ap:fixed-circuit-breaker", detectionHeuristic: "Look for: constant cooldown values, missing exponential backoff, missing jitter/randomization in retry timing" },
+  { antiPatternId: "ap:intermediary-layer", detectionHeuristic: "Look for: wrapper functions that read from graph, transform, and re-present; adapter layers between graph queries and consumers; computed views that sit between graph and callers" },
+  { antiPatternId: "ap:governance-theatre", detectionHeuristic: "Look for: constitutional rules with no enforcement path, compliance checks that log but don't block, rules documented in CLAUDE.md with no corresponding code or test" },
+  { antiPatternId: "ap:defensive-filtering", detectionHeuristic: "Look for: signal suppression before threshold checks, filtering low-confidence observations before write, clamping values to avoid triggering alerts" },
+  { antiPatternId: "ap:skilled-incompetence", detectionHeuristic: "Look for: technically passing tests that don't test the right thing, pipeline runs that complete but produce no learning, correct code that defeats the purpose of the pattern it implements" },
+  { antiPatternId: "ap:undiscussable-accumulation", detectionHeuristic: "Look for: TODO/FIXME comments older than 2 milestones, known gaps in reconcile.ts output that persist across runs, test skip annotations without tracked resolution" },
+  { antiPatternId: "ap:pathological-autopoiesis", detectionHeuristic: "Look for: system adding complexity to justify its own existence, pipeline stages that only serve the pipeline, metrics optimised for pipeline success rather than user value" },
 ];
 
 const BRIDGE_VIEW_PRINCIPLE = {
@@ -169,7 +175,7 @@ async function updateCorpusGridStatus(): Promise<void> {
     await tx.run(
       `MATCH (g:Grid {id: $id})
        SET g.status = "populated",
-           g.specVersion = "v4.3",
+           g.specVersion = "v5.0",
            g.description = "Compliance corpus — canonical spec data for Assayer VALIDATE queries",
            g.populatedAt = datetime(),
            g.updatedAt = datetime()`,
@@ -242,7 +248,7 @@ async function main(): Promise<void> {
   // 5. Update corpus Grid status
   try {
     await updateCorpusGridStatus();
-    console.log(`✅ Corpus Grid status: populated, specVersion: v4.3`);
+    console.log(`✅ Corpus Grid status: populated, specVersion: v5.0`);
   } catch (err) {
     console.warn("  ⚠ Failed to update corpus Grid status:", err);
   }
@@ -253,7 +259,7 @@ async function main(): Promise<void> {
   console.log(`  CONTAINS: ${axiomLinked} axioms + ${ruleLinked} grammar-rules + ${apLinked} anti-patterns + ${elimLinked} eliminated + 1 compliance-rule`);
   console.log(`  Eliminated entities: ${eliminatedIds.length}`);
   console.log(`  Detection heuristics: ${enrichedCount}`);
-  console.log(`  Status: populated, specVersion: v4.3`);
+  console.log(`  Status: populated, specVersion: v5.0`);
   console.log(`\nVerify with:`);
   console.log(`  MATCH (g:Grid {id: "grid:compliance-corpus"}) RETURN g.status, g.specVersion`);
   console.log(`  MATCH (g:Grid {id: "grid:compliance-corpus"})-[:CONTAINS]->(s) RETURN labels(s), s.seedType, count(s) ORDER BY s.seedType`);

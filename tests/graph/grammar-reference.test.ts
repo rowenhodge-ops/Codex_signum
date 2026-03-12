@@ -25,8 +25,8 @@ import type { SurveyOutput } from "../../src/patterns/architect/types.js";
 describe("Grammar Reference Bootstrap — Category Data", () => {
   const categories = getCategories();
 
-  it("returns 8 categories", () => {
-    expect(categories).toHaveLength(8);
+  it("returns 9 categories", () => {
+    expect(categories).toHaveLength(9);
   });
 
   it("category IDs follow the cat: prefix pattern", () => {
@@ -45,6 +45,7 @@ describe("Grammar Reference Bootstrap — Category Data", () => {
     expect(ids).toContain("cat:state-dimensions");
     expect(ids).toContain("cat:heuristic-imperatives");
     expect(ids).toContain("cat:anti-patterns");
+    expect(ids).toContain("cat:implementation-incidents");
     expect(ids).toContain("cat:operational-records");
     expect(ids).toContain("cat:memory-strata");
   });
@@ -59,10 +60,10 @@ describe("Grammar Reference Bootstrap — Element Seeds", () => {
   const categories = getCategories();
   const allElements = categories.flatMap((c) => c.elements);
 
-  it("has exactly 47 grammar element Seeds", () => {
-    // 6 morphemes + 9 axioms + 5 grammar rules + 3 state dims + 3 imperatives
-    // + 12 anti-patterns + 5 operational records + 4 memory strata = 47
-    expect(allElements).toHaveLength(47);
+  it("has exactly 52 grammar element Seeds", () => {
+    // 6 morphemes + 8 axioms + 5 grammar rules + 3 state dims + 3 imperatives
+    // + 10 canonical anti-patterns + 8 implementation incidents + 5 operational records + 4 memory strata = 52
+    expect(allElements).toHaveLength(52);
   });
 
   it("all element IDs are unique", () => {
@@ -132,17 +133,17 @@ describe("Grammar Reference Bootstrap — Axioms", () => {
   const categories = getCategories();
   const axioms = categories.find((c) => c.id === "cat:axioms")!;
 
-  it("has exactly 9 axioms (post v4.0 — Symbiosis removed)", () => {
-    expect(axioms.elements).toHaveLength(9);
+  it("has exactly 8 axioms (v5.0 — A5 Reversibility removed)", () => {
+    expect(axioms.elements).toHaveLength(8);
   });
 
-  it("axiom IDs are A1 through A9", () => {
+  it("axiom IDs are A1–A4, A6–A9 (no A5)", () => {
     const ids = axioms.elements.map((e) => e.id);
     expect(ids).toContain("axiom:A1-fidelity");
     expect(ids).toContain("axiom:A2-visible-state");
     expect(ids).toContain("axiom:A3-transparency");
     expect(ids).toContain("axiom:A4-provenance");
-    expect(ids).toContain("axiom:A5-reversibility");
+    expect(ids).not.toContain("axiom:A5-reversibility");
     expect(ids).toContain("axiom:A6-minimal-authority");
     expect(ids).toContain("axiom:A7-semantic-stability");
     expect(ids).toContain("axiom:A8-adaptive-pressure");
@@ -153,9 +154,9 @@ describe("Grammar Reference Bootstrap — Axioms", () => {
 describe("Grammar Reference Bootstrap — Axiom DAG", () => {
   const deps = getAxiomDependencies();
 
-  it("has exactly 8 dependency edges", () => {
-    // A1→A2, A1→A3, A4→A2, A5→A4, A7→A2, A8→A2, A8→A3, A9→A3
-    expect(deps).toHaveLength(8);
+  it("has exactly 7 dependency edges", () => {
+    // A1→A2, A1→A3, A4→A2, A7→A2, A8→A2, A8→A3, A9→A3 (A5 removed in v5.0)
+    expect(deps).toHaveLength(7);
   });
 
   it("A1 Fidelity depends on A2 and A3", () => {
@@ -166,10 +167,9 @@ describe("Grammar Reference Bootstrap — Axiom DAG", () => {
     expect(targets).toContain("axiom:A3-transparency");
   });
 
-  it("A5 Reversibility depends on A4 Provenance", () => {
+  it("A5 Reversibility removed in v5.0 (no longer in DAG)", () => {
     const a5Deps = deps.filter((d) => d.from === "axiom:A5-reversibility");
-    expect(a5Deps).toHaveLength(1);
-    expect(a5Deps[0].to).toBe("axiom:A4-provenance");
+    expect(a5Deps).toHaveLength(0);
   });
 
   it("A6 Minimal Authority has no dependencies", () => {
@@ -199,20 +199,20 @@ describe("Grammar Reference Bootstrap — Axiom DAG", () => {
 describe("Grammar Reference Bootstrap — Anti-Pattern Violations", () => {
   const violations = getAntiPatternViolations();
 
-  it("has exactly 12 violation mappings", () => {
-    expect(violations).toHaveLength(12);
+  it("has exactly 20 violation mappings", () => {
+    expect(violations).toHaveLength(20);
   });
 
-  it("every anti-pattern has exactly one VIOLATES target", () => {
+  it("every anti-pattern has at least one VIOLATES target", () => {
     const categories = getCategories();
-    const apIds = categories
-      .find((c) => c.id === "cat:anti-patterns")!
-      .elements.map((e) => e.id);
+    const allApIds = [
+      ...categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
+      ...categories.find((c) => c.id === "cat:implementation-incidents")!.elements.map((e) => e.id),
+    ];
 
-    // Every anti-pattern should appear exactly once
-    const violatingIds = violations.map((v) => v.antiPatternId);
-    for (const id of apIds) {
-      expect(violatingIds.filter((v) => v === id)).toHaveLength(1);
+    const violatingIds = new Set(violations.map((v) => v.antiPatternId));
+    for (const id of allApIds) {
+      expect(violatingIds.has(id)).toBe(true);
     }
   });
 
@@ -221,9 +221,10 @@ describe("Grammar Reference Bootstrap — Anti-Pattern Violations", () => {
     const axiomIds = new Set(
       categories.find((c) => c.id === "cat:axioms")!.elements.map((e) => e.id),
     );
-    const apIds = new Set(
-      categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
-    );
+    const apIds = new Set([
+      ...categories.find((c) => c.id === "cat:anti-patterns")!.elements.map((e) => e.id),
+      ...categories.find((c) => c.id === "cat:implementation-incidents")!.elements.map((e) => e.id),
+    ]);
 
     for (const v of violations) {
       expect(apIds.has(v.antiPatternId)).toBe(true);
@@ -248,8 +249,8 @@ describe("Grammar Reference Bootstrap — Memory Strata", () => {
   const categories = getCategories();
   const strata = categories.find((c) => c.id === "cat:memory-strata")!;
 
-  it("has exactly 4 strata (per v4.3 spec)", () => {
-    // v4.3 spec defines 4 strata: Ephemeral, Observational, Distilled, Institutional
+  it("has exactly 4 strata (per v5.0 spec)", () => {
+    // v5.0 spec defines 4 strata: Ephemeral, Observational, Distilled, Institutional
     expect(strata.elements).toHaveLength(4);
   });
 
@@ -296,8 +297,8 @@ describe("Grammar Reference Bootstrap — Schema", () => {
     expect(RELATIONSHIP_TYPES.VIOLATES).toBe("VIOLATES");
   });
 
-  it("GRAMMAR_REF_ID is grammar-ref-v4.3", () => {
-    expect(GRAMMAR_REF_ID).toBe("grammar-ref-v4.3");
+  it("GRAMMAR_REF_ID is grammar-ref-v5.0", () => {
+    expect(GRAMMAR_REF_ID).toBe("grammar-ref-v5.0");
   });
 });
 

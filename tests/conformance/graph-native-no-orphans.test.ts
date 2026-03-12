@@ -190,11 +190,14 @@ describe("Rule 2: Grammar reference bootstrap — every node is wired", () => {
         .find((c) => c.id === "cat:axioms")
         ?.elements.map((e) => e.id) ?? [],
     );
-    const antiPatternIds = new Set(
-      categories
+    const antiPatternIds = new Set([
+      ...(categories
         .find((c) => c.id === "cat:anti-patterns")
-        ?.elements.map((e) => e.id) ?? [],
-    );
+        ?.elements.map((e) => e.id) ?? []),
+      ...(categories
+        .find((c) => c.id === "cat:implementation-incidents")
+        ?.elements.map((e) => e.id) ?? []),
+    ]);
     const violations = getAntiPatternViolations();
     for (const v of violations) {
       expect(
