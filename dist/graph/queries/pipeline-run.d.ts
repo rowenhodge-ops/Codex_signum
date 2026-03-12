@@ -1,4 +1,10 @@
 import type { Record as Neo4jRecord } from "neo4j-driver";
+/**
+ * PipelineRun nodes carry dual labels: :Bloom:PipelineRun
+ * INSTANTIATES → def:morpheme:bloom
+ * Specialisation label :PipelineRun retained for constraint scoping and query performance.
+ * type = 'execution'
+ */
 /** Properties for a PipelineRun node (Stratum 2 — execution instance) */
 export interface PipelineRunProps {
     id: string;

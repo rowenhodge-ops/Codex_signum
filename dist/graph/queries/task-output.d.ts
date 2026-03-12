@@ -1,4 +1,10 @@
 import type { Record as Neo4jRecord } from "neo4j-driver";
+/**
+ * TaskOutput nodes carry dual labels: :Seed:TaskOutput
+ * INSTANTIATES → def:morpheme:seed
+ * Specialisation label :TaskOutput retained for constraint scoping and query performance.
+ * seedType = 'task-output'
+ */
 /** Properties for a TaskOutput node (Stratum 2 — individual task result) */
 export interface TaskOutputProps {
     id: string;

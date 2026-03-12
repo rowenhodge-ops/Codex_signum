@@ -1,4 +1,10 @@
 import type { Record as Neo4jRecord } from "neo4j-driver";
+/**
+ * Observation nodes carry dual labels: :Seed:Observation
+ * INSTANTIATES → def:morpheme:seed
+ * Specialisation label :Observation retained for constraint scoping and query performance.
+ * seedType = 'observation'
+ */
 /** Properties for recording an Observation */
 export interface ObservationProps {
     id: string;

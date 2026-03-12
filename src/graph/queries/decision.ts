@@ -7,6 +7,13 @@ import { runQuery, writeTransaction } from "../client.js";
 
 // ============ TYPES ============
 
+/**
+ * Decision nodes carry dual labels: :Seed:Decision
+ * INSTANTIATES → def:morpheme:seed
+ * Specialisation label :Decision retained for constraint scoping and query performance.
+ * seedType = 'decision'
+ */
+
 /** Properties for recording a Decision */
 export interface DecisionProps {
   id: string;

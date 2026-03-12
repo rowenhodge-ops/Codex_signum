@@ -1,3 +1,9 @@
+/**
+ * Distillation nodes carry dual labels: :Seed:Distillation
+ * INSTANTIATES → def:morpheme:seed
+ * Specialisation label :Distillation retained for constraint scoping and query performance.
+ * seedType = 'distillation'
+ */
 /** Properties for a Distillation */
 export interface DistillationProps {
     id: string;

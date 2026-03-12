@@ -7,6 +7,13 @@ import { runQuery, writeTransaction } from "../client.js";
 
 // ============ TYPES ============
 
+/**
+ * PipelineRun nodes carry dual labels: :Bloom:PipelineRun
+ * INSTANTIATES → def:morpheme:bloom
+ * Specialisation label :PipelineRun retained for constraint scoping and query performance.
+ * type = 'execution'
+ */
+
 /** Properties for a PipelineRun node (Stratum 2 — execution instance) */
 export interface PipelineRunProps {
   id: string; // runId from bootstrap-task-executor

@@ -7,6 +7,13 @@ import { runQuery, writeTransaction } from "../client.js";
 
 // ============ TYPES ============
 
+/**
+ * HumanFeedback nodes carry dual labels: :Seed:HumanFeedback
+ * INSTANTIATES → def:morpheme:seed
+ * Specialisation label :HumanFeedback retained for constraint scoping and query performance.
+ * seedType = 'human-feedback'
+ */
+
 /** Properties for recording human feedback on a pipeline run */
 export interface HumanFeedbackProps {
   id: string;
