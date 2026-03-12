@@ -3,7 +3,7 @@
 // See LICENSE file for details
 
 export {
-  checkCorrectionScale,
+  checkRefinementScale,
   checkLearningScale,
   checkEvolutionaryScale,
 } from "./feedback.js";

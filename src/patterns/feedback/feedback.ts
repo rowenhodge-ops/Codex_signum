@@ -4,25 +4,25 @@
 
 import type { FeedbackRecommendation, ObserverState } from "./types.js";
 
-/** Correction scale: immediate issues in recent pipeline runs. */
-export function checkCorrectionScale(
+/** Refinement scale: immediate issues in recent pipeline runs. */
+export function checkRefinementScale(
   state: ObserverState,
 ): FeedbackRecommendation[] {
   const recs: FeedbackRecommendation[] = [];
   const recent = state.pipelineResults.slice(-5);
 
-  const avgCorrections =
-    recent.reduce((sum, r) => sum + r.correctionCount, 0) /
+  const avgRefinements =
+    recent.reduce((sum, r) => sum + r.refinementCount, 0) /
     Math.max(1, recent.length);
 
-  if (avgCorrections > 2) {
+  if (avgRefinements > 2) {
     recs.push({
-      scale: "correction",
+      scale: "refinement",
       action:
-        "High correction rate detected. Consider: 1) Improving prompts, 2) Adjusting quality threshold, 3) Routing to stronger models.",
+        "High refinement rate detected. Consider: 1) Improving prompts, 2) Adjusting quality threshold, 3) Routing to stronger models.",
       confidence: 0.8,
       evidence: [
-        `Average corrections per pipeline: ${avgCorrections.toFixed(1)}`,
+        `Average refinements per pipeline: ${avgRefinements.toFixed(1)}`,
         `Sample size: ${recent.length} recent pipelines`,
       ],
     });
@@ -38,7 +38,7 @@ export function checkCorrectionScale(
 
     if (stageResults.length >= 3 && avgQuality < 0.5) {
       recs.push({
-        scale: "correction",
+        scale: "refinement",
         action: `Stage '${stage}' consistently underperforming (avg quality: ${avgQuality.toFixed(2)}). Route to different model or improve stage prompt.`,
         confidence: 0.7,
         evidence: stageResults.map(

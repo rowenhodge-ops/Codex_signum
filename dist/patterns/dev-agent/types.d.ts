@@ -29,7 +29,7 @@ export interface StageResult {
     qualityScore: number;
     durationMs: number;
     wasExploratory: boolean;
-    correctionIteration: number;
+    refinementIteration: number;
 }
 /** Complete pipeline result */
 export interface PipelineResult {
@@ -39,7 +39,7 @@ export interface PipelineResult {
     totalDurationMs: number;
     totalCost: number;
     overallQuality: number;
-    correctionCount: number;
+    refinementCount: number;
     constitutionalCompliance: ConstitutionalEvaluation | null;
     decisions: Decision[];
     /** Source requirement provenance tracking.
@@ -68,7 +68,7 @@ export type QualityAssessor = (output: string, stage: PipelineStage, task: Agent
 /** DevAgent configuration */
 export interface DevAgentConfig {
     stages: PipelineStage[];
-    maxCorrections: number;
+    maxRefinements: number;
     qualityThreshold: number;
     routerConfig: ThompsonRouterConfig;
     constitutionalRules: ConstitutionalRule[];

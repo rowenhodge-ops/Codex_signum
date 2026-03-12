@@ -35,9 +35,9 @@ export declare class EphemeralStore {
     /** Count */
     get size(): number;
     /**
-     * Update correction state for an execution (Correction Helix).
+     * Update refinement state for an execution (Refinement Helix).
      */
-    updateCorrectionState(executionId: string, iteration: number, maxIterations: number, feedback: string[]): EphemeralMemory | null;
+    updateRefinementState(executionId: string, iteration: number, maxIterations: number, feedback: string[]): EphemeralMemory | null;
     /**
      * Promote an ephemeral entry to Observation (Stratum 2).
      * This is the critical Stratum 1 → 2 transition.

@@ -26,8 +26,8 @@ export interface TriggerInputState {
   previousLambda2: number;
   /** Current graph total variation (friction) */
   currentFriction: number;
-  /** Correction Helix temporal constant (how long Scale 1 correction takes) */
-  correctionHelixTemporalConstant: number;
+  /** Refinement Helix temporal constant (how long Scale 1 refinement takes) */
+  refinementHelixTemporalConstant: number;
   /** Duration the friction has been above threshold (same units as temporal constant) */
   frictionDuration: number;
   /** Current cascade depth (from most recent degradation event) */
@@ -81,25 +81,25 @@ export function checkLambda2Drop(
 }
 
 /**
- * Trigger 2: Friction spike sustained beyond Correction Helix temporal constant.
- * "Runtime friction crosses threshold, sustained beyond Scale 1 correction time."
+ * Trigger 2: Friction spike sustained beyond Refinement Helix temporal constant.
+ * "Runtime friction crosses threshold, sustained beyond Scale 1 refinement time."
  *
- * Fires when friction > 0.5 AND duration > correctionHelixTemporalConstant.
+ * Fires when friction > 0.5 AND duration > refinementHelixTemporalConstant.
  * Severity: warning if friction < 0.8, critical if ≥ 0.8.
  */
 export function checkFrictionSpike(
   currentFriction: number,
   frictionDuration: number,
-  correctionHelixTemporalConstant: number,
+  refinementHelixTemporalConstant: number,
 ): TriggeredEvent | null {
   if (currentFriction <= 0.5) return null;
-  if (frictionDuration <= correctionHelixTemporalConstant) return null;
+  if (frictionDuration <= refinementHelixTemporalConstant) return null;
 
   const severity = currentFriction >= 0.8 ? "critical" : "warning";
   return {
     trigger: "friction_spike",
     severity,
-    detail: `Friction ${currentFriction.toFixed(3)} sustained for ${frictionDuration.toFixed(1)} (threshold: ${correctionHelixTemporalConstant.toFixed(1)})`,
+    detail: `Friction ${currentFriction.toFixed(3)} sustained for ${frictionDuration.toFixed(1)} (threshold: ${refinementHelixTemporalConstant.toFixed(1)})`,
   };
 }
 
@@ -212,7 +212,7 @@ export function checkStructuralTriggers(
   const friction = checkFrictionSpike(
     state.currentFriction,
     state.frictionDuration,
-    state.correctionHelixTemporalConstant,
+    state.refinementHelixTemporalConstant,
   );
   if (friction) events.push(friction);
 

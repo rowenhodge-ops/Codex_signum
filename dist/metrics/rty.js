@@ -5,16 +5,16 @@
 /**
  * Convert StageResult[] to StageAttempt[] for RTY computation.
  *
- * correctionIteration is approximated from qualityScore:
+ * refinementIteration is approximated from qualityScore:
  *   >= 0.5 → first-pass (0)
- *   <  0.5 → correction needed (1)
+ *   <  0.5 → refinement needed (1)
  */
 export function stageResultsToAttempts(stages) {
     return stages.map((s) => ({
         stage: s.stage,
         modelId: s.modelId,
         qualityScore: s.qualityScore,
-        correctionIteration: s.qualityScore >= 0.5 ? 0 : 1,
+        refinementIteration: s.qualityScore >= 0.5 ? 0 : 1,
     }));
 }
 // ─── RTY ─────────────────────────────────────────────────────────────────
@@ -24,8 +24,8 @@ export function stageResultsToAttempts(stages) {
  * RTY = ∏ stageYield(s) for all stages s
  *
  * Per-stage yield:
- *   - First-pass (correctionIteration === 0): yield = qualityScore
- *   - Correction needed (correctionIteration > 0): yield = qualityScore * 0.7
+ *   - First-pass (refinementIteration === 0): yield = qualityScore
+ *   - Refinement needed (refinementIteration > 0): yield = qualityScore * 0.7
  *     (30% penalty for needing a re-run)
  */
 export function computeRTY(attempts) {
@@ -34,7 +34,7 @@ export function computeRTY(attempts) {
     }
     const stageYields = {};
     for (const a of attempts) {
-        const yield_ = a.correctionIteration === 0 ? a.qualityScore : a.qualityScore * 0.7;
+        const yield_ = a.refinementIteration === 0 ? a.qualityScore : a.qualityScore * 0.7;
         stageYields[a.stage] = Math.max(0, Math.min(1, yield_));
     }
     const rty = Object.values(stageYields).reduce((product, y) => product * y, 1);
@@ -45,10 +45,10 @@ export function computeRTY(attempts) {
  * Compute %C&A (Percent Correct & Accurate) per pipeline stage.
  *
  * Per-stage %C&A:
- *   correctionIteration === 0: %C&A = qualityScore * 100
- *   correctionIteration >  0: %C&A = qualityScore * 50
+ *   refinementIteration === 0: %C&A = qualityScore * 100
+ *   refinementIteration >  0: %C&A = qualityScore * 50
  *
- * Overall %C&A = fraction of stages with correctionIteration === 0.
+ * Overall %C&A = fraction of stages with refinementIteration === 0.
  */
 export function computePercentCA(attempts) {
     if (attempts.length === 0) {
@@ -57,7 +57,7 @@ export function computePercentCA(attempts) {
     const perStage = {};
     let firstPassCount = 0;
     for (const a of attempts) {
-        if (a.correctionIteration === 0) {
+        if (a.refinementIteration === 0) {
             perStage[a.stage] = Math.round(a.qualityScore * 100);
             firstPassCount++;
         }

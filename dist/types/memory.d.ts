@@ -29,8 +29,8 @@ export interface EphemeralMemory {
     bloomId: string;
     /** Working data (anything needed during execution) */
     data: Record<string, unknown>;
-    /** Correction helix state (if in retry loop) */
-    correctionState?: {
+    /** Refinement helix state (if in retry loop) */
+    refinementState?: {
         iteration: number;
         maxIterations: number;
         feedback: string[];
@@ -65,7 +65,7 @@ export interface Observation {
     /** Recency weight (decays with age) */
     recencyWeight?: number;
 }
-export type ObservationType = "execution_outcome" | "routing_decision" | "constitutional_check" | "feedback_event" | "degradation_event" | "recovery_event" | "cascade_event" | "correction_loop" | "exploration_event";
+export type ObservationType = "execution_outcome" | "routing_decision" | "constitutional_check" | "feedback_event" | "degradation_event" | "recovery_event" | "cascade_event" | "refinement_loop" | "exploration_event";
 /**
  * Observation data — varies by type but always includes outcome.
  */

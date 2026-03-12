@@ -5,8 +5,8 @@ export interface TriggerInputState {
     previousLambda2: number;
     /** Current graph total variation (friction) */
     currentFriction: number;
-    /** Correction Helix temporal constant (how long Scale 1 correction takes) */
-    correctionHelixTemporalConstant: number;
+    /** Refinement Helix temporal constant (how long Scale 1 refinement takes) */
+    refinementHelixTemporalConstant: number;
     /** Duration the friction has been above threshold (same units as temporal constant) */
     frictionDuration: number;
     /** Current cascade depth (from most recent degradation event) */
@@ -37,13 +37,13 @@ export interface TriggeredEvent {
  */
 export declare function checkLambda2Drop(previousLambda2: number, currentLambda2: number): TriggeredEvent | null;
 /**
- * Trigger 2: Friction spike sustained beyond Correction Helix temporal constant.
- * "Runtime friction crosses threshold, sustained beyond Scale 1 correction time."
+ * Trigger 2: Friction spike sustained beyond Refinement Helix temporal constant.
+ * "Runtime friction crosses threshold, sustained beyond Scale 1 refinement time."
  *
- * Fires when friction > 0.5 AND duration > correctionHelixTemporalConstant.
+ * Fires when friction > 0.5 AND duration > refinementHelixTemporalConstant.
  * Severity: warning if friction < 0.8, critical if ≥ 0.8.
  */
-export declare function checkFrictionSpike(currentFriction: number, frictionDuration: number, correctionHelixTemporalConstant: number): TriggeredEvent | null;
+export declare function checkFrictionSpike(currentFriction: number, frictionDuration: number, refinementHelixTemporalConstant: number): TriggeredEvent | null;
 /**
  * Trigger 3: Cascade activation — degradation reached the 2-level limit.
  * "A degradation event maxed out the safety boundary."

@@ -10,7 +10,7 @@ export { computeCostAdjustedReward, DEFAULT_ROUTER_CONFIG, buildContextClusterId
 // DevAgent Pipeline
 export { DEFAULT_DEVAGENT_CONFIG, DevAgent, PIPELINE_PRESETS, } from "./dev-agent/index.js";
 // Feedback functions + types (formerly observer — Observer class removed per state-is-structural axiom)
-export { checkCorrectionScale, checkLearningScale, checkEvolutionaryScale, } from "./feedback/index.js";
+export { checkRefinementScale, checkLearningScale, checkEvolutionaryScale, } from "./feedback/index.js";
 // Architect Pattern — SURVEY + Pipeline stages
 export { survey, extractClaims, discoverDocumentSources, parseHypotheses, classify, classifyTask, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, registerDeterministicExecutor, clearDeterministicExecutors, getDeterministicExecutorCount, MECHANICAL_CONFIDENCE_THRESHOLD, executePlan, parallelDecompose, scorePlan, selectReasoningTier, createMockModelExecutor, createMockTaskExecutor, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, 
 // Quality gates — source verification

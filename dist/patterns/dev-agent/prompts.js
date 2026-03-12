@@ -4,10 +4,10 @@
 /**
  * Build the prompt for each pipeline stage.
  */
-export function buildStagePrompt(stage, input, task, correctionIteration) {
-    const correctionNote = correctionIteration > 0
-        ? "\n\n[CORRECTION " +
-            correctionIteration +
+export function buildStagePrompt(stage, input, task, refinementIteration) {
+    const refinementNote = refinementIteration > 0
+        ? "\n\n[REFINEMENT " +
+            refinementIteration +
             "]: Previous output did not meet quality threshold. Improve the response."
         : "";
     switch (stage) {
@@ -18,7 +18,7 @@ export function buildStagePrompt(stage, input, task, correctionIteration) {
                 task.domain ? `Domain: ${task.domain}` : "",
                 `\nTask:\n${input}`,
                 "\nProvide: 1) Clear scope boundaries, 2) Key requirements, 3) Risk factors.",
-                correctionNote,
+                refinementNote,
             ]
                 .filter(Boolean)
                 .join("\n");
@@ -27,7 +27,7 @@ export function buildStagePrompt(stage, input, task, correctionIteration) {
                 "EXECUTION — Generate the solution.",
                 `Task type: ${task.taskType} | Complexity: ${task.complexity}`,
                 `\nInput:\n${input}`,
-                correctionNote,
+                refinementNote,
             ]
                 .filter(Boolean)
                 .join("\n");
@@ -38,7 +38,7 @@ export function buildStagePrompt(stage, input, task, correctionIteration) {
                 `Quality requirement: ${(task.qualityRequirement ?? 0.7) * 100}%`,
                 `\nOutput to review:\n${input}`,
                 "\nProvide: 1) Issues found, 2) Suggestions, 3) Quality assessment (0-1).",
-                correctionNote,
+                refinementNote,
             ]
                 .filter(Boolean)
                 .join("\n");
@@ -48,7 +48,7 @@ export function buildStagePrompt(stage, input, task, correctionIteration) {
                 `Task type: ${task.taskType}`,
                 `\nOutput to validate:\n${input}`,
                 "\nCheck: 1) Architecture compliance, 2) Rule conformance, 3) Completeness.",
-                correctionNote,
+                refinementNote,
             ]
                 .filter(Boolean)
                 .join("\n");

@@ -202,7 +202,7 @@ describe("checkStructuralTriggers (combined)", () => {
       currentLambda2: 0.05, // λ₂ drop + near-disconnection
       currentFriction: 0.9, // friction spike
       frictionDuration: 200,
-      correctionHelixTemporalConstant: 100,
+      refinementHelixTemporalConstant: 100,
       currentCascadeDepth: 2, // cascade activation
       compositionEpsilonR: 0.2,
       epsilonRStableRange: { min: 0.05, max: 0.3 },
@@ -225,7 +225,7 @@ describe("checkStructuralTriggers (combined)", () => {
       currentLambda2: 0.95,
       currentFriction: 0.2,
       frictionDuration: 10,
-      correctionHelixTemporalConstant: 100,
+      refinementHelixTemporalConstant: 100,
       currentCascadeDepth: 0,
       compositionEpsilonR: 0.1,
       epsilonRStableRange: { min: 0.05, max: 0.3 },

@@ -8,7 +8,7 @@ import { buildStagePrompt } from "./prompts.js";
 import { DEFAULT_DEVAGENT_CONFIG, mapComplexity, } from "./types.js";
 /**
  * The DevAgent — runs tasks through a staged pipeline
- * with Thompson Sampling routing and Correction Helix.
+ * with Thompson Sampling routing and Refinement Helix.
  */
 export class DevAgent {
     config;
@@ -32,7 +32,7 @@ export class DevAgent {
         const stages = [];
         const decisions = [];
         let totalCost = 0;
-        let correctionCount = 0;
+        let refinementCount = 0;
         this.memory.add("devagent:pipeline", {
             prompt: task.prompt,
             taskType: task.taskType,
@@ -43,7 +43,7 @@ export class DevAgent {
             const stageResult = await this.runStage(stage, previousOutput, task, decisions);
             stages.push(stageResult);
             totalCost += 0;
-            correctionCount += stageResult.correctionIteration;
+            refinementCount += stageResult.refinementIteration;
             previousOutput = stageResult.output;
             if (this.config.afterStage) {
                 try {
@@ -58,7 +58,7 @@ export class DevAgent {
         let constitutionalCompliance = null;
         if (this.config.constitutionalRules.length > 0) {
             const complianceContext = {
-                correctionIterations: correctionCount,
+                refinementIterations: refinementCount,
             };
             constitutionalCompliance = evaluateConstitution(this.config.constitutionalRules, complianceContext);
         }
@@ -69,7 +69,7 @@ export class DevAgent {
             totalDurationMs: Date.now() - startTime,
             totalCost,
             overallQuality,
-            correctionCount,
+            refinementCount,
             constitutionalCompliance,
             decisions,
         };
@@ -85,7 +85,7 @@ export class DevAgent {
     }
     async runStage(stage, input, task, decisions) {
         let bestResult = null;
-        for (let correction = 0; correction <= this.config.maxCorrections; correction++) {
+        for (let refinement = 0; refinement <= this.config.maxRefinements; refinement++) {
             const routingContext = {
                 taskType: `${task.taskType}:${stage}`,
                 complexity: task.complexity,
@@ -97,7 +97,7 @@ export class DevAgent {
             const clusterId = `${routingContext.taskType}:${routingContext.complexity}`;
             const stats = this.armStats.get(clusterId) ?? [];
             const routingDecision = route(routingContext, this.models, stats, this.decisionCount++, this.config.routerConfig);
-            const stagePrompt = buildStagePrompt(stage, input, task, correction);
+            const stagePrompt = buildStagePrompt(stage, input, task, refinement);
             const { output, durationMs, cost } = await this.executor(routingDecision.selectedModelId, stagePrompt, stage);
             const qualityScore = await this.assessor(output, stage, task);
             const decisionContext = {
@@ -127,7 +127,7 @@ export class DevAgent {
             this.memory.add(`devagent:${stage}`, {
                 quality: qualityScore,
                 model: routingDecision.selectedModelId,
-                correction,
+                refinement,
             });
             const result = {
                 stage,
@@ -136,7 +136,7 @@ export class DevAgent {
                 qualityScore,
                 durationMs,
                 wasExploratory: routingDecision.wasExploratory,
-                correctionIteration: correction,
+                refinementIteration: refinement,
             };
             if (qualityScore >= this.config.qualityThreshold) {
                 return result;
@@ -147,7 +147,7 @@ export class DevAgent {
         }
         this.memory.add(`devagent:${stage}`, {
             degraded: true,
-            maxCorrections: this.config.maxCorrections,
+            maxRefinements: this.config.maxRefinements,
         });
         return bestResult;
     }

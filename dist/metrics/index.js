@@ -5,7 +5,7 @@
  * Codex Signum — Pipeline Metrics
  *
  * RTY (Rolled Throughput Yield) and feedback effectiveness metrics
- * for measuring pipeline health and correction loop quality.
+ * for measuring pipeline health and refinement loop quality.
  *
  * @module codex-signum-core/metrics
  */

@@ -3,7 +3,7 @@ import { EphemeralStore } from "../../memory/index.js";
 import { type AgentTask, type DevAgentConfig, type DevAgentModelExecutor, type PipelineResult, type QualityAssessor, type RoutableModel } from "./types.js";
 /**
  * The DevAgent — runs tasks through a staged pipeline
- * with Thompson Sampling routing and Correction Helix.
+ * with Thompson Sampling routing and Refinement Helix.
  */
 export declare class DevAgent {
     private config;

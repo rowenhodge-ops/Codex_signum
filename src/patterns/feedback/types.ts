@@ -13,7 +13,7 @@ export interface ObservableEvent {
     | "decision_made"
     | "quality_assessed"
     | "error_occurred"
-    | "correction_triggered";
+    | "refinement_triggered";
   timestamp: Date;
   data: Record<string, unknown>;
 }
@@ -30,7 +30,7 @@ export interface ObserverState {
 
 /** Feedback recommendation from the Observer */
 export interface FeedbackRecommendation {
-  scale: "correction" | "learning" | "evolutionary";
+  scale: "refinement" | "learning" | "evolutionary";
   action: string;
   confidence: number;
   evidence: string[];

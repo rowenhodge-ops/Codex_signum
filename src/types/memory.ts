@@ -39,8 +39,8 @@ export interface EphemeralMemory {
   bloomId: string;
   /** Working data (anything needed during execution) */
   data: Record<string, unknown>;
-  /** Correction helix state (if in retry loop) */
-  correctionState?: {
+  /** Refinement helix state (if in retry loop) */
+  refinementState?: {
     iteration: number;
     maxIterations: number;
     feedback: string[];
@@ -87,7 +87,7 @@ export type ObservationType =
   | "degradation_event"
   | "recovery_event"
   | "cascade_event"
-  | "correction_loop"
+  | "refinement_loop"
   | "exploration_event";
 
 /**

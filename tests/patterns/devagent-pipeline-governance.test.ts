@@ -101,7 +101,7 @@ describe("DevAgent: Thompson routing is used per stage", () => {
   });
 });
 
-describe("DevAgent: correction helix respects maxCorrections", () => {
+describe("DevAgent: refinement helix respects maxRefinements", () => {
   it("low quality causes more executor calls than stages", async () => {
     let executorCalls = 0;
     const countingExecutor = async (
@@ -111,20 +111,20 @@ describe("DevAgent: correction helix respects maxCorrections", () => {
     ) => {
       executorCalls++;
       return {
-        output: "Low quality mock output for correction testing.",
+        output: "Low quality mock output for refinement testing.",
         durationMs: 10,
         cost: 0.001,
       };
     };
     const failingAssessor = async () => 0.2; // Below default threshold (0.5)
 
-    const models = [makeModel("correction-model")];
+    const models = [makeModel("refinement-model")];
     const agent = new DevAgent(models, countingExecutor, failingAssessor, {
-      maxCorrections: 2,
+      maxRefinements: 2,
     });
     const result = await agent.run(makeTask());
 
-    // With 4 stages and maxCorrections=2, each stage runs 3 times (0, 1, 2)
+    // With 4 stages and maxRefinements=2, each stage runs 3 times (0, 1, 2)
     // So total executor calls should be 4 * 3 = 12
     expect(executorCalls).toBeGreaterThan(4); // More than just 1 call per stage
     expect(result.stages.length).toBe(4);
@@ -179,8 +179,8 @@ describe("DevAgent: DEFAULT_DEVAGENT_CONFIG has correct defaults", () => {
     expect(DEFAULT_DEVAGENT_CONFIG.qualityThreshold).toBeLessThanOrEqual(1);
   });
 
-  it("default maxCorrections is positive", () => {
-    expect(DEFAULT_DEVAGENT_CONFIG.maxCorrections).toBeGreaterThan(0);
+  it("default maxRefinements is positive", () => {
+    expect(DEFAULT_DEVAGENT_CONFIG.maxRefinements).toBeGreaterThan(0);
   });
 });
 

@@ -26,17 +26,17 @@ describe("computeRTY — Rolled Throughput Yield", () => {
     expect(result.rty).toBeCloseTo(1, 6);
   });
 
-  it("single stage, quality 1.0, no correction → RTY = 1.0", () => {
+  it("single stage, quality 1.0, no refinement → RTY = 1.0", () => {
     const attempts: StageAttempt[] = [
-      { stage: "SCOPE", modelId: "m1", qualityScore: 1, correctionIteration: 0 },
+      { stage: "SCOPE", modelId: "m1", qualityScore: 1, refinementIteration: 0 },
     ];
     const result = computeRTY(attempts);
     expect(result.rty).toBeCloseTo(1, 6);
   });
 
-  it("single stage, quality 0.8, no correction → RTY = 0.8", () => {
+  it("single stage, quality 0.8, no refinement → RTY = 0.8", () => {
     const attempts: StageAttempt[] = [
-      { stage: "SCOPE", modelId: "m1", qualityScore: 0.8, correctionIteration: 0 },
+      { stage: "SCOPE", modelId: "m1", qualityScore: 0.8, refinementIteration: 0 },
     ];
     const result = computeRTY(attempts);
     expect(result.rty).toBeCloseTo(0.8, 6);
@@ -44,30 +44,30 @@ describe("computeRTY — Rolled Throughput Yield", () => {
 
   it("two stages, 0.8 and 0.9 → RTY = 0.72", () => {
     const attempts: StageAttempt[] = [
-      { stage: "SCOPE", modelId: "m1", qualityScore: 0.8, correctionIteration: 0 },
-      { stage: "EXECUTE", modelId: "m1", qualityScore: 0.9, correctionIteration: 0 },
+      { stage: "SCOPE", modelId: "m1", qualityScore: 0.8, refinementIteration: 0 },
+      { stage: "EXECUTE", modelId: "m1", qualityScore: 0.9, refinementIteration: 0 },
     ];
     const result = computeRTY(attempts);
     expect(result.rty).toBeCloseTo(0.72, 4);
   });
 
-  it("correction needed → 30% penalty on quality score", () => {
+  it("refinement needed → 30% penalty on quality score", () => {
     const firstPass: StageAttempt[] = [
-      { stage: "S", modelId: "m1", qualityScore: 0.8, correctionIteration: 0 },
+      { stage: "S", modelId: "m1", qualityScore: 0.8, refinementIteration: 0 },
     ];
-    const withCorrection: StageAttempt[] = [
-      { stage: "S", modelId: "m1", qualityScore: 0.8, correctionIteration: 1 },
+    const withRefinement: StageAttempt[] = [
+      { stage: "S", modelId: "m1", qualityScore: 0.8, refinementIteration: 1 },
     ];
-    expect(computeRTY(firstPass).rty).toBeGreaterThan(computeRTY(withCorrection).rty);
-    // With correction: 0.8 × 0.7 = 0.56
-    expect(computeRTY(withCorrection).rty).toBeCloseTo(0.56, 4);
+    expect(computeRTY(firstPass).rty).toBeGreaterThan(computeRTY(withRefinement).rty);
+    // With refinement: 0.8 × 0.7 = 0.56
+    expect(computeRTY(withRefinement).rty).toBeCloseTo(0.56, 4);
   });
 
   it("RTY in [0, 1]", () => {
     const attempts: StageAttempt[] = [
-      { stage: "A", modelId: "m", qualityScore: 0.5, correctionIteration: 0 },
-      { stage: "B", modelId: "m", qualityScore: 0.6, correctionIteration: 0 },
-      { stage: "C", modelId: "m", qualityScore: 0.7, correctionIteration: 0 },
+      { stage: "A", modelId: "m", qualityScore: 0.5, refinementIteration: 0 },
+      { stage: "B", modelId: "m", qualityScore: 0.6, refinementIteration: 0 },
+      { stage: "C", modelId: "m", qualityScore: 0.7, refinementIteration: 0 },
     ];
     const { rty } = computeRTY(attempts);
     expect(rty).toBeGreaterThanOrEqual(0);
@@ -76,8 +76,8 @@ describe("computeRTY — Rolled Throughput Yield", () => {
 
   it("per-stage yields are returned", () => {
     const attempts: StageAttempt[] = [
-      { stage: "SCOPE", modelId: "m1", qualityScore: 0.9, correctionIteration: 0 },
-      { stage: "EXECUTE", modelId: "m1", qualityScore: 0.85, correctionIteration: 0 },
+      { stage: "SCOPE", modelId: "m1", qualityScore: 0.9, refinementIteration: 0 },
+      { stage: "EXECUTE", modelId: "m1", qualityScore: 0.85, refinementIteration: 0 },
     ];
     const result = computeRTY(attempts);
     expect(result.stageYields["SCOPE"]).toBeCloseTo(0.9, 4);
@@ -90,17 +90,17 @@ describe("computeRTY — Rolled Throughput Yield", () => {
 describe("computePercentCA — Percent Correct & Accurate", () => {
   it("all first-pass → overall = 100 (percent)", () => {
     const attempts: StageAttempt[] = [
-      { stage: "A", modelId: "m", qualityScore: 0.9, correctionIteration: 0 },
-      { stage: "B", modelId: "m", qualityScore: 0.85, correctionIteration: 0 },
+      { stage: "A", modelId: "m", qualityScore: 0.9, refinementIteration: 0 },
+      { stage: "B", modelId: "m", qualityScore: 0.85, refinementIteration: 0 },
     ];
     const result = computePercentCA(attempts);
     expect(result.overall).toBeCloseTo(100, 4);
   });
 
-  it("half with corrections → overall = 50 (percent)", () => {
+  it("half with refinements → overall = 50 (percent)", () => {
     const attempts: StageAttempt[] = [
-      { stage: "A", modelId: "m", qualityScore: 0.9, correctionIteration: 0 },
-      { stage: "B", modelId: "m", qualityScore: 0.8, correctionIteration: 1 },
+      { stage: "A", modelId: "m", qualityScore: 0.9, refinementIteration: 0 },
+      { stage: "B", modelId: "m", qualityScore: 0.8, refinementIteration: 1 },
     ];
     const result = computePercentCA(attempts);
     expect(result.overall).toBeCloseTo(50, 4);
@@ -115,21 +115,21 @@ describe("computePercentCA — Percent Correct & Accurate", () => {
 // ── stageResultsToAttempts ────────────────────────────────────────────────
 
 describe("stageResultsToAttempts", () => {
-  it("quality >= 0.5 → correctionIteration = 0", () => {
+  it("quality >= 0.5 → refinementIteration = 0", () => {
     const stages: StageResult[] = [
       { stage: "scope", modelId: "m", output: "ok", qualityScore: 0.8,
-        durationMs: 100, wasExploratory: false, correctionIteration: 0 },
+        durationMs: 100, wasExploratory: false, refinementIteration: 0 },
     ];
     const result = stageResultsToAttempts(stages);
-    expect(result[0].correctionIteration).toBe(0);
+    expect(result[0].refinementIteration).toBe(0);
   });
 
-  it("quality < 0.5 → correctionIteration = 1", () => {
+  it("quality < 0.5 → refinementIteration = 1", () => {
     const stages: StageResult[] = [
       { stage: "scope", modelId: "m", output: "bad", qualityScore: 0.3,
-        durationMs: 100, wasExploratory: false, correctionIteration: 1 },
+        durationMs: 100, wasExploratory: false, refinementIteration: 1 },
     ];
     const result = stageResultsToAttempts(stages);
-    expect(result[0].correctionIteration).toBe(1);
+    expect(result[0].refinementIteration).toBe(1);
   });
 });

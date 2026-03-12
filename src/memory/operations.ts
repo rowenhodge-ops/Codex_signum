@@ -94,9 +94,9 @@ export class EphemeralStore {
   }
 
   /**
-   * Update correction state for an execution (Correction Helix).
+   * Update refinement state for an execution (Refinement Helix).
    */
-  updateCorrectionState(
+  updateRefinementState(
     executionId: string,
     iteration: number,
     maxIterations: number,
@@ -107,7 +107,7 @@ export class EphemeralStore {
 
     const updated: EphemeralMemory = {
       ...entry,
-      correctionState: { iteration, maxIterations, feedback },
+      refinementState: { iteration, maxIterations, feedback },
     };
     this.entries.set(executionId, updated);
     return updated;

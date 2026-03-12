@@ -40,7 +40,7 @@ export interface StageResult {
   qualityScore: number;
   durationMs: number;
   wasExploratory: boolean;
-  correctionIteration: number;
+  refinementIteration: number;
 }
 
 /** Complete pipeline result */
@@ -51,7 +51,7 @@ export interface PipelineResult {
   totalDurationMs: number;
   totalCost: number;
   overallQuality: number;
-  correctionCount: number;
+  refinementCount: number;
   constitutionalCompliance: ConstitutionalEvaluation | null;
   decisions: Decision[];
   /** Source requirement provenance tracking.
@@ -84,7 +84,7 @@ export type QualityAssessor = (
 /** DevAgent configuration */
 export interface DevAgentConfig {
   stages: PipelineStage[];
-  maxCorrections: number;
+  maxRefinements: number;
   qualityThreshold: number;
   routerConfig: ThompsonRouterConfig;
   constitutionalRules: ConstitutionalRule[];
@@ -101,7 +101,7 @@ export interface DevAgentConfig {
 /** Default DevAgent configuration */
 export const DEFAULT_DEVAGENT_CONFIG: DevAgentConfig = {
   stages: ["scope", "execute", "review", "validate"],
-  maxCorrections: 3,
+  maxRefinements: 3,
   qualityThreshold: 0.5,
   routerConfig: DEFAULT_ROUTER_CONFIG,
   constitutionalRules: [],

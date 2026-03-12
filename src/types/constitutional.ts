@@ -101,7 +101,7 @@ export type RuleTarget =
   | "cascade_limit"
   | "hysteresis_ratio"
   | "review_model_differs"
-  | "max_correction_iterations"
+  | "max_refinement_iterations"
   | "min_provenance_clarity"
   | "custom";
 

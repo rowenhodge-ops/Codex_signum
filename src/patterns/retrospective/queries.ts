@@ -117,7 +117,7 @@ export async function queryStageHealth(
        avg(val) AS avgValue,
        CASE WHEN count(val) = 0 THEN 0.0
             ELSE toFloat(sum(CASE WHEN val < 0.6 THEN 1 ELSE 0 END)) / count(val)
-       END AS correctionRate
+       END AS refinementRate
      ORDER BY bloomId, stageName`,
     { windowHours, bloomIds: bloomIds ?? null },
     "READ",
@@ -127,7 +127,7 @@ export async function queryStageHealth(
     stageName: r.get("stageName"),
     observationCount: r.get("observationCount") ?? 0,
     avgValue: r.get("avgValue") ?? 0,
-    correctionRate: r.get("correctionRate") ?? 0,
+    refinementRate: r.get("refinementRate") ?? 0,
   }));
 }
 

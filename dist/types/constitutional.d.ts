@@ -71,7 +71,7 @@ export interface RuleExpression {
     /** Priority level */
     priority: "mandatory" | "preferred" | "advisory";
 }
-export type RuleTarget = "quality_threshold" | "cost_ceiling" | "min_phi_l" | "max_consecutive_failures" | "min_epsilon_r" | "max_epsilon_r" | "cascade_limit" | "hysteresis_ratio" | "review_model_differs" | "max_correction_iterations" | "min_provenance_clarity" | "custom";
+export type RuleTarget = "quality_threshold" | "cost_ceiling" | "min_phi_l" | "max_consecutive_failures" | "min_epsilon_r" | "max_epsilon_r" | "cascade_limit" | "hysteresis_ratio" | "review_model_differs" | "max_refinement_iterations" | "min_provenance_clarity" | "custom";
 export type RuleConstraint = "min" | "max" | "equals" | "not_equals" | "range" | "boolean";
 /**
  * Result of evaluating a constitutional rule against a decision.

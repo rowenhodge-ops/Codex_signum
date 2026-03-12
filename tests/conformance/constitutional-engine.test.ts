@@ -79,7 +79,7 @@ function makeFullContext(): ComplianceContext {
     cascadeDepth: 1,
     reviewModelDiffersFromExecute: true,
     memoryStratumFlow: "1→2→3",
-    correctionIterations: 2,
+    refinementIterations: 2,
   };
 }
 
@@ -203,17 +203,17 @@ describe("evaluateRule", () => {
     expect(result.passed).toBe(true);
   });
 
-  it("max_correction_iterations: fails when exceeded", () => {
+  it("max_refinement_iterations: fails when exceeded", () => {
     const rule = makeRule({
       id: "max-corr",
       expression: {
-        target: "max_correction_iterations",
+        target: "max_refinement_iterations",
         constraint: "max",
         value: 3,
         priority: "preferred",
       },
     });
-    const result = evaluateRule(rule, { correctionIterations: 5 });
+    const result = evaluateRule(rule, { refinementIterations: 5 });
     expect(result.passed).toBe(false);
     expect(result.actualValue).toBe(5);
   });
@@ -355,10 +355,10 @@ describe("evaluateConstitution", () => {
   it("classifies tier-3 violations as advisories", () => {
     const rules = [
       makeRule({
-        id: "advisory-correction",
+        id: "advisory-refinement",
         tier: 3,
         expression: {
-          target: "max_correction_iterations",
+          target: "max_refinement_iterations",
           constraint: "max",
           value: 2,
           priority: "advisory",
@@ -366,7 +366,7 @@ describe("evaluateConstitution", () => {
       }),
     ];
     const ctx = makeFullContext();
-    ctx.correctionIterations = 5;
+    ctx.refinementIterations = 5;
 
     const eval_ = evaluateConstitution(rules, ctx);
     expect(eval_.advisories).toHaveLength(1);

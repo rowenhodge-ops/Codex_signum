@@ -137,8 +137,8 @@ describe("Assayer Types — ClaimValidation shape", () => {
       ],
       antiPatternMatches: [],
       overallSeverity: "clear",
-      correctionPossible: false,
-      correctionSuggestion: null,
+      refinementPossible: false,
+      refinementSuggestion: null,
     };
     expect(validation.grammarExpressible).toBe(true);
     expect(validation.overallSeverity).toBe("clear");

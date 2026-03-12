@@ -156,11 +156,11 @@ export interface Grid extends MorphemeBase {
  *
  * Mode is INFERRED from temporal constant and containment context,
  * not declared. Convention:
- * - Correction: within single execution (seconds to minutes)
+ * - Refinement: within single execution (seconds to minutes)
  * - Learning: across executions (hours to weeks)
  * - Evolutionary: across ecosystem (weeks to months)
  */
-export type HelixMode = "correction" | "learning" | "evolutionary";
+export type HelixMode = "refinement" | "learning" | "evolutionary";
 export interface Helix extends MorphemeBase {
     kind: "helix";
     /** Inferred mode based on temporal constant and context */
@@ -169,7 +169,7 @@ export interface Helix extends MorphemeBase {
     feedsInto: string;
     /** Optional source grid for learning data */
     source?: string;
-    /** Maximum iterations for correction helixes */
+    /** Maximum iterations for refinement helixes */
     maxIterations?: number;
 }
 /**

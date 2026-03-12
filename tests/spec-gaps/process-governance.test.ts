@@ -111,7 +111,7 @@ describe("NFR-G8: Schema convergence — single schema", () => {
 
 describe("Process Governance Spec Gap: RTY measurement exists", () => {
   it("RTY (Rolled Throughput Yield) is computed somewhere in src/", () => {
-    // §5.1 UC-1: "RTY > 0.8, zero rework loops beyond correction helix"
+    // §5.1 UC-1: "RTY > 0.8, zero rework loops beyond refinement helix"
     // There should be a function that computes RTY from stage %C&A
     const allFiles = findTsFiles(SRC);
     let hasRTY = false;

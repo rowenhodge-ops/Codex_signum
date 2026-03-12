@@ -30,7 +30,7 @@ const healthyState: TriggerInputState = {
   currentLambda2: 0.5,
   previousLambda2: 0.5,           // No λ₂ drop
   currentFriction: 0.1,           // ≤ 0.5 — friction spike won't fire
-  correctionHelixTemporalConstant: 100,
+  refinementHelixTemporalConstant: 100,
   frictionDuration: 0,            // No sustained friction
   currentCascadeDepth: 0,         // < CASCADE_LIMIT (2)
   compositionEpsilonR: 0.1,       // ≤ stableRange.max (0.30)

@@ -36,22 +36,22 @@ export function checkLambda2Drop(previousLambda2, currentLambda2) {
     };
 }
 /**
- * Trigger 2: Friction spike sustained beyond Correction Helix temporal constant.
- * "Runtime friction crosses threshold, sustained beyond Scale 1 correction time."
+ * Trigger 2: Friction spike sustained beyond Refinement Helix temporal constant.
+ * "Runtime friction crosses threshold, sustained beyond Scale 1 refinement time."
  *
- * Fires when friction > 0.5 AND duration > correctionHelixTemporalConstant.
+ * Fires when friction > 0.5 AND duration > refinementHelixTemporalConstant.
  * Severity: warning if friction < 0.8, critical if ≥ 0.8.
  */
-export function checkFrictionSpike(currentFriction, frictionDuration, correctionHelixTemporalConstant) {
+export function checkFrictionSpike(currentFriction, frictionDuration, refinementHelixTemporalConstant) {
     if (currentFriction <= 0.5)
         return null;
-    if (frictionDuration <= correctionHelixTemporalConstant)
+    if (frictionDuration <= refinementHelixTemporalConstant)
         return null;
     const severity = currentFriction >= 0.8 ? "critical" : "warning";
     return {
         trigger: "friction_spike",
         severity,
-        detail: `Friction ${currentFriction.toFixed(3)} sustained for ${frictionDuration.toFixed(1)} (threshold: ${correctionHelixTemporalConstant.toFixed(1)})`,
+        detail: `Friction ${currentFriction.toFixed(3)} sustained for ${frictionDuration.toFixed(1)} (threshold: ${refinementHelixTemporalConstant.toFixed(1)})`,
     };
 }
 /**
@@ -143,7 +143,7 @@ export function checkStructuralTriggers(state) {
     const lambda2 = checkLambda2Drop(state.previousLambda2, state.currentLambda2);
     if (lambda2)
         events.push(lambda2);
-    const friction = checkFrictionSpike(state.currentFriction, state.frictionDuration, state.correctionHelixTemporalConstant);
+    const friction = checkFrictionSpike(state.currentFriction, state.frictionDuration, state.refinementHelixTemporalConstant);
     if (friction)
         events.push(friction);
     const cascade = checkCascadeActivation(state.currentCascadeDepth);

@@ -275,13 +275,13 @@ describe("RTY (Rolled Throughput Yield)", () => {
         stage: "scope",
         modelId: "m1",
         qualityScore: 0.9,
-        correctionIteration: 0,
+        refinementIteration: 0,
       },
       {
         stage: "execute",
         modelId: "m2",
         qualityScore: 0.8,
-        correctionIteration: 0,
+        refinementIteration: 0,
       },
     ];
     const result = computeRTY(attempts);
@@ -296,7 +296,7 @@ describe("RTY (Rolled Throughput Yield)", () => {
         stage: "scope",
         modelId: "m1",
         qualityScore: 0.8,
-        correctionIteration: 1,
+        refinementIteration: 1,
       },
     ];
     const result = computeRTY(attempts);
@@ -321,8 +321,8 @@ describe("RTY (Rolled Throughput Yield)", () => {
       },
     ];
     const attempts = stageResultsToAttempts(stages);
-    expect(attempts[0].correctionIteration).toBe(0); // 0.8 >= 0.5
-    expect(attempts[1].correctionIteration).toBe(1); // 0.3 < 0.5
+    expect(attempts[0].refinementIteration).toBe(0); // 0.8 >= 0.5
+    expect(attempts[1].refinementIteration).toBe(1); // 0.3 < 0.5
   });
 });
 
@@ -338,13 +338,13 @@ describe("%C&A (Percent Correct & Accurate)", () => {
         stage: "scope",
         modelId: "m1",
         qualityScore: 0.9,
-        correctionIteration: 0,
+        refinementIteration: 0,
       },
       {
         stage: "execute",
         modelId: "m2",
         qualityScore: 0.8,
-        correctionIteration: 1,
+        refinementIteration: 1,
       },
     ];
     const result = computePercentCA(attempts);
@@ -355,7 +355,7 @@ describe("%C&A (Percent Correct & Accurate)", () => {
 });
 
 describe("Feedback Effectiveness", () => {
-  it("returns 1.0 when no corrections occurred", () => {
+  it("returns 1.0 when no refinements occurred", () => {
     const stages = [
       {
         stage: "scope" as const,
@@ -387,14 +387,14 @@ describe("Feedback Effectiveness", () => {
         content: "",
       },
     ];
-    // 2 corrections, 1 low-quality stage remaining → 1 improved
+    // 2 refinements, 1 low-quality stage remaining → 1 improved
     const result = computeFeedbackEffectiveness(stages, 2);
     expect(result.correctedStages).toBe(2);
     expect(result.improvedStages).toBe(1);
     expect(result.effectiveness).toBe(0.5);
   });
 
-  it("returns 0 effectiveness when all corrections failed", () => {
+  it("returns 0 effectiveness when all refinements failed", () => {
     const stages = [
       {
         stage: "scope" as const,

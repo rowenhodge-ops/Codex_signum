@@ -78,7 +78,7 @@ describe("Morpheme Spec Gap: Grid (□) has full lifecycle", () => {
 
 describe("Morpheme Spec Gap: Helix (🌀) has full lifecycle", () => {
   it("createHelix() function exists in graph/queries.ts", () => {
-    // §1: DevAgent uses Helix for correction/learning loops
+    // §1: DevAgent uses Helix for refinement/learning loops
     expect(queriesContent).toMatch(
       /export\s+(async\s+)?function\s+createHelix/,
     );

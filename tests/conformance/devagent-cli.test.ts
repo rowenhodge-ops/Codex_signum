@@ -274,7 +274,7 @@ describe("DevAgent pipeline (with mocks)", () => {
 
     const agent = new DevAgent(mockModels, mockExecutor, mockAssessor, {
       stages: ["execute"],
-      maxCorrections: 3,
+      maxRefinements: 3,
       qualityThreshold: 0.5,
       routerConfig: {
         epsilonFloor: 0.01,

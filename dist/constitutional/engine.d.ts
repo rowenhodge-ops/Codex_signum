@@ -21,7 +21,7 @@
  * A6: Degradation propagates via topology-aware dampening
  * A7: Constitutional rules are tiered (mandatory/preferred/advisory)
  * A8: Memory flows upward: ephemeral → observation → distillation → institutional
- * A9: Three feedback scales: correction (immediate), learning (session), evolutionary (cross-session)
+ * A9: Three feedback scales: refinement (immediate), learning (session), evolutionary (cross-session)
  * A10: Meta-imperatives (Ω₁,Ω₂,Ω₃) are gradient constraints, not objectives
  *
  * @see codex-signum-v3.0.md §Constitutional Layer
@@ -38,7 +38,7 @@ export interface ComplianceContext {
     cascadeDepth?: number;
     reviewModelDiffersFromExecute?: boolean;
     memoryStratumFlow?: string;
-    correctionIterations?: number;
+    refinementIterations?: number;
 }
 /** Result of a full constitutional evaluation */
 export interface ConstitutionalEvaluation {

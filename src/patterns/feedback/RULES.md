@@ -6,5 +6,5 @@
 - Observations are written as graph nodes, not logged to files
 
 ## Tier 2 (Preferred)
-- Three-scale feedback: correction (immediate), learning (session), evolutionary (cross-session)
+- Three-scale feedback: refinement (immediate), learning (session), evolutionary (cross-session)
 - Hypothesis evaluations include required sample size for statistical significance

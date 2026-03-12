@@ -79,8 +79,8 @@ function checkRule(rule, context) {
             };
         case "min_epsilon_r":
             return checkNumericConstraint("εR floor", context.epsilonR?.floor ?? 0.01, expr.constraint, expr.value);
-        case "max_correction_iterations":
-            return checkNumericConstraint("Correction iterations", context.correctionIterations ?? 0, expr.constraint, expr.value);
+        case "max_refinement_iterations":
+            return checkNumericConstraint("Refinement iterations", context.refinementIterations ?? 0, expr.constraint, expr.value);
         case "quality_threshold":
             return {
                 passed: true,

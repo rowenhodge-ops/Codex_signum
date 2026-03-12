@@ -56,8 +56,8 @@ export interface ClaimValidation {
     axiomResults: AxiomResult[];
     antiPatternMatches: AntiPatternMatch[];
     overallSeverity: "clear" | "minor" | "major" | "critical";
-    correctionPossible: boolean;
-    correctionSuggestion: string | null;
+    refinementPossible: boolean;
+    refinementSuggestion: string | null;
 }
 /** Full compliance assessment output */
 export interface ComplianceResult {

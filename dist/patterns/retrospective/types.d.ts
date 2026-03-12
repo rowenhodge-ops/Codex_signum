@@ -43,7 +43,7 @@ export interface StageReading {
     /** Average raw observation value in window */
     avgValue: number;
     /** Fraction of observations below 0.6 quality */
-    correctionRate: number;
+    refinementRate: number;
 }
 /** Degradation events in window */
 export interface DegradationReading {

@@ -48,7 +48,7 @@ export type {
 
 // Feedback functions + types (formerly observer — Observer class removed per state-is-structural axiom)
 export {
-  checkCorrectionScale,
+  checkRefinementScale,
   checkLearningScale,
   checkEvolutionaryScale,
 } from "./feedback/index.js";

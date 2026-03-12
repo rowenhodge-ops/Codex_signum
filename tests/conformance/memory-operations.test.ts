@@ -75,20 +75,20 @@ describe("EphemeralStore (Stratum 1)", () => {
     expect(store.size).toBe(0);
   });
 
-  it("tracks correction state (Correction Helix)", () => {
+  it("tracks refinement state (Refinement Helix)", () => {
     const e = store.add("router-v1");
-    const updated = store.updateCorrectionState(e.executionId, 2, 5, [
+    const updated = store.updateRefinementState(e.executionId, 2, 5, [
       "improve error handling",
       "add type guards",
     ]);
     expect(updated).not.toBeNull();
-    expect(updated!.correctionState!.iteration).toBe(2);
-    expect(updated!.correctionState!.maxIterations).toBe(5);
-    expect(updated!.correctionState!.feedback).toHaveLength(2);
+    expect(updated!.refinementState!.iteration).toBe(2);
+    expect(updated!.refinementState!.maxIterations).toBe(5);
+    expect(updated!.refinementState!.feedback).toHaveLength(2);
   });
 
   it("returns null for unknown executionId on update", () => {
-    expect(store.updateCorrectionState("nonexistent", 1, 3, [])).toBeNull();
+    expect(store.updateRefinementState("nonexistent", 1, 3, [])).toBeNull();
   });
 });
 
@@ -156,7 +156,7 @@ describe("createObservation (Stratum 2)", () => {
       "degradation_event",
       "recovery_event",
       "cascade_event",
-      "correction_loop",
+      "refinement_loop",
       "exploration_event",
     ] as const;
 

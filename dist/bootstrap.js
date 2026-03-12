@@ -1105,7 +1105,7 @@ export const CORE_BLOOMS = [
         name: "DevAgent Pipeline",
         type: "pattern",
         status: "active",
-        description: "4-stage coding pipeline with correction helix",
+        description: "4-stage coding pipeline with refinement helix",
         morphemeKinds: ["bloom", "helix"],
         domain: "core",
     },

@@ -29,9 +29,9 @@ describe("DEFAULT_DEVAGENT_CONFIG", () => {
     expect(DEFAULT_DEVAGENT_CONFIG.qualityThreshold).toBeLessThanOrEqual(1);
   });
 
-  it("has defined max corrections count (maxCorrections)", () => {
-    expect(typeof DEFAULT_DEVAGENT_CONFIG.maxCorrections).toBe("number");
-    expect(DEFAULT_DEVAGENT_CONFIG.maxCorrections).toBeGreaterThanOrEqual(1);
+  it("has defined max refinements count (maxRefinements)", () => {
+    expect(typeof DEFAULT_DEVAGENT_CONFIG.maxRefinements).toBe("number");
+    expect(DEFAULT_DEVAGENT_CONFIG.maxRefinements).toBeGreaterThanOrEqual(1);
   });
 
   it("has pipeline stages defined", () => {
@@ -90,7 +90,7 @@ describe("AgentTask shape", () => {
 
 // ── Pipeline integration (@future(M-10) — requires executor mock) ────────
 // These tests assert the DevAgent pipeline contracts that must hold when
-// the full pipeline is wired with graph persistence, correction helix,
+// the full pipeline is wired with graph persistence, refinement helix,
 // constitutional checks, lifecycle hooks, and Thompson Sampling memory.
 
 /** Mock models for Thompson routing */
@@ -134,8 +134,8 @@ describe("DevAgent.run() (integration — @future(M-10))", () => {
     expect(result.taskId).toBe(mockTask.id);
     // Overall quality should reflect the assessor's score
     expect(result.overallQuality).toBeGreaterThanOrEqual(0.5);
-    // Correction count should be 0 when quality passes on first attempt
-    expect(result.correctionCount).toBe(0);
+    // Refinement count should be 0 when quality passes on first attempt
+    expect(result.refinementCount).toBe(0);
     // Decisions should be recorded for Thompson Sampling memory
     expect(result.decisions.length).toBeGreaterThanOrEqual(4);
     // Each decision should have an outcome attached
@@ -145,7 +145,7 @@ describe("DevAgent.run() (integration — @future(M-10))", () => {
     }
   });
 
-  it("@future(M-10) quality below threshold triggers correction helix", async () => {
+  it("@future(M-10) quality below threshold triggers refinement helix", async () => {
     // First call returns low quality, subsequent calls return passing quality
     let callCount = 0;
     const improvingAssessor: QualityAssessor = async () => {
@@ -156,21 +156,21 @@ describe("DevAgent.run() (integration — @future(M-10))", () => {
     const agent = new DevAgent(mockModels, mockExecutor, improvingAssessor);
     const result = await agent.run({ ...mockTask, id: "correction-test" });
 
-    // Should have correction iterations > 0
-    expect(result.correctionCount).toBeGreaterThan(0);
+    // Should have refinement iterations > 0
+    expect(result.refinementCount).toBeGreaterThan(0);
     // Final output should still be from a passing stage
     expect(result.overallQuality).toBeGreaterThanOrEqual(0.5);
   });
 
   it("@future(M-10) max retries reached returns failure result with best available", async () => {
-    // Always return low quality to exhaust corrections
+    // Always return low quality to exhaust refinements
     const agent = new DevAgent(mockModels, mockExecutor, createMockAssessor(0.1), {
-      maxCorrections: 2,
+      maxRefinements: 2,
     });
     const result = await agent.run({ ...mockTask, id: "max-retry-test" });
 
-    // Should have exhausted correction budget
-    expect(result.correctionCount).toBeGreaterThan(0);
+    // Should have exhausted refinement budget
+    expect(result.refinementCount).toBeGreaterThan(0);
     // Overall quality reflects best available (still low)
     expect(result.overallQuality).toBeLessThan(0.5);
     // Pipeline should still produce stages (not crash)
@@ -180,11 +180,11 @@ describe("DevAgent.run() (integration — @future(M-10))", () => {
   it("@future(M-10) constitutional check fires and result includes compliance evaluation", async () => {
     const rule: ConstitutionalRule = {
       id: "rule-max-correction-iterations",
-      name: "Correction Helix Bound",
+      name: "Refinement Helix Bound",
       tier: 1,
       status: "active",
       expression: {
-        target: "max_correction_iterations",
+        target: "max_refinement_iterations",
         constraint: "max",
         value: 3,
         priority: "mandatory",

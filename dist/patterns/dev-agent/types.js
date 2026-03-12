@@ -5,7 +5,7 @@ import { DEFAULT_ROUTER_CONFIG } from "../thompson-router/index.js";
 /** Default DevAgent configuration */
 export const DEFAULT_DEVAGENT_CONFIG = {
     stages: ["scope", "execute", "review", "validate"],
-    maxCorrections: 3,
+    maxRefinements: 3,
     qualityThreshold: 0.5,
     routerConfig: DEFAULT_ROUTER_CONFIG,
     constitutionalRules: [],
