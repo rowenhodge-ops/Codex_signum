@@ -365,13 +365,13 @@ export async function seedConstitutionalRules() {
         },
         {
             id: "rule-max-correction-iterations",
-            name: "Correction Helix Bound",
+            name: "Refinement Helix Bound",
             tier: 1,
-            target: "max_correction_iterations",
+            target: "max_refinement_iterations",
             constraint: "max",
             value: 3,
             priority: "mandatory",
-            rationale: "Maximum 3 correction iterations. Then pass best available + signal degraded ΦL.",
+            rationale: "Maximum 3 refinement iterations. Then pass best available + signal degraded ΦL.",
         },
         {
             id: "rule-quality-threshold",

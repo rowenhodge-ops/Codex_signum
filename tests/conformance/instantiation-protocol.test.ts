@@ -757,3 +757,149 @@ describe("all morpheme types accepted", () => {
     });
   }
 });
+
+// ════════════════════════════════════════════════════════════════════
+// Delegation: higher-level functions delegate to protocol
+// ════════════════════════════════════════════════════════════════════
+
+describe("createContainedBloom delegation", () => {
+  // Import the function under test (uses same mocked graph client)
+  let createContainedBloom: typeof import("../../src/graph/queries/bloom.js").createContainedBloom;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const mod = await import("../../src/graph/queries/bloom.js");
+    createContainedBloom = mod.createContainedBloom;
+  });
+
+  it("delegates to instantiateMorpheme with morphemeType bloom", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    await createContainedBloom(
+      { id: "b-1", name: "Test Bloom", type: "test", status: "planned", content: "Test content" },
+      "parent-bloom",
+    );
+
+    // Should have run MERGE with Bloom label (from instantiateMorpheme)
+    const mergeCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("MERGE") && (c[0] as string).includes(":Bloom"),
+    );
+    expect(mergeCalls.length).toBeGreaterThan(0);
+
+    // Should wire INSTANTIATES (definitionId is a parameter, not inline in query)
+    const instCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("INSTANTIATES"),
+    );
+    expect(instCalls.length).toBeGreaterThan(0);
+    // Verify the definition target is bloom
+    const instParams = instCalls[0][1] as Record<string, unknown>;
+    expect(instParams.definitionId).toBe("def:morpheme:bloom");
+  });
+
+  it("falls back description → content for backward compatibility", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    await createContainedBloom(
+      { id: "b-2", name: "Desc Bloom", type: "test", status: "planned", description: "From description" },
+      "parent-bloom",
+    );
+
+    // Should succeed (content derived from description)
+    const mergeCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("MERGE") && (c[0] as string).includes(":Bloom"),
+    );
+    expect(mergeCalls.length).toBeGreaterThan(0);
+  });
+
+  it("records observation in instantiation Grid", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    await createContainedBloom(
+      { id: "b-3", name: "Obs Bloom", type: "test", status: "planned", content: "Observed" },
+      "parent-bloom",
+    );
+
+    const obsCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("grid:instantiation-observations"),
+    );
+    expect(obsCalls.length).toBeGreaterThan(0);
+  });
+});
+
+describe("createContainedResonator delegation", () => {
+  let createContainedResonator: typeof import("../../src/graph/queries/resonator.js").createContainedResonator;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const mod = await import("../../src/graph/queries/resonator.js");
+    createContainedResonator = mod.createContainedResonator;
+  });
+
+  it("delegates to instantiateMorpheme with morphemeType resonator", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    await createContainedResonator(
+      { id: "r-1", name: "Test Resonator", content: "Transforms input", type: "test", status: "active" },
+      "parent-bloom",
+    );
+
+    // Should MERGE with Resonator label
+    const mergeCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("MERGE") && (c[0] as string).includes(":Resonator"),
+    );
+    expect(mergeCalls.length).toBeGreaterThan(0);
+
+    // Should wire INSTANTIATES (definitionId is a parameter, not inline)
+    const instCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("INSTANTIATES"),
+    );
+    expect(instCalls.length).toBeGreaterThan(0);
+    const instParams = instCalls[0][1] as Record<string, unknown>;
+    expect(instParams.definitionId).toBe("def:morpheme:resonator");
+  });
+
+  it("rejects empty content (A1 enforcement)", async () => {
+    await expect(
+      createContainedResonator(
+        { id: "r-bad", name: "Bad", content: "", type: "test", status: "active" },
+        "parent-bloom",
+      ),
+    ).rejects.toThrow();
+  });
+});
+
+describe("updateBloomStatus delegation", () => {
+  let updateBloomStatus: typeof import("../../src/graph/queries/bloom.js").updateBloomStatus;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const mod = await import("../../src/graph/queries/bloom.js");
+    updateBloomStatus = mod.updateBloomStatus;
+  });
+
+  it("delegates to updateMorpheme", async () => {
+    // Mock: node exists as Bloom
+    mockNodeLabels("bloom-1", ["Bloom"]);
+
+    await updateBloomStatus("bloom-1", "complete", { phiL: 0.9 });
+
+    // Should SET status and phiL via the mutation protocol
+    const setCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("SET") && (c[0] as string).includes("Bloom"),
+    );
+    expect(setCalls.length).toBeGreaterThan(0);
+
+    // Should record mutation observation
+    const obsCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("grid:mutation-observations"),
+    );
+    expect(obsCalls.length).toBeGreaterThan(0);
+  });
+
+  it("throws on non-existent bloom", async () => {
+    // Mock: node doesn't exist
+    mockRun.mockResolvedValue({ records: [] });
+
+    await expect(updateBloomStatus("missing", "complete")).rejects.toThrow("does not exist");
+  });
+});
