@@ -114,11 +114,11 @@ describe("detectHallucinations — content level", () => {
     const axiomFlags = flags.filter((f) => f.description.includes("axiom"));
     expect(axiomFlags).toHaveLength(1);
     expect(axiomFlags[0].description).toContain("12");
-    expect(axiomFlags[0].description).toContain("9");
+    expect(axiomFlags[0].description).toContain("8");
   });
 
   it("does not flag correct axiom count", () => {
-    const output = "The protocol defines 9 axioms.\n" +
+    const output = "The protocol defines 8 axioms.\n" +
       "x".repeat(300);
 
     const flags = detectHallucinations(output, makeTask());
@@ -201,11 +201,12 @@ describe("hallucination detection constants", () => {
     expect(ELIMINATED_ENTITIES).toContain("Model Sentinel");
   });
 
-  it("axiom names are all present (v4.3: 9 axioms, Symbiosis removed)", () => {
+  it("axiom names are all present (v5.0: 8 axioms, A5 Reversibility + Symbiosis removed)", () => {
     expect(CANONICAL_AXIOM_NAMES).not.toContain("Symbiosis");
+    expect(CANONICAL_AXIOM_NAMES).not.toContain("Reversibility");
     expect(CANONICAL_AXIOM_NAMES).toContain("Semantic Stability");
     expect(CANONICAL_AXIOM_NAMES).toContain("Adaptive Pressure");
-    expect(CANONICAL_AXIOM_NAMES).toHaveLength(9);
+    expect(CANONICAL_AXIOM_NAMES).toHaveLength(8);
   });
 });
 
@@ -300,17 +301,16 @@ describe("DOCUMENT_NAME_MAP", () => {
 
 // ── Canonical allowlists (M-8.QG.3) ─────────────────────────────────────
 
-describe("CANONICAL_AXIOM_NAMES — v4.3 spec (9 axioms)", () => {
-  it("contains exactly 9 axioms", () => {
-    expect(CANONICAL_AXIOM_NAMES).toHaveLength(9);
+describe("CANONICAL_AXIOM_NAMES — v5.0 spec (8 axioms)", () => {
+  it("contains exactly 8 axioms", () => {
+    expect(CANONICAL_AXIOM_NAMES).toHaveLength(8);
   });
 
-  it("contains all 9 v4.3 axiom names", () => {
+  it("contains all 8 v5.0 axiom names", () => {
     expect(CANONICAL_AXIOM_NAMES).toContain("Fidelity");
     expect(CANONICAL_AXIOM_NAMES).toContain("Visible State");
     expect(CANONICAL_AXIOM_NAMES).toContain("Transparency");
     expect(CANONICAL_AXIOM_NAMES).toContain("Provenance");
-    expect(CANONICAL_AXIOM_NAMES).toContain("Reversibility");
     expect(CANONICAL_AXIOM_NAMES).toContain("Minimal Authority");
     expect(CANONICAL_AXIOM_NAMES).toContain("Semantic Stability");
     expect(CANONICAL_AXIOM_NAMES).toContain("Adaptive Pressure");
@@ -319,6 +319,10 @@ describe("CANONICAL_AXIOM_NAMES — v4.3 spec (9 axioms)", () => {
 
   it("does NOT contain Symbiosis (absorbed into A2+A9 at v4.0)", () => {
     expect(CANONICAL_AXIOM_NAMES).not.toContain("Symbiosis");
+  });
+
+  it("does NOT contain Reversibility (derived from A4 + memory topology, removed v5.0)", () => {
+    expect(CANONICAL_AXIOM_NAMES).not.toContain("Reversibility");
   });
 });
 

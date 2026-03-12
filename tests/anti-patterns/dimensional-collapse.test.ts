@@ -148,10 +148,10 @@ describe("Dimensional Collapse: detectHallucinations catches fabrications", () =
     expect(entries!.length).toBeGreaterThanOrEqual(10);
   });
 
-  it("detectHallucinations checks for wrong axiom count (not 9)", () => {
+  it("detectHallucinations checks for wrong axiom count (not 8)", () => {
     expect(executorContent).toContain("axiom");
-    // Must check that count !== 9 (v4.3: Symbiosis removed)
-    expect(executorContent).toMatch(/count\s*!==\s*9/);
+    // Must check that count !== 8 (v5.0: A5 Reversibility + Symbiosis removed)
+    expect(executorContent).toMatch(/count\s*!==\s*8/);
   });
 
   it("detectHallucinations checks for wrong pipeline stage count (not 7)", () => {

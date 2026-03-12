@@ -265,20 +265,23 @@ scripts/                   # Self-hosting CLI (NOT part of the library — consu
 └── verify-select-model.ts # Thompson selection verification
 
 docs/                      # Specification corpus, research papers, hypothesis registry
-├── specs/                 # Canonical specifications (13 files)
-│   ├── codex-signum-v3_0.md              # Core protocol (THE canonical spec)
-│   ├── codex-signum-engineering-bridge-v2_0.md  # Implementation authority
-│   ├── codex-signum-v3_1-adaptive-imperative-boundaries.md
-│   ├── codex-signum-architect-pattern-design.md
+├── specs/                 # Canonical specifications
+│   ├── cs-v5.0.md                        # v5.0 canonical spec (8 axioms, G1–G5)
+│   ├── 03_codex-signum-lean-process-maps-v2.md
+│   ├── 04_codex-signum-opex-addendum-v2.md
+│   ├── 05_codex-signum-engineering-bridge-v2_0.md  # Implementation authority
+│   ├── 06_codex-signum-architect-pattern-design.md
+│   ├── 07_codex-signum-research-pattern-design.md
+│   ├── 08_codex-signum-attunement-v0_2.md
+│   ├── codex-signum-morpheme-identity-map.md       # Morpheme Identity Map v1.0
 │   ├── codex-signum-reference-patterns-design.md
-│   ├── codex-signum-research-pattern-design.md
-│   ├── codex-signum-pattern-exchange-protocol.md
-│   ├── codex-signum-lean-process-maps-v2.md
-│   ├── codex-signum-opex-addendum-v2.md
-│   ├── codex-signum-attunement-v0_2.md
-│   ├── codex-signum-implementation-README.md
-│   ├── codex-signum-implementation-plan.md
-│   └── codex-signum-research-index.md
+│   ├── codex-signum-research-index.md
+│   ├── concurrent-pattern-topology-v3.md           # Concurrent execution model
+│   ├── instantiation-mutation-resonator-design.md  # Governance Resonator design
+│   └── m9-8-ecosystem-schema.md
+├── roadmap/               # Canonical roadmap
+│   └── codex-signum-roadmap-v8.md
+├── milestones/            # Milestone completion prompts
 ├── research/              # Research papers (short-named copies for SURVEY consumption)
 │   ├── parameter-validation.md     # 16-parameter table, dampening, hysteresis
 │   ├── safety-analysis.md          # 81.6% cascade correction, percolation theory
@@ -307,7 +310,7 @@ dist/                      # Compiled output — COMMITTED to repo
 
 ### Constitutional Bloom
 
-The Constitutional Bloom is the organisational core of the graph. It contains the 41 definition Seeds (axioms A1–A4, A6–A9; grammar rules G1–G8; morpheme definitions) and governance Resonators that enforce structural invariants. All other Blooms derive their compliance context from Constitutional CONTAINS edges. Bootstrapped via `scripts/bootstrap-constitutional-bloom.ts`.
+The Constitutional Bloom is the organisational core of the graph. It contains the 41 definition Seeds (axioms A1–A4, A6–A9; grammar rules G1–G5; morpheme definitions) and governance Resonators that enforce structural invariants. All other Blooms derive their compliance context from Constitutional CONTAINS edges. Bootstrapped via `scripts/bootstrap-constitutional-bloom.ts`.
 
 ### Dispatch Routing
 
@@ -568,7 +571,7 @@ When in doubt about how something should be computed:
 
 | Question | Reference |
 |---|---|
-| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` (v5.0 is canonical — 8 axioms, A5 Reversibility + Symbiosis removed) |
+| What are the morphemes, axioms, grammar rules? | `cs-v5.0.md` (v5.0 canonical — 8 axioms, A5 Reversibility + Symbiosis removed) |
 | How to compute ΦL, ΨH, εR? | Engineering Bridge v2.0 §Part 2 |
 | Dampening, cascade, hysteresis parameters? | Engineering Bridge v2.0 §Part 3 |
 | Signal conditioning pipeline? | Engineering Bridge v2.0 §Part 4 |
@@ -746,8 +749,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1509 | `npm test` at HEAD |
-| Barrel exports | 273 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1563 | `npm test` at HEAD |
+| Barrel exports | 277 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 

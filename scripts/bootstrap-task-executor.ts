@@ -244,7 +244,7 @@ export function isSynthesisTask(task: Task, isLastPhase: boolean): boolean {
 /** Canonical reference constants for consistency checking */
 export const CANONICAL_AXIOM_NAMES = [
   "Fidelity", "Visible State", "Transparency",
-  "Provenance", "Reversibility", "Minimal Authority",
+  "Provenance", "Minimal Authority",
   "Semantic Stability", "Adaptive Pressure", "Comprehension Primacy",
 ] as const;
 
@@ -481,11 +481,11 @@ export function detectHallucinations(
   const axiomCountMatch = output.match(/(\d+)\s+axioms?/i);
   if (axiomCountMatch) {
     const count = parseInt(axiomCountMatch[1], 10);
-    if (count !== 9) {
+    if (count !== 8) {
       flags.push({
         level: "content",
         severity: "warning",
-        description: `Claims ${count} axioms (canonical count is 9)`,
+        description: `Claims ${count} axioms (canonical count is 8)`,
       });
     }
   }
