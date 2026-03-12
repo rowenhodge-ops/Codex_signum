@@ -46,6 +46,8 @@ const ELIMINATED_ENTITIES: EliminatedEntity[] = [
   { id: "eliminated:signal-pipeline-entity", name: "Signal Pipeline (as entity)", deletedIn: "M-8A", reason: "Not a separate entity — signal conditioning is inline computation during writes" },
   { id: "eliminated:health-computation-entity", name: "Health Computation (as entity)", deletedIn: "M-8A", reason: "Not a separate entity — health is computed inline on graph writes, not routed through intermediary" },
   { id: "eliminated:symbiosis-axiom", name: "Symbiosis (Axiom)", deletedIn: "v4.0", reason: "Absorbed into A2 Visible State + A9 Comprehension Primacy at v4.0 spec revision" },
+  { id: "eliminated:correction-helix", name: "Correction (Helix mode)", deletedIn: "v5.0", reason: "Renamed to Refinement — correction implies fault-fixing, refinement captures iterative improvement" },
+  { id: "eliminated:a5-reversibility", name: "A5 Reversibility (Axiom)", deletedIn: "v5.0", reason: "Derived from A4 Provenance + memory topology, not independent — removed to reduce axiom set to 8" },
 ];
 
 interface DetectionHeuristic {

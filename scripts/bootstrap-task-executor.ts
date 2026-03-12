@@ -412,6 +412,12 @@ export const ELIMINATED_ENTITIES = [
   "monitoring overlay",
   "Symbiosis",
   "symbiosis",
+  // v5.0 eliminations
+  "Correction Helix",
+  "Correction helix",
+  "correction helix",
+  "A5 Reversibility",
+  "Reversibility axiom",
 ] as const;
 
 export interface HallucinationFlag {

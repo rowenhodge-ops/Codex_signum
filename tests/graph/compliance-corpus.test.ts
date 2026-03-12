@@ -40,8 +40,8 @@ describe("Compliance Corpus — Grammar Seed Counts", () => {
 });
 
 describe("Compliance Corpus — Eliminated Entities", () => {
-  it("has exactly 5 eliminated entities", () => {
-    expect(ELIMINATED_ENTITIES).toHaveLength(5);
+  it("has exactly 7 eliminated entities", () => {
+    expect(ELIMINATED_ENTITIES).toHaveLength(7);
   });
 
   it("all eliminated entities have required fields", () => {

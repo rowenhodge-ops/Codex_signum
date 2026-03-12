@@ -39,7 +39,7 @@ All data written to Neo4j MUST follow Codex morpheme semantics. The graph is not
 ### The Five Rules
 
 **Rule 1: Seed first, then evolve.**
-Every piece of data enters the graph as a Seed. A Seed is "an atomic unit, datum, coherent unit" (v4.3 spec). It MUST have:
+Every piece of data enters the graph as a Seed. A Seed is "an atomic unit, datum, coherent unit" (v5.0 spec). It MUST have:
 
 - `id` — unique identifier
 - `seedType` — what kind of datum this is (e.g. "exit-criterion", "backlog", "test", "pipeline-output")
@@ -224,7 +224,7 @@ src/
 │   │   ├── pipeline.ts    # Pipeline with lifecycle hooks (afterStage, afterPipeline)
 │   │   └── index.ts
 │   ├── thompson-router/   # Thompson sampling model selection
-│   ├── assayer/           # Structural integrity verification (v4.3 Assayer pattern)
+│   ├── assayer/           # Structural integrity verification (v5.0 Assayer pattern)
 │   │   ├── types.ts       # AssayerVerdict, ComplianceResult, pattern type definitions
 │   │   └── index.ts
 │   └── feedback/          # Feedback functions + types (formerly observer/)
@@ -304,6 +304,10 @@ docs/                      # Specification corpus, research papers, hypothesis r
 tests/                     # All tests
 dist/                      # Compiled output — COMMITTED to repo
 ```
+
+### Constitutional Bloom
+
+The Constitutional Bloom is the organisational core of the graph. It contains the 41 definition Seeds (axioms A1–A4, A6–A9; grammar rules G1–G8; morpheme definitions) and governance Resonators that enforce structural invariants. All other Blooms derive their compliance context from Constitutional CONTAINS edges. Bootstrapped via `scripts/bootstrap-constitutional-bloom.ts`.
 
 ### Dispatch Routing
 
@@ -564,7 +568,7 @@ When in doubt about how something should be computed:
 
 | Question | Reference |
 |---|---|
-| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` (v4.3 draft is canonical for axioms — 9 axioms, Symbiosis removed) |
+| What are the morphemes, axioms, grammar rules? | `codex-signum-v3_0.md` (v5.0 is canonical — 8 axioms, A5 Reversibility + Symbiosis removed) |
 | How to compute ΦL, ΨH, εR? | Engineering Bridge v2.0 §Part 2 |
 | Dampening, cascade, hysteresis parameters? | Engineering Bridge v2.0 §Part 3 |
 | Signal conditioning pipeline? | Engineering Bridge v2.0 §Part 4 |
@@ -580,7 +584,7 @@ When in doubt about how something should be computed:
 | Research corpus index? | `codex-signum-research-index.md` |
 | Assayer pattern (structural integrity verification)? | `09_codex-signum-assayer-pattern-design.md` + `src/patterns/assayer/types.ts` |
 
-**The Engineering Bridge is the implementation authority.** If you need to know *what* to build, read the Bridge. If you need to know *why*, read the Codex v3.0.
+**The Engineering Bridge is the implementation authority.** If you need to know *what* to build, read the Bridge. If you need to know *why*, read the Codex v5.0.
 
 ---
 
@@ -682,7 +686,7 @@ npx tsx scripts/reconcile.ts
 
 ## What NOT to Change
 
-- **Morphemes, axioms, grammar rules** — these are immutable (v3.0 §Semantic Stability)
+- **Morphemes, axioms, grammar rules** — these are immutable (v5.0 §Semantic Stability)
 - **Signal conditioning pipeline** — 15 audited commits, verified against spec
 - **Graph schema** — stable, extend only if adding new node types
 - **Existing test expectations** — unless a fix changes behavior to match spec
@@ -751,7 +755,22 @@ The pre-commit gate warns (not blocks) if `src/signals/` was modified but `tests
 
 ---
 
-## Anti-Patterns This Repo Has Encountered
+## Anti-Patterns (v5.0 Taxonomy)
+
+The v5.0 spec defines 10 canonical anti-patterns. All graph-writing agents must avoid these:
+
+1. **Monitoring Overlay** — separate observation/dashboard layer outside the graph
+2. **Intermediary Layer** — wrapper functions between graph and consumers
+3. **Dimensional Collapse** — reducing composite state dimensions to bare scalars
+4. **Prescribed Behaviour** — one pattern imperatively controlling another
+5. **Governance Theatre** — rules that exist on paper but aren't structurally enforced
+6. **Shadow Operations** — work that bypasses the pipeline (manual analysis bypass)
+7. **Defensive Filtering** — suppressing signals to avoid triggering thresholds
+8. **Skilled Incompetence** — technically correct actions that undermine system learning
+9. **Undiscussable Accumulation** — known issues left unaddressed until crisis
+10. **Pathological Autopoiesis** — system optimising for self-preservation over purpose
+
+### Incidents This Repo Has Encountered
 
 These are real bugs that have occurred in past sessions. Hooks exist to catch them.
 
@@ -770,7 +789,7 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | Observation pipelines / monitoring overlays (e.g., Observer pattern) | State is structural — graph-feeder writes observations inline | `conditionValue()` and `computePhiL()` are pure functions called during writes, not routed through intermediaries. Do NOT create collector.ts, evaluator.ts, or auditor.ts. Observer class was deleted in `ce0ef96`; feedback functions + GraphObserver interface retained. |
 | Case-sensitive directory names across platforms | `docs/Research/` vs `docs/research/` — agent on Linux created both | Standardize on lowercase `docs/research/`. Known issue pending cleanup. |
 | **⛔ Manual analysis bypass** | **MOST CRITICAL ANTI-PATTERN.** Agent executes sequential task lists directly instead of invoking `scripts/architect.ts plan` or `scripts/dev-agent.ts run`. Every bypass means no PipelineRun, no TaskOutput, no Decision nodes, no Thompson learning — the system is blind to what happened. If you find yourself executing “Task 0... Task 1... Task 2...” from a prompt, STOP and invoke the pipeline instead. | Pipeline-First Execution rule (top of this document). If the pipeline fails, fix it — don’t work around it. |
-| Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "10 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel, Symbiosis) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 9 axioms (v4.3), 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
+| Dimensional Collapse (hallucinated facts) | LLM outputs fabricate axiom names, wrong counts (e.g. "10 axioms", "5-stage pipeline"), reference eliminated entities (Observer pattern, Model Sentinel, Symbiosis) | `detectHallucinations()` in bootstrap-task-executor flags signal/content/structural issues. Canonical constants: 8 axioms (v5.0), 7 stages, `ELIMINATED_ENTITIES` list. Consistency check runs post-dispatch. |
 | **Orphaned sub-milestone** | `MERGE (b:Bloom {id: 'M-9.5'}) SET b.status = 'complete'` with no CONTAINS edge to parent | Sub-milestone is structurally invisible. No CONTAINS edge = doesn't exist in the hierarchy. The edge IS the containment, not the naming convention. |
 | **Bare stub Seed** | `MERGE (s:Seed {id: 'R-33'}) SET s.name = 'Typed containment'` with no content, no relationships | A1 Fidelity: representation doesn't match what the item actually is. A Seed is "an atomic datum" — data has content. Every Seed must have content and at least one relationship. |
 | **Manual parent status** | `SET parent.status = 'complete', parent.phiL = 0.9` without checking children | A1 Fidelity: status must derive from structure. Parent status = f(children), not a manual assignment. Use the three-step stamp protocol. |
