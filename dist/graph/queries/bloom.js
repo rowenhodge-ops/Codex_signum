@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme, updateMorpheme, createLine } from "../instantiation.js";
 // ============ BLOOM QUERIES ============
 export async function createBloom(props) {
     await writeTransaction(async (tx) => {
@@ -120,62 +121,63 @@ export async function updateBloomPhiL(bloomId, phiL, trend) {
 }
 // ============ ATOMIC CREATION + STATUS DERIVATION (R-39) ============
 /**
- * Create a Bloom AND wire it to a parent — atomically in one transaction.
+ * Create a Bloom AND wire it to a parent via the Instantiation Protocol.
  * G3: containment is parent→child. Non-root Blooms MUST have a parent.
+ *
+ * Delegates to instantiateMorpheme() which enforces:
+ * - Morpheme hygiene (all required properties present)
+ * - Grammatical shape (parent can contain bloom)
+ * - Atomic CONTAINS + INSTANTIATES wiring
+ * - Observation recording in the Instantiation Resonator's Grid
  */
 export async function createContainedBloom(props, parentId, relationship = 'CONTAINS') {
-    await writeTransaction(async (tx) => {
-        await tx.run(`MERGE (b:Bloom { id: $id })
-       ON CREATE SET
-         b.name = $name, b.type = $type, b.status = $status,
-         b.description = $description, b.phiL = $phiL,
-         b.createdAt = datetime(), b.observationCount = 0, b.connectionCount = 0
-       ON MATCH SET
-         b.name = $name, b.type = $type, b.status = $status,
-         b.description = $description,
-         b.phiL = COALESCE($phiL, b.phiL),
-         b.updatedAt = datetime()`, {
-            id: props.id, name: props.name, type: props.type,
-            status: props.status, description: props.description ?? null,
-            phiL: props.phiL ?? null,
-        });
-        await tx.run(`MATCH (p { id: $parentId }), (b:Bloom { id: $bloomId })
-       MERGE (p)-[:${relationship}]->(b)`, { parentId, bloomId: props.id });
-    });
+    // content is required by the protocol; fall back to description for backward compat
+    const content = props.content ?? props.description ?? '';
+    const { id, name, type, status, description, morphemeKinds, domain, phiL, ...rest } = props;
+    const properties = {
+        id, name, type, status, content,
+        ...(description !== undefined ? { description } : {}),
+        ...(morphemeKinds !== undefined ? { morphemeKinds } : {}),
+        ...(domain !== undefined ? { domain } : {}),
+        ...(phiL !== undefined ? { phiL } : {}),
+        ...rest,
+        observationCount: 0,
+        connectionCount: 0,
+    };
+    const result = await instantiateMorpheme("bloom", properties, parentId);
+    if (!result.success) {
+        throw new Error(result.error ?? "Bloom instantiation failed");
+    }
+    // If a non-CONTAINS relationship was requested, also create that Line
+    if (relationship !== 'CONTAINS') {
+        const lineResult = await createLine(parentId, props.id, relationship);
+        if (!lineResult.success) {
+            throw new Error(lineResult.error ?? `${relationship} line creation failed`);
+        }
+    }
 }
 /**
- * Update a Bloom's status with inline parent status recalculation.
+ * Update a Bloom's status via the Mutation Resonator with parent status recalculation.
  * G3 health derivation: parent status = f(children), not manual assignment.
+ *
+ * Delegates to updateMorpheme() which enforces:
+ * - Property preservation (cannot remove required properties)
+ * - Relationship preservation (INSTANTIATES maintained)
+ * - Parent status propagation
+ * - Observation recording in the Mutation Resonator's Grid
  */
 export async function updateBloomStatus(bloomId, status, options) {
-    await writeTransaction(async (tx) => {
-        // Step 1: Update the target bloom
-        await tx.run(`MATCH (b:Bloom { id: $id })
-       SET b.status = $status,
-           b.phiL = COALESCE($phiL, b.phiL),
-           b.commitSha = COALESCE($commitSha, b.commitSha),
-           b.testCount = COALESCE($testCount, b.testCount),
-           b.updatedAt = datetime()`, {
-            id: bloomId, status,
-            phiL: options?.phiL ?? null,
-            commitSha: options?.commitSha ?? null,
-            testCount: options?.testCount ?? null,
-        });
-        // Step 2: Recalculate parent status from children (G3 health derivation)
-        // Uses parent→child traversal to find the parent that CONTAINS this bloom
-        await tx.run(`MATCH (parent:Bloom)-[:CONTAINS|HAS_MILESTONE|HAS_PHASE|HAS_STAGE]->(b:Bloom { id: $id })
-       WITH parent
-       MATCH (parent)-[:CONTAINS|HAS_MILESTONE|HAS_PHASE|HAS_STAGE]->(child:Bloom)
-       WITH parent,
-            count(child) AS total,
-            count(CASE WHEN child.status = 'complete' THEN 1 END) AS done
-       SET parent.status = CASE
-             WHEN done = total THEN 'complete'
-             WHEN done > 0 THEN 'active'
-             ELSE parent.status END,
-           parent.phiL = toFloat(done) / toFloat(total),
-           parent.updatedAt = datetime()`, { id: bloomId });
-    });
+    const updates = { status };
+    if (options?.phiL !== undefined)
+        updates.phiL = options.phiL;
+    if (options?.commitSha !== undefined)
+        updates.commitSha = options.commitSha;
+    if (options?.testCount !== undefined)
+        updates.testCount = options.testCount;
+    const result = await updateMorpheme(bloomId, updates);
+    if (!result.success) {
+        throw new Error(result.error ?? "Bloom status update failed");
+    }
 }
 /** @deprecated Use createBloom */
 export const createPattern = createBloom;

@@ -3,9 +3,35 @@
 // See LICENSE file for details
 
 import { writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
 import { ARCHITECT_STAGES } from "./pipeline-run.js";
 
+// ============ TYPES ============
+
+export interface ResonatorProps {
+  id: string;
+  name: string;
+  content: string;
+  type: string;
+  status: string;
+  [key: string]: unknown;
+}
+
 // ============ RESONATOR QUERIES ============
+
+/**
+ * Create a Resonator AND wire it to a parent Bloom via the Instantiation Protocol.
+ * Delegates to instantiateMorpheme() for hygiene, containment, and INSTANTIATES wiring.
+ */
+export async function createContainedResonator(
+  props: ResonatorProps,
+  parentBloomId: string,
+): Promise<void> {
+  const result = await instantiateMorpheme("resonator", { ...props }, parentBloomId);
+  if (!result.success) {
+    throw new Error(result.error ?? "Resonator instantiation failed");
+  }
+}
 
 /** Ensure the 7 Architect stage Resonators exist and are contained in the Architect Bloom */
 export async function ensureArchitectResonators(

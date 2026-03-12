@@ -5,6 +5,7 @@ export interface BloomProps {
     name: string;
     type: string;
     status: string;
+    content?: string;
     description?: string;
     morphemeKinds?: string[];
     domain?: string;
@@ -45,13 +46,25 @@ export declare function getBloomsWithHealth(): Promise<Array<{
  */
 export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
 /**
- * Create a Bloom AND wire it to a parent — atomically in one transaction.
+ * Create a Bloom AND wire it to a parent via the Instantiation Protocol.
  * G3: containment is parent→child. Non-root Blooms MUST have a parent.
+ *
+ * Delegates to instantiateMorpheme() which enforces:
+ * - Morpheme hygiene (all required properties present)
+ * - Grammatical shape (parent can contain bloom)
+ * - Atomic CONTAINS + INSTANTIATES wiring
+ * - Observation recording in the Instantiation Resonator's Grid
  */
 export declare function createContainedBloom(props: BloomProps, parentId: string, relationship?: 'CONTAINS' | 'HAS_MILESTONE' | 'HAS_PHASE' | 'HAS_STAGE'): Promise<void>;
 /**
- * Update a Bloom's status with inline parent status recalculation.
+ * Update a Bloom's status via the Mutation Resonator with parent status recalculation.
  * G3 health derivation: parent status = f(children), not manual assignment.
+ *
+ * Delegates to updateMorpheme() which enforces:
+ * - Property preservation (cannot remove required properties)
+ * - Relationship preservation (INSTANTIATES maintained)
+ * - Parent status propagation
+ * - Observation recording in the Mutation Resonator's Grid
  */
 export declare function updateBloomStatus(bloomId: string, status: string, options?: {
     phiL?: number;

@@ -26,7 +26,7 @@ ensureContextCluster,
 // Human Feedback
 recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibrationMetrics, 
 // Pipeline Topology
-ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, ensureArchitectResonators, linkTaskOutputToStage, 
+ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, createContainedResonator, ensureArchitectResonators, linkTaskOutputToStage, 
 // Pipeline Analytics
 getPipelineStageHealth, getPipelineRunStats, 
 // Pipeline Lifecycle Extensions (M-9.5)
@@ -41,6 +41,8 @@ getGrammarElements, getGrammarCoverage, getAxiomDependencies, getAntiPatternViol
 getPatternTopology, getVisualisationTopology, getGrammarInstances, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
+// Instantiation Protocol (M-16.4 — governance Resonator enforcement)
+export { instantiateMorpheme, updateMorpheme, createLine, } from "./instantiation.js";
 // Inline conditioning write path
 export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map

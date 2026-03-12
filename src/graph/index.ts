@@ -76,6 +76,7 @@ export {
   createTaskOutput,
   getTaskOutputsForRun,
   queryTaskOutputsByModel,
+  createContainedResonator,
   ensureArchitectResonators,
   linkTaskOutputToStage,
   // Pipeline Analytics
@@ -157,10 +158,25 @@ export type {
   VisRelationshipEntry,
   VisualisationTopology,
   GrammarInstanceEntry,
+  ResonatorProps,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,
 } from "./queries.js";
+
+// Instantiation Protocol (M-16.4 — governance Resonator enforcement)
+export {
+  instantiateMorpheme,
+  updateMorpheme,
+  createLine,
+} from "./instantiation.js";
+export type {
+  MorphemeType,
+  LineType,
+  InstantiationResult,
+  MutationResult,
+  LineCreationResult,
+} from "./instantiation.js";
 
 // Inline conditioning write path
 export {

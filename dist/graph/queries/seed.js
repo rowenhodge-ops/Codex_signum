@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme, createLine } from "../instantiation.js";
 // ============ SEED QUERIES ============
 export async function createSeed(props) {
     // A1: auto-derive content from model configuration if not provided
@@ -170,39 +171,39 @@ export async function createDataSeed(props) {
     });
 }
 /**
- * Create a data Seed AND wire it to a parent Bloom — atomically in one transaction.
+ * Create a data Seed AND wire it to a parent Bloom via the Instantiation Protocol.
  * G3: containment is parent→child. The parent declares what it contains.
+ *
+ * Delegates to instantiateMorpheme() which enforces:
+ * - Morpheme hygiene (all required properties present)
+ * - Grammatical shape (parent can contain seed)
+ * - Atomic CONTAINS + INSTANTIATES wiring
+ * - Observation recording in the Instantiation Resonator's Grid
  */
 export async function createContainedDataSeed(props, parentBloomId, relationship = 'CONTAINS') {
     if (!props.content || props.content.trim() === '') {
         throw new Error(`A1 violation: Seed ${props.id} has no content. ` +
             `A Seed is "a datum, coherent unit" — it must contain data.`);
     }
-    await writeTransaction(async (tx) => {
-        await tx.run(`MERGE (s:Seed { id: $id })
-       ON CREATE SET
-         s.name = $name, s.seedType = $seedType, s.content = $content,
-         s.status = $status, s.description = $description,
-         s.phiL = $phiL, s.createdAt = datetime()
-       ON MATCH SET
-         s.name = $name, s.content = $content, s.status = $status,
-         s.description = COALESCE($description, s.description),
-         s.phiL = COALESCE($phiL, s.phiL),
-         s.updatedAt = datetime()`, {
-            id: props.id, name: props.name, seedType: props.seedType,
-            content: props.content, status: props.status,
-            description: props.description ?? null, phiL: props.phiL ?? null,
-        });
-        // Wire to parent — SAME TRANSACTION (G3: parent→child)
-        if (relationship === 'CONTAINS') {
-            await tx.run(`MATCH (p:Bloom { id: $parentId }), (s:Seed { id: $seedId })
-         MERGE (p)-[:CONTAINS]->(s)`, { parentId: parentBloomId, seedId: props.id });
+    // Delegate to the Instantiation Resonator — CONTAINS + INSTANTIATES wired atomically
+    const { id, name, seedType, content, status, description, phiL, ...rest } = props;
+    const properties = {
+        id, name, seedType, content, status,
+        ...(description !== undefined ? { description } : {}),
+        ...(phiL !== undefined ? { phiL } : {}),
+        ...rest,
+    };
+    const result = await instantiateMorpheme("seed", properties, parentBloomId);
+    if (!result.success) {
+        throw new Error(result.error ?? "Instantiation failed");
+    }
+    // If SCOPED_TO, also create the scoping Line (in addition to CONTAINS from protocol)
+    if (relationship === 'SCOPED_TO') {
+        const lineResult = await createLine(props.id, parentBloomId, "SCOPED_TO");
+        if (!lineResult.success) {
+            throw new Error(lineResult.error ?? "SCOPED_TO line creation failed");
         }
-        else {
-            await tx.run(`MATCH (p:Bloom { id: $parentId }), (s:Seed { id: $seedId })
-         MERGE (s)-[:SCOPED_TO]->(p)`, { parentId: parentBloomId, seedId: props.id });
-        }
-    });
+    }
 }
 /** @deprecated Use createSeed */
 export const createAgent = createSeed;

@@ -64,8 +64,14 @@ export declare function listActiveSeedsByCapability(requirements: {
  */
 export declare function createDataSeed(props: DataSeedProps): Promise<void>;
 /**
- * Create a data Seed AND wire it to a parent Bloom — atomically in one transaction.
+ * Create a data Seed AND wire it to a parent Bloom via the Instantiation Protocol.
  * G3: containment is parent→child. The parent declares what it contains.
+ *
+ * Delegates to instantiateMorpheme() which enforces:
+ * - Morpheme hygiene (all required properties present)
+ * - Grammatical shape (parent can contain seed)
+ * - Atomic CONTAINS + INSTANTIATES wiring
+ * - Observation recording in the Instantiation Resonator's Grid
  */
 export declare function createContainedDataSeed(props: DataSeedProps, parentBloomId: string, relationship?: 'CONTAINS' | 'SCOPED_TO'): Promise<void>;
 /** @deprecated Use SeedProps */
