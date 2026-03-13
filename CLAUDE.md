@@ -798,6 +798,21 @@ These are real bugs that have occurred in past sessions. Hooks exist to catch th
 | **Manual parent status** | `SET parent.status = 'complete', parent.phiL = 0.9` without checking children | A1 Fidelity: status must derive from structure. Parent status = f(children), not a manual assignment. Use the three-step stamp protocol. |
 | **Reverse containment** | `(child)-[:PART_OF]->(parent)` or `(child)-[:BELONGS_TO]->(parent)` | G3 violation. Containment is parent → child. The encloser declares its scope. Always CONTAINS, always parent → child. |
 | **Compliance-as-Monitoring** | Tests that scan the graph for data quality violations after creation. Conformance test suites. Validation scripts that check "does every Seed have content?" as a monitoring pass. | A2/A3 violation: state is structural — compliance should be a property of the creation path, not a separate verification layer. R-39 fixed this: `DataSeedProps` requires content at the type level, `createDataSeed()` throws on empty content, Neo4j constraints reject null. Enforcement is structural. |
+| **Source-only sweep** | Anti-pattern sweep scoped from GitHub source code only, without querying Neo4j to discover what actually exists in the graph. Source shows what code *would create*; only the graph shows what *was created* across months of execution. 109 legacy Pattern nodes accumulated undetected because the sweep never asked Neo4j what labels existed. | Any sweep or audit that touches graph state MUST start with Neo4j diagnostic queries. Discover what exists first, cross-reference against source second. See §Graph-First Sweep Methodology below. |
+
+### Graph-First Sweep Methodology
+
+Any task that involves cleaning up, auditing, or sweeping graph state MUST follow this order:
+
+1. **Query Neo4j first** — run diagnostic Cypher to discover all labels, counts, orphans, stale entities, missing relationships, constraint violations
+2. **Cross-reference against source** — compare what exists in the graph against what the source code creates
+3. **Fix source** — remove or correct anything in source that would recreate the problem
+4. **Fix graph** — clean up everything the diagnostic scan found
+5. **Verify** — re-run the diagnostic scan to confirm zero violations
+
+**Never scope a sweep from source code alone.** Source code shows what a bootstrap script *would create* on the next run. The graph shows what *was created* across every previous run — including runs from months ago with different code. Bootstrap scripts run repeatedly; stale nodes accumulate silently.
+
+This rule exists because scoping an anti-pattern sweep from GitHub missed 109 legacy `:Pattern` nodes that had accumulated from months of `bootstrapPatterns()` executions. The source code had moved on to creating `:Bloom` nodes, but the graph still contained the old `:Pattern` nodes from every prior run.
 
 ---
 
