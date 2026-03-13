@@ -2,7 +2,7 @@
 
 ## Repository State
 
-- **HEAD:** `5fa3146`
+- **HEAD:** `5787560`
 - **Tests:** 1564 passing / 0 failing / 19 todo
 - **Exports:** 277
 - **Graph:** 2,425 nodes, all with INSTANTIATES + content. Zero structural violations.
@@ -138,5 +138,6 @@ Convert 18 `.todo()` tests across `dev-agent.test.ts` (7), `hierarchical-health.
 | Commit | Description |
 |---|---|
 | `5fa3146` | M-17.1 Bridge delta report — 32 findings (F1-7, T1-9, R1-7, N1-9) |
+| `5787560` | Context transfer 2026-03-14 |
 
 **No graph changes this session.** Pure documentation/specification work.
