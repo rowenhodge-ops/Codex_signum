@@ -362,6 +362,7 @@ async function createElementSeed(el: GrammarElement): Promise<void> {
          s.seedType = $seedType,
          s.name = $name,
          s.content = $content,
+         s.status = "active",
          s.description = $description,
          s.specSource = $specSource,
          s.implementationStatus = $implementationStatus,
@@ -371,6 +372,7 @@ async function createElementSeed(el: GrammarElement): Promise<void> {
        ON MATCH SET
          s.name = $name,
          s.content = $content,
+         s.status = "active",
          s.description = $description,
          s.specSource = $specSource,
          s.implementationStatus = $implementationStatus,
