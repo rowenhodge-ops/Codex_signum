@@ -205,7 +205,7 @@ Over a rolling observation window.
 εR_floor = base_εR + (gradient_sensitivity × max(0, -Ω_aggregate_gradient))
 ```
 
-Recommended `gradient_sensitivity`: 0.05–0.15. When Ω gradients are positive, the correction term is zero.
+Recommended `gradient_sensitivity`: 0.05–0.15. When Ω gradients are positive, the modulation term is zero.
 
 **Spectral calibration (complementary signal):**
 
@@ -225,21 +225,29 @@ Recommended `gradient_sensitivity`: 0.05–0.15. When Ω gradients are positive,
 
 ---
 
-## Part 3: Degradation Cascade — Parameters
+## Part 3: Degradation Cascade — CONTAINS Line Properties
 
-### Topology-Aware Dampening
+When a component degrades, the effect propagates through the pattern network. This propagation follows defined rules to prevent both silent failure (degradation invisible) and panic cascading (one failure collapses everything). All cascade mechanics are properties of CONTAINS Lines — the same morpheme that carries containment, scope, and structural derivation.
 
-**This replaces the fixed γ=0.7 from v1.0.**
+### 3.1 Propagation as Line Properties
+
+Degradation propagates through Lines — the same morpheme that carries data flow, signal transfer, and harmonic coupling. The propagation rules are properties of Lines, not separate mechanisms. Two propagation modes:
+
+- **Through CONTAINS Lines:** Parent ΦL is structurally derived from children — this is not signal flow through a Line but structural derivation from the topology. The parent recomputes its own ΦL from its children's values.
+- **Through FLOWS_TO Lines:** Degradation propagates forward (producer → consumer) as signal flow — a degraded producer's output carries that degradation to the consumer.
+- Degradation does **not** propagate sideways through Resonance Lines.
+
+### 3.2 Attenuation (G4: Weight)
+
+Each CONTAINS Line carries a dampening weight — the fraction of the child's ΦL change that propagates to the parent. The weight is computed from the parent Bloom's branching factor:
 
 ```
-impact_at_container = component_ΦL_drop × component_weight × γ_effective(k)
-
-γ_effective = min(γ_base, s / k)    where s = 0.8 (safety budget), γ_base = 0.7
+γ_effective = min(γ_base, safety_budget / k)
 ```
 
-Where k = degree of the receiving node (number of connections). The budget-capped formula guarantees spectral radius μ = k × γ ≤ s = 0.8 < 1 for ALL k ≥ 1, providing topology-independent subcriticality.
+Where `γ_base = 0.7`, `safety_budget = 0.8`, `k` = branching factor (count of CONTAINS Lines into this Bloom). This is a property of the Line, computed from the Bloom's topology. The formula guarantees spectral radius μ = k × γ ≤ 0.8 < 1 for all k ≥ 1 — failures attenuate faster than they accumulate regardless of topology.
 
-| Branching Factor (k) | γ_eff (s=0.8) | μ = k×γ | Status |
+| Branching Factor (k) | γ_effective (s=0.8) | μ = k×γ | Status |
 |---|---|---|---|
 | 1 | 0.7 | 0.7 | Subcritical ✓ |
 | 2 | 0.4 | 0.8 | Subcritical ✓ |
@@ -247,22 +255,28 @@ Where k = degree of the receiving node (number of connections). The budget-cappe
 | 5 | 0.16 | 0.8 | Subcritical ✓ |
 | 10 | 0.08 | 0.8 | Subcritical ✓ |
 
-**Why this matters:** γ=0.7 is supercritical for all tree topologies with branching factor ≥ 2. The 2-level cascade limit is the system's primary safety mechanism — without it, failures propagate to root. The budget-capped formula ensures the system is intrinsically subcritical: failures attenuate faster than they accumulate. This single formula handles all topologies including high-degree nodes.
+**Why this matters:** γ=0.7 is supercritical for all tree topologies with branching factor ≥ 2. The budget-capped formula ensures the system is intrinsically subcritical: failures attenuate faster than they accumulate. This single formula handles all topologies including high-degree nodes — no separate hub formula exists.
 
 > **History:** Prior formulas (v1: `0.8/(k-1)`, v2: separate high-degree formula) were found supercritical for k ≥ 3. Budget-capped formula `min(γ_base, s/k)` is the only topology-independent subcriticality guarantee. See Safety Analysis paper and commit `ce0ef96`.
-**Algedonic bypass:** Any agent with ΦL < 0.1 (emergency threshold) should propagate to root with γ = 1.0, bypassing all dampening. This preserves the cascade limit for normal operations while ensuring existential threats are never masked.
 
-### Cascade Limit
+### 3.3 Depth Limit (Containment Traversal)
 
 **2 levels. This is not negotiable.** It is the primary safety mechanism, not a convenience.
 
-A failing Seed dims its Bloom. A failing Bloom dims its containing Bloom. The parent Bloom recomputes from its own constituents with the dampened signal already attenuated. Without the 2-level limit at k=2, the expected cascade size converges to 5.0 nodes (geometric series with μ=0.8); with the depth limit, it drops to 1 + μ + μ² = 2.44 nodes. The formula guarantees convergence — cascade size is bounded for all topologies.
+Degradation propagates through at most two levels of CONTAINS Lines. A failing Seed dims its Bloom. A failing Bloom dims its containing Bloom. The containing Bloom recomputes its own ΦL from its constituents with the signal already attenuated. The 2-level depth limit is a property of CONTAINS Line propagation, not a separate rule.
 
-### Hysteresis
+Without the 2-level limit at k=2, the expected cascade size converges to 5.0 nodes (geometric series with μ=0.8); with the depth limit, it drops to 1 + μ + μ² = 2.44 nodes. The formula guarantees convergence — cascade size is bounded for all topologies.
+
+### 3.4 Asymmetric Rate (G2: Direction Encodes Flow)
 
 **Recovery is 2.5× slower than degradation.** (Changed from 1.5× in v1.0.)
 
-If a model takes N observations to be marked degraded, it takes roughly 2.5N observations of sustained improvement to return to healthy. This prevents flapping (state chatter) near thresholds.
+The CONTAINS Line carries different attenuation for degradation versus recovery:
+
+- Degradation propagates at `γ_effective`
+- Recovery propagates at `γ_effective / hysteresis_constant` (recommended: 2.5)
+
+Same Line, same property, different values depending on signal direction. Recovery requires sustained improvement — the system resists oscillation between healthy and degraded.
 
 **Why 2.5×:** The 1.5× ratio from v1.0 is below Schmitt trigger engineering standards. For Gaussian noise with EWMA smoothing (α=0.2) and σ=0.05, filtered noise V_pp ≈ 0.10. The hysteresis band should be 0.20–0.30 (2–3× V_pp). At 1.5× V_pp = 0.15, the system is vulnerable to flapping under bursty or non-stationary noise. 2.5× provides margin for real-world conditions.
 
@@ -274,6 +288,20 @@ recovery_threshold = degradation_threshold × 2.5 = 0.75
 ```
 
 Additionally, require state persistence: N consecutive observations beyond threshold before state transition (recommended N = 3–5). This acts as debouncing.
+
+### 3.5 Algedonic Bypass
+
+When a component's ΦL drops below 0.1 (emergency threshold), the CONTAINS Line's dampening weight overrides to 1.0 — full propagation to root, bypassing all attenuation. This preserves cascade safety for normal operations while ensuring existential threats are never masked. The bypass is a property of the Line activated by the child's ΦL value, not a separate mechanism.
+
+### 3.6 Cascade Behaviour Summary
+
+| Property | Mechanism | Value |
+|---|---|---|
+| Attenuation | CONTAINS Line weight | γ_effective = min(0.7, 0.8/k) |
+| Depth limit | CONTAINS Line traversal | 2 levels |
+| Asymmetric rate | Directional attenuation | Degradation: γ, Recovery: γ/2.5 |
+| Algedonic bypass | Weight override | γ → 1.0 when child ΦL < 0.1 |
+| Propagation direction | Line type | CONTAINS: structural derivation. FLOWS_TO: forward signal. No sideways. |
 
 ### Recovery Model
 
@@ -318,13 +346,43 @@ Raw health events should be processed through this seven-stage pipeline before b
 
 - Variance increases — reduced recovery rate causes health fluctuations to grow
 - Autocorrelation increases — health signals become more serially correlated
-- Cross-agent correlation rises — previously independent failure signals begin correlating (strongest cascade predictor)
+- Cross-component correlation rises — previously independent failure signals begin correlating (strongest cascade predictor)
 
 ---
 
 ## Part 5: Visual Encoding Constraints
 
-### Pulsation Frequency Safety
+All six visual channels derive from two computations:
+
+1. **State dimensions** (ΦL, ΨH, εR) → brightness, hue, pulsation frequency, saturation
+2. **Graph Laplacian eigendecomposition** → hue (eigenmode profile), pulsation phase (v₂), spatial position (v₂/v₃/v₄)
+
+The eigendecomposition is computed once and produces ΨH (scalar from λ₂), harmonic profile for hue (eigenmode shape), phase offsets for animation (v₂), and spatial coordinates for layout (v₂/v₃/v₄). Six perceptual outputs from two computations. The visual encoding is not six independent channels — it is two structural computations made perceptually available through six pre-attentive visual channels.
+
+**Channel summary:**
+
+| Channel | Maps To | Computation | Type |
+|---|---|---|---|
+| Brightness | ΦL | Direct mapping | State dimension |
+| Hue | Harmonic character from ΨH eigenmode profile | Eigendecomposition | State dimension + topology |
+| Pulsation frequency | Activity rate | Observation count per window | State dimension |
+| Pulsation phase | Structural position on primary axis | `normalize(v₂[i]) × 2π` | Topology |
+| Saturation | εR | `min(1.0, εR / 0.3)` | State dimension |
+| Spatial position | Spectral embedding | `(v₂[i], v₃[i], v₄[i])` | Topology |
+
+### Channel 1 — Brightness → ΦL
+
+The primary health channel. Use 5–10 discriminable levels (Weber-Fechner limits discrimination to ~7–8 bits per channel, but practical discrimination with background variation is lower). Map linearly: bright = healthy, dim = degraded, dark = dead.
+
+### Channel 2 — Hue → Harmonic Character (ΨH Eigenmode Profile)
+
+Hue encodes continuous harmonic character derived from the ΨH eigenmode profile — the shape of a component's participation across the graph Laplacian's eigenvectors. Components that participate similarly in the graph's harmonic structure receive similar hues. Components with different structural roles receive different hues. The mapping is continuous, not categorical.
+
+Color semantics are NOT culturally universal — pulsation and luminance have stronger cross-cultural grounding. Avoid relying on red/green distinctions (colour vision deficiency affects ~8% of males). Never use hue as the sole encoding channel.
+
+Passes Bridge View Principle: pure function of eigenmode profile (topological derivation from graph Laplacian).
+
+### Channel 3 — Pulsation Frequency → Activity Rate
 
 **SAFETY CRITICAL: All pulsation must be 0.5–3 Hz.** The 8–15 Hz range, while perceptually salient, overlaps with the peak epilepsy risk zone (5–30 Hz, peak at 15–20 Hz per Epilepsy Foundation). WCAG 2.3.1 mandates no more than 3 flashes per second. Section 508 prohibits flickering between 2–55 Hz. ISO 9241-391 harmonises with these standards.
 
@@ -336,26 +394,84 @@ Raw health events should be processed through this seven-stage pipeline before b
 
 The "calming heartbeat" association at 1 Hz is design intuition (resting heart rate = 60–80 bpm = 1.0–1.3 Hz), not established science. Higher pulse rates increase perceived urgency — this is well-supported.
 
-### Luminance and Color Channels
+### Channel 4 — Saturation → εR
 
-**Luminance:** The primary health channel. Use 5–10 discriminable levels (Weber-Fechner limits discrimination to ~7–8 bits per channel, but practical discrimination with background variation is lower). Map linearly: bright = healthy, dim = degraded, dark = dead.
+```
+saturation = min(1.0, εR / εR_saturation_ceiling)
+```
 
-**Color (Hue):** Use for domain/type classification, not health encoding. 8–12 hue categories maximum (depends on display technology and ambient conditions). Color semantics are NOT culturally universal — pulsation and luminance have stronger cross-cultural grounding. Avoid relying on red/green distinctions (colour vision deficiency affects ~8% of males).
+Where `εR_saturation_ceiling = 0.3` (axiom-defined parameter — the boundary between adaptive and unstable from the εR status table in Part 2).
 
-**Perceptual grounding strength by channel:**
+| εR | Saturation | Visual Semantics |
+|---|---|---|
+| 0.0 | 0.0 | Grey — rigid (warning state: "High ΦL with zero εR is a warning, not a success") |
+| 0.05 | 0.17 | Lightly coloured — stable |
+| 0.15 | 0.50 | Moderate — adaptive |
+| 0.30 | 1.0 | Fully vivid — at stability boundary |
+| >0.30 | 1.0 (clamped) | Saturated — unstable (εR numeric carries remaining discrimination) |
+
+Design note: at εR = 0.0, saturation = 0.0 produces a bright grey node (bright from high ΦL, desaturated from zero exploration). This is perceptually distinctive and semantically correct — "healthy but dangerously rigid." The mapping produces the right visual warning without special-casing.
+
+Additional note: at low saturation, hue discrimination degrades (desaturated colours converge toward grey). This is acceptable — rigid components (low εR) are less differentiated, which matches semantic meaning.
+
+Passes Bridge View Principle: pure function of εR (morpheme state) + εR_saturation_ceiling (axiom parameter).
+
+### Channel 5 — Pulsation Phase → ΨH Eigenvector Position
+
+```
+phase_i = normalize(v₂[i]) × 2π
+
+where normalize(v₂[i]) = (v₂[i] - min(v₂)) / (max(v₂) - min(v₂))
+```
+
+v₂ is the Fiedler eigenvector (eigenvector corresponding to λ₂ of the graph Laplacian). v₂ values are real-valued and can be negative — the normalisation maps the full range to [0, 1] before scaling to [0, 2π].
+
+All nodes share a global animation clock. Node i pulses as:
+
+```
+brightness(t) = base + amplitude × sin(2π × freq × t + phase_i)
+```
+
+Structurally coherent nodes have similar v₂ values → similar phases → pulse nearly in sync. Structurally distant nodes have different v₂ values → different phases → visible phase offset. The phase difference IS structural distance made perceptually available through animation synchrony.
+
+Minimum discriminable phase offset at 1–2 Hz animation: ~π/6 (30°), within the 150ms pre-attentive detection window. Note: phase discrimination degrades at lower frequencies. At 0.5 Hz ("heartbeat" range from the pulsation table), a π/6 phase offset is ~333ms — still perceptible but at the edge of pre-attentive. This is a design constraint for pulsation frequency selection.
+
+Redundant encoding note: v₂ also provides the x-coordinate for spatial position (Channel 6). Phase and horizontal position encode the same structural axis through two independent perceptual channels (animation synchrony and spatial proximity). This is intentional reinforcement, not accidental duplication. Redundant encoding across channels increases legibility.
+
+Passes Bridge View Principle: pure function of v₂ (topological derivation from graph Laplacian).
+
+### Channel 6 — Spatial Position → Spectral Embedding
+
+```
+x_i = v₂[i]    (Fiedler eigenvector — primary structural axis)
+y_i = v₃[i]    (third eigenvector — secondary structural axis)
+z_i = v₄[i]    (fourth eigenvector — depth axis for 3D/M-13 WebGL)
+```
+
+Computation: graph Laplacian L = D − A, eigendecomposition Lv = λv, use v₂, v₃, v₄ as coordinate axes. Viewport scaling (how to map eigenvector coordinates to screen pixels) is a rendering concern — belongs in the Rendering Specification, not the Bridge.
+
+Structurally similar nodes cluster together. Disconnected components separate. The embedding is a pure function of graph adjacency.
+
+Global vs local: spectral embedding produces coordinates optimal for global graph structure but can produce poor local layouts (overlapping nodes within dense clusters). Local refinement (force-directed adjustment, overlap removal) is a rendering concern deferred to the Rendering Specification. The Bridge specifies the computation that produces global layout coordinates.
+
+Passes Bridge View Principle: pure function of graph Laplacian eigenvectors (topological derivation).
+
+### Perceptual Grounding
 
 | Channel | Grounding | Notes |
 |---|---|---|
 | Pulsation | Strong (innate) | Vertebrate "life detector"; no learning required |
 | Spatial proximity | Strong (Gestalt) | "Close items go together" is near-universal |
 | Luminance | Moderate | Brightness-positive valence is broadly cross-cultural; specific health mapping must be learned |
+| Phase synchrony | Moderate | Coordinated motion is pre-attentive; specific phase-as-structure mapping must be learned |
+| Saturation | Moderate | Vivid = active is broadly intuitive; specific εR mapping must be learned |
 | Color | Weak | Highly culture-specific; never use as sole encoding channel |
 
 ### Working Memory Constraints
 
 **Visual working memory is 3–4 integrated objects, not 7.** Miller's 7±2 applies to verbal short-term memory. Operators cannot actively hold more than ~4 glyph states in working memory simultaneously. For monitoring displays with dozens of elements, rely on pre-attentive pop-out to flag state changes rather than expecting operators to maintain continuous awareness.
 
-Dashboard modules beyond 9 simultaneously displayed elements overwhelm operators. Design for "overview first, zoom and filter, then details-on-demand" (Shneiderman's mantra).
+Graph visualisation working memory constraint: at any zoom level, the visible graph elements must respect Miller's 7±2 limit. v5.0's semantic zoom model manages this — far zoom shows fewer elements at lower detail (Bloom boundaries only), near zoom shows more elements at higher detail (internal morphemes visible). The constraint applies to visible elements per zoom level, not total graph size. Design for "overview first, zoom and filter, then details-on-demand" (Shneiderman's mantra).
 
 **Multi-layered interpretation:** 2–3 layers is the practical ceiling for general users. Specialist systems can support 3–5 layers with trained operators. Implement adaptive display: novice mode with explicit labels and simpler states; expert mode with denser information. A single fixed display cannot optimally serve both populations (expertise reversal effect — Kalyuga et al. 2003).
 
@@ -393,6 +509,17 @@ Emergence claims without measurement frameworks are unfalsifiable. **Required:**
 
 The gap between CAS theory and CAS engineering remains unsolved. Holland's ECHO model failed to produce emergent hierarchical complexity. **Approach:** Build for utility at current scale. Do not design for hypothetical emergence. If emergence occurs, measure it. If it doesn't, the system is still useful.
 
+### Cross-Reference: v5.0 Structural Mechanisms
+
+Several watchpoints now have structural defences specified in v5.0. The risks remain valid — the defences are structural mitigations, not eliminations.
+
+| Watchpoint | v5.0 Structural Mechanism |
+|---|---|
+| Cascading failures (#2) | §Event-Triggered Structural Review — cascade activation trigger. Immune memory (Threat + Remedy Archives) provides CAS-native defence. |
+| Lock-in (#4) | εR floor computation (imperative gradient modulation + spectral calibration) |
+| Parasitic patterns (#5) | Ω gradient inversion trigger in Structural Review Resonator. Immune memory provides CAS-native defence. |
+| Inadequate measurement (#6) | §Structural Signatures (Merkle hash, position calculation) |
+
 ---
 
 ## Part 7: Memory Sizing Guide
@@ -421,7 +548,7 @@ Structural reviews are event-triggered, not scheduled. Run one when any of these
 | Trigger | Threshold | What to compute |
 |---|---|---|
 | λ₂ drop on composition change | Below maturity-indexed threshold | Full spectral analysis |
-| Friction spike | Sustained above 0.5 beyond Correction Helix temporal constant | Friction distribution across all compositions |
+| Friction spike | Sustained above 0.5 beyond Refinement Helix temporal constant | Friction distribution across all compositions |
 | Cascade activation | Degradation reaches 2nd containment level | Hub dependency analysis |
 | εR spike at composition level | Above maturity-indexed stable range | Spectral ratio and aligned/liberal energy |
 | ΦL velocity anomaly | > 0.05/day ecosystem-wide | Global λ₂ and spectral gap |
@@ -440,19 +567,29 @@ Structural reviews are event-triggered, not scheduled. Run one when any of these
 | Node creation rate | Seasonal/usage patterns | > 3σ spike above rolling mean |
 | Connection formation rate | Proportional to node creation | Disproportionate to node creation |
 | Mean ΦL velocity | < 0.05/day | > 0.1/day |
-| ΨH distribution entropy | Stable or slowly increasing | Sudden collapse |
+| Variance of ΨH values across compositions | Stable or slowly increasing | Sudden collapse toward uniform value |
 | Federation gossip volume | Proportional to activity | Disproportionate spike |
 
 ### Bulkhead Responses
 
-When ecosystem stress index exceeds warning threshold:
+When the ecosystem stress index exceeds the warning threshold, the **Ecosystem Stress Resonator** (Δ) activates bulkhead responses. These are stress responses expressed as Line property and Resonator configuration changes — not external interventions.
 
-| Response | Parameters | Recovery |
+**Ecosystem Stress Resonator morpheme identity:**
+
+- **Name:** Ecosystem Stress Resonator
+- **Containment:** within an Ecosystem Monitoring Bloom
+- **Input Lines:** from anomaly detection thresholds (the signals in the anomaly detection table above)
+- **Output:** bulkhead activation Seeds + Line property override commands
+- **Its own ΦL:** derived from detection accuracy (false positive/negative rate over time)
+
+| Response | Structural Mechanism | Recovery |
 |---|---|---|
-| Federation isolation | Quarantine gossip from anomalous nodes | Lift when behaviour returns to normal range |
-| Acceptance rate limiting | Throttle new pattern acceptance; queue and absorb gradually | Ease back to normal over days, not hours |
-| Cascade dampening override | γ_override = γ_effective × stress_reduction_factor (stress_reduction_factor = 0.5 during stress) | Reduces propagation to half of topology-computed dampening
-| Provenance weighting increase | Temporarily increase w₂ in ΦL calculation | Restore gradually |
+| Federation isolation | Line property change — connection remains, transmission dampened (conductivity override on the Line) | Lift when behaviour returns to normal range |
+| Acceptance rate limiting | Resonator configuration change — Instantiation Resonator applies throughput constraint | Ease back to normal over days, not hours |
+| Cascade dampening override | CONTAINS Line γ value reduction: `γ_override = γ_effective × stress_reduction_factor` (stress_reduction_factor = 0.5 during stress) | Restore when stress index returns to normal |
+| Provenance weighting increase | ΦL computation weight change (w₂ temporarily elevated) | Restore gradually |
+
+Bulkhead activations are recorded as event Seeds in the observation Grid — carrying the stress index value, the activated responses, and the timestamp. These Seeds feed Scale 2 learning about what attack patterns look like and how effective the responses were.
 
 **Recovery from attack is deliberately slow.** Match hysteresis principle: 2.5× longer to restore normal operation than to engage defences. This prevents snap-back vulnerability to follow-up attacks.
 
@@ -470,7 +607,7 @@ For multi-stage patterns, track the product of per-stage success rates:
 RTY = Π(stage_success_rate for each stage)
 ```
 
-RTY reveals hidden rework. A 3-stage pipeline with 95% per-stage success has RTY = 0.857, not 0.95. If any stage requires correction loops, include correction success rate in the computation.
+RTY reveals hidden rework. A 3-stage pipeline with 95% per-stage success has RTY = 0.857, not 0.95. If any stage requires refinement loops, include refinement success rate in the computation.
 
 ### Error Classification (Poka-Yoke Levels)
 
@@ -479,7 +616,7 @@ When implementing error handling in patterns, classify by severity and appropria
 | Level | Error Type | Pattern Response |
 |---|---|---|
 | Prevention | Invalid input detected before processing | Reject at Bloom boundary; emit validation failure |
-| Detection | Error caught during transformation | Correction Helix retry with structured feedback |
+| Detection | Error caught during transformation | Refinement Helix retry with structured feedback |
 | Mitigation | Error propagated but contained | Reduce ΦL; route around via εR sampling |
 | Escape | Error reached output | Degradation signal; cascade to container |
 
@@ -494,23 +631,25 @@ For critical patterns, enumerate failure modes and their structural signals:
 | Integration failure | axiom_compliance drops | No change | λ₂ may drop; friction high |
 | Capacity exhaustion | temporal_stability drops (latency variance) | Should remain stable | No change |
 
+Component-level failure modes aggregate into composition-level trajectory signatures at Bloom scope. See v5.0 §Scale Escalation for the six trajectory signatures (Stagnation, Refinement Futility, Coherence Fracture, Vitality Spiral, Phase Lock, Healthy Oscillation).
+
 ---
 
 ## Anti-Patterns
 
-**Separate monitoring database.** Do not create a health-scores cache that is the source of truth. Caching is acceptable for performance; the graph is always authoritative.
+For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Patterns. The implementation anti-patterns below are specific to Bridge computations and engineering decisions.
 
-**Morpheme labels on code.** Do not add `morphemeType: 'seed'` fields. The morpheme type *is* the structure — a function is a Seed because of what it does, not because of a label.
+**Separate monitoring database.** Do not create a health-scores cache that is the source of truth. Caching is acceptable for performance; the graph is always authoritative. (Cross-ref: v5.0 Monitoring Overlay)
 
-**Assigned resonance.** Do not set `ΨH = 0.95` as a property. Resonance emerges from structural coherence (λ₂) and operational friction (TV_G). You compute it; you don't assign it.
+**Morpheme labels on code.** Do not add `morphemeType: 'seed'` fields. The morpheme type *is* the structure — a function is a Seed because of what it does, not because of a label. (Cross-ref: v5.0 Prescribed Behaviour)
 
-**Silent routing around failure.** When a component fails and the router switches to an alternative, this must be a visible event. The system's users need to know adaptation is happening.
+**Assigned resonance.** Do not set `ΨH = 0.95` as a property. Resonance emerges from structural coherence (λ₂) and operational friction (TV_G). You compute it; you don't assign it. (Cross-ref: v5.0 Prescribed Behaviour)
+
+**Silent routing around failure.** When a component fails and the router switches to an alternative, this must be a visible event. The system's users need to know adaptation is happening. (Cross-ref: v5.0 A2 Visible State)
 
 **Forced revival of archived components.** If a component has been dimming through disuse, do not forcibly revive it. Either reconnect it intentionally or let it archive naturally.
 
 **Immediate blacklisting.** A single failure should not permanently exclude a component. Selection pressure (reduced ΦL, lower sampling probability) achieves gradual quarantine.
-
-**Fixed dampening for all topologies.** Do not use γ=0.7 everywhere. Compute γ_effective = min(γ_base, safety_budget/k) from the local branching factor. The general formula handles all topologies including hubs — do not create separate hub formulas.
 
 ---
 
@@ -523,7 +662,7 @@ For critical patterns, enumerate failure modes and their structural signals:
 | Bloom (○) | Boundary — pipeline stage, module scope, service boundary |
 | Resonator (Δ) | Transformation — where input becomes output, routing decision |
 | Grid (□) | Knowledge structure — graph, schema, persistent storage |
-| Helix (🌀) | Feedback loop — correction retry, learning cycle, evolutionary selection |
+| Helix (🌀) | Feedback loop — refinement retry, learning cycle, evolutionary selection |
 | ΦL | Health score — composite of success rate, compliance, provenance, stability |
 | ΨH | Harmonic signature — two-component: λ₂ (structural coherence) + TV_G (runtime friction) |
 | εR | Exploration rate — fraction of decisions sampling uncertain alternatives |
