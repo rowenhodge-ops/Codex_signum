@@ -1,6 +1,6 @@
 # Codex Signum — Canonical Roadmap & Milestone Taxonomy v8
 
-**Version:** 8
+**Version:** 8.1
 **Date:** 2026-03-12
 **Status:** Living document — update as milestones complete
 
@@ -18,6 +18,7 @@ Key changes:
 5. **State Dimension Gap contracts.** Updated to v5.0 formulas. Line conductivity Layers 1-3 added as new vertical wiring requirement.
 
 **Changelog:**
+**v8.1 (2026-03-16):** Reconciliation pass. M-17.1/M-17.2 stamped complete. M-8.INT reverted to active (premature stamp). R-27/R-28 restored from M-9.6 completion report. R-40–R-45 restored from quick-reference-plan (dropped during v8 rewrite). M-20 (Topology Observation Helix) and M-21 (Bridge Grid Instantiation) added. Circular dependency M-16.4→M-16.2 removed. 6 stale R-item statuses corrected. 9 R-items relabelled Bloom→Seed.
 **v8 (2026-03-12):** v5.0 reconciliation. M-16 rescoped (spec canonisation done → Constitutional Bloom establishment). M-17 rescoped (Bridge v2.1 → v3.0). Spec refs v4.3 → v5.0. 8 axioms (A5 removed). 4 memory strata. Correction→Refinement. New requirements R-46–R-57. Morpheme Identity Map and Concurrent Pattern Topology v3 committed.
 **v7 (2026-03-05):** Spec alignment pass against v5.0. State Dimension Gap updated with v4.3 contracts (4-factor ΦL, dampening formula, cascade mechanics, 6 event triggers). M-9.5 Dimension 2 updated with spec contract requirements for `@future` tests. M-9.V exit criteria made spec-precise. M-17.4 vertical wiring requirements enumerated. Spec references updated v3.0 → v4.3. No milestone sequence or scope changes.
 **v6.3 (2026-03-04):** M-9.4 ✅, M-9.VA ✅ (gate PASS), M-9.VA-FIX ✅ (5 bugs), M-9.VA-V ✅ (post-fix verified). Tests: 1182. R-13 closed. State dimension gap documented. M-9.8 promoted (→ after M-9.5). M-9.5 ⏳.
@@ -157,8 +158,13 @@ M-16   📋  Constitutional Bloom establishment + morpheme retyping + INSTANTIAT
  │
  ├─── TEST GATE ───
  │
-M-17   📋  Engineering Bridge v3.0 (Line conductivity, superposition, event-driven model, deferred computations)
+M-17   🔄  Engineering Bridge v3.0 (Line conductivity, superposition, event-driven model, deferred computations)
+ │         M-17.1 ✅, M-17.2 ✅, M-17.3–M-17.6 remaining.
  │         ⚠️ This is where ΦL/ΨH/εR computation gaps get documented and fixed.
+ │
+ ├─── TEST GATE ───
+ │
+M-21   📋  Bridge Grid Instantiation (spec as queryable graph data)
  │
  ├─── TEST GATE ───
  │
@@ -193,7 +199,7 @@ M-10   📋  Memory operations (full compaction, distillation, institutional kno
  │               M-15 📋  Pattern Exchange Protocol (federated deployment)
  │
  ╔═══════════════════════════════════════════════════════
- ║  PARALLEL TRACK — starts at M-9.8, accumulates throughout
+ ║  PARALLEL TRACKS
  ╚═══════════════════════════════════════════════════════
  │
 M-19   📋  Hypothesis tracking + research pipeline
@@ -201,6 +207,10 @@ M-19   📋  Hypothesis tracking + research pipeline
            Evidence accumulates from M-9 onwards (automatic)
            Paper readiness assessed from M-11 onwards
            Sandbox pattern from M-13 onwards
+ │
+M-20   💡  Topology Observation Helix (starts after M-17.4, accumulates indefinitely)
+           The system's self-model. Captures topology deltas for empirical discovery.
+           Hard deps: M-9.8 ✅, M-17.4. Soft deps: M-10, M-14, M-19.
 ```
 
 **Every transition through a TEST GATE requires:** gate success per Test Gate Policy. Gate failure → surface to Ro.
@@ -649,7 +659,7 @@ With the grammar reference from M-9.7a as the bill of materials, map every syste
 
 ---
 
-### M-17: Engineering Bridge v3.0 📋
+### M-17: Engineering Bridge v3.0 🔄
 
 *The Engineering Bridge is stale (v2.0 predates v5.0). Three formulas identified as incorrect in M-8A. v5.0 moved superposition mechanics here. Line conductivity needs implementation detail. Signal conditioning stages need morpheme grounding. Build experience from 6 months not captured.*
 
@@ -829,11 +839,54 @@ Federated deployment sharing. Spec at `docs/specs/codex-signum-pattern-exchange-
 
 ---
 
+### M-20: Topology Observation Helix 💡
+
+*The system's self-model. A Learning Helix that captures topology deltas across the entire graph over time, enabling empirical mathematical discovery from the system's own behaviour.*
+
+**Why it matters:** The Codex assembles its mathematical identity from five traditions (weighted composites, spectral graph theory, Bayesian inference, SPC, exponential decay). M-20 is the instrument that can discover whether simpler or more elegant mathematics emerges from the system's own empirical signature.
+
+**Hard dependencies:** M-9.8 ✅ (graph has topology to observe), M-17.4 (state dimensions connected — without this, topology has structure but no state)
+**Soft dependencies:** M-10 (memory compaction for unbounded snapshots), M-14 (self-recursive learning acts on discoveries), M-19 (topology observations as hypothesis evidence)
+
+| Sub | Description | Model | Dependencies |
+|-----|-------------|-------|--------------|
+| M-20.1 | Schema design — topology delta capture format, storage budget | 🏗️ Opus | M-9.8 ✅ |
+| M-20.2 | Helix implementation — observation pattern wired into post-execution hooks | 🔧 Sonnet | M-20.1, M-17.4 |
+| M-20.3 | Accumulation phase — run N executions with full capture. No analysis. | 🤖 Automated | M-20.2 |
+| M-20.4 | Analysis tooling — dimensionality reduction, trajectory vis, manifold detection | 🏗️ Opus + 👤 Ro | M-20.3 |
+| M-20.5 | Discovery — identify structural patterns, candidate simplifications | 🏗️ Opus + 👤 Ro | M-20.4 |
+| M-20.6 | Integration — discovered formulas → spec candidates, feed M-12 if constitutional | 🏗️ Opus + 👤 Ro | M-20.5 |
+
+**Date proposed:** 2026-03-05. **Status:** 💡 Vision (not yet in graph — awaits M-17.4).
+
+---
+
+### M-21: Bridge Grid Instantiation 📋
+
+*The Engineering Bridge v3.0 as a queryable Grid of specification Seeds in the graph. Each Part/subsection becomes one Seed. Cross-references become Lines. The Assayer reads specs structurally; Thompson reads parameter config from graph.*
+
+**Why it matters:** Closes the gap between specification documents and the graph. Currently the Bridge is a markdown file; after M-21, every specification section is a first-class graph node with observation history, SPECIFIED_BY Lines to implementations, and structural queryability.
+
+**Hard dependencies:** M-17 (produces the Bridge v3.0 content), M-16 ✅ (instantiation protocol for creating Seeds)
+**Sequenced before:** M-13 (visualisation renders the spec graph)
+
+| Sub | Description | Model |
+|-----|-------------|-------|
+| M-21.1 | Section inventory — map every Bridge section heading to a Seed name | 🏗️ Opus |
+| M-21.2 | Grid instantiation — create Bridge Grid containing Part Seeds, each containing subsection Seeds | 🔧 Sonnet |
+| M-21.3 | Cross-reference Lines — explicit named cross-references in the Bridge become Lines between Seeds | 🔧 Sonnet |
+| M-21.4 | SPECIFIED_BY wiring — link spec Seeds to implementation functions/modules | 🔧 Sonnet |
+| M-21.5 | Verification — every Bridge section is queryable by Cypher, no orphaned Seeds | 🔧 Sonnet |
+
+**Date proposed:** 2026-03-15. **Status:** 📋 Planned (awaits M-17 completion).
+
+---
+
 ## Validated Refinements Backlog
 
 | # | Refinement | Source | Implement At | Status |
 |---|-----------|--------|-------------|--------|
-| R-01 | Bridge View Principle — codify in Engineering Bridge spec | M-8A t15 | M-17.2 | 📋 |
+| R-01 | Bridge View Principle — codify in Engineering Bridge spec | M-8A t15 | M-17.2 | ✅ `6b4822f` |
 | R-02 | Axiom Dependency Declaration — DAG annotation | M-8A t14 | M-16.1 | 📋 |
 | R-03 | Dimensional Collapse — add to anti-pattern table in CLAUDE.md | M-8A | M-16.4 | 📋 |
 | R-04 | DECOMPOSE spec limits — CTQs for good decomposition | Session | M-8C | ✅ (via jidoka) |
@@ -859,12 +912,31 @@ Federated deployment sharing. Spec at `docs/specs/codex-signum-pattern-exchange-
 | R-24 | Flywheel validation (evidence that pattern additions compound learning) | v5 session | M-14 | 📋 |
 | R-25 | Convert 18 `.todo()` tests to real `@future(M-N)` failing tests + add separate runner | M-9.VA-FIX review | M-9.5 | ⏳ |
 | R-26 | `assessTaskQuality` failed-with-zero-output gets max hallucination bonus (0.20) — semantically odd | M-9.VA-FIX review | Future (quality heuristic refinement) | 📋 |
+| R-27 | Deployable model substrate — GPU provisioning for Llama, Gemma, Mixtral etc. | M-9.6 completion | M-14+ | 📋 |
+| R-28 | Anti-drift fine-tuning recipe — SFT, contrastive negatives, DPO/ORPO | M-9.6 completion | M-14+ | 📋 |
+| R-29 | DECOMPOSE synthesis detection — auto-generate synthesis task when intent needs consolidated output | M-17 run | M-8.INT | 📋 |
+| R-30 | Consolidation detail preservation — synthesis merges preserving all detail | M-17 run | M-8.INT | 📋 |
+| R-31 | Deterministic task classification — three-layer CLASSIFY, three-way DISPATCH | M-8 session | M-8.INT | ✅ `8570bad` |
+| R-32 | Data ingestion as Seeds — seed first, classify and transform later | M-8 session | Design session | 📋 |
+| R-33 | Typed containment relationships — HAS_STAGE, HAS_MILESTONE, HAS_PHASE | Graph mgmt | M-9.8 | 📋 Deferred |
+| R-34 | Query module decomposition — split queries.ts god file | Graph mgmt | Housekeeping | ✅ `6ffd17f` |
+| R-35 | Native temporal types — ISO strings → Neo4j datetime() | Graph mgmt | Schema evolution | ✅ `017fe37` |
+| R-36 | Pipeline output decomposition — markdown → structural Seeds | Graph mgmt | After R-31 | 📋 |
+| R-37 | Composite indexes for query patterns | Graph mgmt | Bundle w/ R-35 | ✅ `b79a354` |
+| R-38 | Structural data lifecycle — archival, lifecycle states | Graph mgmt | Scale warrants | 📋 |
+| R-39 | Morpheme Instantiation Layer — write layer speaks Codex grammar | Quick ref plan | M-16.4 | ✅ = M-16.4 |
+| R-40 | Structured DECOMPOSE Input — JSON blocks, not serialized prose | Quick ref plan | M-8.INT | 📋 |
+| R-41 | Conditional DevAgent SCOPE Bypass — skip LLM re-interpretation | Quick ref plan | M-8.INT | 📋 |
+| R-42 | Hybrid Prompt Template — JSON header + prose body | Quick ref plan | M-8.INT | 📋 |
+| R-43 | Tool-Use DECOMPOSE Output — Anthropic tool API for typed TaskGraph | Quick ref plan | M-8.INT | 📋 |
+| R-44 | Graph-Derived Context Transfer — SURVEY --mode=context-transfer | Quick ref plan | M-8.INT | 📋 |
+| R-45 | Structured Corrections + Deterministic VALIDATE | Quick ref plan | M-8.INT | 📋 |
 | R-46 | Constitutional Bloom creation — organisational core in Neo4j | v5.0 canonisation | M-16.1 | ⏳ |
-| R-47 | INSTANTIATES wiring — every node connects to Constitutional Bloom | v5.0 §Constitutional Coupling | M-16.2 | 📋 |
+| R-47 | INSTANTIATES wiring — every node connects to Constitutional Bloom | v5.0 §Constitutional Coupling | M-16.2 | ✅ |
 | R-48 | Agent→Resonator retyping (LLMs are transformers, not data) | Morpheme Identity Map v1.0 | M-16.3 | 📋 |
 | R-49 | PipelineRun→Bloom retyping (executions are scope boundaries) | Morpheme Identity Map v1.0 | M-16.3 | 📋 |
 | R-50 | Creation layer enforcement — atomic INSTANTIATES in all creation functions | v5.0 + Identity Map | M-16.4 | 📋 |
-| R-51 | Correction→Refinement codebase rename | v5.0 terminology | M-16.5 | 📋 |
+| R-51 | Correction→Refinement codebase rename | v5.0 terminology | M-16.5 | ✅ `bb8f451` |
 | R-52 | Architect pattern design revision (v3.0→v5.0, concurrent model, morpheme identity) | Concurrent Pattern Topology v3 | Post-M-16 | 📋 |
 | R-53 | DevAgent pattern design revision (v5.0, concurrent model) | Concurrent Pattern Topology v3 | Post-M-16 | 📋 |
 | R-54 | Line conductivity implementation specification in Engineering Bridge | v5.0 §Line Conductivity | M-17.3 | 📋 |
@@ -905,6 +977,7 @@ Federated deployment sharing. Spec at `docs/specs/codex-signum-pattern-exchange-
 | R-19 | 2026-03-04 | M-9.8 (Ecosystem Bootstrap) promoted to immediately after M-9.5 in Part 2 sequence. Rationale: roadmap is project's most-edited artifact and only one not structurally represented. Every hand-edit is the system failing its own thesis. New Part 2 order: 9.5 → 9.8 → 9.6 → 9.7a → 9.7b. |
 | R-20 | 2026-03-05 | v7: Spec alignment pass. v4.3 review found 4 omissions in State Dimension Gap (ΦL 4-factor formula, dampening mechanics, event trigger enumeration, propagation direction). Corrected. M-9.5/M-9.V/M-17.4 updated with spec contracts. Spec refs v3.0 → v4.3. M-16 updated to reference v4.3. |
 | R-21 | 2026-03-12 | v5.0 spec canonised (`e1f6d88`). Morpheme Identity Map v1.0 committed (`524b25be`). Concurrent Pattern Topology reconciled to v3 (Correction→Refinement, A5 removed, Line conductivity/Remedy Archive/Dimensional Profiles enriched, section refs). M-16 rescoped from spec canonisation to Constitutional Bloom establishment. M-17 rescoped to Engineering Bridge v3.0. New requirements R-46–R-57. Roadmap v8 produced. |
+| R-22 | 2026-03-16 | v8.1: Reconciliation pass. M-17.1/M-17.2 stamped complete. M-8.INT reverted to active (premature stamp). R-27/R-28 restored from M-9.6 completion report. R-40–R-45 restored from quick-reference-plan (dropped during v8 rewrite). M-20 (Topology Observation Helix) and M-21 (Bridge Grid Instantiation) added. Circular dependency M-16.4→M-16.2 removed. 6 stale R-item statuses corrected. 9 R-items relabelled Bloom→Seed. |
 
 ---
 
