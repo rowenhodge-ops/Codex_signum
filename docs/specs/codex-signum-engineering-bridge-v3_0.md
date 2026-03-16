@@ -15,7 +15,7 @@ This document translates the Codex Signum specification into concrete engineerin
 
 The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice. The Bridge View Principle (Part 1.1) constrains what may appear in these computations.
 
-**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL). Glossary rewritten from scratch against v5.0. Remaining structural reframing lands in M-17.5–M-17.6.
+**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL), Superposition Operational Mechanics (instance lifecycle, three collapse modes, persistence). Glossary rewritten from scratch against v5.0. Remaining structural reframing lands in M-17.5–M-17.6.
 ---
 
 ## Part 1: Foundational Principle
@@ -543,6 +543,160 @@ These are computed from the observation Grid (Instantiation/Mutation/Line Creati
 ### Anti-Pattern Connection
 
 This is the structural fix for the Compliance-as-Monitoring anti-pattern. When ALL graph writes route through these three Resonators, violations are structurally impossible. The seven killed monitoring overlays (Model Sentinel, Observer, dashboard, computed views, CLAUDE.md rules, conformance tests, creation layer checks) are all replaced by these three functions. Checking is unnecessary when the creation layer prevents non-compliance.
+
+---
+
+## Superposition Operational Mechanics — Instance Lifecycle and Collapse
+
+**Source:** v5.0 §Superposition (grammar permission), `concurrent-pattern-topology-v3.md` §Superposition During Execution (instance creation, concurrent governance, collapse, persistence).
+
+### S.1 — Grammar Fact
+
+v5.0 §Superposition establishes five grammar facts about superposition:
+
+1. The grammar permits multiple simultaneous instances of the same composition.
+2. Each instance INSTANTIATES the same constitutional definition.
+3. Each instance has its own ΦL, ΨH, εR — independent state dimensions.
+4. Each instance shares a composition signature (same structural topology) but is spatially distinct.
+5. Instances collapse to a single result through a selection or synthesis mechanism.
+
+These are grammar facts — they define what is structurally permitted. Everything below specifies the operational mechanics: how to create instances, govern them concurrently, collapse them, and persist the results.
+
+### S.2 — Instance Creation
+
+When a DISPATCH Resonator (or any spawning mechanism) creates superposed instances, each instance is a separate Bloom containing the pattern's morpheme topology. Each instance Bloom has:
+
+- **Its own concurrent governance morphemes:**
+  - Its own Refinement Helix — with an INSTANTIATES Line to the Constitutional Bloom carrying the iteration bound. The Helix connects to the Assayer Resonator within the instance; the Assayer IS the Helix's evaluation mechanism (per CPT v3).
+  - Its own ΨH Resonator — computing harmonic signature from the instance's internal subgraph.
+  - Its own per-Resonator ΦL computation — each Resonator within the instance has independent health.
+  - Its own observation Grid — accumulating execution Seeds specific to this instance.
+- **Its own ΦL, ΨH, εR** — computed independently. One instance may be healthy while another degrades.
+- **Its own spatial position** — spatially distinct, visible as echoes of each other through shared composition signature and constitutional reference.
+
+All instance creation routes through the Instantiation Resonator (see Governance Resonators Part). No raw graph writes for instance Blooms.
+
+#### Spawning Event Recording
+
+The spawning event is recorded as a Seed in the parent pattern's observation Grid, carrying:
+
+- **Instance count** — how many parallel instances were created
+- **Triggering context** — which task, which substrates (model Resonators)
+- **Spawn timestamp** — provenance (A4)
+- **Thompson posterior state at spawn time** — which model beliefs led to this exploration decision
+
+#### Interaction with Thompson Sampling
+
+εR determines how many instances to spawn — higher εR permits more parallel exploration. Thompson posteriors determine which substrates to explore by sampling from belief distributions. Instance count is bounded by the εR budget: spawning IS exploration. When εR hits its upper bound (maturity-indexed per Part 2), no additional instances may be created.
+
+```
+instance_count = f(εR, posterior_variance)
+```
+
+Where `posterior_variance` measures how uncertain the Thompson beliefs are across available substrates. High variance (uncertain which model is best) combined with high εR (exploration budget available) produces more instances. Low variance (beliefs have converged) produces fewer, regardless of εR budget.
+
+Passes Bridge View Principle: pure function of εR (state dimension), posterior distributions (observation Grid contents), and εR bounds (axiom parameters).
+
+### S.3 — Concurrent Execution Governance
+
+Each instance's governance evaluates independently:
+
+- A grammar violation in Instance A does not affect Instance B's execution.
+- Refinement is local to each instance's Bloom boundary (G3 — containment scopes intentional effects).
+- Each instance accumulates its own observation history in its own Grid.
+
+#### Parent-Level Observation
+
+The parent pattern's governance morphemes observe all instances. The parent's ΨH Resonator sees the subgraph including all instance Blooms. If instances diverge significantly (one healthy, one degrading), the runtime friction between instance Blooms' FLOWS_TO Lines to the collapse Resonator is high — the Lines connecting divergent instances to the collapse point show visible strain in Layer 3 contextual fitness (see Line Conductivity Part, Layer 3).
+
+This is the superposition equivalent of decomposition drift: instances started from the same task but produced structurally different results. The friction is a structural signal, not a monitoring overlay — it is a property of the Lines themselves.
+
+### S.4 — Collapse Mechanics
+
+The collapse is a Resonator (Δ). It takes Lines from each superposed instance and produces a single output Line. Three collapse modes exist, each with distinct input/output/health semantics.
+
+#### Selection Collapse (Thompson Sampling)
+
+- **Input Lines:** output Lines from each instance Bloom, carrying the instance's result and its governance-computed ΦL.
+- **Output Line:** single result Line carrying the selected output.
+- **Collapse Resonator ΦL:** computed from selection quality — the ratio of selected output ΦL to the best available ΦL across all instances. A perfect selection (chose the best) yields high ΦL. A suboptimal selection (chose poorly, discovered retrospectively) degrades.
+- **Unselected outputs:** persist as Stratum 2 observation records (see S.5). Their results update Thompson posteriors — the model tried and its result was observed, even though it wasn't selected.
+
+The selected output's ΦL — computed inline by the instance's own concurrent governance — feeds directly into the selection decision. A dim instance (low ΦL from governance-detected issues) is structurally less likely to be selected. Concurrent governance within each instance directly influences the collapse decision without a separate quality assessment step.
+
+```
+collapse_ΦL = selected_instance_ΦL / max(all_instance_ΦL)
+```
+
+Passes Bridge View Principle: pure function of instance ΦL values (morpheme states) computed by governance Resonators.
+
+#### Racing Collapse (First-Complete)
+
+- **Input Lines:** output Lines from each instance Bloom. The collapse Resonator activates as soon as any instance's output Line carries data.
+- **Output Line:** single result Line carrying the first-completed output.
+- **Collapse Resonator ΦL:** reflects selection quality. If the first-completed instance had low ΦL (its governance detected issues), this ΦL propagates through the collapse Resonator to the parent pattern — the parent dims because the selected output was structurally suspect.
+- **Unselected outputs:** instances that complete after the collapse still produce output. These persist as Stratum 2 records and update Thompson posteriors.
+
+```
+collapse_ΦL = first_complete_instance_ΦL × completion_confidence
+```
+
+Where `completion_confidence` reflects whether the first-complete instance finished significantly faster than others (high confidence — it was straightforward) or barely beat the next (low confidence — racing was essentially random selection).
+
+Passes Bridge View Principle: pure function of instance ΦL (morpheme state) and completion timestamps (observation Seed properties).
+
+#### Synthesis Collapse (Merge)
+
+- **Input Lines:** output Lines from multiple (or all) instance Blooms. The collapse Resonator waits for a configurable subset of instances before activating.
+- **Output Line:** single merged result Line combining outputs from multiple instances.
+- **Collapse Resonator ΦL:** reflects merge quality and conflict resolution. High ΦL when instance outputs are complementary (low friction between merged results). Low ΦL when instance outputs conflict (high friction, requiring lossy resolution).
+- **Unselected outputs:** not applicable — synthesis uses all contributing instances. Non-contributing instances (timed out or failed) persist as Stratum 2 records.
+
+Applicable when instances process complementary aspects of the same task. The synthesis Resonator's merge function is task-type-specific — text tasks may concatenate, structured data tasks may merge fields, analytical tasks may combine perspectives.
+
+```
+synthesis_ΦL = 1 - (conflict_count / total_merge_points) × conflict_severity
+```
+
+Passes Bridge View Principle: pure function of instance outputs (morpheme states) and conflict detection (structural comparison of output Seeds).
+
+#### Collapse Observation Recording
+
+The collapse Resonator records each collapse decision as an observation Seed in its own Grid, carrying:
+
+- Which instance was selected (or which contributed to synthesis)
+- Selection criterion values: posterior beliefs, ΦL values, completion timestamps
+- Quality delta between selected and non-selected outputs (where measurable)
+- Collapse mode used
+
+This feeds Scale 2 learning about collapse strategy itself: is selection outperforming racing for this task type? Are synthesis merges introducing conflicts that degrade quality? The Learning Helix governing the parent pattern reads these observations to adjust future collapse mode selection.
+
+### S.5 — Persistence (Stratum 2)
+
+After collapse, instances transition from Stratum 1 (active execution) to Stratum 2 (observation records):
+
+- **Instance Blooms' observation Grids** persist as execution records — the full history of what each instance did, how its governance responded, what it produced.
+- **Governance morpheme outputs** persist alongside: Refinement Helix iteration counts, ΨH trajectories showing coherence evolution, ΦL histories showing health during execution. These are Stratum 2 data.
+- **Non-selected outputs are NOT deleted.** They persist as Stratum 2 records that feed Scale 2 learning. The persistent data answers: which substrates produce the best results for which task types? Which substrates trigger more governance refinements?
+
+#### Memory Topology Integration
+
+- **Recency weighting** applies to persisted instance data. Recent instances weighted higher per the standard exponential decay: `weight = e^(-λ × age)` (see Part 7 memory sizing).
+- **Compaction Resonator** eventually consolidates old instance records. Individual execution details decay; aggregate statistics (success rate by substrate, friction patterns by task type) persist into Stratum 3.
+- **Dimensional profiles** (see Dimensional Profiles section in Part 2) accumulate across ALL instances — a model Resonator's ΦL_code builds from every instance where it was the substrate, not just the instances whose output was selected. Non-selected instance observations still carry dimensional signal.
+
+### S.6 — Interaction with Existing Mechanisms
+
+| Mechanism | Part/Section | Interaction |
+|---|---|---|
+| Line conductivity | Line Conductivity Part | Instance output Lines are evaluated for conductivity at all three layers. Dark Lines from instances with hygiene failures (Layer 1) or shape mismatches (Layer 2) don't reach the collapse Resonator. Layer 3 friction from dimensional profile misalignment carries through. |
+| Governance Resonators | Governance Resonators Part | All instance Bloom creation goes through the Instantiation Resonator. Instance morpheme mutations go through the Mutation Resonator. Instance output Lines go through the Line Creation Resonator. |
+| Degradation cascade | Part 3 | Instance ΦL propagates through CONTAINS Lines to the parent pattern's ΦL via the collapse Resonator. Standard dampening applies: `γ_effective = min(0.7, 0.8/k)` where k is the parent's branching factor including instance Blooms. Cascade depth limit of 2 applies from the instance Bloom outward. |
+| Dimensional profiles | Part 2 (Dimensional Profiles) | Instance observations contribute to substrate dimensional profiles. A model's ΦL_reasoning accumulates from all instances, not just winners. Thompson reads these profiles for future selection. |
+| Remedy Archive | Part 7 (Immune Memory Repair) | If an instance repeatedly fails on a task dimension, the friction signal from its output Lines triggers remedy matching — potentially instantiating a compensatory morpheme for future instances of that task type. |
+| Signal conditioning | Part 4 | Instance observation streams flow through the seven-stage signal conditioning pipeline before feeding aggregate computations. Each instance's observations enter the pipeline independently. |
+| Structural Review | Part 8 | Instance Bloom creation IS a topology change — adds nodes and edges to the graph. This triggers λ₂ recomputation and may activate the Structural Review Resonator if coherence shifts beyond the maturity-indexed threshold. |
+| Thompson sampling | (M-17.6 — future) | Collapse results update Thompson posteriors for the selected substrate. Non-selected instance results also update posteriors — the model tried, its result was observed, the posterior learns from both selected and non-selected outcomes. |
 
 ---
 
