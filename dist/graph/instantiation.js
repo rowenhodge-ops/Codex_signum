@@ -62,6 +62,8 @@ const VALID_LINE_TYPES = [
     "EXECUTED_IN",
     "PRODUCED",
     "PROCESSED",
+    "REFERENCES",
+    "SPECIFIED_BY",
 ];
 // ─── Instantiation Resonator ────────────────────────────────────────
 /**

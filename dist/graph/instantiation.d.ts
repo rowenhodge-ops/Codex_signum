@@ -1,6 +1,6 @@
 export type MorphemeType = "seed" | "bloom" | "resonator" | "grid" | "helix";
 /** Valid Line relationship types and their direction semantics */
-declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED"];
+declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
 export interface InstantiationResult {
     success: boolean;

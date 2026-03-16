@@ -73,6 +73,8 @@ const VALID_LINE_TYPES = [
   "EXECUTED_IN",
   "PRODUCED",
   "PROCESSED",
+  "REFERENCES",
+  "SPECIFIED_BY",
 ] as const;
 
 export type LineType = (typeof VALID_LINE_TYPES)[number];
