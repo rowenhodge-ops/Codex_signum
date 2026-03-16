@@ -2,7 +2,7 @@
 
 ## Implementation Constraints and Parameter Guide
 
-**Version:** 3.0-draft
+**Version:** 3.0
 **Companion to:** Codex Signum v5.0 (canonised at `e1f6d88`)
 **Audience:** Implementors, coding agents, deployment engineers
 **Date:** 2026-03-16
@@ -15,7 +15,7 @@ This document translates the Codex Signum specification into concrete engineerin
 
 The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice. The Bridge View Principle (Part 1.1) constrains what may appear in these computations.
 
-**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL), Superposition Operational Mechanics (instance lifecycle, three collapse modes, persistence), Event-Driven Execution Model (Resonator activation contract, per-Resonator transactions, concurrency management, migration path). Part 4 reframed: signal conditioning stages become seven named Resonators within a Signal Conditioning Bloom with intra-run/cross-run temporal scale distinction. Part 8 reframed: structural review triggers become input Lines to the Structural Review Resonator with five diagnostic output types. Morpheme shape derivation added to Part 5. Glossary rewritten from scratch against v5.0. Remaining structural reframing lands in M-17.6.
+**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL), Superposition Operational Mechanics (instance lifecycle, three collapse modes, persistence), Event-Driven Execution Model (Resonator activation contract, per-Resonator transactions, concurrency management, migration path). Part 4 reframed: signal conditioning stages become seven named Resonators within a Signal Conditioning Bloom with intra-run/cross-run temporal scale distinction. Part 8 reframed: structural review triggers become input Lines to the Structural Review Resonator with five diagnostic output types. Morpheme shape derivation added to Part 5. Glossary rewritten from scratch against v5.0. M-17.6 additions: Part 7 reframed as morpheme compositions (recency = Line property, compaction = Resonator, distillation = Resonator). Part 6 reframed with structural defences and limitations per watchpoint. ΨH temporal decomposition (N-4) and composition-scope εR (N-5) added to Part 2. Build experience section: Thompson informed priors, context-blocked posteriors, exploration decay, hallucination detection (three-layer), CLAUDE.md governance. Deferred computation details verified against source: ΦL temporal_stability, εR spectral calibration, εR floor formula, ΨH hypothetical state. Vertical wiring specification: 8-row interface contract. M-17 complete.
 ---
 
 ## Part 1: Foundational Principle
@@ -182,6 +182,62 @@ Runtime friction weighted higher because it reflects actual operational coherenc
 
 **Key diagnostic signal:** High λ₂ + high friction = the most informative dissonance. The graph says components *should* work together but operationally they don't. Investigate: different processing speeds, incompatible output formats, semantic drift.
 
+### ΨH Temporal Decomposition
+
+**Source:** v5.0 §ΨH Temporal Decomposition, implementation at `src/computation/psi-h.ts`.
+
+A single composite ΨH value conflates transient operational friction with durable structural misalignment. Temporal decomposition separates these signals.
+
+#### Spec Decomposition (Target — Four Dimensions)
+
+v5.0 decomposes ΨH along four characteristics of resonant episodes:
+
+| Dimension | What It Measures | Computation |
+|---|---|---|
+| Frequency | How often resonance occurs | Count of resonant episodes (ΨH above threshold) per observation window |
+| Duration | How long each resonant episode lasts | Mean episode length in observations |
+| Intensity | How strong the resonance when it occurs | Mean ΨH during resonant episodes |
+| Scope | How many connected patterns participate | Count of Bloom nodes with ΨH above threshold during resonant episodes |
+
+A "resonant episode" is a contiguous window of observations where ΨH exceeds the maturity-indexed dissonance threshold (Young: 0.75, Maturing: 0.80, Mature: 0.85 — the complement of the dissonance values in the adaptive threshold table). Episodes shorter than 3 observations are noise, not resonance.
+
+#### Implementation Decomposition (Current — Three Components)
+
+The implementation (`decomposePsiH()` in `src/computation/psi-h.ts`) decomposes ΨH by signal temporality into three components:
+
+| Component | What It Measures | Computation | Status |
+|---|---|---|---|
+| `psiH_trend` | EWMA-smoothed trend | `S_t = α × psiH_instant + (1 - α) × S_{t-1}`, α configurable (default 0.15) | ✅ Implemented |
+| `friction_transient` | Short-lived operational friction | `|psiH_instant - psiH_trend|` — deviation of current value from smoothed trend | ✅ Implemented |
+| `friction_durable` | Persistent structural friction | `|psiH_trend - baseline|` — drift of trend from established baseline | ✅ Implemented |
+
+**Baseline establishment:** After `BASELINE_MIN_OBSERVATIONS` (5) observations, the EWMA trend at that point becomes the baseline. The baseline is the system's memory of what "normal" coherence looks like.
+
+**State management:** `PsiHState` carries a ring buffer of observations, the current trend value, the established baseline, EWMA alpha, and buffer max size. The caller owns and persists the state between runs — core remains stateless.
+
+**Integrated computation:** `computePsiHWithState()` wraps both `computePsiH()` (structural computation from graph) and `decomposePsiH()` (temporal decomposition from observation history), returning the raw PsiH, the decomposition, and the updated state in a single call.
+
+#### Relationship Between Decompositions
+
+The spec's four dimensions and the implementation's three components are complementary frames, not equivalent:
+
+| Spec Dimension | Implementation Counterpart | Notes |
+|---|---|---|
+| Intensity | `psiH_trend` magnitude | Trend magnitude approximates mean resonance intensity |
+| Frequency | No direct counterpart | Requires episode detection logic over the observation stream |
+| Duration | `friction_transient` inversely | Sustained low transient friction implies long-duration episodes |
+| Scope | No direct counterpart | Requires cross-Bloom analysis — counting Blooms with ΨH above threshold during episodes |
+
+The implementation's three components are computed today. The spec's four dimensions are the target specification. Frequency and Scope require cross-Bloom episode analysis not yet implemented — these are engineering milestones, not spec gaps.
+
+#### ΨH Hypothetical State (Projectable)
+
+v5.0 specifies that ΨH is projectable — computable against proposed states as well as observed states. This enables "what-if" analysis: what would ΨH be if we added this Resonator, or removed that Line?
+
+**Implementation status:** ⚠️ Partial. The `computePsiH()` function accepts arbitrary `edges` and `nodeHealths` arrays, so hypothetical computation is structurally possible — pass a proposed edge set and node health set. However, there is no dedicated hypothetical API (no `computeHypotheticalPsiH()` function that takes a current graph plus proposed mutations). The computation infrastructure exists; the ergonomic API does not.
+
+Passes Bridge View Principle: all decomposition components are pure functions of ΨH observation history (morpheme state in observation Grid) and window parameters (axiom-defined). The EWMA alpha, baseline observation count, and ring buffer size are axiom-defined parameters.
+
 ### εR — Exploration Rate
 
 ```
@@ -222,6 +278,50 @@ Recommended `gradient_sensitivity`: 0.05–0.15. When Ω gradients are positive,
 | 0.7–0.9 | 0.02 |
 | 0.5–0.7 | 0.01 |
 | < 0.5 | 0.0 |
+
+### Composition-Scope εR
+
+**Source:** v5.0 §Event-Triggered Structural Review (εR spike at Bloom boundary), Ro's design decision from M-17.1 delta report.
+
+v5.0 specifies εR spike at Bloom boundary as one of six event triggers for structural review. Bridge v2.0 computed εR only at the component level. Composition-scope εR aggregates contained components' exploration behaviour, following the same parent-from-children derivation as ΦL.
+
+#### Computation
+
+```
+εR_bloom = exploratory_decisions_in_bloom / total_decisions_in_bloom
+```
+
+Where decisions are Decision Seeds within the Bloom's containment scope, queried via CONTAINS traversal. A Bloom whose Resonators always select the same substrate has low εR. A Bloom distributing across substrates has high εR.
+
+**Alternative (weighted by Resonator ΦL):**
+
+```
+εR_bloom = Σ(εR_i × ΦL_i) / Σ(ΦL_i)   for all Resonators i within the Bloom
+```
+
+This weights exploration by the health of the exploring component — a degraded Resonator's exploration contributes less to composition εR than a healthy one's. Recommended: simple ratio for clarity. Weighted variant for mature deployments where degraded Resonators should have reduced influence on composition exploration signals.
+
+#### Structural Review Trigger
+
+εR spike at composition level triggers structural review (see Part 8) when:
+
+```
+εR_bloom > εR_stable_range_upper
+```
+
+Where `εR_stable_range_upper` is the maturity-indexed upper bound from the adaptive threshold table (Young: 0.40, Maturing: 0.30, Mature: 0.15). A Bloom that suddenly begins exploring more than its maturity warrants signals confidence collapse — something changed that the system's learned beliefs don't cover.
+
+#### Upward Propagation
+
+Composition εR propagates upward through nested Blooms using the same parent-from-children derivation as ΦL, with dampening:
+
+```
+εR_parent = (1/k) × Σ(εR_child_i)   for all k children
+```
+
+No dampening coefficient is applied — εR is an observation rate, not a health signal. Averaging preserves the information. A parent Bloom's εR is the mean exploration rate across its contained compositions.
+
+Passes Bridge View Principle: pure function of Decision Seed counts within containment (morpheme state + topology) and maturity-indexed thresholds (axiom parameters).
 
 ### Dimensional Profiles — Partitioned ΦL by Task Classification
 
@@ -1009,67 +1109,171 @@ Passes Bridge View Principle: all shape derivations are pure functions of graph 
 
 ---
 
-## Part 6: Seven CAS Vulnerability Watchpoints
+## Part 6: Seven CAS Vulnerability Watchpoints — Risks with Structural Defences
 
-These are architectural vulnerabilities identified by the Complex Adaptive Systems literature review. They are not bugs to fix — they are structural risks to monitor.
+These are architectural vulnerabilities identified by the Complex Adaptive Systems literature review. They are not bugs to fix — they are ongoing engineering concerns inherent to complex adaptive systems. v5.0's mechanisms now provide structural responses to several watchpoints. The risks remain valid — the defences are structural mitigations, not eliminations.
 
-### 1. HOT Fragility (Highly Optimised Tolerance)
+### 1. Emergence
 
-Any optimised system is hypersensitive to unanticipated perturbations. **This is a mathematical inevitability of optimisation, not a risk to eliminate.** Explicitly catalogue what the system is robust to and what it is fragile to. Monitor for perturbation types outside the designed-for set.
+Any optimised system is hypersensitive to unanticipated perturbations (HOT Fragility — Highly Optimised Tolerance). This is a mathematical inevitability of optimisation, not a risk to eliminate. Explicitly catalogue what the system is robust to and what it is fragile to.
+
+**Structural defence:** The Structural Review Resonator (Part 8) detects unexpected topology patterns — anomalous node creation rates, disproportionate connection formation, sudden ΨH variance collapse. When topology changes match known perturbation signatures, the review triggers diagnostics.
+
+**Limitation:** Can only detect patterns with known signatures. Novel perturbation types outside the designed-for set produce no signal until their effects propagate into observable state dimension changes.
 
 ### 2. Cascading Failures in Interdependent Subsystems
 
-Interdependent networks undergo first-order (abrupt) phase transitions, not gradual degradation. Broader degree distributions *increase* vulnerability (opposite of isolated networks). **Mitigation:** Reduce coupling strength between subsystems. The topology-aware dampening and 2-level cascade limit are the primary defences. Monitor for correlated failures across subsystem boundaries.
+Interdependent networks undergo first-order (abrupt) phase transitions, not gradual degradation. Broader degree distributions *increase* vulnerability (opposite of isolated networks).
 
-### 3. Complexity Catastrophe
+**Structural defence:** The dampening formula guarantees subcriticality for all topologies (Part 3): `γ_effective = min(0.7, 0.8/k)` ensures μ = k × γ ≤ 0.8 < 1. Cascade depth limit of 2 (Part 3) bounds propagation. Algedonic bypass (Part 3) ensures existential threats escalate despite dampening. Immune memory (Threat + Remedy Archives, Part 7) learns from cascade events — friction profiles from cascades are archived as threat signatures, enabling faster response to recurrence.
 
-As epistatic interactions increase relative to system components in NK models, reachable fitness optima converge toward mean fitness. **Keep interaction complexity moderate.** Modular design (low inter-module coupling, higher intra-module coupling) preserves navigability. Monitor adaptive walk lengths: if improvements require increasingly many steps, the landscape is too rugged.
+**Limitation:** Black swan: simultaneous failures across independent Blooms not connected by CONTAINS Lines. The dampening formula guarantees subcriticality within a containment hierarchy. Correlated failures across independent hierarchies (e.g., common-mode failure of an external API affecting multiple unrelated patterns) bypass the CONTAINS Line propagation model entirely.
+
+### 3. Component Co-Evolution
+
+As epistatic interactions increase relative to system components in NK models, reachable fitness optima converge toward mean fitness (Complexity Catastrophe). Modular design (low inter-module coupling, higher intra-module coupling) preserves navigability.
+
+**Structural defence:** ΨH temporal decomposition (N-4, Part 2) distinguishes earned resonance (durable coherence from genuine alignment) from coincidental resonance (transient coherence from correlated external conditions). The `friction_durable` component detects long-term co-evolutionary drift — when the baseline shifts, even if instantaneous ΨH remains high.
+
+**Limitation:** Slow co-evolutionary drift may not trigger friction thresholds. If two components gradually specialise in ways that reduce their compatibility, the drift rate may remain below the EWMA detection threshold indefinitely. Periodic structural reviews (operator-triggered) supplement automated detection.
 
 ### 4. Lock-In and Path Dependence
 
-Use-based selection without diversity-maintenance mechanisms is vulnerable to Matthew effects and premature convergence (demonstrated in MusicLab studies). **Mitigation:** εR minimum floor (never zero); challenge seeds for mature networks; diversity metrics on pattern compositions.
+Use-based selection without diversity-maintenance mechanisms is vulnerable to Matthew effects and premature convergence (demonstrated in MusicLab studies).
+
+**Structural defence:** εR floor computation (Part 2) with imperative gradient modulation and spectral calibration prevents exploration from collapsing to zero. The floor responds to structural signals — negative Ω gradients and high spectral ratio push εR UP regardless of accumulated confidence. Structural review triggers on Ω gradient inversion (Part 8) detect when previously positive imperatives begin stalling.
+
+**Limitation:** Lock-in at the ecosystem level (all patterns converging on the same substrates simultaneously) is harder to detect than component-level lock-in. Composition-scope εR (Part 2) helps — a Bloom whose Resonators all select the same substrate has low εR — but ecosystem-level convergence requires cross-Bloom εR analysis not yet specified.
 
 ### 5. Parasitic Pattern Propagation
 
-Patterns that satisfy selection criteria (high ΦL) without providing genuine utility. They game the metrics. **Detection:** High pattern turnover with no Ω gradient improvement. New patterns structurally similar to predecessors (ΨH within 0.05). Rising compute cost without rising capability.
+Patterns that satisfy selection criteria (high ΦL) without providing genuine utility. They game the metrics.
+
+**Structural defence:** Immune memory Threat Archive (Part 7) stores coupling effect signatures from phased harmful patterns. The Threat Matching Resonator detects recurrence via two-pass matching (structural invariants + surface variants). Ω gradient inversion trigger (Part 8) detects when new patterns arrive without improving imperatives. Boundary penalty acceleration from the Threat Archive enables faster response to known threat types.
+
+**Limitation:** Novel parasitic topologies not yet in the Threat Archive produce no immune response. The first encounter with a new parasitic pattern is always expensive — detection relies on downstream ΦL/Ω signals, not structural recognition. The Archive learns from each encounter but cannot anticipate.
 
 ### 6. Inadequate Measurement
 
-Emergence claims without measurement frameworks are unfalsifiable. **Required:** Power-law testing via Clauset et al. methodology before claiming scale-free properties. Critical slowing down indicators (Scheffer et al.) for cascade approach warning. Do not claim emergence without measurable evidence.
+Emergence claims without measurement frameworks are unfalsifiable. Power-law testing (Clauset et al.) required before claiming scale-free properties. Critical slowing down indicators (Scheffer et al.) for cascade approach warning.
 
-### 7. Emergence Inflation
+**Structural defence:** Structural Signatures (v5.0 §Structural Signatures) provide Merkle hash verification and position calculation. Line conductivity Layer 1 (Line Conductivity Part) performs morpheme hygiene checks — required properties present, INSTANTIATES Line intact, content non-empty. These ensure measurement integrity at the morpheme level.
 
-The gap between CAS theory and CAS engineering remains unsolved. Holland's ECHO model failed to produce emergent hierarchical complexity. **Approach:** Build for utility at current scale. Do not design for hypothetical emergence. If emergence occurs, measure it. If it doesn't, the system is still useful.
+**Limitation:** Measurement adequacy is self-referential — the system measures what it is configured to measure. Blind spots in the observation Grid (signals not being recorded, dimensions not being tracked) are invisible to the measurement infrastructure. External audits and operator-triggered reviews (Part 8) provide the out-of-band verification that in-band measurement cannot.
 
-### Cross-Reference: v5.0 Structural Mechanisms
+### 7. Environmental Shift
 
-Several watchpoints now have structural defences specified in v5.0. The risks remain valid — the defences are structural mitigations, not eliminations.
+The gap between CAS theory and CAS engineering remains unsolved (Emergence Inflation). Build for utility at current scale. Do not design for hypothetical emergence. If emergence occurs, measure it. If it doesn't, the system is still useful.
 
-| Watchpoint | v5.0 Structural Mechanism |
-|---|---|
-| Cascading failures (#2) | §Event-Triggered Structural Review — cascade activation trigger. Immune memory (Threat + Remedy Archives) provides CAS-native defence. |
-| Lock-in (#4) | εR floor computation (imperative gradient modulation + spectral calibration) |
-| Parasitic patterns (#5) | Ω gradient inversion trigger in Structural Review Resonator. Immune memory provides CAS-native defence. |
-| Inadequate measurement (#6) | §Structural Signatures (Merkle hash, position calculation) |
+**Structural defence:** Dimensional profiles (Part 2, N-3) detect task-specific performance changes — a model that was strong at code but degrades on reasoning triggers a dimensional profile shift. εR spike triggers structural review (Part 8) when the system's confidence in its substrate selection collapses, signalling that the environment has changed in ways the system's beliefs don't cover.
+
+**Limitation:** Requires the environmental shift to affect measurable dimensions. A shift that changes the nature of what "good" means (e.g., a new compliance requirement that renders previously correct outputs non-compliant) may not produce ΦL/ΨH/εR signals until the non-compliance is observed downstream.
+
+### Watchpoint Defence Summary
+
+| Watchpoint | v5.0 Structural Defence | Limitation |
+|---|---|---|
+| #1 Emergence | Structural Review Resonator detects unexpected topology patterns | Can only detect patterns with known signatures |
+| #2 Cascading failures | Dampening formula (subcriticality), cascade depth limit, algedonic bypass, immune memory | Black swan: simultaneous failures across independent Blooms |
+| #3 Co-evolution | ΨH temporal decomposition distinguishes earned from coincidental resonance | Slow drift may not trigger friction thresholds |
+| #4 Lock-in | εR floor (imperative gradient + spectral calibration), Ω gradient inversion trigger | Ecosystem-level convergence harder to detect than component-level |
+| #5 Parasitic patterns | Immune memory Threat Archive, Ω gradient inversion, boundary penalty acceleration | Novel parasitic topologies not yet in Threat Archive |
+| #6 Inadequate measurement | Structural Signatures (Merkle hash, position), Line conductivity Layer 1 hygiene | Measurement adequacy is self-referential |
+| #7 Environmental shift | Dimensional profiles, εR spike triggers structural review | Requires shift to affect measurable dimensions |
 
 ---
 
-## Part 7: Memory Sizing Guide
+## Part 7: Memory Strata as Morpheme Compositions
 
-| Stratum | Records Per | Record Size | Growth Rate | Retention |
-|---|---|---|---|---|
-| 1. Ephemeral | Execution | 1–10 KB | Constant (replaced per execution) | Seconds to minutes |
-| 2. Observational | Component | 100–500 bytes | ~N obs/day per component | Rolling window (~5× half-life) |
-| 3. Distilled | Composition | 1–5 KB per insight | ~1 per learning cycle | Months to years |
-| 4. Institutional | Ecosystem | 5–50 KB per archetype | ~1 per evolution cycle | Years |
+**Source:** v5.0 §Memory Topology, §Morpheme Grounding of Memory Operations.
+
+The four memory strata are not abstract layers — they are morpheme compositions. The memory operations ARE morpheme operations. The sizing guidance below is preserved from Bridge v2.0; the framing shifts from abstract strata to the morpheme compositions that implement them.
+
+### Recency Weighting Is a Line Property
+
+The decay formula `e^(-λ × age)` is the weight on the Line connecting an observation Seed to the computation Resonator that reads it. The Line's weight decays with the Seed's age. This is G4 — brightness encodes recency. Older Lines are dimmer, carrying less signal.
+
+**λ settings by morpheme type:**
+
+| Morpheme Context | Half-Life | λ | Rationale |
+|---|---|---|---|
+| Model performance observations | Days to weeks | 0.05–0.10 | Models update frequently; stale observations mislead |
+| Schema definitions | Months | 0.005–0.01 | Structural definitions change slowly |
+| Threat Archive entries | Weeks to months | 0.01–0.03 | Threats recur; recent matches more predictive |
+| Remedy Archive entries | Months | 0.005–0.01 | Successful fixes remain applicable longer |
+
+**Line weight update:** On each read. When a computation Resonator reads from an observation Seed via a Line, the Line's weight is recomputed from the Seed's age at that moment. No scheduled batch updates — the weight is always current at read time.
+
+**Compaction threshold:** When `e^(-λ × age) < 0.01`, the observation Seed's statistical contribution has been absorbed into running averages. The Seed is eligible for compaction.
+
+### Compaction Is a Resonator Operation
+
+When an observation Seed's Line weight drops below the compaction threshold (0.01), a **Compaction Resonator** (Δ) archives the Seed — it remains in the Grid but its Lines to active computation Resonators are severed.
+
+**Compaction Resonator morpheme identity:**
+
+- **Containment:** within the Grid's containing Bloom
+- **Input Lines:** FLOWS_TO from observation Seeds whose Line weights have decayed below threshold
+- **Output:** archived Seed (status → archived, Lines to active Resonators severed)
+- **Its own ΦL:** computed from compaction accuracy (does compaction remove Seeds whose information is truly absorbed?) and compaction latency
+- **Trigger:** observation count threshold per Grid (recommended: compact when Grid exceeds 5× half-life observation count) or on demand
+
+**Compaction routes through the Mutation Resonator** (see Governance Resonators Part). Line severing is a mutation — the Compaction Resonator requests Line removal via the Mutation Resonator, not via raw graph writes.
+
+### Distillation Is a Resonator Operation Between Grids
+
+The lossy compression from Stratum 2 to Stratum 3 is a **Distillation Resonator** (Δ) reading from one Grid and writing to another. Its inputs and outputs are traceable. Its quality is measurable. Its own ΦL reflects how well it distils.
+
+**Distillation Resonator morpheme identity:**
+
+- **Containment:** within the composition-level Bloom (alongside the Stratum 2 and Stratum 3 Grids)
+- **Input Lines:** FLOWS_TO from Stratum 2 observation Grid — reads many observation Seeds
+- **Output Lines:** FLOWS_TO to Stratum 3 composition-level Grid — writes few distilled insight Seeds
+- **Quality metric:** information preservation. A distilled Seed that fails to predict future observations (the insight was wrong or irrelevant) degrades the Distillation Resonator's ΦL. A distilled Seed that correctly predicts future observations strengthens it.
+- **Its own ΦL:** computed from distillation quality (prediction accuracy of distilled insights), compression ratio (how much data was compressed), and freshness (are distilled insights up to date?)
+
+### Contextual Enrichment Flows Downward Through Lines
+
+Higher strata inform lower strata about what to pay attention to. This is not a push mechanism — it is Lines from Stratum 3/4 Seeds to Stratum 1/2 computation Resonators, carrying context that sharpens lower-strata focus.
+
+When a Stratum 3 insight informs a Stratum 2 observation — "pay attention to this signal" — the insight Seed connects via a Line to the observation Resonator. The Line carries the contextual signal. This is the reflexive loop that Argyris identified as both the memory system's greatest strength (organising principles shape observation) and greatest vulnerability (beliefs filter data to confirm themselves). The Scale 2→3 escalation triggers exist specifically to detect when this reflexive loop has become pathological.
+
+### Sizing Guide
+
+| Stratum | Morpheme Home | Records Per | Record Size | Growth Rate | Retention |
+|---|---|---|---|---|---|
+| 1. Ephemeral | Bloom (○) + Refinement Helix (🌀) | Execution | 1–10 KB | Constant (replaced per execution) | Seconds to minutes |
+| 2. Observational | Grid (□) + Learning Helix (🌀) | Component | 100–500 bytes | ~N obs/day per component | Rolling window (~5× half-life) |
+| 3. Distilled | Grid (□) at composition level | Composition | 1–10 KB per insight | ~1 per learning cycle | Months to years |
+| 4. Institutional | Federated Grids (□) + Evolutionary Helix (🌀) | Ecosystem | 5–50 KB per archetype | ~1 per evolution cycle | Years |
+
+**Stratum 3 sizing note:** Record size increased from v2.0's "1–5 KB" to "1–10 KB" because Stratum 3 now includes:
+- Remedy Archive entries — gap-plus-fix pairs with dimensional friction profiles (see Immune Memory Repair below)
+- Immune memory archetypes — coupling effect signatures distilled from phased harmful patterns
+- These are structurally richer than generic "insights"
+
+**Neo4j storage overhead:**
+
+| Component | Overhead Per Unit | Notes |
+|---|---|---|
+| Node properties | ~500 bytes | Property map storage, labels, internal ID |
+| Relationship storage | ~100 bytes | Source/target pointers, type, properties |
+| Datetime index | ~50 bytes per indexed property | Required for temporal queries on observation Seeds |
+| Full-text index | ~200 bytes per indexed property | Optional, for content search across Seeds |
 
 **Example sizing (100 active components, 20 compositions, 2-week half-life):**
 
-- Stratum 2: ~100 × 70 days × 10 obs/day × 300 bytes ≈ 20 MB (rolling, not growing)
-- Stratum 3: ~20 × 50 insights × 3 KB ≈ 3 MB (growing slowly)
-- Stratum 4: ~100 archetypes × 25 KB ≈ 2.5 MB (growing very slowly)
+| Stratum | Calculation | Size | Bounded By |
+|---|---|---|---|
+| 2. Observational | 100 components × 70 days × 10 obs/day × 300 bytes | ~20 MB | Compaction window (rolling, not growing) |
+| 2. Neo4j overhead | 70,000 nodes × 500 bytes + 70,000 relationships × 100 bytes | ~42 MB | Same compaction window |
+| 3. Distilled | 20 compositions × 50 insights × 5 KB | ~5 MB | Growing slowly |
+| 3. Remedy Archive | 20 compositions × 50 entries × 8 KB | ~8 MB | Growing with system maturity |
+| 4. Institutional | 100 archetypes × 25 KB | ~2.5 MB | Growing very slowly |
 
-Total active memory: ~25 MB. Stratum 2 is bounded by the compaction window, not by time.
+Total active memory: ~78 MB including Neo4j overhead. Stratum 2 is bounded by the compaction window, not by time.
+
+Passes Bridge View Principle: recency weighting is a Line property (G4). Compaction and distillation are Resonator operations with structural identity. λ values are axiom-defined parameters. All sizing derives from morpheme counts and observation rates (topology + morpheme state).
 
 ### Immune Memory Repair — Remedy Archive
 
@@ -1253,6 +1457,194 @@ Component-level failure modes aggregate into composition-level trajectory signat
 
 ---
 
+## Build Experience — Thompson Sampling and Pipeline Governance
+
+Observational data from 6 months of pipeline operation. These are empirically validated parameter recommendations, not theoretical derivations.
+
+### Thompson Informed Priors
+
+| Scenario | Prior | Rationale |
+|---|---|---|
+| New model (no history) | Beta(α=1, β=1) — uniform | No information. System starts with no preference. |
+| Known model (accumulated history) | Beta(α, β) from observation counts | Prior reflects accumulated evidence. α = successes + 1, β = failures + 1. |
+| Model version update (e.g., Sonnet 3.5 → Sonnet 4) | Prior from old version × decay factor (0.5) | Halve effective observation count. Past performance may not predict new-version performance. |
+
+**Prior transfer on version update:** When a model version changes, reduce confidence by multiplying both α and β by a decay factor (recommended: 0.5). This preserves the direction of the prior (which model was better) while reducing certainty (the new version might be different). A model with Beta(40, 10) after 50 observations becomes Beta(20, 5) after version update — same 80% success rate belief, but with the confidence of 25 observations instead of 50.
+
+### Context-Blocked Posteriors
+
+Thompson posteriors must be blocked by context (task classification). A model's posterior for code tasks should be independent of its posterior for reasoning tasks.
+
+**Implementation:** Maintain separate Beta(α, β) per (model, task_class) pair. A model that excels at code but struggles at reasoning has two posteriors — high α/(α+β) for code, low α/(α+β) for reasoning — rather than a single misleadingly average posterior.
+
+**Why this matters:** Without context blocking, a model that completes 90% of code tasks and 30% of reasoning tasks has a combined posterior reflecting ~60% success — too high for reasoning tasks, too low for code tasks. The router selects it too often for reasoning and too rarely for code.
+
+**Connection to dimensional profiles (Part 2, N-3):** Context-blocked posteriors ARE the Thompson-sampling analogue of dimensional profiles. ΦL_code and the Thompson posterior for code tasks measure the same underlying signal from different angles — ΦL from observation Grid statistics, Thompson from sampling outcomes. They should converge as evidence accumulates.
+
+### Exploration Decay
+
+As the system accumulates evidence, exploration should naturally decrease:
+
+```
+εR_decayed = base_εR × decay_factor(total_observations)
+decay_factor = max(0.01, 1 / log(total_observations + 1))
+```
+
+**Hard minimum:** εR never drops below `base_εR × 0.01` — even a highly confident system maintains minimal exploration to detect environmental shifts.
+
+**Reset triggers:** New model added, environmental change detected (dimensional profile shift), or operator-initiated reset. Resets decay to explore the changed landscape.
+
+**Interaction with εR floor (Part 2):** The εR floor from imperative gradient modulation and spectral calibration can push εR UP when structural signals demand exploration. The decay pulls εR DOWN as confidence grows. The floor always wins:
+
+```
+εR_effective = max(εR_floor, εR_decayed)
+```
+
+The floor responds to structural signals (the system NEEDS to explore). The decay reflects accumulated confidence (the system has LEARNED enough to explore less). Structural need overrides confidence.
+
+### Hallucination Detection (Three-Layer)
+
+**Layer 1 — ELIMINATED_ENTITIES:** A canonical list of entities that once existed but have been removed from the spec (old axiom names like "Reversibility" and "Symbiosis," removed morphemes like "Observer," superseded concepts like "Model Sentinel"). Any reference to an eliminated entity in agent output is a hallucination. Simple string-match check — fast, zero false positives.
+
+**Layer 2 — Grammar Compliance (Assayer):** Agent output is checked against the grammar. References to entities not in the morpheme vocabulary, axiom numbering that doesn't match the current count (8, not 9 or 10), containment relationships that violate G3, seven-stage pipeline called "five-stage" — all are hallucination indicators. This layer catches fabricated structural claims.
+
+**Layer 3 — Jidoka (Stop-the-Line):** When either Layer 1 or Layer 2 detects a hallucination, the pipeline stops immediately. The hallucinating step is not retried automatically — it escalates for review. This prevents hallucination propagation through downstream pipeline stages. In the current single-operator system, escalation routes to the human operator. In multi-operator deployments, the Jidoka escalation routes through the Scale 2→3 escalation mechanism (v5.0 §Escalation Mechanics).
+
+**Connection to governance Resonators:** Hallucination detection is a function of the Refinement Helix within each pattern Bloom. The Assayer evaluates grammar compliance (Layer 2). ELIMINATED_ENTITIES (Layer 1) is a lookup against a Grid in the Constitutional Bloom. Jidoka (Layer 3) is the Helix's stop condition.
+
+### Governance Files (CLAUDE.md)
+
+CLAUDE.md functions as persistent agent context — a textual projection of the Constitutional Bloom:
+
+- **What it contains:** Axiom table, anti-pattern table, eliminated entities list, morpheme type rules, pipeline governance constraints, graph-writing protocols
+- **Why it works:** Claude Code reads CLAUDE.md at session start, giving the agent structural context that persists across invocations without requiring graph queries
+- **What it enforces:** The same constraints that the governance Resonators enforce structurally, but in the agent's prompt context
+- **Authority hierarchy:** When CLAUDE.md and the Constitutional Bloom diverge, the Bloom is authoritative. CLAUDE.md is a convenience projection, not a source of truth. Updates to CLAUDE.md must reflect verified graph state.
+
+---
+
+## Deferred Computation Details
+
+Computations implemented in code but not previously specified in the Bridge. Each verified against source files before documenting.
+
+### ΦL temporal_stability (Fourth Factor)
+
+**Location:** `src/computation/phi-l.ts` — `computeTemporalStability()` and `computeTemporalStabilityFromState()`
+
+**Implementation status:** ✅ Implemented
+
+The fourth factor in the ΦL composite. Measures consistency of ΦL over the observation window. Two computation paths:
+
+**Stateless path** (`computeTemporalStability(recentPhiLValues)`):
+
+```
+stability = 1 - coefficient_of_variation
+         = 1 - (stddev / mean)
+         clamped to [0, 1]
+```
+
+Requires at least 3 observations; returns 0.5 (moderate stability) with fewer.
+
+**Stateful path** (`computeTemporalStabilityFromState(state, latestPhiL)`):
+
+```
+stability = 1 - min(1, variance / MAX_EXPECTED_VARIANCE)
+         where MAX_EXPECTED_VARIANCE = 0.04 (stddev ≈ 0.2)
+```
+
+Uses a ring buffer (`PhiLState`) for O(1) snapshot retrieval. Requires at least 2 observations; returns 0.5 with fewer. The caller owns and persists the state between runs.
+
+**Ring buffer sizes** (from `PHI_L_WINDOW_SIZES`):
+
+| Node Type | Window Size | Default |
+|---|---|---|
+| Leaf / function | 10–20 | 20 |
+| Intermediate / pattern | 30–50 | 40 |
+| Root / coordinator | 50–100 | 75 |
+
+**Integrated computation:** `computePhiLWithState()` combines the three non-stability factors with ring buffer temporal stability tracking in a single call. The caller provides `Omit<PhiLFactors, 'temporalStability'>` — stability is computed from state, not supplied.
+
+**Weight:** w₄ = 0.2 (confirmed in `DEFAULT_PHI_L_WEIGHTS`: axiom_compliance=0.4, provenance_clarity=0.2, usage_success_rate=0.2, temporal_stability=0.2).
+
+### εR Spectral Calibration
+
+**Location:** `src/computation/epsilon-r.ts` — `minEpsilonRForSpectralState()`
+
+**Implementation status:** ✅ Implemented
+
+```typescript
+function minEpsilonRForSpectralState(spectralRatio: number): number {
+  if (spectralRatio > 0.9) return 0.05;
+  if (spectralRatio >= 0.7) return 0.02;
+  if (spectralRatio >= 0.5) return 0.01;
+  return 0.0;
+}
+```
+
+Matches the Bridge table exactly. The spectral ratio measures how concentrated model selection is — a ratio approaching 1.0 means all selections go to one model (exploration urgently needed). The function maps this ratio to a minimum εR floor that prevents exploration collapse.
+
+**Note:** The spectral ratio itself is not yet computed from the graph. The function accepts it as input. Computing the spectral ratio from Thompson posterior distributions (measuring concentration of belief across models) is an engineering milestone.
+
+### εR Floor Formula
+
+**Location:** `src/computation/epsilon-r.ts` — `computeEpsilonRFloor()`
+
+**Implementation status:** ✅ Implemented
+
+```
+εR_floor = max(
+    base_εR + (gradient_sensitivity × max(0, -Ω_aggregate_gradient)),
+    min_εR_for_spectral_state(spectral_ratio),
+    0.01    // absolute minimum — εR must never fully collapse
+)
+```
+
+**Parameters:**
+- `baseFloor`: default 0.01
+- `imperativeGradient`: Ω_aggregate_gradient. Negative = declining health → more exploration. Default 1.0 (neutral).
+- `spectralRatio`: optional spectral concentration ratio (0–1). Higher = more concentrated.
+- `gradientSensitivity`: how strongly negative gradients inflate the floor. Default 0.1.
+
+The implementation adds an absolute minimum floor of 0.01 beyond the spec formula — εR must never fully collapse for active patterns, even when both gradient and spectral terms are zero.
+
+### ΨH Hypothetical State
+
+**Source:** v5.0 §ΨH (projectable property)
+
+**Implementation status:** ⚠️ Partial
+
+v5.0 specifies ΨH is projectable — computable against proposed states. The implementation's `computePsiH(edges, nodeHealths)` accepts arbitrary inputs, so hypothetical computation is structurally possible by passing proposed edge sets and node health sets. However, no dedicated hypothetical API exists. Computing "what would ΨH be if we added this edge" requires the caller to construct the hypothetical input manually.
+
+**What exists:** The computation infrastructure accepts any graph representation.
+**What's missing:** An ergonomic API that takes (current graph + proposed mutations) and returns projected ΨH.
+
+---
+
+## Vertical Wiring Specification
+
+The full data flow from raw observations to aggregated state dimensions, specifying each interface point as a contract between upstream producer and downstream consumer. The interface is the graph itself — writes via governance Resonators, reads via Cypher queries.
+
+| Interface Point | From | To | What Flows |
+|---|---|---|---|
+| Observation → Conditioning | Raw observation Seeds in Grid | Signal Conditioning Bloom (7 Resonators, per R-2/M-17.5) | Raw metric values enter Debounce → Hampel → EWMA → CUSUM → MACD → Hysteresis → Trend |
+| Conditioning → ΦL | Signal conditioning output (Trend Resonator) | ΦL computation (4-factor formula) | Conditioned values feed axiom_compliance, provenance_clarity, usage_success_rate factors. temporal_stability computed from ring buffer. |
+| ΦL → Maturity | Raw ΦL | Maturity modifier | `ΦL_effective = ΦL_raw × maturity_factor` where maturity_factor = f(observations, connections) |
+| Node → Container | Component ΦL_effective | Parent Bloom ΦL | Dampened propagation via CONTAINS Line properties (Part 3): γ_effective = min(0.7, 0.8/k) |
+| Graph → ΨH | Live graph Laplacian | ΨH computation | λ₂ + TV_G → two-component ΨH. Temporal decomposition (Part 2, N-4) produces trend, transient friction, durable friction. |
+| Line → Conductivity | Endpoint properties | Line conductivity cache | 3-layer evaluation: hygiene (binary), shape (binary), fitness (continuous friction). Cached on Line. |
+| State changes → Events | ΦL/ΨH/εR changes | Structural Review Resonator (Part 8) | 6 event triggers: λ₂ drop, friction spike, cascade activation, εR spike, ΦL velocity anomaly, Ω gradient inversion |
+| Recovery → Hysteresis | Improving ΦL | CONTAINS Line attenuation | Recovery propagates at γ_effective / 2.5 (Part 3). Asymmetric rate prevents oscillation. |
+
+Each row is a contract: the upstream producer writes data that the downstream consumer reads. Implementation requires each interface point to be:
+
+- **Observable:** the data crossing each interface is a morpheme property on a node or relationship in the graph
+- **Traceable:** provenance from observation Seed through conditioning chain to aggregated state dimension
+- **Testable:** each interface point can be verified by Cypher query (e.g., "are conditioned values flowing from Trend Resonator output to ΦL computation input?")
+
+Passes Bridge View Principle: all interface points are morpheme-to-morpheme data flows through Lines. No entities, thresholds, or temporal behaviour outside the grammar.
+
+---
+
 ## Anti-Patterns
 
 For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Patterns. The implementation anti-patterns below are specific to Bridge computations and engineering decisions.
@@ -1306,6 +1698,14 @@ For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Pattern
 | Structural Review Resonator | Diagnostic Resonator within Ecosystem Governance Bloom — monitors event Seeds, produces five diagnostic output types |
 | Data dependency DAG | The graph topology that determines execution order — Resonators activate when input Lines carry data, replacing sequential orchestration |
 | Collapse Resonator | Superposition resolution — selects, races, or synthesises outputs from superposed instances |
+| Compaction Resonator | Stratum 2 → archive transition — severs Lines to observation Seeds whose weight has decayed below threshold (0.01). Routes through Mutation Resonator. |
+| Distillation Resonator | Stratum 2 → Stratum 3 compression — reads raw observations, writes concentrated insights. Own ΦL reflects distillation quality (prediction accuracy). |
+| Context-blocked posterior | Per-(model, task_class) Thompson Beta parameters — prevents averaging across task dimensions. The Thompson analogue of dimensional profiles. |
+| Exploration decay | εR reduction with accumulated evidence — `max(0.01, 1/log(observations+1))`. εR floor always wins over decay. |
+| ELIMINATED_ENTITIES | Canonical list of removed concepts — Layer 1 hallucination detection via string match. Zero false positives. |
+| Jidoka | Stop-the-line on hallucination detection — no automatic retry, escalate for review. Prevents hallucination propagation. |
+| Vertical wiring | Full data flow path: observation → conditioning → ΦL/ΨH/εR → aggregation → events. 8-row interface contract. |
+| Composition εR | Aggregate exploration rate at Bloom scope — exploratory/total decisions within containment. Triggers structural review when above maturity-indexed bound. |
 
 ---
 
