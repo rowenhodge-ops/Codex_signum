@@ -1,8 +1,8 @@
 # Codex Signum — Canonical Roadmap & Implementation Plan v9
 
-**Version:** 9.1
+**Version:** 9.2
 **Date:** 2026-03-16
-**HEAD:** `cada796`
+**HEAD:** `ad03f08`
 **Tests:** 1564 passing, 0 failing, 19 todo
 **Exports:** 277
 **Graph:** ~2,530 nodes, zero structural violations
@@ -12,21 +12,18 @@
 
 ## Why This Version
 
-v8.1 reconciled the roadmap after v5.0 canonisation but was written while M-16 and M-17 were still in progress. v9.0 reflected the completion of both. v9.1 reflects M-21 (Bridge Grid Instantiation) completion — the Bridge v3.0 is now queryable graph data, and the `SPECIFIED_BY` Line type is available for implementation-to-spec traceability.
+v9.1 reflected M-21 completion. v9.2 adds **M-22 (Vertical Wiring)** — a dedicated milestone to close the State Dimension Gap. The gap between specified computations (Bridge v3.0) and live pipeline integration had no milestone owner. Seven implementation items were floating between "specified" and "verified" with nothing to carry them. M-22 fixes this.
 
-**Key changes from v9.0:**
-1. **M-21 complete.** 27 spec Seeds, 18 REFERENCES Lines, Bridge Grid live. DEPENDS_ON wired to M-17 (`M-17` node ID). Pending Ro's stamp.
-2. **R-58/R-59/R-60 in graph.** Created via `instantiateMorpheme()`. Backlog: 48 total, 17 complete, 31 planned.
-3. **New Line types.** `REFERENCES` and `SPECIFIED_BY` added to `VALID_LINE_TYPES` in instantiation protocol.
-4. **Critical path shifted.** Next up: M-9.5 (Test Reconciliation) or M-8.INT (Architect Adaptive Routing).
-5. **M-20 unblocked.** Hard dep M-17.4 now satisfied. Status 💡 → 📋.
-6. **Node ID convention noted.** M-17 uses `M-17`, M-21 uses `bloom:m-21`. Legacy inconsistency documented.
+**Key changes from v9.1:**
+1. **M-22 created.** Vertical Wiring — 7 sub-milestones connecting the computation layer to the live pipeline. Spec: Bridge v3.0 vertical wiring interface (8-row contract). Hard deps: M-16 ✅, M-17 ✅.
+2. **Critical path updated.** M-22 sequenced after M-8.INT (needs stage Blooms from R-58) and before M-9.V (which verifies the wiring works).
+3. **State Dimension Gap section updated.** "What's specified but not connected" now has a milestone owner: M-22.
+4. **M-21 stamped complete.** phiL 0.9, `7216ceb`.
 
 **Changelog:**
-**v9.1 (2026-03-16):** M-21 ✅ (27 Seeds, 18 Lines, Grid live, DEPENDS_ON wired). R-58/R-59/R-60 in graph. REFERENCES + SPECIFIED_BY Line types. M-20 unblocked (💡→📋). HEAD `cada796`.
-**v9.0 (2026-03-16):** M-16 ✅, M-17 ✅. Full reconciliation. Identity Map v2.0 + v5.0b. R-58/R-59/R-60 defined. Tests 1564.
-**v8.1 (2026-03-16):** Reconciliation pass. M-20/M-21 added.
-**v8 (2026-03-12):** v5.0 reconciliation. M-16/M-17 rescoped. R-46–R-57.
+**v9.2 (2026-03-16):** M-22 (Vertical Wiring) added with 7 sub-milestones. M-21 stamped ✅. Critical path updated: M-8.INT → M-22 → M-9.V.
+**v9.1 (2026-03-16):** M-21 ✅. R-58/R-59/R-60 in graph. REFERENCES + SPECIFIED_BY. M-20 unblocked.
+**v9.0 (2026-03-16):** M-16 ✅, M-17 ✅. Full reconciliation. Tests 1564.
 
 **Rule:** All future sessions, prompts, and context transfers reference milestones by their M-number. This document is the single source of truth for project sequencing.
 
@@ -51,22 +48,25 @@ v8.1 reconciled the roadmap after v5.0 canonisation but was written while M-16 a
 
 ```
 M-16   ✅  Constitutional Bloom + Fabric
- │         Constitutional Bloom, INSTANTIATES wiring, instantiation protocol,
- │         governance Resonators, multi-label retyping, creation layer enforcement.
  │
 M-17   ✅  Engineering Bridge v3.0
- │         32 delta findings. Bridge View Principle. Line conductivity.
- │         Superposition. Event-driven model. Vertical wiring spec.
  │
-M-21   ✅  Bridge Grid Instantiation (pending stamp)
- │         27 spec Seeds, 18 REFERENCES Lines, SPECIFIED_BY enabled.
- │         Bridge content queryable by Cypher.
+M-21   ✅  Bridge Grid Instantiation
  │
  ├─── Choose next ───
  │
 M-8.INT 🔄  Architect Adaptive Routing (2/7 children complete)
- │         CLASSIFY→route. Per-task FMEA advisory. Agent becomes substrate.
- │         Prerequisites: R-40 (structured DECOMPOSE), R-58 (morpheme retyping)
+ │         Includes R-58 (stage Blooms) — prerequisite for M-22
+ │
+ ├─── TEST GATE ───
+ │
+M-22   📋  Vertical Wiring (connect computation layer to live pipeline)
+ │         7 sub-milestones. Closes the State Dimension Gap.
+ │         Spec: Bridge v3.0 vertical wiring interface (8-row contract).
+ │
+ ├─── TEST GATE ───
+ │
+M-9.V  📋  Full Verification Run (proves wiring works end-to-end)
  │
  ├─── TEST GATE ───
  │
@@ -77,24 +77,21 @@ M-13   📋  UI (graph vis + Opus chat)
  ╚═══════════════════════════════════════════════════════
  │
 M-9.5  ⏳  Test Reconciliation (18 .todo() → real @future tests)
- │         Palate cleanser. Independent of critical path.
  │
 M-9.8  📋  Ecosystem Bootstrap (roadmap in graph, hypothesis Helixes)
- │         After M-9.5.
  │
 M-20   📋  Topology Observation Helix (system self-model)
- │         Hard deps satisfied (M-9.8 ✅, M-17 ✅). Design needed.
  │
  ╔═══════════════════════════════════════════════════════
  ║  POST-CRITICAL-PATH — core capabilities
  ╚═══════════════════════════════════════════════════════
  │
-M-18   📋  Assayer implementation (4 stages, 4 modes, compliance corpus)
-M-10   📋  Memory operations (full compaction, distillation, institutional)
+M-18   📋  Assayer implementation
+M-10   📋  Memory operations
 M-11   📋  Research pattern ┐
 M-12   📋  Constitutional evolution ┘ parallel
 M-14   📋  Self-recursive learning L1-L3
-M-15   📋  Pattern Exchange Protocol (federation)
+M-15   📋  Pattern Exchange Protocol
  │
  ╔═══════════════════════════════════════════════════════
  ║  LONG-HORIZON TRACKS
@@ -117,8 +114,8 @@ M-19   📋  Hypothesis tracking + research pipeline
 
 **Todo tests (governance gap — must be converted in M-9.5):**
 - `dev-agent.test.ts` — 7 todos (DevAgent.run() integration) → `@future(M-10)`
-- `hierarchical-health.test.ts` — 6 todos (computeHierarchicalHealth Neo4j) → `@future(M-9.V)`
-- `immune-response.test.ts` — 5 todos (evaluateAndReviewIfNeeded) → `@future(M-18)`
+- `hierarchical-health.test.ts` — 6 todos (computeHierarchicalHealth Neo4j) → `@future(M-22.5)`
+- `immune-response.test.ts` — 5 todos (evaluateAndReviewIfNeeded) → `@future(M-22.7)`
 - 1 additional todo from M-16 additions
 
 ---
@@ -129,70 +126,46 @@ M-19   📋  Hypothesis tracking + research pipeline
 
 *(Unchanged from v8.1 — see v8.1 for full details)*
 
-Foundation (M-1), Signal Conditioning (M-2), Patterns in Core (M-4), Architect Bootstrap (M-5), Thompson Integration (M-6), Self-Examination (M-7), Spec Review (M-7B), Report Consolidation (M-8A), Lean Review (M-8B), Topology Refactor (M-8C), Grammar Refactor (M-7C), Optimisation Runs (M-8), Quality Gates (M-8.QG).
-
 ### M-9 Part 1: Schema + Wiring (M-9.1–9.4) ✅
 
-Pipeline writes to graph. Decisions complete lifecycle. Memory persistence bridge operational. Thompson reads real quality data. 1182 tests at M-9.VA-V completion.
+Pipeline writes to graph. Decisions complete lifecycle. Memory persistence bridge operational. Thompson reads real quality data.
 
 ### M-9.VA / M-9.VA-FIX / M-9.VA-V: Verification Cycle ✅
 
-Pipeline self-diagnostic. 5 critical bugs fixed. Post-fix: 100% success, quality 0.76–0.88, ~2× speed from structural correctness.
+Pipeline self-diagnostic. 5 critical bugs fixed. Post-fix: 100% success, quality 0.76–0.88, ~2× speed.
 
 ### M-16: Constitutional Bloom + Fabric ✅
 
-| Sub | Description | Status | Commit |
-|-----|-------------|--------|--------|
-| M-16.1 | Constitutional Bloom creation (morpheme defs, axioms, grammar rules, imperatives, anti-patterns) | ✅ | `8c47152` |
-| M-16.2 | INSTANTIATES wiring (every node → Constitutional Bloom) | ✅ | `3dab633` |
-| M-16.3 | Governance Resonator definitions in Constitutional Bloom | ✅ | `1215ee4` |
-| M-16.4 | Instantiation Protocol — ALL graph writes through `instantiateMorpheme()`, `updateMorpheme()`, `createLine()` | ✅ | `34cedb5` |
-| M-16.5 | Option B multi-label retyping (`:Decision` → `:Seed:Decision`, additive, no labels removed) | ✅ | `bb8f451` |
-| M-16.6 | Content enforcement for ALL morpheme types | ✅ | `97cfa76` |
-
-**Key architectural outcomes:**
-- **Compliance-as-Monitoring anti-pattern killed.** 7 instances removed. Instantiation protocol makes violations structurally impossible.
-- **Three governance Resonators** in Constitutional Bloom (Instantiation, Mutation, Line Creation).
-- **Content required on ALL morpheme types.**
-- **Option B multi-label retyping.** Additive only, backward compatible.
+| Sub | Description | Commit |
+|-----|-------------|--------|
+| M-16.1 | Constitutional Bloom creation | `8c47152` |
+| M-16.2 | INSTANTIATES wiring | `3dab633` |
+| M-16.3 | Governance Resonator definitions | `1215ee4` |
+| M-16.4 | Instantiation Protocol | `34cedb5` |
+| M-16.5 | Option B multi-label retyping | `bb8f451` |
+| M-16.6 | Content enforcement | `97cfa76` |
 
 ### M-17: Engineering Bridge v3.0 ✅
 
-| Sub | Description | Status | Commit |
-|-----|-------------|--------|--------|
-| M-17.1 | Delta report (32 findings: 7 formula fixes, 9 terminology, 7 reframings, 9 new sections) | ✅ | `5fa3146` |
-| M-17.2 | Bridge View Principle + F-1–F-7 formula fixes (critical: dampening k-1→k) | ✅ | `6b4822f` |
-| M-17.3 | Terminology + reframing + new sections + glossary | ✅ | `192d841` |
-| M-17.4 | Superposition operational mechanics (S.1–S.6) | ✅ | `abde0d3` |
-| M-17.5 | Event-driven execution model + signal conditioning + structural review + shape derivation | ✅ | `c5e4ee1` |
-| M-17.6 | Build experience + memory as morphemes + CAS defences + deferred computations + vertical wiring | ✅ | `5a6845f` |
+| Sub | Description | Commit |
+|-----|-------------|--------|
+| M-17.1 | Delta report (32 findings) | `5fa3146` |
+| M-17.2 | Bridge View Principle + formula fixes | `6b4822f` |
+| M-17.3 | Terminology + new sections + glossary | `192d841` |
+| M-17.4 | Superposition operational mechanics | `abde0d3` |
+| M-17.5 | Event-driven model + signal conditioning + shape derivation | `c5e4ee1` |
+| M-17.6 | Build experience + deferred computations + vertical wiring | `5a6845f` |
 
-**Key architectural outcomes:**
-- **Bridge View Principle** governs all formulas: `f(morpheme_states, axiom_parameters, topology) → result`
-- **Vertical wiring specified.** 8-row interface contract.
-- **Event-driven model.** Orchestrator dissolves into topology. 4-stage migration path.
+### M-21: Bridge Grid Instantiation ✅
 
-### M-21: Bridge Grid Instantiation ✅ (pending stamp)
+| Deliverable | Count |
+|-------------|-------|
+| `grid:bridge-v3` Grid | 1 |
+| Spec Seeds (`spec:bridge:*`) | 27 |
+| REFERENCES Lines | 18 |
+| `bloom:m-21` Milestone Bloom | 1 (stamped complete, phiL 0.9) |
 
-Executed as single `[NO-PIPELINE]` prompt. Commit `7216ceb`.
-
-| Deliverable | Count | Status |
-|-------------|-------|--------|
-| `grid:bridge-v3` Grid (parented to `constitutional-bloom`) | 1 | ✅ active |
-| Spec Seeds (id prefix `spec:bridge:`) | 27 | ✅ All with content, all INSTANTIATES-wired |
-| REFERENCES Lines (cross-references between sections) | 18 | ✅ All with labels |
-| `bloom:m-21` Milestone Bloom | 1 | ✅ active |
-| DEPENDS_ON `M-17` → `bloom:m-21` | 1 | ✅ Wired |
-
-**Code changes:**
-- `src/graph/instantiation.ts` — `REFERENCES` and `SPECIFIED_BY` added to `VALID_LINE_TYPES`
-- `scripts/m21-bridge-grid.ts` — idempotent instantiation script (697 lines)
-
-**What M-21 enables:**
-- `SPECIFIED_BY` Lines from implementation functions to spec Seeds
-- Parameter lookup via Cypher (Resonators read spec Seed content)
-- Completeness queries ("which spec sections have no implementations?")
-- Impact analysis ("if I change dampening, what implementations are affected?")
+Commit `7216ceb`. Code: `REFERENCES` + `SPECIFIED_BY` Line types, `scripts/m21-bridge-grid.ts`.
 
 ---
 
@@ -207,60 +180,86 @@ Executed as single `[NO-PIPELINE]` prompt. Commit `7216ceb`.
 | M-9.6 | Model expansion — Llama 4 via Vertex | 📋 |
 | M-9.7a | Grammar reference document | 📋 |
 | M-9.7b | Morpheme mapping + 3D topology vis | 📋 |
-| M-9.V | Full verification run | 📋 |
+| M-9.V | Full verification run — **now sequenced after M-22** | 📋 |
 
-*(Detailed descriptions unchanged from v8.1)*
+**Note:** M-9.V's exit criteria include "Observation nodes feed real 4-factor ΦL computation" and "hierarchical health aggregates upward with topology-aware dampening" — these require M-22. M-9.V verifies what M-22 builds.
 
 ### M-8.INT: Architect Adaptive Routing 🔄
 
-2 of 7 children complete. CLASSIFY routing logic, Architect→DevAgent handoff, DevAgent→Architect feedback, Assayer invocation, agent-as-trigger interface, model retirement.
+2 of 7 children complete. Prerequisites: R-40, R-58, R-41, R-42.
 
-**Prerequisites now clearer after M-16/M-17/M-21:**
-- R-40 (structured DECOMPOSE input) — JSON blocks, not serialised prose
-- R-58 (morpheme retyping from Identity Map v2.0) — Agent→Resonator, PipelineRun→Bloom, stages→stage Blooms
-- R-41 (conditional DevAgent SCOPE bypass)
-- R-42 (hybrid prompt template)
+**R-58 (morpheme retyping) is the bridge to M-22.** R-58 converts pipeline stages from Resonators to Blooms (per Identity Map v2.0). M-22 then wires the computation layer into those stage Blooms. Without stage Blooms, there's nowhere for stage-level ΦL/ΨH/εR to live.
 
 ---
 
 ## Planned Milestones
 
+### M-22: Vertical Wiring 📋
+
+*Connect the computation layer to the live pipeline. Close the State Dimension Gap. Every item in the "What's specified but not connected" table gets a sub-milestone.*
+
+**Spec:** Bridge v3.0 vertical wiring interface (8-row contract, M-17.6)
+**Hard deps:** M-16 ✅ (instantiation protocol), M-17 ✅ (spec complete), M-8.INT/R-58 (stage Blooms exist)
+**Sequenced before:** M-9.V (which verifies the wiring works)
+
+| Sub | Description | Spec Source | Agent | Model |
+|-----|-------------|-------------|-------|-------|
+| M-22.1 | Signal conditioning → execution path. Connect 7 Resonators in `src/computation/signals/` to pipeline observation stream. Conditioned signals feed downstream computations. | Bridge Part 4, vertical row 1 | 🔧 DevAgent | Sonnet |
+| M-22.2 | ΦL from pipeline. Replace `qualityScore` proxy with real 4-factor composite (axiom_compliance, provenance_clarity, usage_success_rate, temporal_stability) fed by conditioned signals from M-22.1. Ring buffer state. Maturity modifier. | Bridge Part 2 (ΦL), vertical rows 2–3 | 🔧 DevAgent | Sonnet |
+| M-22.3 | ΨH for pipeline. Live λ₂ + TV_G computation on Architect Bloom and composition subgraphs. Temporal decomposition (EWMA trend, friction_transient, friction_durable). Harmonic profile stored on Bloom. | Bridge Part 2 (ΨH), vertical row 5 | 🏗️+🔧 | Opus + Sonnet |
+| M-22.4 | εR Bloom aggregation. Composition-scope εR from Decision Seeds within containment. Upward propagation via averaging. Structural review trigger when above maturity-indexed bound. | Bridge Part 2 (εR, composition-scope), vertical row 5 | 🔧 DevAgent | Sonnet |
+| M-22.5 | Hierarchical health propagation. Dampened ΦL through CONTAINS Lines: `γ_effective = min(0.7, 0.8/k)`. CASCADE_LIMIT=2. Asymmetric rate: recovery at γ/2.5. Algedonic bypass at ΦL < 0.1. Triggered by live pipeline state changes. | Bridge Part 3, vertical row 4 + row 8 | 🏗️+🔧 | Opus + Sonnet |
+| M-22.6 | Line conductivity implementation. 3-layer circuit model: Layer 1 (morpheme hygiene, binary), Layer 2 (grammatical shape, binary), Layer 3 (contextual fitness, continuous friction from dimensional profiles). Cached on Line, invalidated on endpoint change. | Bridge Line Conductivity Part, vertical row 6 | 🏗️+🔧 | Opus + Sonnet |
+| M-22.7 | Event-triggered structural review. 6 triggers wired: λ₂ drop, friction spike (TV_G > 0.5), cascade at 2nd level, εR spike, ΦL velocity > 0.05/day, Ω gradient inversion. Output: diagnostic Seeds to Structural Review Grid. | Bridge Part 8, vertical row 7 | 🔧 DevAgent | Sonnet |
+
+**Dependency chain within M-22:**
+
+```
+M-22.1 (conditioning)
+ ├──→ M-22.2 (ΦL — needs conditioned signals)
+ │     └──→ M-22.5 (hierarchical health — needs ΦL to propagate)
+ │           └──→ M-22.7 (event triggers — needs all three dimensions)
+ ├──→ M-22.3 (ΨH — partially independent, needs graph topology)
+ │     └──→ M-22.7
+ └──→ M-22.4 (εR — needs Decision Seeds)
+       └──→ M-22.7
+
+M-22.6 (conductivity — partially independent, needs ΦL for Layer 3)
+ └── depends on M-22.2
+```
+
+**Exit criteria:** All 8 vertical wiring interface rows connected. `qualityScore` proxy eliminated. ΦL computed from 4 factors on live pipeline data. ΨH computed from graph Laplacian. εR aggregated at Bloom scope. Hierarchical health propagates with dampening. 6 event triggers fire from live state changes. Line conductivity evaluates at all 3 layers. All `@future(M-22.*)` tests from M-9.5 now pass.
+
+**What this changes about the thesis:** After M-22, "state is structural" is no longer aspirational for the pipeline — ΦL, ΨH, and εR are live computed structural properties of pipeline morphemes, not proxies. The system's own health is visible in its own graph.
+
 ### M-13: UI 📋
 
-Graph visualisation + Opus chat interface. Confirmed stack: custom Three.js with InstancedMesh (desktop 3D), Sigma.js v3 or Cytoscape.js (mobile 2D), CSS2DRenderer for text labels, fCoSE + ELK.js hybrid layout in Web Worker, Firebase Hosting + Cloud Run (australia-southeast1). **M-21 provides the spec graph data for the Bridge view.**
+Graph visualisation + Opus chat interface. **M-22 provides live state dimensions for the visualisation to render.** Without M-22, the UI would show structure but not health — bright topology with no luminance variation.
 
 ### M-18: Assayer Pattern Implementation 📋
 
-Full four-stage pipeline, four invocation modes, compliance corpus. **Identity Map v2.0 reclassifies the Assayer as a Bloom** — contains evaluation Resonator, config Seeds, observation Grid, and Statistical Assessment Resonator instance.
+Full four-stage pipeline, four invocation modes, compliance corpus. Identity Map v2.0 reclassifies the Assayer as a Bloom.
 
 ### M-10: Memory Operations 📋
 
-Full compaction, distillation flow coordinator. **Bridge v3.0 Part 7** specifies memory strata as morpheme compositions.
+Full compaction, distillation flow coordinator. Bridge v3.0 Part 7 specifies memory strata as morpheme compositions.
 
 ### M-11: Research Pattern 📋
 ### M-12: Constitutional Evolution 📋
 ### M-14: Self-Recursive Learning L1-L3 📋
 ### M-15: Pattern Exchange Protocol 📋
 
-*(Descriptions unchanged from v8.1)*
-
 ### M-19: Hypothesis Tracking + Research Pipeline 📋
-
-In graph since M-9.8 ecosystem bootstrap. Helix nodes for H-1 through H-6.
 
 ### M-20: Topology Observation Helix 📋
 
-The system's self-model. Learning Helix capturing topology deltas for empirical mathematical discovery. Designed 2026-03-05.
-
-**Hard deps:** M-9.8 ✅ (graph has topology), M-17 ✅ (state dimensions specified). **Both satisfied.**
-**Soft deps:** M-10 (memory compaction), M-14 (self-recursive learning), M-19 (hypothesis evidence).
-**Status:** 📋 Planned — hard deps met, design session needed.
+Hard deps met (M-9.8, M-17). Design session needed. **M-22 would produce live state dimension data for M-20 to observe** — soft dependency.
 
 ---
 
-## The State Dimension Gap (Updated for Bridge v3.0)
+## The State Dimension Gap → M-22
 
-The gap between raw pipeline observations and computed state dimensions still exists in the implementation. **Bridge v3.0 now fully specifies the vertical wiring** (M-17.6, 8-row interface contract), so the specification is complete — implementation remains.
+The gap between raw pipeline observations and computed state dimensions has a milestone owner: **M-22 (Vertical Wiring)**.
 
 ### What works (tested, running)
 
@@ -274,32 +273,52 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | Instantiation protocol (all writes governed) | ✅ M-16.4 |
 | Bridge as queryable graph (spec sections as Seeds) | ✅ M-21 |
 
-### What's specified but not connected
+### What M-22 connects
 
-| Layer | Bridge v3.0 Spec | Implementation |
-|-------|-------------------|----------------|
-| ΦL 4-factor composite | Part 2 (with ring buffers, maturity modifier) | `phi-l.ts` exists, not fed from pipeline |
-| ΨH two-component | Part 2 (λ₂ + TV_G, temporal decomposition) | `psi-h.ts` exists, not computed for pipeline |
-| εR with floor | Part 2 (imperative gradient + spectral calibration) | `epsilon-r.ts` exists, not aggregated to Bloom |
-| Signal conditioning | Part 4 (7 named Resonators in Signal Conditioning Bloom) | `src/computation/signals/` exists, not connected |
-| Hierarchical health | Part 3 (dampening, cascade limit, hysteresis) | `dampening.ts` exists, not triggered by live state |
-| Event-triggered review | Part 8 (6 triggers → Structural Review Resonator) | Not wired |
-| Line conductivity | Line Conductivity Part (3-layer circuit model) | Not implemented |
+| Layer | Bridge v3.0 Spec | Implementation | M-22 Sub |
+|-------|-------------------|----------------|----------|
+| Signal conditioning | Part 4 (7 Resonators) | `src/computation/signals/` exists | **M-22.1** |
+| ΦL 4-factor composite | Part 2 (ring buffers, maturity) | `phi-l.ts` exists | **M-22.2** |
+| ΨH two-component | Part 2 (λ₂ + TV_G) | `psi-h.ts` exists | **M-22.3** |
+| εR Bloom aggregation | Part 2 (composition-scope) | `epsilon-r.ts` exists | **M-22.4** |
+| Hierarchical health | Part 3 (dampening, cascade, hysteresis) | `dampening.ts` exists | **M-22.5** |
+| Line conductivity | Line Conductivity Part (3-layer) | Not implemented | **M-22.6** |
+| Event-triggered review | Part 8 (6 triggers) | Not wired | **M-22.7** |
 
 ### Vertical wiring interface (from Bridge v3.0 M-17.6)
 
-| Interface | From → To |
-|-----------|-----------|
-| Observation → Conditioning | Raw Seeds → Signal Conditioning Bloom (7 Resonators) |
-| Conditioning → ΦL | Trend Resonator output → 4-factor formula |
-| ΦL → Maturity | Raw ΦL → maturity modifier → ΦL_effective |
-| Node → Container | Component ΦL → parent Bloom (dampened: γ_effective) |
-| Graph → ΨH | Laplacian → λ₂ + TV_G → two-component ΨH |
-| Line → Conductivity | Endpoint properties → 3-layer evaluation → cached |
-| State → Events | ΦL/ΨH/εR changes → 6 event triggers → Structural Review |
-| Recovery → Hysteresis | Improving ΦL → asymmetric attenuation (γ/2.5) |
+| Interface | From → To | M-22 Sub |
+|-----------|-----------|----------|
+| Observation → Conditioning | Raw Seeds → Signal Conditioning Bloom | M-22.1 |
+| Conditioning → ΦL | Trend Resonator output → 4-factor formula | M-22.2 |
+| ΦL → Maturity | Raw ΦL → maturity modifier → ΦL_effective | M-22.2 |
+| Node → Container | Component ΦL → parent Bloom (dampened) | M-22.5 |
+| Graph → ΨH | Laplacian → λ₂ + TV_G | M-22.3 |
+| Line → Conductivity | Endpoint properties → 3-layer evaluation | M-22.6 |
+| State → Events | ΦL/ΨH/εR changes → 6 triggers | M-22.7 |
+| Recovery → Hysteresis | Improving ΦL → γ/2.5 | M-22.5 |
 
-**Where this gets implemented:** M-9.V (verification), M-8.INT (pipeline stages become stage Blooms per Identity Map v2.0), and potentially a dedicated "vertical wiring" milestone.
+---
+
+## New Spec Documents (Sessions 2–3)
+
+### Morpheme Identity Map v2.0
+
+**Path:** `docs/specs/codex-signum-morpheme-identity-map-v2.md`
+**Commit:** `dff5d9c`
+
+**The constituent test:** "Does this object have things inside it that need containment? If yes, it's a Bloom."
+
+**5 reclassifications:** Pipeline stages, Assayer, Signal conditioning chain, Immune memory, Initium stages — all Resonator → Bloom.
+
+**4 current graph mistypings** → R-58. **8 cascading document updates** → R-59.
+
+### v5.0b Statistical Assessment Resonator
+
+**Path:** `docs/specs/codex-signum-v5_0b-statistical-assessment.md`
+**Commit:** `dff5d9c`
+
+Reusable analytical Resonator for uncertainty quantification. 5-phase implementation. → R-60.
 
 ---
 
@@ -310,8 +329,8 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | # | Refinement | Completed At |
 |---|-----------|-------------|
 | R-01 | Bridge View Principle codified | M-17.2 `6b4822f` |
-| R-04 | DECOMPOSE spec limits (CTQs) | M-8C (via jidoka) |
-| R-05 | %C&A per pipeline stage | M-8C (via quality assessor) |
+| R-04 | DECOMPOSE spec limits (CTQs) | M-8C |
+| R-05 | %C&A per pipeline stage | M-8C |
 | R-07 | Hallucinated axiom names detection | M-8C |
 | R-11 | Pre-flight auth data-driven | M-8.FIX3 |
 | R-13 | Decisions & memory saved | M-9.3 + M-9.4 + M-9.VA |
@@ -319,29 +338,29 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | R-34 | Query module decomposition | `6ffd17f` |
 | R-35 | Native temporal types | `017fe37` |
 | R-37 | Composite indexes | `b79a354` |
-| R-39 | Morpheme Instantiation Layer | M-16.4 = `34cedb5` |
+| R-39 | Morpheme Instantiation Layer | M-16.4 `34cedb5` |
 | R-46 | Constitutional Bloom creation | M-16.1 `8c47152` |
 | R-47 | INSTANTIATES wiring | M-16.2 `3dab633` |
-| R-50 | Creation layer enforcement (atomic INSTANTIATES) | M-16.4 `34cedb5` |
+| R-50 | Creation layer enforcement | M-16.4 `34cedb5` |
 | R-51 | Correction→Refinement rename | M-16.5 `bb8f451` |
-| R-54 | Line conductivity spec in Bridge | M-17.3 `192d841` |
-| R-55 | Superposition mechanics in Bridge | M-17.4 `abde0d3` |
-| R-56 | Event-driven execution model spec | M-17.5 `c5e4ee1` |
+| R-54 | Line conductivity spec | M-17.3 `192d841` |
+| R-55 | Superposition mechanics spec | M-17.4 `abde0d3` |
+| R-56 | Event-driven model spec | M-17.5 `c5e4ee1` |
 
 ### Planned
 
 | # | Refinement | Target |
 |---|-----------|--------|
-| R-02 | Axiom Dependency Declaration (DAG annotation) | M-16.1 |
-| R-03 | Dimensional Collapse → anti-pattern table in CLAUDE.md | M-16.4 |
-| R-06 | Parallel execution (Phase 1/3 concurrent) | Future |
+| R-02 | Axiom Dependency Declaration | M-16.1 |
+| R-03 | Dimensional Collapse → CLAUDE.md | M-16.4 |
+| R-06 | Parallel execution | Future |
 | R-08 | Thompson exploration on process tweaks | Future |
-| R-09 | Error morpheme resolution | M-16.1 (v5.0 resolves) |
+| R-09 | Error morpheme resolution | v5.0 resolves |
 | R-10 | Model retirement preserves capabilities | M-8.INT.6 |
-| R-12 | Spec-compliant tests (Level 5) | M-9.5 + M-16.2 |
-| R-14 | Morpheme mapping + 3D topology vis | M-9.7b |
-| R-15 | Ecosystem bootstrap (roadmap in graph) | M-9.8 |
-| R-16 | Agent-as-trigger (agent becomes substrate) | M-8.INT |
+| R-12 | Spec-compliant tests (Level 5) | M-9.5 |
+| R-14 | Morpheme mapping + 3D vis | M-9.7b |
+| R-15 | Ecosystem bootstrap | M-9.8 |
+| R-16 | Agent-as-trigger | M-8.INT |
 | R-17 | Llama 4 model expansion | M-9.6 |
 | R-18 | Per-task FMEA advisory | M-8.INT.4 |
 | R-19 | Grammar reference document | M-9.7a |
@@ -359,23 +378,23 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | R-32 | Data ingestion as Seeds | Design session |
 | R-33 | Typed containment relationships | Deferred |
 | R-36 | Pipeline output → structural Seeds | After R-31 |
-| R-38 | Structural data lifecycle (archival) | Scale warrants |
-| R-40 | Structured DECOMPOSE Input (JSON blocks) | M-8.INT |
+| R-38 | Structural data lifecycle | Scale warrants |
+| R-40 | Structured DECOMPOSE Input | M-8.INT |
 | R-41 | Conditional DevAgent SCOPE Bypass | M-8.INT |
-| R-42 | Hybrid Prompt Template (JSON header + prose) | M-8.INT |
-| R-43 | Tool-Use DECOMPOSE Output (Anthropic tool API) | M-8.INT |
-| R-44 | Graph-Derived Context Transfer (SURVEY --mode=context-transfer) | M-8.INT |
-| R-45 | Structured Corrections + Deterministic VALIDATE | M-8.INT |
+| R-42 | Hybrid Prompt Template | M-8.INT |
+| R-43 | Tool-Use DECOMPOSE Output | M-8.INT |
+| R-44 | Graph-Derived Context Transfer | M-8.INT |
+| R-45 | Structured Corrections + VALIDATE | M-8.INT |
 | R-48 | Agent→Resonator retyping | Absorbed into R-58 |
 | R-49 | PipelineRun→Bloom retyping | Absorbed into R-58 |
-| R-52 | Architect pattern design revision (v5.0, concurrent model) | Post-M-16 |
+| R-52 | Architect pattern design revision | Post-M-16 |
 | R-53 | DevAgent pattern design revision | Post-M-16 |
 | R-57 | R-39 live migration script | Absorbed into M-16 |
 | R-58 | Morpheme retyping from Identity Map v2.0 | M-8.INT |
-| R-59 | Cascading document updates from v2.0 reclassifications (7 docs) | Post-M-17 |
-| R-60 | Statistical Assessment Resonator Phase 1: CI on Thompson posteriors | M-8.INT |
+| R-59 | Cascading document updates (7 docs) | Post-M-17 |
+| R-60 | Statistical Assessment Resonator Phase 1 | M-8.INT |
 
-**R-58/R-59/R-60 status:** In graph as Seeds via `instantiateMorpheme()`. Backlog totals: 48 total, 17 complete, 31 planned.
+**R-58/R-59/R-60:** In graph as Seeds. Backlog: 48 total, 17 complete, 31 planned.
 
 ---
 
@@ -385,7 +404,7 @@ The gap between raw pipeline observations and computed state dimensions still ex
 |----|------|--------|-------|
 | M-1 | Foundation | ✅ | |
 | M-2 | Signal Conditioning | ✅ | |
-| M-3 | *(gap — ice-boxed DND reconnection, renamed M-9-DND)* | 🧊 | |
+| M-3 | *(gap — ice-boxed DND)* | 🧊 | |
 | M-4 | Patterns in Core | ✅ | |
 | M-5 | Architect Bootstrap | ✅ | |
 | M-6 | Thompson Integration | ✅ | |
@@ -402,15 +421,16 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | M-10 | Memory Operations | 📋 | |
 | M-11 | Research Pattern | 📋 | |
 | M-12 | Constitutional Evolution | 📋 | |
-| M-13 | UI | 📋 | After M-21 ✅ |
+| M-13 | UI | 📋 | After M-22 |
 | M-14 | Self-Recursive Learning | 📋 | |
 | M-15 | Pattern Exchange Protocol | 📋 | |
 | M-16 | Constitutional Bloom + Fabric | ✅ | `8c47152`→`8b22a43` |
 | M-17 | Engineering Bridge v3.0 | ✅ | `5fa3146`→`5a6845f` |
 | M-18 | Assayer Implementation | 📋 | |
-| M-19 | Hypothesis Tracking + Research Pipeline | 📋 | In graph since M-9.8 |
-| M-20 | Topology Observation Helix | 📋 | Hard deps met, design needed |
-| M-21 | Bridge Grid Instantiation | ✅ | `7216ceb`, pending stamp |
+| M-19 | Hypothesis Tracking | 📋 | |
+| M-20 | Topology Observation Helix | 📋 | Hard deps met |
+| M-21 | Bridge Grid Instantiation | ✅ | `7216ceb` |
+| **M-22** | **Vertical Wiring** | **📋** | **Closes State Dimension Gap** |
 
 ---
 
@@ -427,8 +447,6 @@ The gap between raw pipeline observations and computed state dimensions still ex
 | Concurrent Pattern Topology v3 | `docs/specs/concurrent-pattern-topology-v3.md` | Draft `9c68eb1` |
 | M-17.1 Delta Report | `docs/specs/m17-1-bridge-delta-report.md` | Canonical `5fa3146` |
 | Instantiation/Mutation Design | `docs/specs/instantiation-mutation-resonator-design.md` | Canonical `bc95c654` |
-| Assayer Pattern Design | `docs/specs/09_codex-signum-assayer-pattern-design.md` | Needs v5.0 pass (R-52) |
-| Architect Pattern Design | `docs/specs/06_codex-signum-architect-pattern-design.md` | Needs v5.0 pass (R-52) |
 
 ---
 
@@ -436,39 +454,41 @@ The gap between raw pipeline observations and computed state dimensions still ex
 
 | # | Date | Entry |
 |---|------|-------|
-| R-14–R-21 | 2026-03-03–05 | *(See v8.1 for entries R-14 through R-21)* |
+| R-14–R-21 | 2026-03-03–05 | *(See v8.1)* |
 | R-22 | 2026-03-16 | v8.1 reconciliation. 16 anomalies fixed, 19 R-items restored. |
-| R-23 | 2026-03-16 | M-16 complete. Constitutional Bloom, instantiation protocol, governance Resonators. Tests: 1564. |
-| R-24 | 2026-03-16 | M-17 complete. Bridge v3.0 final. All 32 delta findings. Version: 3.0-draft → 3.0. |
-| R-25 | 2026-03-16 | Identity Map v2.0 + v5.0b committed at `dff5d9c`. R-58/R-59/R-60 defined. |
-| R-26 | 2026-03-16 | R-58/R-59/R-60 created in graph. Backlog: 48 total, 17 complete, 31 planned. |
-| R-27 | 2026-03-16 | M-21 complete. 27 spec Seeds, 18 REFERENCES Lines, Bridge Grid live. Commit `7216ceb`. DEPENDS_ON wired. REFERENCES + SPECIFIED_BY Line types added. |
+| R-23 | 2026-03-16 | M-16 complete. Tests: 1564. |
+| R-24 | 2026-03-16 | M-17 complete. Bridge v3.0 final. |
+| R-25 | 2026-03-16 | Identity Map v2.0 + v5.0b committed. R-58/R-59/R-60 defined. |
+| R-26 | 2026-03-16 | R-58/R-59/R-60 created in graph. Backlog: 48/17/31. |
+| R-27 | 2026-03-16 | M-21 complete. 27 Seeds, 18 Lines. REFERENCES + SPECIFIED_BY Line types. |
+| R-28 | 2026-03-16 | M-21 stamped complete (phiL 0.9). Constitutional Bloom parent recalculated. |
+| R-29 | 2026-03-16 | M-22 (Vertical Wiring) added to roadmap. 7 sub-milestones. Closes State Dimension Gap. |
 
 ---
 
 ## Key Learnings (Accumulated)
 
 ### Anti-Pattern Sweep Methodology
-ALWAYS start with Neo4j diagnostic queries. The graph is the source of truth — never scope from GitHub alone.
+ALWAYS start with Neo4j diagnostic queries. The graph is the source of truth.
 
 ### Verification Methodology
-Use `get_file_contents` for existence verification; `search_code` only for discovery. GitHub search index lags. Compare file SHA hashes.
+Use `get_file_contents` for existence verification; `search_code` only for discovery. Compare SHA hashes.
 
 ### Compliance-as-Monitoring Is an Anti-Pattern
-Structural enforcement (instantiation protocol) makes violations impossible. Seven instances killed.
+Structural enforcement makes violations impossible. Seven instances killed.
 
-### Constituent Test (from Identity Map v2.0)
-"Does this object have things inside it that need containment? If yes, it's a Bloom." Caught 5 systematic mistypings.
+### Constituent Test (Identity Map v2.0)
+"Does this object have things inside it that need containment? If yes, it's a Bloom."
 
 ### DEPENDS_ON Direction
 `(prerequisite)-[:DEPENDS_ON]->(dependent)` — from what must complete to what it unblocks.
 
 ### Node ID Conventions
-Legacy inconsistency: M-17 uses `M-17`, M-21 uses `bloom:m-21`. Different bootstrap eras. Always query for actual IDs when wiring between milestones.
+Legacy inconsistency: `M-17` vs `bloom:m-21`. Always query for actual IDs.
 
 ### Context Transfers Belong in Project Knowledge
-Not the public repo. Never commit context transfers to `Codex_signum`.
+Not the public repo.
 
 ---
 
-*This document is the single source of truth for project sequencing until M-9.8 completes, at which point the graph becomes the source of truth and this document becomes a snapshot. The v5.0 spec defines the contracts. The Engineering Bridge v3.0 defines the computations. This roadmap defines the sequence. The constitutional foundation is built. The engineering specification is complete. The Bridge is queryable. Everything from here is implementation.*
+*The v5.0 spec defines the contracts. The Engineering Bridge v3.0 defines the computations. The Bridge Grid makes the spec queryable. M-22 connects the computations to the live pipeline. M-9.V proves the connection works. This roadmap defines the sequence.*
