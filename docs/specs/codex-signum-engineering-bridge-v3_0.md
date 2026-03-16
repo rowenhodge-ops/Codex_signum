@@ -15,7 +15,7 @@ This document translates the Codex Signum specification into concrete engineerin
 
 The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice. The Bridge View Principle (Part 1.1) constrains what may appear in these computations.
 
-**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. Structural reframing and new sections will land in M-17.3–M-17.6.
+**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL). Glossary rewritten from scratch against v5.0. Remaining structural reframing lands in M-17.5–M-17.6.
 ---
 
 ## Part 1: Foundational Principle
@@ -223,6 +223,41 @@ Recommended `gradient_sensitivity`: 0.05–0.15. When Ω gradients are positive,
 | 0.5–0.7 | 0.01 |
 | < 0.5 | 0.0 |
 
+### Dimensional Profiles — Partitioned ΦL by Task Classification
+
+**Source:** v5.0 §Dimensional Profiles.
+
+#### What They Are
+
+Composite ΦL decomposed by task classification: ΦL_code, ΦL_reasoning, ΦL_analysis, etc. Not new state dimensions — partitioned views of existing observations.
+
+#### How Observation Seeds Are Tagged
+
+Each observation Seed in the Grid carries a task classification tag (e.g., `taskClass: "code"`, `taskClass: "reasoning"`). Patterns define their own classifications — the spec defines the mechanism, patterns define the vocabulary.
+
+#### How Partitioned ΦL Is Computed
+
+Filter the observation Grid by task classification tag. Run the same four-factor ΦL formula on the partition:
+
+```
+ΦL[task_class] = w₁ × axiom_compliance[task_class] +
+                 w₂ × provenance_clarity[task_class] +
+                 w₃ × usage_success_rate[task_class] +
+                 w₄ × temporal_stability[task_class]
+```
+
+Same weights, same maturity modifier, but computed over a subset of observations. This is a query against the observation Grid, not a stored property. Profiles are ephemeral computations, recomputed on demand.
+
+Passes Bridge View Principle: pure function of observation Seeds (morpheme state in Grid) + ΦL weights (axiom parameters) + task classification tag (morpheme property).
+
+#### How the Thompson Router Reads Them
+
+When selecting a model Resonator for a task, the router reads the dimensional profile matching the task's classification, not the composite ΦL. A model may have high composite ΦL but low ΦL_reasoning — the router should select based on ΦL_reasoning for a reasoning task.
+
+#### How They Feed Layer 3
+
+Line conductivity contextual fitness (see Line Conductivity Part, Layer 3) reads dimensional profiles from both endpoints' observation Grids, comparing them for the specific task classification being processed. The friction computation uses partitioned ΦL, not composite ΦL.
+
 ---
 
 ## Part 3: Degradation Cascade — CONTAINS Line Properties
@@ -323,6 +358,191 @@ actual_delay = random(0, min(base × 1.5^attempt, 300_seconds))
 Full jitter is mandatory (reduces server load by >50% vs. synchronised backoff per AWS architecture guidance). Cap at 300 seconds (5 minutes) to prevent indefinite isolation.
 
 **Half-open state for recovery:** After backoff period, run 5–10 trial probes before declaring recovery. This matches the circuit breaker pattern (Resilience4j).
+
+---
+
+## Line Conductivity — Three-Layer Circuit Model
+
+**Source:** v5.0 §Line (Conductivity subsection).
+
+Conductivity determines whether signals flow before conditioning processes them. A Line is not a passive connection — it is a circuit that closes only when both endpoints satisfy the requirements for that connection. Insert this evaluation between cascade propagation (Part 3) and signal conditioning (Part 4): degradation propagates through conductive Lines; signals flow through conductive Lines into the conditioning pipeline.
+
+### Layer 1 — Morpheme Hygiene (Binary: conducts or dark)
+
+Both endpoints must satisfy their morpheme contract. This is N-8 (content-for-all): `content` is required on ALL six morpheme types. A Bloom's content describes its scope/purpose; a Resonator's content describes its transformation; a Grid's content describes what it stores; a Helix's content describes its iteration behaviour. Empty strings are rejected.
+
+**Required properties check (all morpheme types):**
+
+- `content` — required on all six morpheme types. Non-empty.
+- `status` — required (planned/active/complete/archived)
+- `phiL` — required (0.0–1.0)
+- INSTANTIATES relationship to Constitutional Bloom — required (structural coupling intact)
+
+**Cypher pattern for hygiene check:**
+
+```cypher
+MATCH (a)-[line:FLOWS_TO|CONTAINS|DEPENDS_ON]->(b)
+WHERE a.content IS NOT NULL AND a.content <> ''
+  AND b.content IS NOT NULL AND b.content <> ''
+  AND a.status IS NOT NULL
+  AND b.status IS NOT NULL
+  AND a.phiL IS NOT NULL
+  AND b.phiL IS NOT NULL
+  AND EXISTS { (a)-[:INSTANTIATES]->(:Bloom {name: 'Constitutional Bloom'}) }
+  AND EXISTS { (b)-[:INSTANTIATES]->(:Bloom {name: 'Constitutional Bloom'}) }
+RETURN line, true AS hygienePass
+```
+
+If either endpoint fails any check, the Line is topologically present but dark. No signal flows. This is the structural enforcement that makes tampering self-defeating — stripping a Seed's provenance darkens every Line connected to it.
+
+**TypeScript interface:**
+
+```typescript
+interface HygieneResult {
+  passes: boolean;
+  failures: string[];  // e.g. ['endpoint_a: missing content', 'endpoint_b: no INSTANTIATES']
+}
+```
+
+### Layer 2 — Grammatical Shape (Binary: conducts or dark)
+
+The Line's connection type must be grammatically valid for both endpoints:
+
+- **G2 Direction:** FLOWS_TO Lines carry signal in one direction. The source morpheme must produce output of the type the target morpheme accepts.
+- **G3 Containment:** CONTAINS Lines flow from enclosing scope to enclosed element. Parent must be a Bloom. Child can be any morpheme type.
+- **G4 Signal type:** The Line's signal type (data, control, observation, feedback) must match what both endpoints support.
+
+**Valid connection patterns per morpheme type:**
+
+| Source | Target | Via | Validity |
+|---|---|---|---|
+| Resonator output | Seed (result) | FLOWS_TO | Valid — transformation produces data |
+| Seed (data) | Resonator input | FLOWS_TO | Valid — data feeds transformation |
+| Bloom | Any morpheme | CONTAINS | Valid — scope contains elements |
+| Any | Any | DEPENDS_ON | Valid — dependency declaration |
+| Seed | Seed | FLOWS_TO | Valid — data pipeline |
+| Grid | Resonator | FLOWS_TO | Valid — stored data feeds computation |
+| Resonator | Grid | FLOWS_TO | Valid — transformation writes to storage |
+| Helix | Resonator | FLOWS_TO | Valid — iteration governor triggers transformation |
+
+### Layer 3 — Contextual Fitness (Continuous: friction value)
+
+Beyond hygiene and grammar, the Line's friction profile reflects how well the endpoints' dimensional properties align for the specific work being done.
+
+**How dimensional profiles are read:**
+
+- Query both endpoints' observation Grids, filtered by the current task classification tag
+- Compute partitioned ΦL for each endpoint on the relevant task dimension (see Dimensional Profiles in Part 2)
+- Friction = f(dimensional distance between endpoints' profiles for the task classification)
+
+**Friction computation:**
+
+```
+friction = 1.0 - min(ΦL_source[task_class], ΦL_target[task_class])
+```
+
+Where `ΦL_source[task_class]` is the partitioned ΦL of the source endpoint for the current task classification. High friction (→1.0) means at least one endpoint has low dimensional ΦL for this task type. The Line conducts but poorly — visible friction.
+
+Friction is continuous, not binary. A Line with friction 0.8 conducts but signals the system exactly where compensation is needed. This is the input to the Remedy Matching Resonator (see Part 7: Immune Memory Repair).
+
+**TypeScript interface:**
+
+```typescript
+interface ConductivityResult {
+  layer1: HygieneResult;
+  layer2: { passes: boolean; reason?: string };
+  layer3: { friction: number; taskClass: string };
+  conducts: boolean;          // layer1.passes && layer2.passes
+  effectiveFriction: number;  // 0 if !conducts, else layer3.friction
+}
+```
+
+### Caching and Invalidation
+
+Conductivity is a cached property on the Line (v5.0: "Between re-evaluations, conductivity is a cached property on the Line"). Re-evaluate when:
+
+- Either endpoint's structural properties change (via the Mutation Resonator — see Governance Resonators)
+- Either endpoint's ΦL crosses a threshold boundary
+- A new observation changes a dimensional profile for the relevant task classification
+- The Line is newly created (via the Line Creation Resonator — see Governance Resonators)
+
+Between invalidation triggers, the cached value is used. Implementation detail: cache as a property on the relationship in Neo4j (`conductivity: number, conductivityValid: boolean, lastEvaluated: datetime`).
+
+### Cross-References
+
+- **Governance Resonators:** the Line Creation Resonator evaluates conductivity at write time
+- **Dimensional Profiles (Part 2):** Layer 3 reads profiles from observation Grids
+- **Signal conditioning pipeline (Part 4):** processes signals that flow through conductive Lines (Part 4 will be reframed as named Resonators in M-17.5)
+- **Part 3 (Degradation Cascade):** degradation cascade propagates through conductive CONTAINS Lines
+
+---
+
+## Governance Resonators — Instantiation, Mutation, Line Creation
+
+**Source:** `instantiation-mutation-resonator-design.md` and the live implementation at `src/graph/instantiation.ts`.
+
+### Architecture
+
+Three governance Resonators live **as siblings** within the Constitutional Bloom. They are contained by the Constitutional Bloom (via CONTAINS Lines), not by each other. Each Resonator has associated observation Grids that are also siblings within the Constitutional Bloom — the Grids are connected to the Resonators via FLOWS_TO Lines, NOT contained by the Resonators. (Resonators do not contain — v5.0 §Morpheme Interaction Rules.)
+
+```
+Constitutional Bloom (○)
+├── CONTAINS → Instantiation Resonator (Δ)
+├── CONTAINS → Mutation Resonator (Δ)
+├── CONTAINS → Line Creation Resonator (Δ)
+├── CONTAINS → Instantiation Grid (□)  ← FLOWS_TO from Instantiation Resonator
+├── CONTAINS → Mutation Grid (□)       ← FLOWS_TO from Mutation Resonator
+├── CONTAINS → Line Creation Grid (□)  ← FLOWS_TO from Line Creation Resonator
+├── CONTAINS → Grammar Seeds (•)       (axiom definitions, morpheme type definitions)
+└── ...
+```
+
+### Instantiation Resonator (Δ)
+
+- **Invoked by:** `instantiateMorpheme()` in `src/graph/instantiation.ts`
+- **Input Lines:** creation request with morpheme type, required properties, content
+- **Validates:** content is present and non-empty (all six morpheme types — N-8), required properties per type, content semantics per type:
+  - Seed content: describes the data unit
+  - Bloom content: describes scope/purpose
+  - Resonator content: describes the transformation
+  - Grid content: describes what it stores
+  - Helix content: describes iteration behaviour
+  - Line: content not required (Lines are connections, not data)
+- **Creates:** morpheme instance with all properties + INSTANTIATES Line to Constitutional Bloom
+- **Writes to Instantiation Grid:** creation event Seed (timestamp, morpheme type, creator, success/failure, failure reason if applicable)
+- **Rejects:** creation without content, creation without required properties
+
+### Mutation Resonator (Δ)
+
+- **Invoked by:** `updateMorpheme()` in `src/graph/instantiation.ts`
+- **Input Lines:** mutation request with target node, property changes
+- **Validates:** mutation preserves required properties (cannot null content, status, etc.)
+- **Executes:** property updates on target node
+- **Auto-propagates:** parent Bloom status from children (all-complete → complete, some-complete → active, none → planned)
+- **Writes to Mutation Grid:** mutation event Seed (timestamp, target, properties changed, old/new values)
+
+### Line Creation Resonator (Δ)
+
+- **Invoked by:** `createLine()` in `src/graph/instantiation.ts`
+- **Input Lines:** creation request with source, target, line type
+- **Evaluates:** Line conductivity at write time (cross-reference Line Conductivity Part) — Layers 1 and 2 must pass for the Line to be created as conductive. Layer 3 friction is computed and cached.
+- **Creates:** relationship in Neo4j with conductivity cache properties
+- **Writes to Line Creation Grid:** creation event Seed (timestamp, source, target, line type, initial conductivity)
+
+### ΦL for Governance Resonators
+
+What makes a governance Resonator healthy vs degraded:
+
+- **Usage success rate:** fraction of invocations completing without error (the primary factor)
+- **Rejection rate:** rate of rejected creation/mutation requests — high rejection may indicate upstream problems, not Resonator problems
+- **Validation latency:** time from request to completion — degradation if latency increases
+- **Error pattern:** repeated errors of the same type indicate a systematic problem
+
+These are computed from the observation Grid (Instantiation/Mutation/Line Creation Grid) using the standard ΦL four-factor formula.
+
+### Anti-Pattern Connection
+
+This is the structural fix for the Compliance-as-Monitoring anti-pattern. When ALL graph writes route through these three Resonators, violations are structurally impossible. The seven killed monitoring overlays (Model Sentinel, Observer, dashboard, computed views, CLAUDE.md rules, conformance tests, creation layer checks) are all replaced by these three functions. Checking is unnecessary when the creation layer prevents non-compliance.
 
 ---
 
@@ -539,6 +759,65 @@ Several watchpoints now have structural defences specified in v5.0. The risks re
 
 Total active memory: ~25 MB. Stratum 2 is bounded by the compaction window, not by time.
 
+### Immune Memory Repair — Remedy Archive
+
+**Source:** v5.0 §Immune Memory (Gap Response, Compensatory Morpheme Lifecycle, Runaway Control, Cold Start).
+
+#### Remedy Archive Grid (□)
+
+Stratum 3 memory, alongside the Threat Archive. Contains compensatory pattern Seeds, each carrying:
+
+- **Friction profile** — dimensional shape: which task classifications had high friction, and at what magnitude
+- **Morpheme configuration** — the type, properties, and wiring pattern that resolved it
+- **Confidence score** — increases with successful reuse, decreases with age without use
+
+Storage sizing: larger than generic "insights" — each entry is a gap-plus-fix pair with dimensional friction profiles. Plan for 10–100 entries per active pattern Bloom, growing with system maturity.
+
+#### Remedy Matching Resonator (Δ)
+
+**Input:** friction profiles from Lines whose Layer 3 friction exceeds threshold.
+
+**Matching algorithm:** Compare incoming friction profile's dimensional shape against archived remedies. Match on task classification overlap and friction magnitude similarity.
+
+**Three output paths:**
+
+| Match Quality | Action |
+|---|---|
+| Strong match | Instantiate compensatory morpheme from matched remedy (through Instantiation Resonator — see Governance Resonators Part) |
+| Partial match | Speculative instantiation — low confidence, monitored closely |
+| No match | Produce capability gap Seed + escalation signal. "I need something I don't have." |
+
+ALL compensatory morpheme creation goes through the Instantiation Resonator. No raw graph writes.
+
+#### Compensatory Morpheme Lifecycle
+
+**Birth.** Instantiated from Remedy Archive at friction site. Near-zero ΦL (cold start per maturity modifier). Contained within the pattern Bloom (G3 — effects are local). Wired into the circuit between the weak point and the consumer.
+
+**Trial.** Observations accumulate in its Grid. Monitored metrics: did Line friction drop? Did downstream ΦL improve?
+
+**Survival.** ΦL rises → morpheme persists, becomes part of pattern's structural topology. Remedy Archive confidence for that entry increases.
+
+**Dissipation.** ΦL doesn't rise → Lines go dark, morpheme's observations persist in Grid as a lesson ("this compensation didn't work for this gap type"). Prevents retrying the same failed remedy.
+
+#### Runaway Control
+
+Four structural bounds prevent compensatory morpheme runaway:
+
+| Bound | Mechanism |
+|---|---|
+| εR budget | Speculative instantiation IS exploration — consumes εR budget. When εR hits upper bound (0.3), no more speculative creations. |
+| ΦL drag | Each compensatory morpheme starts near-zero ΦL — drags parent Bloom's aggregate ΦL down. Too many speculative children = Bloom dims. |
+| G3 containment | Compensatory morpheme contained within pattern Bloom. Effects are local. |
+| Archive-only | System can only instantiate from LEARNED patterns. Recombination from experience, not novel invention. |
+
+#### Cold Start
+
+Archive starts empty. All friction exceeding threshold follows the "no match" → escalation path initially. Operator resolves friction (manually inserting a compensatory morpheme, reconfiguring the circuit, or accepting the friction). When the compensatory morpheme survives, the gap-plus-fix pair is distilled into the Remedy Archive. Archive accumulates organically from resolved escalations. Same learning pathway as Threat Archive.
+
+#### Interaction with Threat Archive
+
+Same containing Bloom (immune memory Bloom), same Learning Helix governing both Grids, same distillation mechanism. The Threat Matching Resonator handles defence (what to fight). The Remedy Matching Resonator handles repair (what to fix). Two separate Resonators sharing infrastructure, each with its own authority scope (A6), its own ΦL, its own observation history.
+
 ---
 
 ## Part 8: Structural Review Trigger Conditions
@@ -657,21 +936,30 @@ For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Pattern
 
 | Codex Term | Engineering Equivalent |
 |---|---|
-| Seed (•) | Atomic component — function, service, data point |
-| Line (→) | Connection — data flow, dependency, feedback path |
-| Bloom (○) | Boundary — pipeline stage, module scope, service boundary |
-| Resonator (Δ) | Transformation — where input becomes output, routing decision |
-| Grid (□) | Knowledge structure — graph, schema, persistent storage |
+| Seed (•) | Atomic data unit — observation, decision record, configuration, task, prompt template |
+| Line (→) | Connection with conductivity — data flow, transformation, feedback path. Three-layer evaluation (hygiene, shape, fitness). |
+| Bloom (○) | Scope boundary — pipeline, execution context, milestone, service boundary |
+| Resonator (Δ) | Transformation — LLM/AI model, pipeline stage, signal conditioning, governance enforcement |
+| Grid (□) | Persistent data structure — observation history, archived signatures, remedy entries, threat archetypes |
 | Helix (🌀) | Feedback loop — refinement retry, learning cycle, evolutionary selection |
-| ΦL | Health score — composite of success rate, compliance, provenance, stability |
-| ΨH | Harmonic signature — two-component: λ₂ (structural coherence) + TV_G (runtime friction) |
-| εR | Exploration rate — fraction of decisions sampling uncertain alternatives |
-| γ_effective | Topology-aware dampening — min(γ_base, safety_budget/k) where γ_base=0.7, safety_budget=0.8, k=branching factor (CONTAINS Line count)
+| ΦL | Health score — 4-factor composite (axiom compliance, provenance clarity, usage success, temporal stability) × maturity modifier |
+| ΨH | Harmonic signature — λ₂ (structural coherence) + TV_G (runtime friction). Temporal decomposition: EWMA trend + friction_transient + friction_durable |
+| εR | Exploration rate — fraction of decisions sampling uncertain alternatives. Floor modulated by imperative gradients and spectral calibration. |
+| γ_effective | Topology-aware dampening — min(γ_base, safety_budget/k) where γ_base=0.7, safety_budget=0.8, k=branching factor (CONTAINS Line count). Property of the CONTAINS Line. |
+| Line conductivity | Three-layer circuit evaluation: morpheme hygiene (binary), grammatical shape (binary), contextual fitness (continuous friction). Cached on Line, invalidated on endpoint change. |
+| Constitutional Bloom | Organisational core — contains grammar definition Seeds, axiom Seeds, governance Resonators, governance observation Grids |
+| INSTANTIATES Line | Structural coupling — connects every morpheme instance to its definition in the Constitutional Bloom |
+| Dimensional Profile | Partitioned ΦL by task classification — ephemeral computation (query against observation Grid), not stored state |
+| Remedy Archive | Stratum 3 Grid of learned repair patterns — friction profiles paired with successful compensatory morpheme configurations |
+| Governance Resonator | Instantiation, Mutation, Line Creation — the three Resonators in the Constitutional Bloom that enforce all graph writes |
 | Luminance | Health visibility — bright = healthy, dim = degraded, dark = dead |
+| Saturation | Exploration visibility — vivid = exploring, grey = rigid. Maps εR via min(1.0, εR/0.3) |
+| Pulsation phase | Structural synchrony — phase offset from normalize(v₂) × 2π. Coherent nodes pulse in sync. |
+| Spectral embedding | Spatial layout — coordinates from graph Laplacian eigenvectors (v₂, v₃, v₄). Global structure. |
 | Dormant | Built but not connected — exists but not wired into active flow |
-| Hysteresis | Recovery is 2.5× slower than degradation — prevents flapping |
-| Cascade limit | Degradation propagates at most 2 containment levels — primary safety mechanism |
-| Maturity index | Network-wide experience metric — modulates thresholds |
+| Hysteresis | Asymmetric CONTAINS Line attenuation — recovery at γ_effective / 2.5, degradation at γ_effective |
+| Cascade limit | 2-level CONTAINS Line depth limit — primary safety mechanism |
+| Maturity index | 4-factor composite modulating thresholds — observation depth, connection density, component age, ecosystem ΦL |
 | TV_G | Graph Total Variation — measures signal smoothness across connections |
 | λ₂ | Fiedler value — algebraic connectivity of graph Laplacian |
 
