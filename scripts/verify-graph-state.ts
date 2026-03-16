@@ -144,20 +144,20 @@ async function verify() {
     }
   }
 
-  // ── Check 3: TaskOutputs linked to Resonator stages ─────────────────────
+  // ── Check 3: TaskOutputs linked to Stage Blooms ─────────────────────
 
-  console.log("\n── Check 3: Resonator stage linkage ──");
-  // Note: relationship direction is (Resonator)-[:PROCESSED]->(TaskOutput)
+  console.log("\n── Check 3: Stage Bloom linkage ──");
+  // Note: relationship direction is (Stage)-[:PROCESSED]->(TaskOutput)
   const resQuery = targetRunId
-    ? `MATCH (r:Resonator)-[:PROCESSED]->(to:TaskOutput)<-[:PRODUCED]-(pr:PipelineRun)
+    ? `MATCH (r:Stage)-[:PROCESSED]->(to:TaskOutput)<-[:PRODUCED]-(pr:PipelineRun)
        WHERE pr.id = $runId
        RETURN r.name AS stage, count(to) AS taskCount`
-    : `MATCH (r:Resonator)-[:PROCESSED]->(to:TaskOutput)
+    : `MATCH (r:Stage)-[:PROCESSED]->(to:TaskOutput)
        RETURN r.name AS stage, count(to) AS taskCount`;
   const resResult = await runQuery(resQuery, targetRunId ? { runId: targetRunId } : {}, "READ");
 
   if (resResult.records.length === 0) {
-    fail("Resonator linkage", "No TaskOutputs linked to any Resonator");
+    fail("Stage linkage", "No TaskOutputs linked to any Stage Bloom");
   } else {
     let dispatchFound = false;
     for (const rec of resResult.records) {
@@ -167,9 +167,9 @@ async function verify() {
       if (stage === "DISPATCH") dispatchFound = true;
     }
     if (dispatchFound) {
-      pass("Resonator linkage", `${resResult.records.length} stage(s) with linked TaskOutputs`);
+      pass("Stage linkage", `${resResult.records.length} stage(s) with linked TaskOutputs`);
     } else {
-      fail("Resonator linkage", "DISPATCH Resonator has no linked TaskOutputs");
+      fail("Stage linkage", "DISPATCH Stage has no linked TaskOutputs");
     }
   }
 

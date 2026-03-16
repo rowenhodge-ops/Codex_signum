@@ -8,7 +8,7 @@ import { runQuery } from "../client.js";
 // ============ PIPELINE ANALYTICS QUERIES ============
 
 /**
- * Get ΦL and observation counts for each Architect pipeline stage Resonator.
+ * Get ΦL and observation counts for each Architect pipeline stage Bloom.
  * Answers: "which pipeline stage is performing best/worst?"
  */
 export async function getPipelineStageHealth(
@@ -20,7 +20,7 @@ export async function getPipelineStageHealth(
   observationCount: number;
 }>> {
   const result = await runQuery(
-    `MATCH (b:Bloom { id: $bloomId })-[:CONTAINS]->(r:Resonator)
+    `MATCH (b:Bloom { id: $bloomId })-[:CONTAINS]->(r:Stage)
      OPTIONAL MATCH (r)-[:PROCESSED]->(to:TaskOutput)
      RETURN r.name AS stage, r.id AS resonatorId,
             COALESCE(r.phiL, 0.0) AS phiL, count(to) AS observationCount
@@ -142,7 +142,7 @@ export async function getModelPerformance(
   }));
 }
 
-/** Get performance stats per pipeline stage (Resonator-level) */
+/** Get performance stats per pipeline stage (Stage Bloom-level) */
 export async function getStagePerformance(
   architectBloomId: string,
 ): Promise<Array<{
@@ -153,7 +153,7 @@ export async function getStagePerformance(
   successRate: number;
 }>> {
   const result = await runQuery(
-    `MATCH (b:Bloom { id: $bloomId })-[:CONTAINS]->(r:Resonator)-[:PROCESSED]->(to:TaskOutput)
+    `MATCH (b:Bloom { id: $bloomId })-[:CONTAINS]->(r:Stage)-[:PROCESSED]->(to:TaskOutput)
      WITH r.name AS stage,
           count(to) AS taskCount,
           avg(COALESCE(to.qualityScore, 0.0)) AS avgQuality,

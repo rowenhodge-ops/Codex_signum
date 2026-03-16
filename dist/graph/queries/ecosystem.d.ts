@@ -111,7 +111,7 @@ export interface PatternTopologyEntry {
     }>;
 }
 /**
- * Get all patterns with their stages (Resonators) and data flows.
+ * Get all patterns with their stages (Stage Blooms) and data flows.
  * Returns the runtime topology of each pattern.
  *
  * @param patternId - Optional filter for a specific pattern

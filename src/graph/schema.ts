@@ -42,7 +42,7 @@ export const RELATIONSHIP_TYPES = {
   // Pipeline topology
   EXECUTED_IN: "EXECUTED_IN",     // PipelineRun → Bloom (where the run happened)
   PRODUCED: "PRODUCED",           // PipelineRun → TaskOutput (output provenance)
-  PROCESSED: "PROCESSED",         // Resonator → TaskOutput (stage assignment)
+  PROCESSED: "PROCESSED",         // Stage Bloom → TaskOutput (stage assignment)
 
   // Ecosystem bootstrap (M-9.8)
   SCOPED_TO: "SCOPED_TO",         // Seed (test) → Bloom (milestone) — test validates milestone

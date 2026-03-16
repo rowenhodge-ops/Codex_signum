@@ -1,0 +1,52 @@
+{
+  "runId": "da-1772936890506",
+  "pipeline": "dev-agent",
+  "task": "Create graph-native representation of the M-17 Engineering Bridge v2.1 pipeline output. Read the manifest at docs/pipeline-output/2026-03-06T01-06-52/_manifest.json for task metadata. For each of the 13 tasks, read the corresponding markdown file from the same directory for content. Create the following graph structure: (1) BLOOM node with id=bridge-v2.1, name=Engineering Bridge v2.1, type=specification, specVersion=v4.3, status=review, sourceRunId=2026-03-06T01-06-52, totalChars=208517, taskCount=13. (2) For each task output, create a SEED node with id=bridge-v2.1:TASKID (e.g. bridge-v2.1:t1), name=task title from manifest, seedType=document-section, content=full text from the markdown file, qualityScore from manifest, modelId from manifest, charCount from manifest, durationMs from manifest, taskId from manifest, order=task sequence number. (3) CONTAINS relationships from the Bloom to each Seed with an order property. (4) DEPENDS_ON relationships between Seeds matching the task dependency DAG from the manifest if dependencies exist. (5) An INSTANTIATES relationship from the bridge-v2.1 Bloom to the grammar-reference Bloom (id=grammar-reference, verify it exists first). Use existing graph query functions from src/graph/queries.ts — read the file first to find createSeed, createBloom, and relationship creation patterns. Use the same patterns, do not invent new ones. Store content as a content property on the Seed.",
+  "preset": "full",
+  "complexity": "moderate",
+  "domain": "refactor",
+  "files": [
+    "docs/pipeline-output/2026-03-06T01-06-52/_manifest.json",
+    "src/graph/queries.ts",
+    "src/graph/schema.ts"
+  ],
+  "overallQuality": 0.6,
+  "correctionCount": 0,
+  "totalDurationMs": 224665,
+  "stages": [
+    {
+      "stage": "scope",
+      "modelId": "mistral-medium-3:default",
+      "qualityScore": 0.7,
+      "durationMs": 21651,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "execute",
+      "modelId": "gemini-3-flash-preview:default",
+      "qualityScore": 0.7,
+      "durationMs": 72909,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "review",
+      "modelId": "claude-sonnet-4-6:adaptive:medium",
+      "qualityScore": 0.7,
+      "durationMs": 67585,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "validate",
+      "modelId": "claude-opus-4-6:adaptive:max",
+      "qualityScore": 0.6,
+      "durationMs": 58657,
+      "wasExploratory": false,
+      "correctionIteration": 0
+    }
+  ],
+  "milestone": "M-17",
+  "timestamp": "2026-03-08T02:31:56.837Z"
+}

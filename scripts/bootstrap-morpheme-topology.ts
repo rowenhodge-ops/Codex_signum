@@ -8,10 +8,10 @@
  *
  * Populates Neo4j with the system's runtime topology mapped to morphemes:
  * - Pattern Blooms (Architect, DevAgent, Thompson Router)
- * - Pipeline stage Resonators (7 Architect + 4 DevAgent + 7 Signal)
+ * - Pipeline stage Blooms (7 Architect + 4 DevAgent + 7 Signal)
  * - Signal Pipeline Bloom (container for signal stages)
  * - FLOWS_TO relationships (data flow / Line morpheme)
- * - CONTAINS relationships (Bloom → Resonator containment)
+ * - CONTAINS relationships (Bloom → Stage Bloom containment)
  * - Thompson learning Helix (temporal evolution)
  * - Compliance corpus Grid (placeholder)
  * - OBSERVES relationship (Helix → Router Bloom)

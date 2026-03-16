@@ -288,7 +288,7 @@ export interface PatternTopologyEntry {
 }
 
 /**
- * Get all patterns with their stages (Resonators) and data flows.
+ * Get all patterns with their stages (Stage Blooms) and data flows.
  * Returns the runtime topology of each pattern.
  *
  * @param patternId - Optional filter for a specific pattern
@@ -298,7 +298,7 @@ export async function getPatternTopology(
 ): Promise<PatternTopologyEntry[]> {
   const whereClause = patternId ? "WHERE p.id = $patternId" : "";
   const stageResult = await runQuery(
-    `MATCH (p:Bloom)-[:CONTAINS]->(r:Resonator)
+    `MATCH (p:Bloom)-[:CONTAINS]->(r:Stage)
      ${whereClause}
      RETURN p.id AS patternId, p.name AS patternName, p.type AS patternType,
             r.id AS stageId, r.role AS role, r.name AS stageName
@@ -308,7 +308,7 @@ export async function getPatternTopology(
   );
 
   const flowResult = await runQuery(
-    `MATCH (r1:Resonator)-[:FLOWS_TO]->(r2:Resonator)
+    `MATCH (r1:Stage)-[:FLOWS_TO]->(r2:Stage)
      ${patternId ? "WHERE r1.patternId = $patternId" : ""}
      RETURN r1.id AS fromId, r2.id AS toId, r1.patternId AS patternId`,
     patternId ? { patternId } : {},

@@ -401,12 +401,12 @@ async function phase2_addMorphemeLabels() {
   );
 
   await runMigrationStep(
-    "Stage → Resonator:Stage (pipeline stages transform per MIM)",
+    "Stage → Bloom:Stage (per Identity Map v2.0 constituent test — stages are scope boundaries)",
     `MATCH (n:Stage)
-     WHERE NOT n:Resonator
-     SET n:Resonator, n.type = COALESCE(n.type, 'stage')
+     WHERE NOT n:Bloom
+     SET n:Bloom, n.type = COALESCE(n.type, 'stage')
      WITH n
-     MATCH (def:Seed {id: 'def:morpheme:resonator'})
+     MATCH (def:Seed {id: 'def:morpheme:bloom'})
      MERGE (n)-[:INSTANTIATES]->(def)
      RETURN count(n) AS migrated`,
   );
@@ -536,7 +536,7 @@ async function verify() {
     ["Seed:HumanFeedback", "MATCH (n:Seed:HumanFeedback) RETURN count(n) AS count"],
     ["Resonator:Agent", "MATCH (n:Resonator:Agent) RETURN count(n) AS count"],
     ["Bloom:Execution", "MATCH (n:Bloom:Execution) RETURN count(n) AS count"],
-    ["Resonator:Stage", "MATCH (n:Resonator:Stage) RETURN count(n) AS count"],
+    ["Bloom:Stage", "MATCH (n:Bloom:Stage) RETURN count(n) AS count"],
     ["Bloom:Pattern", "MATCH (n:Bloom:Pattern) RETURN count(n) AS count"],
     ["Resonator:Model", "MATCH (n:Resonator:Model) RETURN count(n) AS count"],
     ["Seed:TaskType", "MATCH (n:Seed:TaskType) RETURN count(n) AS count"],

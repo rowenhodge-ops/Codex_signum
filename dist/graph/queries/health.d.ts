@@ -1,5 +1,5 @@
 /**
- * Get ΦL and observation counts for each Architect pipeline stage Resonator.
+ * Get ΦL and observation counts for each Architect pipeline stage Bloom.
  * Answers: "which pipeline stage is performing best/worst?"
  */
 export declare function getPipelineStageHealth(architectBloomId: string): Promise<Array<{
@@ -37,7 +37,7 @@ export declare function getModelPerformance(limit?: number): Promise<Array<{
     avgDurationMs: number;
     successRate: number;
 }>>;
-/** Get performance stats per pipeline stage (Resonator-level) */
+/** Get performance stats per pipeline stage (Stage Bloom-level) */
 export declare function getStagePerformance(architectBloomId: string): Promise<Array<{
     stage: string;
     taskCount: number;

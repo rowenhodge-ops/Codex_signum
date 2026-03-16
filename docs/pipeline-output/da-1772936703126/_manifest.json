@@ -1,0 +1,47 @@
+{
+  "runId": "da-1772936703126",
+  "pipeline": "dev-agent",
+  "task": "Create graph-native representation of the M-17 Engineering Bridge v2.1 pipeline output. Read the manifest at docs/pipeline-output/2026-03-06T01-06-52/_manifest.json for task metadata. For each of the 13 tasks, read the corresponding markdown file from the same directory for content. Create the following graph structure:",
+  "preset": "full",
+  "complexity": "moderate",
+  "domain": "refactor",
+  "files": [],
+  "overallQuality": 0.7,
+  "correctionCount": 0,
+  "totalDurationMs": 83750,
+  "stages": [
+    {
+      "stage": "scope",
+      "modelId": "claude-opus-4-6:adaptive:medium",
+      "qualityScore": 0.7,
+      "durationMs": 23971,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "execute",
+      "modelId": "codestral-2:default",
+      "qualityScore": 0.7,
+      "durationMs": 6599,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "review",
+      "modelId": "gemini-3.1-pro-preview:default",
+      "qualityScore": 0.7,
+      "durationMs": 20397,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    },
+    {
+      "stage": "validate",
+      "modelId": "claude-opus-4-5:extended:8k",
+      "qualityScore": 0.7,
+      "durationMs": 27243,
+      "wasExploratory": true,
+      "correctionIteration": 0
+    }
+  ],
+  "timestamp": "2026-03-08T02:26:28.691Z"
+}

@@ -15,11 +15,11 @@ export async function createContainedResonator(props, parentBloomId) {
         throw new Error(result.error ?? "Resonator instantiation failed");
     }
 }
-/** Ensure the 7 Architect stage Resonators exist and are contained in the Architect Bloom */
-export async function ensureArchitectResonators(architectBloomId) {
+/** Ensure the 7 Architect stage Blooms exist and are contained in the Architect Bloom */
+export async function ensureArchitectStages(architectBloomId) {
     await writeTransaction(async (tx) => {
         for (const stage of ARCHITECT_STAGES) {
-            await tx.run(`MERGE (r:Resonator { id: $resonatorId })
+            await tx.run(`MERGE (r:Bloom:Stage { id: $stageId })
          ON CREATE SET
            r.name = $stage,
            r.stage = $stage,
@@ -27,19 +27,21 @@ export async function ensureArchitectResonators(architectBloomId) {
          WITH r
          MATCH (b:Bloom { id: $bloomId })
          MERGE (b)-[:CONTAINS]->(r)`, {
-                resonatorId: `${architectBloomId}_${stage}`,
+                stageId: `${architectBloomId}_${stage}`,
                 stage,
                 bloomId: architectBloomId,
             });
         }
     });
 }
-/** Link a TaskOutput to the Resonator for its assigned stage */
-export async function linkTaskOutputToStage(taskOutputId, resonatorId) {
+/** @deprecated Use ensureArchitectStages instead */
+export const ensureArchitectResonators = ensureArchitectStages;
+/** Link a TaskOutput to the Stage Bloom for its assigned stage */
+export async function linkTaskOutputToStage(taskOutputId, stageId) {
     await writeTransaction(async (tx) => {
         await tx.run(`MATCH (to:TaskOutput { id: $taskOutputId }),
-             (r:Resonator { id: $resonatorId })
-       MERGE (r)-[:PROCESSED]->(to)`, { taskOutputId, resonatorId });
+             (r:Stage { id: $stageId })
+       MERGE (r)-[:PROCESSED]->(to)`, { taskOutputId, stageId });
     });
 }
 //# sourceMappingURL=resonator.js.map
