@@ -35,7 +35,8 @@ import {
 import { writeObservation } from "../src/graph/write-observation.js";
 import { SignalPipeline } from "../src/signals/SignalPipeline.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
-import { assemblePatternHealthContext, computeAndPersistPsiH } from "../src/graph/queries/health.js";
+import { assemblePatternHealthContext, computeAndPersistPsiH, computeAndPersistEpsilonR } from "../src/graph/queries/health.js";
+import { checkEpsilonRWarnings } from "../src/computation/epsilon-r.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -857,6 +858,22 @@ export function createBootstrapTaskExecutor(
                 }
               } catch (err6) {
                 console.warn(`     [GRAPH] ⚠️  ΨH computation failed: ${err6 instanceof Error ? err6.message : err6}`);
+              }
+            }
+
+            // Compute εR at Bloom scope from Decision nodes — M-22.4
+            if (config.architectBloomId) {
+              try {
+                const epsilonR = await computeAndPersistEpsilonR(config.architectBloomId);
+                if (epsilonR) {
+                  console.log(`     [SIGNAL] εR=${epsilonR.value.toFixed(3)} (${epsilonR.range}, ${epsilonR.exploratoryDecisions}/${epsilonR.totalDecisions})`);
+                  const erWarnings = checkEpsilonRWarnings(epsilonR, qualityScore, true);
+                  for (const w of erWarnings) {
+                    console.log(`     [SIGNAL] ⚠️ εR ${w.level}: ${w.message}`);
+                  }
+                }
+              } catch (err7) {
+                console.warn(`     [GRAPH] ⚠️  εR computation failed: ${err7 instanceof Error ? err7.message : err7}`);
               }
             }
 

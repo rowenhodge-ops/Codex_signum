@@ -1,6 +1,7 @@
 import type { PatternHealthContext } from "../write-observation.js";
 import type { GraphEdge, NodeHealth } from "../../computation/psi-h.js";
 import type { PsiH } from "../../types/state-dimensions.js";
+import type { EpsilonR } from "../../types/state-dimensions.js";
 /**
  * Get ΦL and observation counts for each Architect pipeline stage Bloom.
  * Answers: "which pipeline stage is performing best/worst?"
@@ -82,6 +83,32 @@ export declare function getRunComparison(runIdA: string, runIdB: string): Promis
  *   temporalStability = computed from PhiLState ring buffer (persisted on Bloom)
  */
 export declare function assemblePatternHealthContext(bloomId: string): Promise<PatternHealthContext | null>;
+/**
+ * Count exploratory vs total Decision nodes within a Bloom's scope.
+ * Decisions connect via two paths:
+ *   1. (d:Decision)-[:ORIGINATED_FROM]->(b:Bloom)  — direct origin
+ *   2. (d:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom) — via pipeline run
+ *
+ * Uses UNION to capture both paths, then deduplicates by Decision id.
+ * Returns null if the Bloom doesn't exist or has no decisions.
+ */
+export declare function getBloomDecisionCounts(bloomId: string): Promise<{
+    exploratory: number;
+    total: number;
+} | null>;
+/**
+ * Compute εR for a Bloom from its contained Decision nodes and persist.
+ * Uses computeEpsilonR() with floor from computeEpsilonRFloor().
+ *
+ * @returns EpsilonR result, or null if no decisions exist
+ */
+export declare function computeAndPersistEpsilonR(bloomId: string): Promise<EpsilonR | null>;
+/**
+ * Propagate εR upward: parent εR = mean of children's εR values.
+ * Simple averaging — εR is a composition metric, not a cascading health signal.
+ * Only propagates one level (called bottom-up by caller).
+ */
+export declare function propagateEpsilonRToParent(bloomId: string): Promise<void>;
 /**
  * Extract the subgraph for ΨH computation on a specific Bloom composition.
  * Returns only edges between nodes CONTAINED by the target Bloom,

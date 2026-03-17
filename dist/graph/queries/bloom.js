@@ -212,6 +212,21 @@ export async function updateBloomPsiH(bloomId, psiHCombined, lambda2, friction, 
         });
     });
 }
+// ============ M-22.4: εR PERSISTENCE ============
+/**
+ * Persist computed εR on a Bloom node.
+ * Follows the same property pattern as updateBloomPhiL and updateBloomPsiH.
+ */
+export async function updateBloomEpsilonR(bloomId, epsilonR, range, exploratoryCount, totalCount) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MATCH (b:Bloom { id: $bloomId })
+       SET b.epsilonR = $epsilonR,
+           b.epsilonRRange = $range,
+           b.epsilonRExploratory = $exploratoryCount,
+           b.epsilonRTotal = $totalCount,
+           b.epsilonRComputedAt = datetime()`, { bloomId, epsilonR, range, exploratoryCount, totalCount });
+    });
+}
 /** @deprecated Use createBloom */
 export const createPattern = createBloom;
 /** @deprecated Use getBloom */

@@ -313,6 +313,32 @@ export async function updateBloomPsiH(
   });
 }
 
+// ============ M-22.4: εR PERSISTENCE ============
+
+/**
+ * Persist computed εR on a Bloom node.
+ * Follows the same property pattern as updateBloomPhiL and updateBloomPsiH.
+ */
+export async function updateBloomEpsilonR(
+  bloomId: string,
+  epsilonR: number,
+  range: string,
+  exploratoryCount: number,
+  totalCount: number,
+): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MATCH (b:Bloom { id: $bloomId })
+       SET b.epsilonR = $epsilonR,
+           b.epsilonRRange = $range,
+           b.epsilonRExploratory = $exploratoryCount,
+           b.epsilonRTotal = $totalCount,
+           b.epsilonRComputedAt = datetime()`,
+      { bloomId, epsilonR, range, exploratoryCount, totalCount },
+    );
+  });
+}
+
 // ============ BACKWARD COMPATIBILITY (remove in M-8) ============
 
 /** @deprecated Use BloomProps */

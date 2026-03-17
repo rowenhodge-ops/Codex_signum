@@ -80,6 +80,11 @@ export declare function updateBloomStatus(bloomId: string, status: string, optio
  * Follows the same JSON-property pattern as updateBloomPhiL for PhiLState.
  */
 export declare function updateBloomPsiH(bloomId: string, psiHCombined: number, lambda2: number, friction: number, psiHTrend: number, psiHStateJson: string): Promise<void>;
+/**
+ * Persist computed εR on a Bloom node.
+ * Follows the same property pattern as updateBloomPhiL and updateBloomPsiH.
+ */
+export declare function updateBloomEpsilonR(bloomId: string, epsilonR: number, range: string, exploratoryCount: number, totalCount: number): Promise<void>;
 /** @deprecated Use BloomProps */
 export type PatternProps = BloomProps;
 /** @deprecated Use createBloom */

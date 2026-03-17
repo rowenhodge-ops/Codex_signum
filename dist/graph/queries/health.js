@@ -6,7 +6,8 @@ import { computePsiHWithState, createDefaultPsiHState } from "../../computation/
 import { computeMaturityFactor } from "../../computation/maturity.js";
 import { computeUsageSuccessRate } from "../../computation/phi-l.js";
 import { healthBand } from "../../computation/health-band.js";
-import { updateBloomPsiH } from "./bloom.js";
+import { updateBloomPsiH, updateBloomEpsilonR } from "./bloom.js";
+import { computeEpsilonR, computeEpsilonRFloor } from "../../computation/epsilon-r.js";
 // ============ PIPELINE ANALYTICS QUERIES ============
 /**
  * Get ΦL and observation counts for each Architect pipeline stage Bloom.
@@ -238,6 +239,66 @@ export async function assemblePatternHealthContext(bloomId) {
         topologyRole,
         degree: childCount,
     };
+}
+// ============ M-22.4: BLOOM εR AGGREGATION ============
+/**
+ * Count exploratory vs total Decision nodes within a Bloom's scope.
+ * Decisions connect via two paths:
+ *   1. (d:Decision)-[:ORIGINATED_FROM]->(b:Bloom)  — direct origin
+ *   2. (d:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom) — via pipeline run
+ *
+ * Uses UNION to capture both paths, then deduplicates by Decision id.
+ * Returns null if the Bloom doesn't exist or has no decisions.
+ */
+export async function getBloomDecisionCounts(bloomId) {
+    const result = await runQuery(`MATCH (b:Bloom {id: $bloomId})
+     WITH b
+     // Path A: direct ORIGINATED_FROM
+     OPTIONAL MATCH (d1:Decision)-[:ORIGINATED_FROM]->(b)
+     WITH b, collect(DISTINCT d1) AS directDecisions
+     // Path B: via PipelineRun
+     OPTIONAL MATCH (d2:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b)
+     WITH directDecisions + collect(DISTINCT d2) AS allDecisions
+     UNWIND allDecisions AS d
+     WITH DISTINCT d
+     WHERE d IS NOT NULL
+     RETURN count(d) AS total,
+            count(CASE WHEN d.wasExploratory = true THEN 1 END) AS exploratory`, { bloomId }, "READ");
+    if (result.records.length === 0)
+        return null;
+    const total = Number(result.records[0].get("total"));
+    const exploratory = Number(result.records[0].get("exploratory"));
+    if (total === 0)
+        return null;
+    return { exploratory, total };
+}
+/**
+ * Compute εR for a Bloom from its contained Decision nodes and persist.
+ * Uses computeEpsilonR() with floor from computeEpsilonRFloor().
+ *
+ * @returns EpsilonR result, or null if no decisions exist
+ */
+export async function computeAndPersistEpsilonR(bloomId) {
+    const counts = await getBloomDecisionCounts(bloomId);
+    if (!counts)
+        return null;
+    const floor = computeEpsilonRFloor();
+    const epsilonR = computeEpsilonR(counts.exploratory, counts.total, floor);
+    await updateBloomEpsilonR(bloomId, epsilonR.value, epsilonR.range, epsilonR.exploratoryDecisions, epsilonR.totalDecisions);
+    return epsilonR;
+}
+/**
+ * Propagate εR upward: parent εR = mean of children's εR values.
+ * Simple averaging — εR is a composition metric, not a cascading health signal.
+ * Only propagates one level (called bottom-up by caller).
+ */
+export async function propagateEpsilonRToParent(bloomId) {
+    await runQuery(`MATCH (parent:Bloom {id: $bloomId})-[:CONTAINS]->(child:Bloom)
+     WHERE child.epsilonR IS NOT NULL
+     WITH parent, avg(child.epsilonR) AS meanEpsilonR, count(child) AS childCount
+     WHERE childCount > 0
+     SET parent.epsilonR = meanEpsilonR,
+         parent.epsilonRComputedAt = datetime()`, { bloomId }, "WRITE");
 }
 // ============ M-22.3: COMPOSITION SUBGRAPH EXTRACTION ============
 /**

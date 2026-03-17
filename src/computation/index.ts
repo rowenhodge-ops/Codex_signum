@@ -46,6 +46,7 @@ export {
   checkEpsilonRWarnings,
   computeEpsilonR,
   computeEpsilonRFloor,
+  isEpsilonRSpike,
   minEpsilonRForSpectralState,
 } from "./epsilon-r.js";
 

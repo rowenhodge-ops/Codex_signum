@@ -157,3 +157,22 @@ export function checkEpsilonRWarnings(
 
   return warnings;
 }
+
+/**
+ * Check if εR exceeds the maturity-indexed stable range upper bound.
+ * Used by M-22.7 (event-triggered structural review) as a trigger condition.
+ *
+ * | Maturity       | Upper bound |
+ * | Young (<0.3)   | 0.40        |
+ * | Maturing       | 0.30        |
+ * | Mature (>0.7)  | 0.15        |
+ */
+export function isEpsilonRSpike(
+  epsilonR: number,
+  maturityIndex: number,
+): boolean {
+  const upperBound = maturityIndex > 0.7 ? 0.15
+    : maturityIndex > 0.3 ? 0.30
+    : 0.40;
+  return epsilonR > upperBound;
+}

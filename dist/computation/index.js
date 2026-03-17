@@ -13,7 +13,7 @@ export { classifyMaturity, computeMaturityFactor, computeMaturityIndex, } from "
 // ΨH — Harmonic Signature
 export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, createDefaultPsiHState, decomposePsiH, } from "./psi-h.js";
 // εR — Exploration Rate
-export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, minEpsilonRForSpectralState, } from "./epsilon-r.js";
+export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, isEpsilonRSpike, minEpsilonRForSpectralState, } from "./epsilon-r.js";
 // Dampening
 export { ALGEDONIC_THRESHOLD, CASCADE_LIMIT, HYSTERESIS_RATIO, SAFETY_BUDGET, checkAlgedonicBypass, computeDampening, computeDegradationImpact, computeGammaEffective, computeRecoveryDelay, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
 // Signal Conditioning Pipeline

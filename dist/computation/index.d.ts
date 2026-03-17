@@ -7,7 +7,7 @@ export { PHI_L_WINDOW_SIZES, computeAxiomComplianceFactor, computePhiL, computeP
 export { classifyMaturity, computeMaturityFactor, computeMaturityIndex, } from "./maturity.js";
 export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, createDefaultPsiHState, decomposePsiH, } from "./psi-h.js";
 export type { GraphEdge, NodeHealth } from "./psi-h.js";
-export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, minEpsilonRForSpectralState, } from "./epsilon-r.js";
+export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, isEpsilonRSpike, minEpsilonRForSpectralState, } from "./epsilon-r.js";
 export { ALGEDONIC_THRESHOLD, CASCADE_LIMIT, HYSTERESIS_RATIO, SAFETY_BUDGET, checkAlgedonicBypass, computeDampening, computeDegradationImpact, computeGammaEffective, computeRecoveryDelay, computeRecoveryRate, propagateDegradation, } from "./dampening.js";
 export type { PropagationNode, PropagationResult } from "./dampening.js";
 export { computeNetworkState, computePatternState, } from "./signal-conditioning.js";

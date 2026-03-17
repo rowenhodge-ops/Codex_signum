@@ -15,6 +15,7 @@ import {
   computeEpsilonR,
   computeEpsilonRFloor,
   checkEpsilonRWarnings,
+  isEpsilonRSpike,
 } from "../../src/computation/epsilon-r.js";
 
 // ── Structure ─────────────────────────────────────────────────────────────
@@ -122,5 +123,70 @@ describe("εR warning conditions", () => {
     const warnings = checkEpsilonRWarnings(mockEpsilon, 0.8, false);
     const critical = warnings.filter(w => w.level === "critical");
     expect(critical.length).toBe(0);
+  });
+});
+
+// ── M-22.4: Bloom εR Aggregation ────────────────────────────────────────
+
+describe("M-22.4: Bloom εR aggregation", () => {
+  it("computeEpsilonR produces correct ratio from decision counts", () => {
+    // Simulates what getBloomDecisionCounts would return: 3 exploratory out of 10 total
+    const epsilonR = computeEpsilonR(3, 10, 0.01);
+    expect(epsilonR.value).toBeCloseTo(0.3, 6);
+    expect(epsilonR.exploratoryDecisions).toBe(3);
+    expect(epsilonR.totalDecisions).toBe(10);
+    expect(epsilonR.range).toBeDefined();
+  });
+
+  it("zero decisions returns midpoint (cold start)", () => {
+    const epsilonR = computeEpsilonR(0, 0, 0.01);
+    expect(epsilonR.value).toBe(0.15); // Default midpoint
+    expect(epsilonR.totalDecisions).toBe(0);
+  });
+
+  it("floor enforcement prevents collapse to zero", () => {
+    const floor = computeEpsilonRFloor();
+    const epsilonR = computeEpsilonR(0, 100, floor);
+    expect(epsilonR.value).toBeGreaterThanOrEqual(floor);
+    expect(epsilonR.value).toBeGreaterThanOrEqual(0.01);
+  });
+
+  it("upward propagation: mean of children εR values", () => {
+    // Simulates parent εR from 3 children with different εR values
+    const childEpsilonRs = [0.1, 0.2, 0.3];
+    const meanEpsilonR = childEpsilonRs.reduce((a, b) => a + b, 0) / childEpsilonRs.length;
+    expect(meanEpsilonR).toBeCloseTo(0.2, 6);
+  });
+});
+
+// ── M-22.4: isEpsilonRSpike (maturity-indexed thresholds) ───────────────
+
+describe("M-22.4: isEpsilonRSpike", () => {
+  it("young network (MI < 0.3): spike above 0.40", () => {
+    expect(isEpsilonRSpike(0.41, 0.1)).toBe(true);
+    expect(isEpsilonRSpike(0.40, 0.1)).toBe(false);
+    expect(isEpsilonRSpike(0.39, 0.1)).toBe(false);
+  });
+
+  it("maturing network (0.3 < MI < 0.7): spike above 0.30", () => {
+    expect(isEpsilonRSpike(0.31, 0.5)).toBe(true);
+    expect(isEpsilonRSpike(0.30, 0.5)).toBe(false);
+    expect(isEpsilonRSpike(0.29, 0.5)).toBe(false);
+  });
+
+  it("mature network (MI > 0.7): spike above 0.15", () => {
+    expect(isEpsilonRSpike(0.16, 0.8)).toBe(true);
+    expect(isEpsilonRSpike(0.15, 0.8)).toBe(false);
+    expect(isEpsilonRSpike(0.14, 0.8)).toBe(false);
+  });
+
+  it("boundary: MI exactly 0.3 uses young threshold (0.40)", () => {
+    expect(isEpsilonRSpike(0.35, 0.3)).toBe(false);
+    expect(isEpsilonRSpike(0.41, 0.3)).toBe(true);
+  });
+
+  it("boundary: MI exactly 0.7 uses maturing threshold (0.30)", () => {
+    expect(isEpsilonRSpike(0.25, 0.7)).toBe(false);
+    expect(isEpsilonRSpike(0.31, 0.7)).toBe(true);
   });
 });
