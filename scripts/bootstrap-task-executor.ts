@@ -37,6 +37,7 @@ import { SignalPipeline } from "../src/signals/SignalPipeline.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
 import { assemblePatternHealthContext, computeAndPersistPsiH, computeAndPersistEpsilonR } from "../src/graph/queries/health.js";
 import { checkEpsilonRWarnings } from "../src/computation/epsilon-r.js";
+import { assembleTriggerState, evaluateAndReviewIfNeeded } from "../src/computation/immune-response.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -874,6 +875,23 @@ export function createBootstrapTaskExecutor(
                 }
               } catch (err7) {
                 console.warn(`     [GRAPH] ⚠️  εR computation failed: ${err7 instanceof Error ? err7.message : err7}`);
+              }
+            }
+
+            // Run immune response — event-triggered structural review (M-22.7)
+            if (config.architectBloomId) {
+              try {
+                const triggerState = await assembleTriggerState(config.architectBloomId);
+                const immuneResult = await evaluateAndReviewIfNeeded(triggerState, config.architectBloomId);
+                if (immuneResult) {
+                  console.log(`     [IMMUNE] ${immuneResult.triggers.length} trigger(s) fired:`);
+                  for (const t of immuneResult.triggers) {
+                    console.log(`       [${t.severity}] ${t.trigger}: ${t.detail}`);
+                  }
+                  console.log(`     [IMMUNE] Structural review: λ₂=${immuneResult.review.globalLambda2.toFixed(4)}, gap=${immuneResult.review.spectralGap.toFixed(2)}, friction=${immuneResult.review.frictionDistribution.globalFriction.toFixed(3)}`);
+                }
+              } catch (errImmune) {
+                console.warn(`     [IMMUNE] ⚠️  Immune response failed: ${errImmune instanceof Error ? errImmune.message : errImmune}`);
               }
             }
 

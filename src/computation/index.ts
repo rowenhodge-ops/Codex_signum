@@ -118,7 +118,13 @@ export type {
 } from "./structural-review.js";
 
 // Immune response
-export { evaluateAndReviewIfNeeded } from "./immune-response.js";
+export {
+  evaluateAndReviewIfNeeded,
+  assembleTriggerState,
+  persistTriggeredEvents,
+  persistReviewResults,
+} from "./immune-response.js";
+export type { Recommendation } from "./immune-response.js";
 
 // Adaptive thresholds
 export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonant } from "./adaptive-thresholds.js";

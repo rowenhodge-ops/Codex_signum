@@ -7,16 +7,16 @@
  *
  * evaluateAndReviewIfNeeded() requires graph queries (not pure).
  * Tests for pure trigger logic live in structural-triggers.test.ts.
- * Tests here verify the orchestration contract and types.
+ * Tests here verify the orchestration contract, types, and persistence.
  *
- * @future(M-18) tests assert the full event-triggered structural review
- * pipeline: 6 trigger types → structural review → 5 diagnostic computations
+ * M-22.7 wires the full event-triggered structural review pipeline:
+ * assembleTriggerState → 6 triggers → structural review → 5 diagnostics
  * → graph persistence → observable structural signals.
  *
- * @see codex-signum-v4_3-draft.md §Event-Triggered Structural Review
- * @see engineering-bridge-v2.0.md §Part 8 "Structural Review"
+ * @see cs-v5.0.md §Event-Triggered Structural Review
+ * @see codex-signum-engineering-bridge-v3_0.md §Part 8 "Structural Review"
  */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   checkStructuralTriggers,
 } from "../../src/computation/structural-triggers.js";
@@ -93,46 +93,49 @@ describe("checkStructuralTriggers — immune trigger conditions", () => {
   });
 });
 
-// ── @future(M-18): Event-Triggered Structural Review ─────────────────────
-// These tests assert the v4.3 spec contracts for the immune response
-// orchestration. Expected to FAIL until M-18 wires the full pipeline.
-//
-// v4.3 §Event-Triggered Structural Review specifies:
-// - 6 trigger types automatically assembled from live system state
-// - Triggers feed into structural review (5 diagnostics)
-// - Review results persist to graph as ThresholdEvent/Observation
-// - Trigger input state assembled from real graph state (not caller-provided)
-// - System automatically detects when to run review (not explicitly called)
+// ── M-22.7: Event-Triggered Structural Review ─────────────────────────────
+// These tests verify the immune response orchestration pipeline wired in M-22.7.
 
-describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
-  // Mock the graph queries module for controlled testing
-  vi.mock("../../src/graph/queries.js", () => ({
-    getPatternAdjacency: vi.fn().mockResolvedValue([
-      { from: "bloom-a", to: "bloom-b", weight: 1.0 },
-      { from: "bloom-b", to: "bloom-c", weight: 0.8 },
-      { from: "bloom-a", to: "bloom-c", weight: 0.5 },
-    ]),
-    getPatternsWithHealth: vi.fn().mockResolvedValue([
-      { id: "bloom-a", phiL: 0.9, state: "active", degree: 2 },
-      { id: "bloom-b", phiL: 0.3, state: "active", degree: 2 },
-      { id: "bloom-c", phiL: 0.7, state: "active", degree: 2 },
-    ]),
-  }));
+// Mock graph modules
+vi.mock("../../src/graph/queries.js", () => ({
+  getPatternAdjacency: vi.fn().mockResolvedValue([
+    { from: "bloom-a", to: "bloom-b", weight: 1.0 },
+    { from: "bloom-b", to: "bloom-c", weight: 0.8 },
+    { from: "bloom-a", to: "bloom-c", weight: 0.5 },
+  ]),
+  getPatternsWithHealth: vi.fn().mockResolvedValue([
+    { id: "bloom-a", phiL: 0.9, state: "active", degree: 2 },
+    { id: "bloom-b", phiL: 0.3, state: "active", degree: 2 },
+    { id: "bloom-c", phiL: 0.7, state: "active", degree: 2 },
+  ]),
+}));
 
-  it("@future(M-18) assembles TriggerInputState from live graph state automatically", async () => {
-    // Per v4.3 spec: the immune response system should automatically
-    // assemble TriggerInputState from the live graph. Currently the caller
-    // must construct this state manually. M-18 should provide:
-    // assembleTriggerState(): Promise<TriggerInputState>
-    // that queries the graph for λ₂, friction, cascade depth, εR, ΦL velocity, Ω gradients
+vi.mock("../../src/graph/client.js", () => {
+  const mockTx = {
+    run: vi.fn().mockResolvedValue({ records: [] }),
+  };
+  return {
+    runQuery: vi.fn().mockResolvedValue({ records: [] }),
+    writeTransaction: vi.fn().mockImplementation(async (fn: (tx: typeof mockTx) => Promise<void>) => {
+      await fn(mockTx);
+    }),
+    getDriver: vi.fn(),
+    getSession: vi.fn(),
+  };
+});
+
+describe("evaluateAndReviewIfNeeded — M-22.7 orchestration", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("assembleTriggerState exists and is callable", async () => {
     const immuneModule = await import("../../src/computation/immune-response.js");
-
-    // Per spec: automatic state assembly function must exist
     expect((immuneModule as Record<string, unknown>).assembleTriggerState).toBeDefined();
     expect(typeof (immuneModule as Record<string, unknown>).assembleTriggerState).toBe("function");
   });
 
-  it("@future(M-18) review result persists to graph as structural Observation", async () => {
+  it("review result persists to graph as structural Observation", async () => {
     const { evaluateAndReviewIfNeeded } = await import(
       "../../src/computation/immune-response.js"
     );
@@ -141,11 +144,9 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
       currentLambda2: 0.05,
       previousLambda2: 0.9,
     };
-    const result = await evaluateAndReviewIfNeeded(unhealthyState);
+    const result = await evaluateAndReviewIfNeeded(unhealthyState, "test-bloom");
 
     expect(result).not.toBeNull();
-    // Per v4.3 spec: structural review results must persist to graph
-    // The review result should include a reference to the persisted Observation
     const review = result!.review as StructuralReviewResult & {
       persistedObservationId?: string;
     };
@@ -153,7 +154,7 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
     expect(typeof review.persistedObservationId).toBe("string");
   });
 
-  it("@future(M-18) review result contains all 5 diagnostics with actionable recommendations", async () => {
+  it("review result contains all 5 diagnostics with actionable recommendations", async () => {
     const { evaluateAndReviewIfNeeded } = await import(
       "../../src/computation/immune-response.js"
     );
@@ -161,18 +162,15 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
       ...healthyState,
       currentCascadeDepth: 2,
     };
-    const result = await evaluateAndReviewIfNeeded(triggerState);
+    const result = await evaluateAndReviewIfNeeded(triggerState, "test-bloom");
 
     expect(result).not.toBeNull();
     const review = result!.review as StructuralReviewResult & {
       recommendations?: Array<{ diagnostic: string; action: string; severity: string }>;
     };
-    // Per v4.3 spec: review MUST include actionable recommendations
-    // derived from the 5 diagnostics, not just raw numbers
     expect(review.recommendations).toBeDefined();
     expect(Array.isArray(review.recommendations)).toBe(true);
     expect(review.recommendations!.length).toBeGreaterThan(0);
-    // Each recommendation should reference a diagnostic and suggest action
     for (const rec of review.recommendations!) {
       expect(rec.diagnostic).toBeDefined();
       expect(rec.action).toBeDefined();
@@ -180,7 +178,7 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
     }
   });
 
-  it("@future(M-18) fired triggers produce ThresholdEvent nodes in graph", async () => {
+  it("fired triggers produce ThresholdEvent references", async () => {
     const { evaluateAndReviewIfNeeded } = await import(
       "../../src/computation/immune-response.js"
     );
@@ -189,11 +187,9 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
       currentCascadeDepth: 2,
       ecosystemPhiLVelocity: -0.08,
     };
-    const result = await evaluateAndReviewIfNeeded(multiTriggerState);
+    const result = await evaluateAndReviewIfNeeded(multiTriggerState, "test-bloom");
 
     expect(result).not.toBeNull();
-    // Per v4.3 spec: each fired trigger should produce a ThresholdEvent
-    // persisted to the graph with trigger type, timestamp, and severity
     const triggers = result!.triggers as Array<{
       trigger: string;
       thresholdEventId?: string;
@@ -204,7 +200,7 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
     }
   });
 
-  it("@future(M-18) does not query graph if no triggers fire (early exit)", async () => {
+  it("does not query graph if no triggers fire (early exit)", async () => {
     const queries = await import("../../src/graph/queries.js");
     vi.mocked(queries.getPatternAdjacency).mockClear();
     vi.mocked(queries.getPatternsWithHealth).mockClear();
@@ -218,5 +214,191 @@ describe("evaluateAndReviewIfNeeded — @future(M-18) orchestration", () => {
     // Graph queries should NOT have been called — early exit
     expect(queries.getPatternAdjacency).not.toHaveBeenCalled();
     expect(queries.getPatternsWithHealth).not.toHaveBeenCalled();
+  });
+});
+
+// ── M-22.7: Live Immune Response (new tests) ─────────────────────────────
+
+describe("M-22.7: assembleTriggerState", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns valid TriggerInputState from graph state", async () => {
+    const { runQuery } = await import("../../src/graph/client.js");
+    const phiLState = JSON.stringify({ ringBuffer: [0.6, 0.65, 0.7, 0.72, 0.75], maxSize: 20 });
+    vi.mocked(runQuery).mockResolvedValueOnce({
+      records: [{
+        get: (key: string) => {
+          const data: Record<string, unknown> = {
+            lambda2: 0.42,
+            prevLambda2: 0.38,
+            friction: 0.15,
+            epsilonR: 0.12,
+            phiL: 0.75,
+            phiLState,
+            connCount: 5,
+            obsCount: 10,
+          };
+          return data[key] ?? null;
+        },
+      }],
+    } as never);
+
+    const { assembleTriggerState } = await import("../../src/computation/immune-response.js");
+    const state = await assembleTriggerState("test-bloom");
+
+    expect(state.currentLambda2).toBe(0.42);
+    expect(state.previousLambda2).toBe(0.38);
+    expect(state.currentFriction).toBe(0.15);
+    expect(state.compositionEpsilonR).toBe(0.12);
+    expect(state.epsilonRStableRange).toBeDefined();
+    expect(state.epsilonRStableRange.min).toBeLessThan(state.epsilonRStableRange.max);
+    expect(state.ecosystemPhiLVelocity).toBeCloseTo(0.75 - 0.72, 5);
+    expect(state.omegaGradientHistory).toHaveLength(4);
+  });
+
+  it("returns safe defaults when data is null", async () => {
+    const { runQuery } = await import("../../src/graph/client.js");
+    vi.mocked(runQuery).mockResolvedValueOnce({
+      records: [{
+        get: () => null,
+      }],
+    } as never);
+
+    const { assembleTriggerState } = await import("../../src/computation/immune-response.js");
+    const state = await assembleTriggerState("empty-bloom");
+
+    // Defaults should not fire any triggers
+    const triggers = checkStructuralTriggers(state);
+    expect(triggers).toHaveLength(0);
+  });
+
+  it("returns safe defaults when bloom not found", async () => {
+    const { runQuery } = await import("../../src/graph/client.js");
+    vi.mocked(runQuery).mockResolvedValueOnce({ records: [] } as never);
+
+    const { assembleTriggerState } = await import("../../src/computation/immune-response.js");
+    const state = await assembleTriggerState("nonexistent-bloom");
+
+    const triggers = checkStructuralTriggers(state);
+    expect(triggers).toHaveLength(0);
+  });
+});
+
+describe("M-22.7: persistTriggeredEvents", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates ThresholdEvent nodes for each trigger", async () => {
+    const { writeTransaction } = await import("../../src/graph/client.js");
+    const txRunCalls: Array<{ query: string; params: Record<string, unknown> }> = [];
+    vi.mocked(writeTransaction).mockImplementation(async (fn) => {
+      const mockTx = {
+        run: vi.fn().mockImplementation((query: string, params: Record<string, unknown>) => {
+          txRunCalls.push({ query, params });
+          return { records: [] };
+        }),
+      };
+      await fn(mockTx as never);
+    });
+
+    const { persistTriggeredEvents } = await import("../../src/computation/immune-response.js");
+    const ids = await persistTriggeredEvents("bloom-1", [
+      { trigger: "cascade_activation", severity: "critical", detail: "Cascade depth 2" },
+      { trigger: "phi_l_velocity_anomaly", severity: "warning", detail: "|velocity| = 0.08" },
+    ]);
+
+    expect(ids).toHaveLength(2);
+    expect(txRunCalls).toHaveLength(2);
+    expect(txRunCalls[0].query).toContain("ThresholdEvent");
+    expect(txRunCalls[0].params.trigger).toBe("cascade_activation");
+    expect(txRunCalls[1].params.trigger).toBe("phi_l_velocity_anomaly");
+  });
+});
+
+describe("M-22.7: persistReviewResults", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates finding Seed in Structural Review Grid", async () => {
+    const { writeTransaction } = await import("../../src/graph/client.js");
+    const txRunCalls: Array<{ query: string; params: Record<string, unknown> }> = [];
+    vi.mocked(writeTransaction).mockImplementation(async (fn) => {
+      const mockTx = {
+        run: vi.fn().mockImplementation((query: string, params: Record<string, unknown>) => {
+          txRunCalls.push({ query, params });
+          return { records: [] };
+        }),
+      };
+      await fn(mockTx as never);
+    });
+
+    const { persistReviewResults } = await import("../../src/computation/immune-response.js");
+    const mockReview: StructuralReviewResult = {
+      computedAt: new Date(),
+      triggers: ["cascade_activation"],
+      globalLambda2: 0.05,
+      spectralGap: 12.5,
+      hubDependencies: [{ nodeId: "hub-1", degree: 8, lambda2WithoutNode: 0.01, lambda2Drop: 0.04, criticality: 0.8 }],
+      frictionDistribution: { globalFriction: 0.35, hotspots: [], stats: { mean: 0.2, median: 0.15, stddev: 0.1 } },
+      dampeningAssessment: { adequate: true, riskNodes: [], meanGamma: 0.4 },
+    };
+
+    const id = await persistReviewResults(
+      "bloom-1",
+      mockReview,
+      [{ trigger: "cascade_activation", severity: "critical", detail: "test" }],
+      ["te-1"],
+    );
+
+    expect(typeof id).toBe("string");
+    expect(id).toContain("srf-bloom-1");
+    // Should have 2 calls: MERGE grid + CREATE finding
+    expect(txRunCalls).toHaveLength(2);
+    expect(txRunCalls[0].query).toContain("grid:structural-review");
+    expect(txRunCalls[1].query).toContain("structural-review-finding");
+    expect(txRunCalls[1].params.globalLambda2).toBe(0.05);
+  });
+});
+
+describe("M-22.7: evaluateAndReviewIfNeeded persistence", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("persists when bloomId provided", async () => {
+    const { writeTransaction } = await import("../../src/graph/client.js");
+    vi.mocked(writeTransaction).mockImplementation(async (fn) => {
+      const mockTx = { run: vi.fn().mockResolvedValue({ records: [] }) };
+      await fn(mockTx as never);
+    });
+
+    const { evaluateAndReviewIfNeeded } = await import("../../src/computation/immune-response.js");
+    const result = await evaluateAndReviewIfNeeded(
+      { ...healthyState, currentCascadeDepth: 2 },
+      "bloom-persist",
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.review.persistedObservationId).toBeDefined();
+    expect(writeTransaction).toHaveBeenCalled();
+  });
+
+  it("skips persistence when bloomId omitted", async () => {
+    const { writeTransaction } = await import("../../src/graph/client.js");
+    vi.mocked(writeTransaction).mockClear();
+
+    const { evaluateAndReviewIfNeeded } = await import("../../src/computation/immune-response.js");
+    const result = await evaluateAndReviewIfNeeded(
+      { ...healthyState, currentCascadeDepth: 2 },
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.review.persistedObservationId).toBeUndefined();
+    // writeTransaction should NOT be called for persistence
+    expect(writeTransaction).not.toHaveBeenCalled();
   });
 });

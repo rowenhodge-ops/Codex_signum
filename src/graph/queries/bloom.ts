@@ -295,7 +295,8 @@ export async function updateBloomPsiH(
   await writeTransaction(async (tx) => {
     await tx.run(
       `MATCH (b:Bloom { id: $bloomId })
-       SET b.psiH = $psiH,
+       SET b.previousLambda2 = b.lambda2,
+           b.psiH = $psiH,
            b.lambda2 = $lambda2,
            b.friction = $friction,
            b.psiHTrend = $psiHTrend,

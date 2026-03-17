@@ -19,7 +19,8 @@ export { checkStructuralTriggers, checkLambda2Drop, checkFrictionSpike, checkCas
 export type { TriggerInputState, TriggeredEvent } from "./structural-triggers.js";
 export { runStructuralReview, computeGlobalLambda2, computeSpectralGap, computeHubDependencies, computeFrictionDistribution, assessDampening, } from "./structural-review.js";
 export type { StructuralReviewResult, HubDependency, FrictionDistribution, DampeningAssessment, } from "./structural-review.js";
-export { evaluateAndReviewIfNeeded } from "./immune-response.js";
+export { evaluateAndReviewIfNeeded, assembleTriggerState, persistTriggeredEvents, persistReviewResults, } from "./immune-response.js";
+export type { Recommendation } from "./immune-response.js";
 export { getThresholds, classifyPhiLHealth, classifyEpsilonRAdaptive, isDissonant } from "./adaptive-thresholds.js";
 export type { ThresholdSet } from "./adaptive-thresholds.js";
 export { createThresholdOutcome, detectOscillation } from "./threshold-learning.js";
