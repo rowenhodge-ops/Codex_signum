@@ -272,13 +272,31 @@ src/
 
 scripts/                   # Self-hosting CLI (NOT part of the library — consumer-grade tooling)
 ├── architect.ts           # `npx tsx scripts/architect.ts plan "<intent>"` — full pipeline
+├── dev-agent.ts           # `npx tsx scripts/dev-agent.ts run "<task>"` — coding pipeline
 ├── reconcile.ts           # `npx tsx scripts/reconcile.ts` — gap analysis (no LLM, pure filesystem)
+├── feedback.ts            # Human feedback: accept/reject/partial/calibrate
 ├── bootstrap-executor.ts  # ModelExecutor using raw fetch() — reads API keys from env
 ├── bootstrap-task-executor.ts # TaskExecutor V1 — context injection, synthesis, jidoka, consistency
+├── bootstrap-devagent-executor.ts # DevAgent ModelExecutor
+├── bootstrap-deterministic-executor.ts # DeterministicExecutor for mechanical tasks
+├── bootstrap-constitutional-bloom.ts  # Constitutional Bloom bootstrap (idempotent)
+├── bootstrap-ecosystem.ts             # Ecosystem bootstrap (grammar ref, stage Seeds)
+├── bootstrap-grammar-reference.ts     # Grammar reference Seeds
+├── bootstrap-morpheme-topology.ts     # Morpheme topology bootstrap
+├── bootstrap-compliance-corpus.ts     # Compliance corpus bootstrap
 ├── seed-agents.ts         # Seed nodes in Neo4j for bootstrap models
 ├── verify-graph-state.ts  # Graph state verification
 ├── verify-select-model.ts # Thompson selection verification
-└── m21-bridge-grid.ts     # M-21: Bridge Grid instantiation (idempotent)
+├── cleanup-anti-pattern-sweep.ts      # Anti-pattern sweep cleanup
+├── cleanup-stale-nodes.ts             # Stale node cleanup
+├── migrate-morpheme-labels.ts         # M-16.3: Multi-label migration
+├── migrate-seed-content.ts            # Seed content migration
+├── migrate-temporal-types.ts          # Temporal type migration
+├── m21-bridge-grid.ts                 # M-21: Bridge Grid instantiation (idempotent)
+├── m22-vertical-wiring-setup.ts       # M-22: Graph setup (idempotent)
+├── update-roadmap-graph.ts            # Roadmap → graph sync
+├── generate-topology-vis.ts           # Topology visualization
+└── vertex-auth.ts                     # Vertex AI auth helper
 
 docs/                      # Specification corpus, research papers, hypothesis registry
 ├── NEO4J_CONNECTION.md    # ⚠️ Neo4j env var documentation (NEO4J_USER, not NEO4J_USERNAME)
@@ -771,8 +789,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1570 | `npm test` at HEAD |
-| Barrel exports | 279 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1599 | `npm test` at HEAD |
+| Barrel exports | 287 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 
