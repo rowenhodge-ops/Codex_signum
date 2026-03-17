@@ -50,6 +50,7 @@ export {
   recordObservation,
   getObservationsForBloom,
   countObservationsForBloom,
+  updateObservationConditioned,
   // Distillations
   createDistillation,
   // Memory persistence (M-9.4)
@@ -136,6 +137,7 @@ export type {
   DecisionProps,
   DecisionOutcomeProps,
   ObservationProps,
+  ConditionedValues,
   DistillationProps,
   StructuredDistillationProps,
   ContextClusterProps,
@@ -188,3 +190,4 @@ export type {
   PatternHealthContext,
   WriteObservationResult,
 } from "./write-observation.js";
+

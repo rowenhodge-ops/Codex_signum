@@ -109,6 +109,24 @@ export async function getObservationsForDistillation(bloomId, limit = 500) {
         context: r.get("context"),
     }));
 }
+/**
+ * Update an Observation node with conditioned values from the 7-stage
+ * signal pipeline. Called after recordObservation() + conditionValue().
+ */
+export async function updateObservationConditioned(observationId, values) {
+    await writeTransaction(async (tx) => {
+        await tx.run(`MATCH (o:Observation {id: $id})
+       SET o.smoothedValue = $smoothedValue,
+           o.trendSlope = $trendSlope,
+           o.trendProjection = $trendProjection,
+           o.cusumStatistic = $cusumStatistic,
+           o.macdValue = $macdValue,
+           o.macdSignal = $macdSignal,
+           o.filtered = $filtered,
+           o.alertCount = $alertCount,
+           o.signalProcessed = true`, { id: observationId, ...values });
+    });
+}
 // ============ BACKWARD COMPATIBILITY (remove in M-8) ============
 /** @deprecated Use getObservationsForBloom */
 export const getObservationsForPattern = getObservationsForBloom;

@@ -30,9 +30,10 @@ import {
   ensureArchitectResonators,
   linkTaskOutputToStage,
   updateDecisionQuality,
-  recordObservation,
   tryCreateAndLinkSeed,
 } from "../src/graph/queries.js";
+import { writeObservation } from "../src/graph/write-observation.js";
+import { SignalPipeline } from "../src/signals/SignalPipeline.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
@@ -575,6 +576,8 @@ export function createBootstrapTaskExecutor(
 ): BootstrapTaskExecutorBundle {
   // Manifest accumulator — written after all tasks complete
   const manifestTasks: ManifestTask[] = [];
+  // Signal conditioning pipeline — reused across tasks to maintain accumulator state (M-22.1)
+  const signalPipeline = new SignalPipeline();
   // Cross-task output accumulator for synthesis injection
   const taskOutputs = new Map<string, { title: string; output: string; model: string }>();
   let currentRunId: string | null = null;
@@ -789,16 +792,23 @@ export function createBootstrapTaskExecutor(
               }
             }
 
-            // Record Observation node in graph via recordObservation() (raw write — ΦL recomputation deferred)
+            // Record Observation with inline 7-stage signal conditioning (M-22.1)
             if (config.architectBloomId) {
               try {
-                await recordObservation({
-                  id: `obs_${taskOutputId}`,
-                  sourceBloomId: config.architectBloomId,
-                  metric: "task.quality",
-                  value: qualityScore,
-                  context: `${currentRunId}/${task.task_id}`,
-                });
+                const obsResult = await writeObservation(
+                  {
+                    id: `obs_${taskOutputId}`,
+                    sourceBloomId: config.architectBloomId,
+                    metric: "task.quality",
+                    value: qualityScore,
+                    context: `${currentRunId}/${task.task_id}`,
+                  },
+                  signalPipeline,
+                  // No PatternHealthContext — conditioning only (ΦL recomputation is M-22.2)
+                );
+                if (obsResult.conditioned.alerts.length > 0) {
+                  console.log(`     [SIGNAL] ${obsResult.conditioned.alerts.length} alert(s): ${obsResult.conditioned.alerts.map(a => a.message).join("; ")}`);
+                }
               } catch (err4) {
                 console.warn(`     [GRAPH] ⚠️  Failed to write Observation: ${err4 instanceof Error ? err4.message : err4}`);
               }
@@ -905,16 +915,19 @@ export function createBootstrapTaskExecutor(
               }
             }
 
-            // Write failure Observation to graph
+            // Write failure Observation with inline conditioning (M-22.1)
             if (config.architectBloomId) {
               try {
-                await recordObservation({
-                  id: `obs_${currentRunId}_${task.task_id}`,
-                  sourceBloomId: config.architectBloomId,
-                  metric: "task.quality",
-                  value: failedQuality,
-                  context: `${currentRunId}/${task.task_id}`,
-                });
+                await writeObservation(
+                  {
+                    id: `obs_${currentRunId}_${task.task_id}`,
+                    sourceBloomId: config.architectBloomId,
+                    metric: "task.quality",
+                    value: failedQuality,
+                    context: `${currentRunId}/${task.task_id}`,
+                  },
+                  signalPipeline,
+                );
               } catch {
                 // Swallow — already in error path
               }

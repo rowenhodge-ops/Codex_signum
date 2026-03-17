@@ -51,6 +51,22 @@ export declare function getObservationsForDistillation(bloomId: string, limit?: 
     failureSignature: string | null;
     context: string | null;
 }>>;
+/** Properties for persisting signal conditioning results on an Observation node */
+export interface ConditionedValues {
+    smoothedValue: number;
+    trendSlope: number;
+    trendProjection: number;
+    cusumStatistic: number;
+    macdValue: number;
+    macdSignal: number;
+    filtered: boolean;
+    alertCount: number;
+}
+/**
+ * Update an Observation node with conditioned values from the 7-stage
+ * signal pipeline. Called after recordObservation() + conditionValue().
+ */
+export declare function updateObservationConditioned(observationId: string, values: ConditionedValues): Promise<void>;
 /** @deprecated Use getObservationsForBloom */
 export declare const getObservationsForPattern: typeof getObservationsForBloom;
 /** @deprecated Use countObservationsForBloom */

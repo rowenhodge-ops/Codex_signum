@@ -187,6 +187,7 @@ describe("conditionValue() — signal pipeline wrapping", () => {
 vi.mock("../../src/graph/queries.js", () => ({
   recordObservation: vi.fn().mockResolvedValue(undefined),
   updateBloomPhiL: vi.fn().mockResolvedValue(undefined),
+  updateObservationConditioned: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../../src/graph/client.js", () => ({
@@ -249,7 +250,7 @@ describe("writeObservation() — orchestration", () => {
   it("calls recordObservation with the raw observation props", async () => {
     const obs = makeObservation();
     const ctx = makeContext();
-    await writeObservation(obs, ctx, pipeline);
+    await writeObservation(obs, pipeline, ctx);
     expect(recordObservation).toHaveBeenCalledOnce();
     expect(recordObservation).toHaveBeenCalledWith(obs);
   });
@@ -257,7 +258,7 @@ describe("writeObservation() — orchestration", () => {
   it("calls updateBloomPhiL with recomputed ΦL (not raw value)", async () => {
     const obs = makeObservation({ value: 0.8 });
     const ctx = makeContext();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     expect(updateBloomPhiL).toHaveBeenCalledOnce();
     // The first arg should be the pattern ID
@@ -268,15 +269,16 @@ describe("writeObservation() — orchestration", () => {
     // The third arg is the trend
     expect(["improving", "stable", "declining"]).toContain(callArgs[2]);
     // The returned phiL should be a composite, not a bare number
-    expect(result.phiL.effective).toBeDefined();
-    expect(result.phiL.factors).toBeDefined();
-    expect(result.phiL.raw).toBeDefined();
+    expect(result.phiL).not.toBeNull();
+    expect(result.phiL!.effective).toBeDefined();
+    expect(result.phiL!.factors).toBeDefined();
+    expect(result.phiL!.raw).toBeDefined();
   });
 
   it("returns conditioned signal from the pipeline", async () => {
     const obs = makeObservation({ value: 0.8 });
     const ctx = makeContext();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     expect(result.conditioned).toBeDefined();
     expect(result.conditioned.rawValue).toBe(0.8);
@@ -286,7 +288,7 @@ describe("writeObservation() — orchestration", () => {
   it("returns health band classification", async () => {
     const obs = makeObservation();
     const ctx = makeContext();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     const validBands: HealthBand[] = [
       "optimal", "trusted", "healthy", "degraded", "critical", "algedonic",
@@ -307,7 +309,7 @@ describe("writeObservation() — orchestration", () => {
       },
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // With high factors and MI=0.5, ΦL should be trusted-range
     // If it's the same band, thresholdEvent should be null
@@ -331,7 +333,7 @@ describe("writeObservation() — orchestration", () => {
       connectionCount: 1,
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // With very low factors, ΦL should be in a lower band than "trusted"
     if (result.band !== "trusted") {
@@ -358,7 +360,7 @@ describe("writeObservation() — orchestration", () => {
       connectionCount: 5,
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // High factors should produce ΦL above critical
     if (result.band !== "critical") {
@@ -370,14 +372,14 @@ describe("writeObservation() — orchestration", () => {
   it("returns null thresholdEvent when previousBand is undefined (first observation)", async () => {
     const ctx = makeContext({ previousBand: undefined });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
     expect(result.thresholdEvent).toBeNull();
   });
 
   it("ΦL result is composite (never bare number)", async () => {
     const obs = makeObservation();
     const ctx = makeContext();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // ΦL must always be composite per spec rule #4
     expect(result.phiL).toHaveProperty("factors");
@@ -428,9 +430,9 @@ describe("writeObservation() — algedonic cascade", () => {
       neighbors,
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
-    if (result.phiL.effective < ALGEDONIC_THRESHOLD) {
+    if (result.phiL!.effective < ALGEDONIC_THRESHOLD) {
       expect(result.cascadeResult).not.toBeNull();
       expect(result.band).toBe("algedonic");
     }
@@ -449,10 +451,10 @@ describe("writeObservation() — algedonic cascade", () => {
       neighbors: new Map(),
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // Even if band crossed, no cascade for non-algedonic
-    if (result.phiL.effective >= ALGEDONIC_THRESHOLD) {
+    if (result.phiL!.effective >= ALGEDONIC_THRESHOLD) {
       expect(result.cascadeResult).toBeNull();
     }
   });
@@ -472,7 +474,7 @@ describe("writeObservation() — algedonic cascade", () => {
       // No neighbors
     });
     const obs = makeObservation();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // Even if algedonic, no cascade without neighbors
     expect(result.cascadeResult).toBeNull();
@@ -495,7 +497,7 @@ describe("Data provenance — conditioning contract", () => {
     const rawValue = 0.8;
     const obs = makeObservation({ value: rawValue });
     const ctx = makeContext();
-    await writeObservation(obs, ctx, pipeline);
+    await writeObservation(obs, pipeline, ctx);
 
     const callArgs = vi.mocked(recordObservation).mock.calls[0][0];
     expect(callArgs.value).toBe(rawValue);
@@ -504,7 +506,7 @@ describe("Data provenance — conditioning contract", () => {
   it("source pattern ID is preserved through the write path", async () => {
     const obs = makeObservation({ sourceBloomId: "my-pattern-42" });
     const ctx = makeContext();
-    await writeObservation(obs, ctx, pipeline);
+    await writeObservation(obs, pipeline, ctx);
 
     // recordObservation receives the pattern ID
     const obsArgs = vi.mocked(recordObservation).mock.calls[0][0];
@@ -518,9 +520,100 @@ describe("Data provenance — conditioning contract", () => {
   it("observation metric is preserved and forwarded to pipeline", async () => {
     const obs = makeObservation({ metric: "friction_score" });
     const ctx = makeContext();
-    const result = await writeObservation(obs, ctx, pipeline);
+    const result = await writeObservation(obs, pipeline, ctx);
 
     // The conditioned signal should reflect the metric dimension
     expect(result.conditioned.dimension).toBe("psiH");
+  });
+});
+
+// ============================================================
+// Group 7: M-22.1 — Conditioning-only mode (no PatternHealthContext)
+// ============================================================
+
+const { updateObservationConditioned } = await import(
+  "../../src/graph/queries.js"
+);
+
+describe("writeObservation() — conditioning-only (no context)", () => {
+  let pipeline: SignalPipeline;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    pipeline = new SignalPipeline();
+  });
+
+  it("conditions without context — phiL and band are null", async () => {
+    const obs = makeObservation({ value: 0.75 });
+    const result = await writeObservation(obs, pipeline);
+
+    expect(result.conditioned).toBeDefined();
+    expect(result.conditioned.rawValue).toBe(0.75);
+    expect(typeof result.conditioned.smoothedValue).toBe("number");
+    expect(result.phiL).toBeNull();
+    expect(result.band).toBeNull();
+    expect(result.thresholdEvent).toBeNull();
+    expect(result.cascadeResult).toBeNull();
+  });
+
+  it("persists conditioned values on Observation node", async () => {
+    const obs = makeObservation({ id: "obs-persist-test", value: 0.6 });
+    await writeObservation(obs, pipeline);
+
+    expect(updateObservationConditioned).toHaveBeenCalledOnce();
+    const callArgs = vi.mocked(updateObservationConditioned).mock.calls[0];
+    expect(callArgs[0]).toBe("obs-persist-test");
+    const values = callArgs[1];
+    expect(typeof values.smoothedValue).toBe("number");
+    expect(typeof values.trendSlope).toBe("number");
+    expect(typeof values.cusumStatistic).toBe("number");
+    expect(typeof values.macdValue).toBe("number");
+    expect(typeof values.alertCount).toBe("number");
+    expect(typeof values.filtered).toBe("boolean");
+  });
+
+  it("also persists conditioned values when context IS provided", async () => {
+    const obs = makeObservation({ id: "obs-full-persist", value: 0.8 });
+    const ctx = makeContext();
+    await writeObservation(obs, pipeline, ctx);
+
+    // updateObservationConditioned should still be called
+    expect(updateObservationConditioned).toHaveBeenCalledOnce();
+    const callArgs = vi.mocked(updateObservationConditioned).mock.calls[0];
+    expect(callArgs[0]).toBe("obs-full-persist");
+  });
+
+  it("does not call updateBloomPhiL without context", async () => {
+    const obs = makeObservation();
+    await writeObservation(obs, pipeline);
+
+    expect(updateBloomPhiL).not.toHaveBeenCalled();
+  });
+
+  it("still calls recordObservation for raw write", async () => {
+    const obs = makeObservation();
+    await writeObservation(obs, pipeline);
+
+    expect(recordObservation).toHaveBeenCalledOnce();
+    expect(recordObservation).toHaveBeenCalledWith(obs);
+  });
+
+  it("pipeline instance is shared — second call uses same pipeline object", async () => {
+    // This verifies that the same pipeline instance is used across calls,
+    // meaning stateful stages (EWMA, CUSUM, Trend) accumulate correctly.
+    // The Debounce 100ms window makes in-test accumulation hard to observe
+    // directly (fast tests share a timestamp), so we verify the structural
+    // contract: same pipeline processes both calls.
+    const obs1 = makeObservation({ id: "obs-shared-1", value: 0.5, sourceBloomId: "bloom-shared" });
+    const obs2 = makeObservation({ id: "obs-shared-2", value: 0.8, sourceBloomId: "bloom-shared" });
+
+    const r1 = await writeObservation(obs1, pipeline);
+    const r2 = await writeObservation(obs2, pipeline);
+
+    // Both should have been conditioned (not throw)
+    expect(r1.conditioned).toBeDefined();
+    expect(r2.conditioned).toBeDefined();
+    // Both should have persisted conditioned values
+    expect(updateObservationConditioned).toHaveBeenCalledTimes(2);
   });
 });

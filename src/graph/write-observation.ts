@@ -12,11 +12,16 @@
  * Flow:
  *   1. Record raw Observation node (with rawValue preserved)
  *   2. conditionValue() -- 7-stage signal pipeline inline
- *   3. computePhiL() -- recompute ΦL composite
- *   4. healthBand() -- classify into 6-band
- *   5. Detect band crossing --> CREATE immutable ThresholdEvent
- *   6. updatePatternPhiL() -- SET health on Pattern node
- *   7. Algedonic ΦL < 0.1 --> propagateDegradation() with dampening
+ *   3. Persist conditioned values on the Observation node
+ *   --- Steps 4-7 require PatternHealthContext (optional) ---
+ *   4. computePhiL() -- recompute ΦL composite
+ *   5. healthBand() -- classify into 6-band
+ *   6. Detect band crossing --> CREATE immutable ThresholdEvent
+ *   7. updatePatternPhiL() -- SET health on Pattern node
+ *   8. Algedonic ΦL < 0.1 --> propagateDegradation() with dampening
+ *
+ * When context is omitted, steps 1-3 run (conditioning only).
+ * When context is provided, the full chain runs (conditioning + ΦL + cascade).
  *
  * @module codex-signum-core/graph/write-observation
  */
@@ -36,7 +41,11 @@ import type {
   PropagationNode,
   PropagationResult,
 } from "../computation/dampening.js";
-import { recordObservation, updateBloomPhiL } from "./queries.js";
+import {
+  recordObservation,
+  updateBloomPhiL,
+  updateObservationConditioned,
+} from "./queries.js";
 import { writeTransaction } from "./client.js";
 import type { ObservationProps } from "./queries.js";
 
@@ -48,6 +57,10 @@ import type { ObservationProps } from "./queries.js";
  * The consumer's graph-feeder already has this data from prior queries.
  * Accepting it here avoids hidden graph queries inside writeObservation,
  * keeping the function testable without mocking the graph layer internals.
+ *
+ * Optional — when omitted, writeObservation() runs conditioning only
+ * (steps 1-3). ΦL recomputation, band classification, and cascade
+ * propagation require this context.
  */
 export interface PatternHealthContext {
   /** Current ΦL factors for recomputation */
@@ -72,14 +85,17 @@ export interface PatternHealthContext {
 
 /**
  * Result of a writeObservation call.
+ *
+ * phiL, band, thresholdEvent, and cascadeResult are null when
+ * PatternHealthContext was not provided (conditioning-only mode).
  */
 export interface WriteObservationResult {
   /** The conditioned signal from the 7-stage pipeline */
   conditioned: ConditionedSignal;
-  /** The recomputed ΦL composite */
-  phiL: PhiL;
-  /** Current health band classification */
-  band: HealthBand;
+  /** The recomputed ΦL composite (null when context not provided) */
+  phiL: PhiL | null;
+  /** Current health band classification (null when context not provided) */
+  band: HealthBand | null;
   /** ThresholdEvent if a band crossing was detected, null otherwise */
   thresholdEvent: ThresholdEvent | null;
   /** Cascade propagation result if triggered, null otherwise */
@@ -89,21 +105,30 @@ export interface WriteObservationResult {
 // ============ CORE FUNCTION ============
 
 /**
- * Record an observation with inline conditioning, ΦL recomputation,
- * band crossing detection, and cascade propagation.
+ * Record an observation with inline conditioning and optional ΦL recomputation.
  *
- * This is the canonical write path. Consumers should use this
- * instead of raw recordObservation() + manual health computation.
+ * This is the single entry point for observation writes. Consumers should
+ * use this instead of raw recordObservation().
+ *
+ * Signal conditioning (7-stage pipeline) ALWAYS runs — this is the M-22.1
+ * vertical wiring. Conditioned values are persisted on the Observation node.
+ *
+ * ΦL recomputation, band classification, and cascade propagation only run
+ * when PatternHealthContext is provided. Without context, the function
+ * records + conditions the observation and returns.
+ *
+ * The SignalPipeline instance MUST be reused across calls to maintain
+ * EWMA/CUSUM/trend accumulator state.
  *
  * @param observation - Raw observation properties (value = raw metric value)
- * @param context - Pattern health context (caller provides)
  * @param pipeline - Signal pipeline instance (caller owns lifecycle, must reuse)
+ * @param context - Pattern health context (optional — when provided, full chain runs)
  * @returns WriteObservationResult
  */
 export async function writeObservation(
   observation: ObservationProps,
-  context: PatternHealthContext,
   pipeline: SignalPipeline,
+  context?: PatternHealthContext,
 ): Promise<WriteObservationResult> {
   // Step 1: Record the raw observation in the graph
   await recordObservation(observation);
@@ -114,10 +139,33 @@ export async function writeObservation(
     observation.sourceBloomId,
     observation.metric,
     observation.value,
-    context.topologyRole,
+    context?.topologyRole,
   );
 
-  // Step 3: Recompute ΦL with updated observation count
+  // Step 3: Persist conditioned values on the Observation node
+  await updateObservationConditioned(observation.id, {
+    smoothedValue: conditioned.smoothedValue,
+    trendSlope: conditioned.trendSlope,
+    trendProjection: conditioned.trendProjection,
+    cusumStatistic: conditioned.cusumStatistic,
+    macdValue: conditioned.macdValue,
+    macdSignal: conditioned.macdSignal,
+    filtered: conditioned.filtered,
+    alertCount: conditioned.alerts.length,
+  });
+
+  // --- Without context, conditioning is all we do ---
+  if (!context) {
+    return {
+      conditioned,
+      phiL: null,
+      band: null,
+      thresholdEvent: null,
+      cascadeResult: null,
+    };
+  }
+
+  // Step 4: Recompute ΦL with updated observation count
   const phiL = computePhiL(
     context.factors,
     context.observationCount + 1, // This observation increments the count
@@ -125,10 +173,10 @@ export async function writeObservation(
     context.previousPhiL,
   );
 
-  // Step 4: Classify health band (maturity-indexed, 6-band)
+  // Step 5: Classify health band (maturity-indexed, 6-band)
   const band = healthBand(phiL.effective, context.maturityIndex);
 
-  // Step 5: Detect band crossing --> write immutable ThresholdEvent
+  // Step 6: Detect band crossing --> write immutable ThresholdEvent
   let thresholdEvent: ThresholdEvent | null = null;
   if (context.previousBand !== undefined && context.previousBand !== band) {
     thresholdEvent = await writeThresholdEvent(
@@ -140,14 +188,14 @@ export async function writeObservation(
     );
   }
 
-  // Step 6: Update bloom's stored ΦL on the Bloom node
+  // Step 7: Update bloom's stored ΦL on the Bloom node
   await updateBloomPhiL(
     observation.sourceBloomId,
     phiL.effective,
     phiL.trend,
   );
 
-  // Step 7: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
+  // Step 8: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
   let cascadeResult: PropagationResult | null = null;
   if (
     phiL.effective < ALGEDONIC_THRESHOLD &&

@@ -16,7 +16,7 @@ createBloom, createContainedBloom, getBloom, updateBloomState, updateBloomStatus
 // Decisions
 recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, 
 // Observations
-recordObservation, getObservationsForBloom, countObservationsForBloom, 
+recordObservation, getObservationsForBloom, countObservationsForBloom, updateObservationConditioned, 
 // Distillations
 createDistillation, 
 // Memory persistence (M-9.4)
