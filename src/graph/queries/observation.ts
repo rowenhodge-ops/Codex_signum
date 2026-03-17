@@ -63,7 +63,7 @@ export async function getObservationsForBloom(
      WHERE o.retained = true
      RETURN o
      ORDER BY o.timestamp DESC
-     LIMIT $limit`,
+     LIMIT toInteger($limit)`,
     { bloomId, limit },
     "READ",
   );
@@ -112,7 +112,7 @@ export async function getCompactableObservations(
             coalesce(o.signalProcessed, false) AS signalProcessed,
             distillationIds
      ORDER BY o.timestamp ASC
-     LIMIT $limit`,
+     LIMIT toInteger($limit)`,
     { bloomId, limit },
     "READ",
   );
@@ -177,7 +177,7 @@ export async function getObservationsForDistillation(
             o.failureSignature AS failureSignature,
             o.context AS context
      ORDER BY o.timestamp ASC
-     LIMIT $limit`,
+     LIMIT toInteger($limit)`,
     { bloomId, limit },
     "READ",
   );

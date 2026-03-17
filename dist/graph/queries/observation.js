@@ -30,7 +30,7 @@ export async function getObservationsForBloom(bloomId, limit = 50) {
      WHERE o.retained = true
      RETURN o
      ORDER BY o.timestamp DESC
-     LIMIT $limit`, { bloomId, limit }, "READ");
+     LIMIT toInteger($limit)`, { bloomId, limit }, "READ");
     return result.records;
 }
 /** Count observations for maturity calculation */
@@ -56,7 +56,7 @@ export async function getCompactableObservations(bloomId, limit = 500) {
             coalesce(o.signalProcessed, false) AS signalProcessed,
             distillationIds
      ORDER BY o.timestamp ASC
-     LIMIT $limit`, { bloomId, limit }, "READ");
+     LIMIT toInteger($limit)`, { bloomId, limit }, "READ");
     return result.records.map((r) => ({
         id: r.get("id"),
         timestamp: new Date(r.get("timestamp")),
@@ -97,7 +97,7 @@ export async function getObservationsForDistillation(bloomId, limit = 500) {
             o.failureSignature AS failureSignature,
             o.context AS context
      ORDER BY o.timestamp ASC
-     LIMIT $limit`, { bloomId, limit }, "READ");
+     LIMIT toInteger($limit)`, { bloomId, limit }, "READ");
     return result.records.map((r) => ({
         id: r.get("id"),
         timestamp: new Date(r.get("timestamp")),
