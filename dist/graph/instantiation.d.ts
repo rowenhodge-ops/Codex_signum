@@ -1,6 +1,8 @@
 export type MorphemeType = "seed" | "bloom" | "resonator" | "grid" | "helix";
+/** Valid containment: which types can contain which */
+export declare const VALID_CONTAINERS: Record<string, MorphemeType[]>;
 /** Valid Line relationship types and their direction semantics */
-declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY"];
+export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
 export interface InstantiationResult {
     success: boolean;
@@ -53,5 +55,4 @@ export declare function updateMorpheme(nodeId: string, updates: Record<string, u
  * @param properties - Optional properties for the relationship
  */
 export declare function createLine(sourceId: string, targetId: string, lineType: LineType, properties?: Record<string, unknown>): Promise<LineCreationResult>;
-export {};
 //# sourceMappingURL=instantiation.d.ts.map

@@ -118,6 +118,10 @@ export {
   getPatternTopology,
   getVisualisationTopology,
   getGrammarInstances,
+  // M-22.6: Conductivity queries
+  getLineEndpointStates,
+  evaluateAndCacheLineConductivity,
+  invalidateLineConductivity,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -178,6 +182,8 @@ export {
   instantiateMorpheme,
   updateMorpheme,
   createLine,
+  VALID_CONTAINERS,
+  VALID_LINE_TYPES,
 } from "./instantiation.js";
 export type {
   MorphemeType,

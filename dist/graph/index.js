@@ -43,10 +43,12 @@ getMilestoneOverview, getFutureTestsForMilestone, getHypothesisStatus,
 getGrammarElements, getGrammarCoverage, getAxiomDependencies, getAntiPatternViolations, 
 // Morpheme topology queries (M-9.7b)
 getPatternTopology, getVisualisationTopology, getGrammarInstances, 
+// M-22.6: Conductivity queries
+getLineEndpointStates, evaluateAndCacheLineConductivity, invalidateLineConductivity, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Instantiation Protocol (M-16.4 — governance Resonator enforcement)
-export { instantiateMorpheme, updateMorpheme, createLine, } from "./instantiation.js";
+export { instantiateMorpheme, updateMorpheme, createLine, VALID_CONTAINERS, VALID_LINE_TYPES, } from "./instantiation.js";
 // Inline conditioning write path
 export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map

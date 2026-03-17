@@ -133,3 +133,19 @@ export { healthBand, bandOrdinal } from "./health-band.js";
 
 // Observation value conditioning
 export { conditionValue } from "./condition-value.js";
+
+// Line Conductivity (M-22.6)
+export {
+  evaluateLayer1,
+  evaluateLayer2,
+  evaluateLayer3,
+  evaluateConductivity,
+} from "./conductivity.js";
+export type {
+  EndpointState,
+  HygieneResult,
+  HygieneFailure,
+  ShapeResult,
+  FitnessResult,
+  ConductivityResult,
+} from "./conductivity.js";

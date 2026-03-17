@@ -26,4 +26,6 @@ export { createThresholdOutcome, detectOscillation } from "./threshold-learning.
 export type { ThresholdOutcome, ThresholdOutcomeType, ThresholdType } from "./threshold-learning.js";
 export { healthBand, bandOrdinal } from "./health-band.js";
 export { conditionValue } from "./condition-value.js";
+export { evaluateLayer1, evaluateLayer2, evaluateLayer3, evaluateConductivity, } from "./conductivity.js";
+export type { EndpointState, HygieneResult, HygieneFailure, ShapeResult, FitnessResult, ConductivityResult, } from "./conductivity.js";
 //# sourceMappingURL=index.d.ts.map

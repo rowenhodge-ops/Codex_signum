@@ -17,6 +17,7 @@
  */
 
 import { writeTransaction, readTransaction } from "./client.js";
+import { invalidateLineConductivity, evaluateAndCacheLineConductivity } from "./queries/conductivity.js";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -50,13 +51,13 @@ const DEFINITION_MAP: Record<MorphemeType, string> = {
 };
 
 /** Valid containment: which types can contain which */
-const VALID_CONTAINERS: Record<string, MorphemeType[]> = {
+export const VALID_CONTAINERS: Record<string, MorphemeType[]> = {
   bloom: ["seed", "bloom", "resonator", "grid", "helix"],
   grid: ["seed"],
 };
 
 /** Valid Line relationship types and their direction semantics */
-const VALID_LINE_TYPES = [
+export const VALID_LINE_TYPES = [
   "CONTAINS",
   "FLOWS_TO",
   "INSTANTIATES",
@@ -352,6 +353,13 @@ export async function updateMorpheme(
       );
     });
 
+    // M-22.6: Invalidate conductivity cache on connected Lines
+    try {
+      await invalidateLineConductivity(nodeId);
+    } catch {
+      // Conductivity invalidation is non-fatal
+    }
+
     await recordMutationObservation(nodeId, true);
     return { success: true, nodeId };
   } catch (err) {
@@ -440,6 +448,13 @@ export async function createLine(
         params,
       );
     });
+
+    // M-22.6: Evaluate conductivity on new Lines
+    try {
+      await evaluateAndCacheLineConductivity(sourceId, targetId, lineType);
+    } catch {
+      // Conductivity evaluation is non-fatal
+    }
 
     await recordLineObservation(sourceId, targetId, lineType, true);
     return { success: true, sourceId, targetId, lineType };

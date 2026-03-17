@@ -36,4 +36,6 @@ export { createThresholdOutcome, detectOscillation } from "./threshold-learning.
 export { healthBand, bandOrdinal } from "./health-band.js";
 // Observation value conditioning
 export { conditionValue } from "./condition-value.js";
+// Line Conductivity (M-22.6)
+export { evaluateLayer1, evaluateLayer2, evaluateLayer3, evaluateConductivity, } from "./conductivity.js";
 //# sourceMappingURL=index.js.map
