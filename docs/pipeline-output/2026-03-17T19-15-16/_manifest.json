@@ -1,0 +1,206 @@
+{
+  "runId": "2026-03-17T19-15-16",
+  "intent": "Verify M-22 vertical wiring: confirm signal conditioning, ΦL computation, ΨH persistence, εR aggregation, and immune response fire correctly during pipeline execution.",
+  "startedAt": "2026-03-17T19:17:04.523Z",
+  "completedAt": "2026-03-17T19:21:33.240Z",
+  "tasks": [
+    {
+      "taskId": "t8",
+      "title": "Finalize and document M-22 integration test",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "document",
+          "explain",
+          "refactor"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 6520,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t8-finalize-and-document-m-22-integration-test.md",
+      "outputChars": 0
+    },
+    {
+      "taskId": "t3",
+      "title": "Implement Signal Conditioning verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 7466,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t3-implement-signal-conditioning-verification.md",
+      "outputChars": 0
+    },
+    {
+      "taskId": "t4",
+      "title": "Implement ΦL computation verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 53343,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t4-implement-l-computation-verification.md",
+      "outputChars": 7448
+    },
+    {
+      "taskId": "t5",
+      "title": "Implement ΨH persistence verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 79356,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t5-implement-h-persistence-verification.md",
+      "outputChars": 13398
+    },
+    {
+      "taskId": "t6",
+      "title": "Implement εR aggregation verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 29370,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t6-implement-r-aggregation-verification.md",
+      "outputChars": 4474
+    },
+    {
+      "taskId": "t7",
+      "title": "Implement Immune Response verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "implement",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 6087,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t7-implement-immune-response-verification.md",
+      "outputChars": 0
+    },
+    {
+      "taskId": "t2",
+      "title": "Implement test scenario and pipeline invocation",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "design",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 8295,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t2-implement-test-scenario-and-pipeline-invocation.md",
+      "outputChars": 0
+    },
+    {
+      "taskId": "t1",
+      "title": "Scaffold M-22 verification test and script",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 6730,
+      "outputFile": "docs\\pipeline-output\\2026-03-17T19-15-16\\t1-scaffold-m-22-verification-test-and-script.md",
+      "outputChars": 0
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "succeeded": 8,
+    "failed": 0,
+    "totalDurationMs": 197167,
+    "totalOutputChars": 25320,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:medium",
+      "claude-opus-4-6:adaptive:low",
+      "claude-opus-4-6:adaptive:high"
+    ]
+  }
+}
