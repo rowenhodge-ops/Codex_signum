@@ -41,6 +41,7 @@ export async function createPipelineOutputSeed(
          s.name = $name,
          s.seedType = $seedType,
          s.content = $content,
+         s.status = 'recorded',
          s.qualityScore = $qualityScore,
          s.modelId = $modelId,
          s.charCount = $charCount,
@@ -51,6 +52,7 @@ export async function createPipelineOutputSeed(
          s.createdAt = datetime()
        ON MATCH SET
          s.content = $content,
+         s.status = coalesce(s.status, 'recorded'),
          s.qualityScore = $qualityScore,
          s.modelId = $modelId,
          s.charCount = $charCount,
@@ -113,6 +115,7 @@ export async function tryCreateAndLinkSeed(
            s.name = $name,
            s.seedType = $seedType,
            s.content = $content,
+           s.status = 'recorded',
            s.qualityScore = $qualityScore,
            s.modelId = $modelId,
            s.charCount = $charCount,
@@ -123,6 +126,7 @@ export async function tryCreateAndLinkSeed(
            s.createdAt = datetime()
          ON MATCH SET
            s.content = $content,
+           s.status = coalesce(s.status, 'recorded'),
            s.qualityScore = $qualityScore,
            s.modelId = $modelId,
            s.charCount = $charCount,

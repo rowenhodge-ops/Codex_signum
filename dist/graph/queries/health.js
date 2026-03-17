@@ -251,23 +251,26 @@ export async function assemblePatternHealthContext(bloomId) {
  * Returns null if the Bloom doesn't exist or has no decisions.
  */
 export async function getBloomDecisionCounts(bloomId) {
-    const result = await runQuery(`MATCH (b:Bloom {id: $bloomId})
-     WITH b
-     // Path A: direct ORIGINATED_FROM
-     OPTIONAL MATCH (d1:Decision)-[:ORIGINATED_FROM]->(b)
-     WITH b, collect(DISTINCT d1) AS directDecisions
-     // Path B: via PipelineRun
-     OPTIONAL MATCH (d2:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b)
-     WITH directDecisions + collect(DISTINCT d2) AS allDecisions
-     UNWIND allDecisions AS d
-     WITH DISTINCT d
-     WHERE d IS NOT NULL
-     RETURN count(d) AS total,
-            count(CASE WHEN d.wasExploratory = true THEN 1 END) AS exploratory`, { bloomId }, "READ");
-    if (result.records.length === 0)
-        return null;
-    const total = Number(result.records[0].get("total"));
-    const exploratory = Number(result.records[0].get("exploratory"));
+    // Two separate queries to avoid Neo4j 5.x implicit grouping errors.
+    // Path A: direct ORIGINATED_FROM
+    const directResult = await runQuery(`MATCH (d:Decision)-[:ORIGINATED_FROM]->(b:Bloom {id: $bloomId})
+     RETURN d.id AS id, d.wasExploratory AS wasExploratory`, { bloomId }, "READ");
+    // Path B: via PipelineRun
+    const viaRunResult = await runQuery(`MATCH (d:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom {id: $bloomId})
+     RETURN d.id AS id, d.wasExploratory AS wasExploratory`, { bloomId }, "READ");
+    // Deduplicate in TypeScript
+    const seen = new Set();
+    let total = 0;
+    let exploratory = 0;
+    for (const rec of [...directResult.records, ...viaRunResult.records]) {
+        const id = String(rec.get("id"));
+        if (seen.has(id))
+            continue;
+        seen.add(id);
+        total++;
+        if (rec.get("wasExploratory") === true)
+            exploratory++;
+    }
     if (total === 0)
         return null;
     return { exploratory, total };

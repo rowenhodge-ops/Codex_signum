@@ -14,6 +14,7 @@ export async function createPipelineOutputSeed(props) {
          s.name = $name,
          s.seedType = $seedType,
          s.content = $content,
+         s.status = 'recorded',
          s.qualityScore = $qualityScore,
          s.modelId = $modelId,
          s.charCount = $charCount,
@@ -24,6 +25,7 @@ export async function createPipelineOutputSeed(props) {
          s.createdAt = datetime()
        ON MATCH SET
          s.content = $content,
+         s.status = coalesce(s.status, 'recorded'),
          s.qualityScore = $qualityScore,
          s.modelId = $modelId,
          s.charCount = $charCount,
@@ -72,6 +74,7 @@ export async function tryCreateAndLinkSeed(props) {
            s.name = $name,
            s.seedType = $seedType,
            s.content = $content,
+           s.status = 'recorded',
            s.qualityScore = $qualityScore,
            s.modelId = $modelId,
            s.charCount = $charCount,
@@ -82,6 +85,7 @@ export async function tryCreateAndLinkSeed(props) {
            s.createdAt = datetime()
          ON MATCH SET
            s.content = $content,
+           s.status = coalesce(s.status, 'recorded'),
            s.qualityScore = $qualityScore,
            s.modelId = $modelId,
            s.charCount = $charCount,

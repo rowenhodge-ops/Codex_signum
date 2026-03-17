@@ -55,7 +55,7 @@ export async function createDistillation(
          id: $id,
          pattern: $pattern,
          confidence: $confidence,
-         observationCount: $observationCount,
+         observationCount: toInteger($observationCount),
          insight: $insight,
          createdAt: datetime()
        })`,
@@ -106,7 +106,7 @@ export async function createStructuredDistillation(
          id: $id,
          bloomId: $bloomId,
          confidence: $confidence,
-         observationCount: $observationCount,
+         observationCount: toInteger($observationCount),
          insight: $insight,
          meanPhiL: $meanPhiL,
          phiLTrend: $phiLTrend,
