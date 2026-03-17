@@ -44,8 +44,13 @@ import type {
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-/** Configure mockRun to simulate node existence with labels */
+/**
+ * Configure mockRun to simulate node existence with labels.
+ * Also handles properties(n) read-back for mutation verification:
+ * captures SET values from write queries and returns them on read-back.
+ */
 function mockNodeLabels(nodeId: string, labels: string[]) {
+  const storedProps: Record<string, unknown> = { id: nodeId };
   mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
     // labels(n) query
     if (query.includes("labels(n)") && params?.nodeId === nodeId) {
@@ -54,6 +59,18 @@ function mockNodeLabels(nodeId: string, labels: string[]) {
     // count(n) query (nodeExists)
     if (query.includes("count(n)") && params?.nodeId === nodeId) {
       return { records: [{ get: () => 1 }] };
+    }
+    // Capture SET values from mutation writes
+    if (query.includes("SET") && params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (key.startsWith("upd_")) {
+          storedProps[key.slice(4)] = value;
+        }
+      }
+    }
+    // properties(n) read-back verification
+    if (query.includes("properties(n)") && params?.nodeId === nodeId) {
+      return { records: [{ get: () => storedProps }] };
     }
     return { records: [] };
   });
@@ -554,13 +571,17 @@ describe("updateMorpheme()", () => {
     });
 
     it("wires new CONTAINS before removing old (never orphan)", async () => {
-      // Set up both nodes exist with correct types
+      // Set up both nodes exist with correct types + properties read-back
       mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
         if (query.includes("labels(n)") && params?.nodeId === "movable-seed") {
           return { records: [{ get: () => ["Seed"] }] };
         }
         if (query.includes("labels(n)") && params?.nodeId === "new-bloom") {
           return { records: [{ get: () => ["Bloom"] }] };
+        }
+        // Read-back verification: return node props
+        if (query.includes("properties(n)") && params?.nodeId === "movable-seed") {
+          return { records: [{ get: () => ({ id: "movable-seed" }) }] };
         }
         return { records: [] };
       });

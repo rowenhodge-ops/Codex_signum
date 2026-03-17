@@ -38,6 +38,7 @@ export {
   getBloom,
   updateBloomState,
   updateBloomStatus,
+  verifyStamp,
   connectBlooms,
   // Decisions
   recordDecision,
@@ -172,6 +173,8 @@ export type {
   VisualisationTopology,
   GrammarInstanceEntry,
   ResonatorProps,
+  // Stamp verification
+  StampVerification,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

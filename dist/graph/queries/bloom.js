@@ -41,7 +41,12 @@ export async function getBloom(id) {
     const result = await runQuery("MATCH (b:Bloom { id: $id }) RETURN b", { id }, "READ");
     return result.records[0] ?? null;
 }
+/**
+ * @deprecated Use updateBloomStatus() instead — this function bypasses the Mutation Resonator
+ * (no parent status propagation, no observation recording, no read-back verification).
+ */
 export async function updateBloomState(id, state) {
+    console.warn(`⚠️ DEPRECATED: updateBloomState('${id}') called — use updateBloomStatus() instead. This path bypasses the Mutation Resonator.`);
     await writeTransaction(async (tx) => {
         await tx.run(`MATCH (b:Bloom { id: $id })
        SET b.status = $state, b.updatedAt = datetime()`, { id, state });
@@ -189,6 +194,88 @@ export async function updateBloomStatus(bloomId, status, options) {
         throw new Error(result.error ?? "Bloom status update failed");
     }
 }
+/**
+ * Verify that a Bloom stamp persisted correctly.
+ * Checks: child status, parent CONTAINS edge, parent status derivation.
+ *
+ * Call this AFTER updateBloomStatus() to confirm persistence.
+ * Returns a diagnostic object — throw on failure is caller's decision.
+ */
+export async function verifyStamp(bloomId, expectedStatus, expectedParentId) {
+    const result = await runQuery(`MATCH (b:Bloom {id: $bloomId})
+     OPTIONAL MATCH (parent)-[:CONTAINS]->(b)
+     WHERE parent:Bloom
+     WITH b, parent
+     OPTIONAL MATCH (parent)-[:CONTAINS]->(sibling)
+     WHERE sibling:Bloom OR sibling:Seed
+     WITH b, parent,
+          count(sibling) AS totalChildren,
+          count(CASE WHEN sibling.status = 'complete' THEN 1 END) AS completeChildren,
+          parent IS NOT NULL AS hasParent
+     RETURN b.status AS childStatus,
+            b.phiL AS childPhiL,
+            b.commitSha AS childCommitSha,
+            parent.id AS parentId,
+            parent.status AS parentStatus,
+            totalChildren,
+            completeChildren,
+            hasParent`, { bloomId }, "READ");
+    const rec = result.records[0];
+    const issues = [];
+    if (!rec) {
+        return {
+            childId: bloomId,
+            childStatus: null,
+            childPhiL: null,
+            childCommitSha: null,
+            parentId: null,
+            parentStatus: null,
+            parentChildCount: 0,
+            parentCompleteCount: 0,
+            containsEdgeExists: false,
+            issues: [`Node '${bloomId}' does not exist in graph`],
+        };
+    }
+    const childStatus = rec.get("childStatus");
+    const parentId = rec.get("parentId");
+    const hasParent = rec.get("hasParent");
+    const parentStatus = rec.get("parentStatus");
+    const totalChildren = rec.get("totalChildren") ?? 0;
+    const completeChildren = rec.get("completeChildren") ?? 0;
+    if (childStatus !== expectedStatus) {
+        issues.push(`Child status is '${childStatus}', expected '${expectedStatus}'`);
+    }
+    if (expectedParentId && parentId !== expectedParentId) {
+        issues.push(`Parent is '${parentId}', expected '${expectedParentId}'`);
+    }
+    if (!hasParent) {
+        issues.push(`No CONTAINS edge found — node is structurally orphaned`);
+    }
+    // Check parent status derivation
+    if (hasParent && totalChildren > 0) {
+        const expectedParentStatus = completeChildren === totalChildren
+            ? "complete"
+            : completeChildren > 0
+                ? "active"
+                : "planned";
+        if (parentStatus !== expectedParentStatus) {
+            issues.push(`Parent status is '${parentStatus}', expected '${expectedParentStatus}' ` +
+                `(${completeChildren}/${totalChildren} children complete)`);
+        }
+    }
+    return {
+        childId: bloomId,
+        childStatus,
+        childPhiL: rec.get("childPhiL"),
+        childCommitSha: rec.get("childCommitSha"),
+        parentId,
+        parentStatus,
+        parentChildCount: totalChildren,
+        parentCompleteCount: completeChildren,
+        containsEdgeExists: hasParent,
+        issues,
+    };
+}
 // ============ M-22.3: ΨH PERSISTENCE ============
 /**
  * Persist computed ΨH, temporal decomposition, and PsiHState on a Bloom node.
@@ -232,7 +319,7 @@ export async function updateBloomEpsilonR(bloomId, epsilonR, range, exploratoryC
 export const createPattern = createBloom;
 /** @deprecated Use getBloom */
 export const getPattern = getBloom;
-/** @deprecated Use updateBloomState */
+/** @deprecated Use updateBloomStatus() — updatePatternState and updateBloomState both bypass the Mutation Resonator. */
 export const updatePatternState = updateBloomState;
 /** @deprecated Use connectBlooms */
 export const connectPatterns = connectBlooms;

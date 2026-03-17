@@ -12,7 +12,7 @@ export {
 // Seeds (formerly Agents)
 createSeed, createDataSeed, createContainedDataSeed, getSeed, listActiveSeeds, listActiveSeedsByCapability, 
 // Blooms (formerly Patterns)
-createBloom, createContainedBloom, getBloom, updateBloomState, updateBloomStatus, connectBlooms, 
+createBloom, createContainedBloom, getBloom, updateBloomState, updateBloomStatus, verifyStamp, connectBlooms, 
 // Decisions
 recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, 
 // Observations

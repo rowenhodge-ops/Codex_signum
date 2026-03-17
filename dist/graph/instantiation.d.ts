@@ -11,6 +11,7 @@ export interface InstantiationResult {
 }
 export interface MutationResult {
     success: boolean;
+    verified?: boolean;
     nodeId?: string;
     error?: string;
 }

@@ -14,6 +14,10 @@ export interface BloomProps {
 }
 export declare function createBloom(props: BloomProps): Promise<void>;
 export declare function getBloom(id: string): Promise<Neo4jRecord | null>;
+/**
+ * @deprecated Use updateBloomStatus() instead — this function bypasses the Mutation Resonator
+ * (no parent status propagation, no observation recording, no read-back verification).
+ */
 export declare function updateBloomState(id: string, state: string): Promise<void>;
 /** Increment bloom connection count and recalculate state */
 export declare function connectBlooms(fromId: string, toId: string, relType: string, properties?: Record<string, unknown>): Promise<void>;
@@ -76,6 +80,29 @@ export declare function updateBloomStatus(bloomId: string, status: string, optio
     testCount?: number;
 }): Promise<void>;
 /**
+ * Diagnostic result from verifyStamp() — caller decides whether to throw.
+ */
+export interface StampVerification {
+    childId: string;
+    childStatus: string | null;
+    childPhiL: number | null;
+    childCommitSha: string | null;
+    parentId: string | null;
+    parentStatus: string | null;
+    parentChildCount: number;
+    parentCompleteCount: number;
+    containsEdgeExists: boolean;
+    issues: string[];
+}
+/**
+ * Verify that a Bloom stamp persisted correctly.
+ * Checks: child status, parent CONTAINS edge, parent status derivation.
+ *
+ * Call this AFTER updateBloomStatus() to confirm persistence.
+ * Returns a diagnostic object — throw on failure is caller's decision.
+ */
+export declare function verifyStamp(bloomId: string, expectedStatus: string, expectedParentId?: string): Promise<StampVerification>;
+/**
  * Persist computed ΨH, temporal decomposition, and PsiHState on a Bloom node.
  * Follows the same JSON-property pattern as updateBloomPhiL for PhiLState.
  */
@@ -91,7 +118,7 @@ export type PatternProps = BloomProps;
 export declare const createPattern: typeof createBloom;
 /** @deprecated Use getBloom */
 export declare const getPattern: typeof getBloom;
-/** @deprecated Use updateBloomState */
+/** @deprecated Use updateBloomStatus() — updatePatternState and updateBloomState both bypass the Mutation Resonator. */
 export declare const updatePatternState: typeof updateBloomState;
 /** @deprecated Use connectBlooms */
 export declare const connectPatterns: typeof connectBlooms;

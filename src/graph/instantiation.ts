@@ -90,6 +90,7 @@ export interface InstantiationResult {
 
 export interface MutationResult {
   success: boolean;
+  verified?: boolean;  // true = read-back confirmed persistence
   nodeId?: string;
   error?: string;
 }
@@ -353,6 +354,38 @@ export async function updateMorpheme(
       );
     });
 
+    // ── Step 6: Read-back verification ──
+    const verified = await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (n {id: $nodeId}) RETURN properties(n) AS props`,
+        { nodeId },
+      );
+      return res.records[0]?.get("props") as Record<string, unknown> | undefined;
+    });
+
+    if (!verified) {
+      const error = `Mutation verification failed: node '${nodeId}' not found after write.`;
+      await recordMutationObservation(nodeId, false, error);
+      return { success: false, error };
+    }
+
+    // Check that every update actually landed
+    const mismatches: string[] = [];
+    for (const [key, expectedValue] of Object.entries(updates)) {
+      if (key === "id") continue;
+      const actualValue = verified[key];
+      // Compare with type coercion for numeric values (Neo4j may return Integer objects)
+      if (String(actualValue) !== String(expectedValue)) {
+        mismatches.push(`${key}: expected '${expectedValue}', got '${actualValue}'`);
+      }
+    }
+
+    if (mismatches.length > 0) {
+      const error = `Mutation verification failed: properties did not persist on '${nodeId}': ${mismatches.join("; ")}`;
+      await recordMutationObservation(nodeId, false, error);
+      return { success: false, error };
+    }
+
     // M-22.6: Invalidate conductivity cache on connected Lines
     try {
       await invalidateLineConductivity(nodeId);
@@ -361,7 +394,7 @@ export async function updateMorpheme(
     }
 
     await recordMutationObservation(nodeId, true);
-    return { success: true, nodeId };
+    return { success: true, verified: true, nodeId };
   } catch (err) {
     const error = `Mutation failed: ${err instanceof Error ? err.message : String(err)}`;
     await recordMutationObservation(nodeId, false, error);
