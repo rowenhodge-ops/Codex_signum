@@ -30,6 +30,11 @@ export interface NodeHealth {
     phiL: number;
 }
 /**
+ * Create a default PsiHState for a new Bloom.
+ * Uses intermediate window size (40) and default EWMA alpha (0.15).
+ */
+export declare function createDefaultPsiHState(): PsiHState;
+/**
  * Compute ΨH from graph structure and ΦL signals.
  *
  * @param edges — Adjacency list of the pattern graph

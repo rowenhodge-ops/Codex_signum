@@ -6,9 +6,13 @@ import type { Record as Neo4jRecord } from "neo4j-driver";
 import { runQuery } from "../client.js";
 import type { PatternHealthContext } from "../write-observation.js";
 import type { PhiLState } from "../../types/state-dimensions.js";
+import type { GraphEdge, NodeHealth } from "../../computation/psi-h.js";
+import { computePsiHWithState, createDefaultPsiHState } from "../../computation/psi-h.js";
+import type { PsiH, PsiHState } from "../../types/state-dimensions.js";
 import { computeMaturityFactor } from "../../computation/maturity.js";
 import { computeUsageSuccessRate } from "../../computation/phi-l.js";
 import { healthBand } from "../../computation/health-band.js";
+import { updateBloomPsiH } from "./bloom.js";
 
 // ============ PIPELINE ANALYTICS QUERIES ============
 
@@ -342,4 +346,131 @@ export async function assemblePatternHealthContext(
     topologyRole,
     degree: childCount,
   };
+}
+
+// ============ M-22.3: COMPOSITION SUBGRAPH EXTRACTION ============
+
+/**
+ * Extract the subgraph for ΨH computation on a specific Bloom composition.
+ * Returns only edges between nodes CONTAINED by the target Bloom,
+ * and health values for those contained nodes.
+ *
+ * Returns null if the Bloom has no children (ΨH undefined for empty composition).
+ */
+export async function getCompositionSubgraph(
+  bloomId: string,
+): Promise<{
+  edges: GraphEdge[];
+  nodeHealths: NodeHealth[];
+} | null> {
+  const result = await runQuery(
+    `MATCH (parent:Bloom {id: $bloomId})-[:CONTAINS]->(child)
+     WITH collect(child) AS children, collect(child.id) AS childIds
+     UNWIND children AS c
+     OPTIONAL MATCH (c)-[r]-(other)
+     WHERE other.id IN childIds AND id(c) < id(other)
+     RETURN c.id AS nodeId, COALESCE(c.phiL, 0.5) AS phiL,
+            type(r) AS relType, other.id AS otherId,
+            COALESCE(r.weight, 1.0) AS weight`,
+    { bloomId },
+    "READ",
+  );
+
+  if (result.records.length === 0) return null;
+
+  // Deduplicate nodes and collect edges
+  const nodeMap = new Map<string, number>();
+  const edgeSet = new Set<string>();
+  const edges: GraphEdge[] = [];
+  const nodeHealths: NodeHealth[] = [];
+
+  for (const rec of result.records) {
+    const nodeId = String(rec.get("nodeId"));
+    const phiL = Number(rec.get("phiL"));
+
+    // Add node (deduplicated)
+    if (!nodeMap.has(nodeId)) {
+      nodeMap.set(nodeId, phiL);
+      nodeHealths.push({ id: nodeId, phiL });
+    }
+
+    // Add edge if present (deduplicated by from-to pair)
+    const otherId = rec.get("otherId");
+    if (otherId != null) {
+      const edgeKey = `${nodeId}->${String(otherId)}`;
+      if (!edgeSet.has(edgeKey)) {
+        edgeSet.add(edgeKey);
+        edges.push({
+          from: nodeId,
+          to: String(otherId),
+          weight: Number(rec.get("weight")),
+        });
+      }
+    }
+  }
+
+  // No children found
+  if (nodeHealths.length === 0) return null;
+
+  return { edges, nodeHealths };
+}
+
+/**
+ * Compute ΨH for a Bloom composition and persist the result on the Bloom node.
+ * Uses the stateful variant for temporal decomposition (EWMA trend + ring buffer).
+ *
+ * Flow:
+ *   1. Extract composition subgraph (children + inter-edges)
+ *   2. Read existing PsiHState from Bloom (JSON property)
+ *   3. Compute ΨH with temporal decomposition
+ *   4. Persist ΨH, decomposition, and updated state on Bloom
+ *
+ * Call after pipeline runs or topology changes (not inside writeObservation).
+ *
+ * @returns PsiH result, or null if the Bloom has no children
+ */
+export async function computeAndPersistPsiH(
+  bloomId: string,
+): Promise<PsiH | null> {
+  // Step 1: Extract composition subgraph
+  const subgraph = await getCompositionSubgraph(bloomId);
+  if (!subgraph) return null;
+
+  // Step 2: Read existing PsiHState from Bloom (JSON property, same pattern as PhiLState)
+  const stateResult = await runQuery(
+    `MATCH (b:Bloom {id: $bloomId}) RETURN b.psiHState AS psiHState`,
+    { bloomId },
+    "READ",
+  );
+
+  let state: PsiHState;
+  const stateJson: string | null = stateResult.records[0]?.get("psiHState") ?? null;
+  if (stateJson) {
+    try {
+      state = JSON.parse(stateJson) as PsiHState;
+    } catch {
+      state = createDefaultPsiHState();
+    }
+  } else {
+    state = createDefaultPsiHState();
+  }
+
+  // Step 3: Compute ΨH with temporal decomposition
+  const { psiH, decomposition, updatedState } = computePsiHWithState(
+    subgraph.edges,
+    subgraph.nodeHealths,
+    state,
+  );
+
+  // Step 4: Persist on Bloom
+  await updateBloomPsiH(
+    bloomId,
+    psiH.combined,
+    psiH.lambda2,
+    psiH.friction,
+    decomposition.psiH_trend,
+    JSON.stringify(updatedState),
+  );
+
+  return psiH;
 }

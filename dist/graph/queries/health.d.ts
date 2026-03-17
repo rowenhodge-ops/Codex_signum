@@ -1,4 +1,6 @@
 import type { PatternHealthContext } from "../write-observation.js";
+import type { GraphEdge, NodeHealth } from "../../computation/psi-h.js";
+import type { PsiH } from "../../types/state-dimensions.js";
 /**
  * Get ΦL and observation counts for each Architect pipeline stage Bloom.
  * Answers: "which pipeline stage is performing best/worst?"
@@ -80,4 +82,30 @@ export declare function getRunComparison(runIdA: string, runIdB: string): Promis
  *   temporalStability = computed from PhiLState ring buffer (persisted on Bloom)
  */
 export declare function assemblePatternHealthContext(bloomId: string): Promise<PatternHealthContext | null>;
+/**
+ * Extract the subgraph for ΨH computation on a specific Bloom composition.
+ * Returns only edges between nodes CONTAINED by the target Bloom,
+ * and health values for those contained nodes.
+ *
+ * Returns null if the Bloom has no children (ΨH undefined for empty composition).
+ */
+export declare function getCompositionSubgraph(bloomId: string): Promise<{
+    edges: GraphEdge[];
+    nodeHealths: NodeHealth[];
+} | null>;
+/**
+ * Compute ΨH for a Bloom composition and persist the result on the Bloom node.
+ * Uses the stateful variant for temporal decomposition (EWMA trend + ring buffer).
+ *
+ * Flow:
+ *   1. Extract composition subgraph (children + inter-edges)
+ *   2. Read existing PsiHState from Bloom (JSON property)
+ *   3. Compute ΨH with temporal decomposition
+ *   4. Persist ΨH, decomposition, and updated state on Bloom
+ *
+ * Call after pipeline runs or topology changes (not inside writeObservation).
+ *
+ * @returns PsiH result, or null if the Bloom has no children
+ */
+export declare function computeAndPersistPsiH(bloomId: string): Promise<PsiH | null>;
 //# sourceMappingURL=health.d.ts.map

@@ -36,6 +36,7 @@ export {
   computeGraphTotalVariation,
   computePsiH,
   computePsiHWithState,
+  createDefaultPsiHState,
   decomposePsiH,
 } from "./psi-h.js";
 export type { GraphEdge, NodeHealth } from "./psi-h.js";

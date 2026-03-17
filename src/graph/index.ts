@@ -96,11 +96,15 @@ export {
   getRunComparison,
   // M-22.2: Pattern health context assembly
   assemblePatternHealthContext,
+  // M-22.3: Composition subgraph + ΨH computation
+  getCompositionSubgraph,
+  computeAndPersistPsiH,
   // Topology
   getBloomDegree,
   getBloomAdjacency,
   getBloomsWithHealth,
   updateBloomPhiL,
+  updateBloomPsiH,
   // Ecosystem queries (M-9.8)
   getMilestoneOverview,
   getFutureTestsForMilestone,

@@ -11,7 +11,7 @@ export { PHI_L_WINDOW_SIZES, computeAxiomComplianceFactor, computePhiL, computeP
 // Maturity
 export { classifyMaturity, computeMaturityFactor, computeMaturityIndex, } from "./maturity.js";
 // ΨH — Harmonic Signature
-export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, decomposePsiH, } from "./psi-h.js";
+export { buildLaplacian, computeAllEigenvalues, computeFiedlerEigenvalue, computeGraphTotalVariation, computePsiH, computePsiHWithState, createDefaultPsiHState, decomposePsiH, } from "./psi-h.js";
 // εR — Exploration Rate
 export { checkEpsilonRWarnings, computeEpsilonR, computeEpsilonRFloor, minEpsilonRForSpectralState, } from "./epsilon-r.js";
 // Dampening

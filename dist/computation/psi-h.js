@@ -2,6 +2,20 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { PSI_H_WEIGHTS } from "../types/state-dimensions.js";
+// ============ FACTORY ============
+/**
+ * Create a default PsiHState for a new Bloom.
+ * Uses intermediate window size (40) and default EWMA alpha (0.15).
+ */
+export function createDefaultPsiHState() {
+    return {
+        ringBuffer: [],
+        maxSize: 40,
+        alpha: 0.15,
+        trend: undefined,
+        baseline: undefined,
+    };
+}
 // ============ CORE COMPUTATION ============
 /**
  * Compute ΨH from graph structure and ΦL signals.

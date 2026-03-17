@@ -40,6 +40,22 @@ export interface NodeHealth {
   phiL: number;
 }
 
+// ============ FACTORY ============
+
+/**
+ * Create a default PsiHState for a new Bloom.
+ * Uses intermediate window size (40) and default EWMA alpha (0.15).
+ */
+export function createDefaultPsiHState(): PsiHState {
+  return {
+    ringBuffer: [],
+    maxSize: 40,
+    alpha: 0.15,
+    trend: undefined,
+    baseline: undefined,
+  };
+}
+
 // ============ CORE COMPUTATION ============
 
 /**

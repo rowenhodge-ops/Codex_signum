@@ -278,6 +278,41 @@ export async function updateBloomStatus(
   }
 }
 
+// ============ M-22.3: ΨH PERSISTENCE ============
+
+/**
+ * Persist computed ΨH, temporal decomposition, and PsiHState on a Bloom node.
+ * Follows the same JSON-property pattern as updateBloomPhiL for PhiLState.
+ */
+export async function updateBloomPsiH(
+  bloomId: string,
+  psiHCombined: number,
+  lambda2: number,
+  friction: number,
+  psiHTrend: number,
+  psiHStateJson: string,
+): Promise<void> {
+  await writeTransaction(async (tx) => {
+    await tx.run(
+      `MATCH (b:Bloom { id: $bloomId })
+       SET b.psiH = $psiH,
+           b.lambda2 = $lambda2,
+           b.friction = $friction,
+           b.psiHTrend = $psiHTrend,
+           b.psiHState = $psiHState,
+           b.psiHComputedAt = datetime()`,
+      {
+        bloomId,
+        psiH: psiHCombined,
+        lambda2,
+        friction,
+        psiHTrend,
+        psiHState: psiHStateJson,
+      },
+    );
+  });
+}
+
 // ============ BACKWARD COMPATIBILITY (remove in M-8) ============
 
 /** @deprecated Use BloomProps */

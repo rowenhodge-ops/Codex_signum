@@ -35,7 +35,7 @@ import {
 import { writeObservation } from "../src/graph/write-observation.js";
 import { SignalPipeline } from "../src/signals/SignalPipeline.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
-import { assemblePatternHealthContext } from "../src/graph/queries/health.js";
+import { assemblePatternHealthContext, computeAndPersistPsiH } from "../src/graph/queries/health.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -845,6 +845,18 @@ export function createBootstrapTaskExecutor(
                 }
               } catch (err5) {
                 console.warn(`     [GRAPH] ⚠️  Memory processing failed: ${err5 instanceof Error ? err5.message : err5}`);
+              }
+            }
+
+            // Recompute ΨH on the Architect Bloom (topology may have changed) — M-22.3
+            if (config.architectBloomId) {
+              try {
+                const psiH = await computeAndPersistPsiH(config.architectBloomId);
+                if (psiH) {
+                  console.log(`     [SIGNAL] ΨH=${psiH.combined.toFixed(3)} (λ₂=${psiH.lambda2.toFixed(3)}, friction=${psiH.friction.toFixed(3)})`);
+                }
+              } catch (err6) {
+                console.warn(`     [GRAPH] ⚠️  ΨH computation failed: ${err6 instanceof Error ? err6.message : err6}`);
               }
             }
 
