@@ -43,8 +43,12 @@ export declare function getBloomsWithHealth(): Promise<Array<{
 }>>;
 /**
  * Store computed ΦL on a bloom node.
+ *
+ * Optional healthBand and phiLState params added for M-22.2:
+ * - healthBand: persisted for band-crossing detection across runs
+ * - phiLState: JSON-serialised ring buffer for temporal stability
  */
-export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "improving" | "stable" | "declining"): Promise<void>;
+export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "improving" | "stable" | "declining", healthBandValue?: string, phiLStateJson?: string): Promise<void>;
 /**
  * Create a Bloom AND wire it to a parent via the Instantiation Protocol.
  * G3: containment is parent→child. Non-root Blooms MUST have a parent.

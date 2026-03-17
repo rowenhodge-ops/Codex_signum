@@ -10,9 +10,9 @@
  * @see engineering-bridge-v2.0.md §Part 2 "Computing ΦL"
  */
 import { describe, expect, it } from "vitest";
-import { computePhiL } from "../../src/computation/phi-l.js";
-import { DEFAULT_PHI_L_WEIGHTS } from "../../src/types/state-dimensions.js";
-import type { PhiLFactors } from "../../src/types/state-dimensions.js";
+import { computePhiL, computePhiLWithState } from "../../src/computation/phi-l.js";
+import { DEFAULT_PHI_L_WEIGHTS, createPhiLState } from "../../src/types/state-dimensions.js";
+import type { PhiLFactors, PhiLState } from "../../src/types/state-dimensions.js";
 
 const perfectFactors: PhiLFactors = {
   axiomCompliance: 1.0,
@@ -147,5 +147,56 @@ describe("ΦL trend", () => {
     const phi = computePhiL(zeroFactors, 200, 20, 0.9);
     // effective near 0, previous was 0.9 → declining
     expect(phi.trend).toBe("declining");
+  });
+});
+
+// ── M-22.2: computePhiLWithState round-trip ──────────────────────────────
+
+describe("computePhiLWithState — ring buffer round-trip (M-22.2)", () => {
+  it("returns updated state with new buffer entry", () => {
+    const state = createPhiLState(20);
+    const factors = { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 };
+    const { phiL, updatedState } = computePhiLWithState(factors, 10, 3, state, 0.7);
+
+    expect(phiL).toBeDefined();
+    expect(phiL.effective).toBeGreaterThan(0);
+    expect(updatedState.ringBuffer.length).toBe(1);
+    expect(updatedState.ringBuffer[0]).toBe(0.7); // previousPhiL pushed into buffer
+  });
+
+  it("ring buffer grows with successive calls", () => {
+    let state = createPhiLState(5);
+    const factors = { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 };
+
+    for (let i = 0; i < 3; i++) {
+      const prev = 0.5 + i * 0.1;
+      const result = computePhiLWithState(factors, 10 + i, 3, state, prev);
+      state = result.updatedState;
+    }
+
+    expect(state.ringBuffer.length).toBe(3);
+  });
+
+  it("ring buffer caps at maxSize", () => {
+    let state = createPhiLState(3); // small buffer
+    const factors = { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 };
+
+    for (let i = 0; i < 5; i++) {
+      const result = computePhiLWithState(factors, 10, 3, state, 0.5 + i * 0.05);
+      state = result.updatedState;
+    }
+
+    expect(state.ringBuffer.length).toBe(3);
+    expect(state.maxSize).toBe(3);
+  });
+
+  it("temporal stability is computed from state (not hardcoded)", () => {
+    // Build a buffer with stable values → high temporal stability
+    const stableState: PhiLState = { ringBuffer: [0.7, 0.71, 0.69, 0.7, 0.7], maxSize: 20 };
+    const factors = { axiomCompliance: 0.9, provenanceClarity: 0.8, usageSuccessRate: 0.85 };
+    const { phiL } = computePhiLWithState(factors, 20, 5, stableState, 0.7);
+
+    // With very low variance, temporal stability should be high
+    expect(phiL.factors.temporalStability).toBeGreaterThan(0.8);
   });
 });

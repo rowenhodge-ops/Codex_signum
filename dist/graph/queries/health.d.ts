@@ -1,3 +1,4 @@
+import type { PatternHealthContext } from "../write-observation.js";
 /**
  * Get ΦL and observation counts for each Architect pipeline stage Bloom.
  * Answers: "which pipeline stage is performing best/worst?"
@@ -64,4 +65,19 @@ export declare function getRunComparison(runIdA: string, runIdB: string): Promis
         status: string;
     } | null;
 }>;
+/**
+ * Query the graph for all data needed to construct PatternHealthContext.
+ * This is the bridge between graph state and the ΦL computation chain.
+ *
+ * Returns null if the Bloom doesn't exist or has no observations yet
+ * (cold start — conditioning-only mode still works via the null check
+ * in writeObservation).
+ *
+ * V1 factor mapping:
+ *   axiomCompliance  = 1.0 (assume compliant until Assayer wired)
+ *   provenanceClarity = fraction of recent TaskOutputs with provenance fields
+ *   usageSuccessRate  = succeeded / total from TaskOutput nodes
+ *   temporalStability = computed from PhiLState ring buffer (persisted on Bloom)
+ */
+export declare function assemblePatternHealthContext(bloomId: string): Promise<PatternHealthContext | null>;
 //# sourceMappingURL=health.d.ts.map

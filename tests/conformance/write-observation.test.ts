@@ -20,7 +20,7 @@ import { conditionValue } from "../../src/computation/condition-value.js";
 import { SignalPipeline } from "../../src/signals/SignalPipeline.js";
 import { ALGEDONIC_THRESHOLD } from "../../src/computation/dampening.js";
 import type { HealthBand, ThresholdEvent } from "../../src/types/threshold-event.js";
-import type { PhiLFactors } from "../../src/types/state-dimensions.js";
+import type { PhiLFactors, PhiLState } from "../../src/types/state-dimensions.js";
 import type { PatternHealthContext } from "../../src/graph/write-observation.js";
 import type { ObservationProps } from "../../src/graph/queries.js";
 
@@ -615,5 +615,96 @@ describe("writeObservation() — conditioning-only (no context)", () => {
     expect(r2.conditioned).toBeDefined();
     // Both should have persisted conditioned values
     expect(updateObservationConditioned).toHaveBeenCalledTimes(2);
+  });
+});
+
+// ============================================================
+// Group 8: M-22.2 — ΦL from pipeline with assembled context
+// ============================================================
+
+describe("writeObservation() — M-22.2 ΦL from assembled context", () => {
+  let pipeline: SignalPipeline;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    pipeline = new SignalPipeline();
+  });
+
+  it("with assembled context produces PhiL composite (not null)", async () => {
+    const ctx = makeContext({
+      factors: {
+        axiomCompliance: 1.0,     // V1: default until Assayer wired
+        provenanceClarity: 0.8,
+        usageSuccessRate: 0.75,
+        temporalStability: 0.5,
+      },
+      observationCount: 15,
+      connectionCount: 4,
+    });
+    const obs = makeObservation({ value: 0.7 });
+    const result = await writeObservation(obs, pipeline, ctx);
+
+    expect(result.phiL).not.toBeNull();
+    expect(result.phiL!.factors.axiomCompliance).toBe(1.0);
+    expect(result.phiL!.factors.provenanceClarity).toBe(0.8);
+    expect(result.phiL!.factors.usageSuccessRate).toBe(0.75);
+    expect(result.phiL!.factors.temporalStability).toBe(0.5);
+    expect(result.phiL!.effective).toBeGreaterThan(0);
+    expect(result.band).not.toBeNull();
+  });
+
+  it("all PhiL factors are in [0,1] range", async () => {
+    const ctx = makeContext();
+    const obs = makeObservation();
+    const result = await writeObservation(obs, pipeline, ctx);
+
+    expect(result.phiL).not.toBeNull();
+    const factors = result.phiL!.factors;
+    for (const [key, value] of Object.entries(factors)) {
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("PhiLState ring buffer is updated when provided", async () => {
+    const phiLState: PhiLState = { ringBuffer: [0.7, 0.72, 0.71], maxSize: 20 };
+    const ctx = makeContext({ phiLState });
+    const obs = makeObservation();
+    const result = await writeObservation(obs, pipeline, ctx);
+
+    // updateBloomPhiL should be called with phiLState JSON (5th arg)
+    const callArgs = vi.mocked(updateBloomPhiL).mock.calls[0];
+    expect(callArgs.length).toBeGreaterThanOrEqual(4);
+    // healthBand should be passed (4th arg)
+    expect(typeof callArgs[3]).toBe("string");
+    // phiLState JSON should be passed (5th arg)
+    const stateJson = callArgs[4] as string;
+    expect(stateJson).toBeDefined();
+    const parsedState = JSON.parse(stateJson) as PhiLState;
+    // New effective value should be appended to the buffer
+    expect(parsedState.ringBuffer.length).toBe(4);
+    expect(parsedState.ringBuffer[3]).toBe(result.phiL!.effective);
+  });
+
+  it("cold start (no context) returns null phiL — conditioning only", async () => {
+    const obs = makeObservation({ value: 0.6 });
+    const result = await writeObservation(obs, pipeline);
+
+    expect(result.phiL).toBeNull();
+    expect(result.band).toBeNull();
+    expect(result.conditioned).toBeDefined();
+    expect(result.conditioned.rawValue).toBe(0.6);
+  });
+
+  it("healthBand is persisted on updateBloomPhiL call", async () => {
+    const ctx = makeContext({
+      previousBand: undefined, // first observation — no crossing
+    });
+    const obs = makeObservation();
+    const result = await writeObservation(obs, pipeline, ctx);
+
+    const callArgs = vi.mocked(updateBloomPhiL).mock.calls[0];
+    // 4th arg: healthBand string
+    expect(callArgs[3]).toBe(result.band);
   });
 });

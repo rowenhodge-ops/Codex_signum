@@ -110,13 +110,23 @@ export async function getBloomsWithHealth() {
 }
 /**
  * Store computed ΦL on a bloom node.
+ *
+ * Optional healthBand and phiLState params added for M-22.2:
+ * - healthBand: persisted for band-crossing detection across runs
+ * - phiLState: JSON-serialised ring buffer for temporal stability
  */
-export async function updateBloomPhiL(bloomId, phiL, trend) {
+export async function updateBloomPhiL(bloomId, phiL, trend, healthBandValue, phiLStateJson) {
     await writeTransaction(async (tx) => {
         await tx.run(`MATCH (b:Bloom { id: $bloomId })
        SET b.phiL = $phiL,
            b.phiLTrend = $trend,
-           b.phiLComputedAt = datetime()`, { bloomId, phiL, trend });
+           b.phiLComputedAt = datetime()
+       WITH b
+       WHERE $healthBand IS NOT NULL
+       SET b.healthBand = $healthBand
+       WITH b
+       WHERE $phiLState IS NOT NULL
+       SET b.phiLState = $phiLState`, { bloomId, phiL, trend, healthBand: healthBandValue ?? null, phiLState: phiLStateJson ?? null });
     });
 }
 // ============ ATOMIC CREATION + STATUS DERIVATION (R-39) ============

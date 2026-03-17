@@ -28,7 +28,7 @@
 
 import type { SignalPipeline } from "../signals/SignalPipeline.js";
 import type { ConditionedSignal } from "../signals/types.js";
-import type { PhiL, PhiLFactors } from "../types/state-dimensions.js";
+import type { PhiL, PhiLFactors, PhiLState } from "../types/state-dimensions.js";
 import type { HealthBand, ThresholdEvent } from "../types/threshold-event.js";
 import { conditionValue } from "../computation/condition-value.js";
 import { healthBand, bandOrdinal } from "../computation/health-band.js";
@@ -81,6 +81,8 @@ export interface PatternHealthContext {
   degree: number;
   /** Neighbor map for cascade propagation (required only if algedonic path possible) */
   neighbors?: Map<string, PropagationNode>;
+  /** PhiLState ring buffer for temporal stability persistence (M-22.2) */
+  phiLState?: PhiLState;
 }
 
 /**
@@ -189,10 +191,23 @@ export async function writeObservation(
   }
 
   // Step 7: Update bloom's stored ΦL on the Bloom node
+  // M-22.2: also persist healthBand (for cross-run band-crossing detection)
+  // and updated PhiLState ring buffer (for temporal stability)
+  let updatedPhiLStateJson: string | undefined;
+  if (context.phiLState) {
+    // Push new effective value into ring buffer (immutable update)
+    const buf = [...context.phiLState.ringBuffer, phiL.effective];
+    if (buf.length > context.phiLState.maxSize) buf.shift();
+    const updatedState: PhiLState = { ...context.phiLState, ringBuffer: buf };
+    updatedPhiLStateJson = JSON.stringify(updatedState);
+  }
+
   await updateBloomPhiL(
     observation.sourceBloomId,
     phiL.effective,
     phiL.trend,
+    band,
+    updatedPhiLStateJson,
   );
 
   // Step 8: Algedonic cascade -- if ΦL < 0.1, propagate with full severity

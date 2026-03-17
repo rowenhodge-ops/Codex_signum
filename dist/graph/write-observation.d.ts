@@ -23,7 +23,7 @@
  */
 import type { SignalPipeline } from "../signals/SignalPipeline.js";
 import type { ConditionedSignal } from "../signals/types.js";
-import type { PhiL, PhiLFactors } from "../types/state-dimensions.js";
+import type { PhiL, PhiLFactors, PhiLState } from "../types/state-dimensions.js";
 import type { HealthBand, ThresholdEvent } from "../types/threshold-event.js";
 import type { PropagationNode, PropagationResult } from "../computation/dampening.js";
 import type { ObservationProps } from "./queries.js";
@@ -57,6 +57,8 @@ export interface PatternHealthContext {
     degree: number;
     /** Neighbor map for cascade propagation (required only if algedonic path possible) */
     neighbors?: Map<string, PropagationNode>;
+    /** PhiLState ring buffer for temporal stability persistence (M-22.2) */
+    phiLState?: PhiLState;
 }
 /**
  * Result of a writeObservation call.

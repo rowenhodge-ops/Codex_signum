@@ -66,7 +66,18 @@ export async function writeObservation(observation, pipeline, context) {
         thresholdEvent = await writeThresholdEvent(observation.sourceBloomId, context.previousBand, band, phiL.effective, context.maturityIndex);
     }
     // Step 7: Update bloom's stored ΦL on the Bloom node
-    await updateBloomPhiL(observation.sourceBloomId, phiL.effective, phiL.trend);
+    // M-22.2: also persist healthBand (for cross-run band-crossing detection)
+    // and updated PhiLState ring buffer (for temporal stability)
+    let updatedPhiLStateJson;
+    if (context.phiLState) {
+        // Push new effective value into ring buffer (immutable update)
+        const buf = [...context.phiLState.ringBuffer, phiL.effective];
+        if (buf.length > context.phiLState.maxSize)
+            buf.shift();
+        const updatedState = { ...context.phiLState, ringBuffer: buf };
+        updatedPhiLStateJson = JSON.stringify(updatedState);
+    }
+    await updateBloomPhiL(observation.sourceBloomId, phiL.effective, phiL.trend, band, updatedPhiLStateJson);
     // Step 8: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
     let cascadeResult = null;
     if (phiL.effective < ALGEDONIC_THRESHOLD &&

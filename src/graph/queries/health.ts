@@ -4,6 +4,11 @@
 
 import type { Record as Neo4jRecord } from "neo4j-driver";
 import { runQuery } from "../client.js";
+import type { PatternHealthContext } from "../write-observation.js";
+import type { PhiLState } from "../../types/state-dimensions.js";
+import { computeMaturityFactor } from "../../computation/maturity.js";
+import { computeUsageSuccessRate } from "../../computation/phi-l.js";
+import { healthBand } from "../../computation/health-band.js";
 
 // ============ PIPELINE ANALYTICS QUERIES ============
 
@@ -206,5 +211,135 @@ export async function getRunComparison(
   return {
     runA: extractRun(resultA.records[0]),
     runB: extractRun(resultB.records[0]),
+  };
+}
+
+// ============ M-22.2: PATTERN HEALTH CONTEXT ASSEMBLY ============
+
+/**
+ * Query the graph for all data needed to construct PatternHealthContext.
+ * This is the bridge between graph state and the ΦL computation chain.
+ *
+ * Returns null if the Bloom doesn't exist or has no observations yet
+ * (cold start — conditioning-only mode still works via the null check
+ * in writeObservation).
+ *
+ * V1 factor mapping:
+ *   axiomCompliance  = 1.0 (assume compliant until Assayer wired)
+ *   provenanceClarity = fraction of recent TaskOutputs with provenance fields
+ *   usageSuccessRate  = succeeded / total from TaskOutput nodes
+ *   temporalStability = computed from PhiLState ring buffer (persisted on Bloom)
+ */
+export async function assemblePatternHealthContext(
+  bloomId: string,
+): Promise<PatternHealthContext | null> {
+  // Single query: bloom properties + observation count + degree + children count + task success/total
+  const result = await runQuery(
+    `MATCH (b:Bloom { id: $bloomId })
+     OPTIONAL MATCH (o:Observation)-[:OBSERVED_IN]->(b)
+     WHERE o.retained = true
+     WITH b, count(o) AS obsCount
+     OPTIONAL MATCH (b)-[r]-()
+     WITH b, obsCount, count(r) AS connCount
+     OPTIONAL MATCH (b)-[:CONTAINS]->(child)
+     WITH b, obsCount, connCount, count(child) AS childCount
+     OPTIONAL MATCH (to:TaskOutput)-[:PRODUCED_BY]->(pr:PipelineRun)-[:EXECUTED_IN]->(b)
+     WITH b, obsCount, connCount, childCount,
+          count(to) AS totalTasks,
+          count(CASE WHEN to.status = 'succeeded' THEN 1 END) AS succeededTasks,
+          count(CASE WHEN to.modelUsed IS NOT NULL AND to.provider IS NOT NULL AND to.runId IS NOT NULL THEN 1 END) AS withProvenance
+     RETURN b.phiL AS phiL,
+            b.healthBand AS healthBand,
+            b.phiLState AS phiLState,
+            b.commitSha AS commitSha,
+            obsCount, connCount, childCount,
+            totalTasks, succeededTasks, withProvenance`,
+    { bloomId },
+    "READ",
+  );
+
+  if (result.records.length === 0) return null;
+
+  const rec = result.records[0];
+  const obsCount = Number(rec.get("obsCount"));
+  const connCount = Number(rec.get("connCount"));
+  const childCount = Number(rec.get("childCount"));
+  const totalTasks = Number(rec.get("totalTasks"));
+  const succeededTasks = Number(rec.get("succeededTasks"));
+  const withProvenance = Number(rec.get("withProvenance"));
+  const previousPhiL: number | undefined = rec.get("phiL") != null ? Number(rec.get("phiL")) : undefined;
+  const storedBand: string | null = rec.get("healthBand");
+  const phiLStateJson: string | null = rec.get("phiLState");
+  const commitSha: string | null = rec.get("commitSha");
+
+  // Cold start: no observations yet — return null for conditioning-only mode
+  if (obsCount === 0) return null;
+
+  // Deserialise PhiLState ring buffer (persisted as JSON on Bloom)
+  let phiLState: PhiLState | undefined;
+  if (phiLStateJson) {
+    try {
+      phiLState = JSON.parse(phiLStateJson) as PhiLState;
+    } catch {
+      // Corrupted state — will be re-created
+    }
+  }
+
+  // ── Factor computation (V1) ──────────────────────────────────────────
+
+  // axiomCompliance: V1 default = 1.0 (assume compliant until Assayer wired)
+  const axiomCompliance = 1.0;
+
+  // provenanceClarity: fraction of TaskOutputs with provenance fields present
+  // Also check if the Bloom itself has commitSha
+  let provenanceClarity: number;
+  if (totalTasks > 0) {
+    const bloomProvenance = commitSha != null ? 1 : 0;
+    // Weight: 80% task provenance + 20% bloom provenance
+    provenanceClarity = 0.8 * (withProvenance / totalTasks) + 0.2 * bloomProvenance;
+  } else {
+    provenanceClarity = commitSha != null ? 0.5 : 0.3; // Some credit for bloom-level provenance
+  }
+
+  // usageSuccessRate: from TaskOutput success/total
+  const usageSuccessRate = computeUsageSuccessRate(succeededTasks, totalTasks);
+
+  // temporalStability: from ring buffer if available, else 0.5 (moderate default)
+  let temporalStability = 0.5;
+  if (phiLState && phiLState.ringBuffer.length >= 2) {
+    const mean = phiLState.ringBuffer.reduce((a, b) => a + b, 0) / phiLState.ringBuffer.length;
+    const variance = phiLState.ringBuffer.reduce((sum, v) => sum + (v - mean) ** 2, 0) / phiLState.ringBuffer.length;
+    const MAX_EXPECTED_VARIANCE = 0.04;
+    temporalStability = Math.max(0, Math.min(1, 1 - variance / MAX_EXPECTED_VARIANCE));
+  }
+
+  // ── Maturity + topology ──────────────────────────────────────────────
+
+  const maturityIndex = computeMaturityFactor(obsCount, connCount);
+
+  // Topology role heuristic
+  const topologyRole: "hub" | "leaf" | "default" =
+    childCount > 5 ? "hub" : childCount <= 1 ? "leaf" : "default";
+
+  // Derive previousBand from stored value or from previousPhiL
+  let previousBand = storedBand as PatternHealthContext["previousBand"];
+  if (!previousBand && previousPhiL !== undefined) {
+    previousBand = healthBand(previousPhiL, maturityIndex);
+  }
+
+  return {
+    factors: {
+      axiomCompliance,
+      provenanceClarity,
+      usageSuccessRate,
+      temporalStability,
+    },
+    observationCount: obsCount,
+    connectionCount: connCount,
+    previousPhiL,
+    previousBand,
+    maturityIndex,
+    topologyRole,
+    degree: childCount,
   };
 }

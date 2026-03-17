@@ -31,6 +31,8 @@ ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPi
 getPipelineStageHealth, getPipelineRunStats, 
 // Pipeline Lifecycle Extensions (M-9.5)
 failPipelineRun, updateTaskOutputQuality, getTaskOutput, linkDecisionToPipelineRun, getDecisionsForRun, getCompactionHistory, getModelPerformance, getStagePerformance, getRunComparison, 
+// M-22.2: Pattern health context assembly
+assemblePatternHealthContext, 
 // Topology
 getBloomDegree, getBloomAdjacency, getBloomsWithHealth, updateBloomPhiL, 
 // Ecosystem queries (M-9.8)

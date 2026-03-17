@@ -35,6 +35,7 @@ import {
 import { writeObservation } from "../src/graph/write-observation.js";
 import { SignalPipeline } from "../src/signals/SignalPipeline.js";
 import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
+import { assemblePatternHealthContext } from "../src/graph/queries/health.js";
 
 // ── Pre-flight checks ──────────────────────────────────────────────────────
 
@@ -793,8 +794,15 @@ export function createBootstrapTaskExecutor(
             }
 
             // Record Observation with inline 7-stage signal conditioning (M-22.1)
+            // + ΦL recomputation when context is available (M-22.2)
             if (config.architectBloomId) {
               try {
+                // M-22.2: assemble PatternHealthContext from graph state
+                // Cold start → null → conditioning-only (M-22.1 behaviour preserved)
+                // Warm state → context assembled → full ΦL chain runs
+                const healthContext = await assemblePatternHealthContext(config.architectBloomId)
+                  .catch(() => null);
+
                 const obsResult = await writeObservation(
                   {
                     id: `obs_${taskOutputId}`,
@@ -804,10 +812,13 @@ export function createBootstrapTaskExecutor(
                     context: `${currentRunId}/${task.task_id}`,
                   },
                   signalPipeline,
-                  // No PatternHealthContext — conditioning only (ΦL recomputation is M-22.2)
+                  healthContext ?? undefined,
                 );
                 if (obsResult.conditioned.alerts.length > 0) {
                   console.log(`     [SIGNAL] ${obsResult.conditioned.alerts.length} alert(s): ${obsResult.conditioned.alerts.map(a => a.message).join("; ")}`);
+                }
+                if (obsResult.phiL) {
+                  console.log(`     [PHI-L] ΦL=${obsResult.phiL.effective.toFixed(3)} (${obsResult.phiL.trend}) band=${obsResult.band}`);
                 }
               } catch (err4) {
                 console.warn(`     [GRAPH] ⚠️  Failed to write Observation: ${err4 instanceof Error ? err4.message : err4}`);
@@ -915,9 +926,12 @@ export function createBootstrapTaskExecutor(
               }
             }
 
-            // Write failure Observation with inline conditioning (M-22.1)
+            // Write failure Observation with inline conditioning (M-22.1 + M-22.2)
             if (config.architectBloomId) {
               try {
+                const healthContext = await assemblePatternHealthContext(config.architectBloomId)
+                  .catch(() => null);
+
                 await writeObservation(
                   {
                     id: `obs_${currentRunId}_${task.task_id}`,
@@ -927,6 +941,7 @@ export function createBootstrapTaskExecutor(
                     context: `${currentRunId}/${task.task_id}`,
                   },
                   signalPipeline,
+                  healthContext ?? undefined,
                 );
               } catch {
                 // Swallow — already in error path

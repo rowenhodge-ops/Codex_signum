@@ -94,6 +94,8 @@ export {
   getModelPerformance,
   getStagePerformance,
   getRunComparison,
+  // M-22.2: Pattern health context assembly
+  assemblePatternHealthContext,
   // Topology
   getBloomDegree,
   getBloomAdjacency,
