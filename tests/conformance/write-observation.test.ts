@@ -190,6 +190,15 @@ vi.mock("../../src/graph/queries.js", () => ({
   updateObservationConditioned: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock hierarchical-health to prevent propagatePhiLUpward from calling real graph queries
+vi.mock("../../src/computation/hierarchical-health.js", async (importOriginal) => {
+  const original = await importOriginal() as Record<string, unknown>;
+  return {
+    ...original,
+    propagatePhiLUpward: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 vi.mock("../../src/graph/client.js", () => ({
   writeTransaction: vi.fn().mockImplementation(async (fn: Function) => {
     const mockTx = {

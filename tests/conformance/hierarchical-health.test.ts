@@ -9,16 +9,16 @@
  * Full integration tests require a live Neo4j connection.
  *
  * These tests verify the pure helper functions and the structural contract.
- * @future(M-9.V) tests assert the full v4.3 spec vertical compute flow:
+ * @future(M-22.5) tests assert the full v5.0 spec vertical compute flow:
  *   raw observations → signal conditioning → 4-factor ΦL → topology-aware
  *   dampening → cascade-limited aggregation → system health.
  *
- * @see codex-signum-v4_3-draft.md §Formal Calculations, §Degradation Cascade Mechanics
- * @see engineering-bridge-v2.0.md §Part 2 "Hierarchical Aggregation"
+ * @see cs-v5.0.md §Formal Calculations, §Degradation Cascade Mechanics
+ * @see codex-signum-engineering-bridge-v3_0.md §Part 2 "Hierarchical Aggregation"
  */
 import { describe, expect, it, vi } from "vitest";
 import { aggregateHealth } from "../../src/computation/aggregation.js";
-import type { AggregateHealth, ChildHealth } from "../../src/computation/aggregation.js";
+import type { ChildHealth } from "../../src/computation/aggregation.js";
 import { computeGammaEffective, SAFETY_BUDGET, CASCADE_LIMIT } from "../../src/computation/dampening.js";
 
 // ── Pure computation (aggregateHealth from aggregation.ts) ─────────────────
@@ -63,8 +63,8 @@ describe("aggregateHealth — pure function underneath hierarchical walk", () =>
   });
 });
 
-// ── @future(M-9.V): Vertical Compute Flow ────────────────────────────────
-// These tests assert the v4.3 spec contracts for the full health hierarchy.
+// ── @future(M-22.5): Vertical Compute Flow ────────────────────────────────
+// These tests assert the v5.0 spec contracts for the full health hierarchy.
 // They are expected to FAIL until M-9.V wires the vertical compute stack.
 //
 // The spec requires (v4.3 §Formal Calculations, §Degradation Cascade):
@@ -77,7 +77,7 @@ describe("aggregateHealth — pure function underneath hierarchical walk", () =>
 // 5. Hysteresis: recovery = degradation rate / 2.5
 // 6. Aggregation: node → pattern → bloom → system (bottom-up)
 
-describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => {
+describe("computeHierarchicalHealth — @future(M-22.5) vertical compute", () => {
   // Mock the graph queries module to provide controlled topology
   vi.mock("../../src/graph/queries.js", () => ({
     getPatternsWithHealth: vi.fn().mockResolvedValue([
@@ -108,7 +108,7 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     getPatternAdjacency: vi.fn().mockResolvedValue([]),
   }));
 
-  it("@future(M-9.V) bottom-up walk computes deepest containers first", async () => {
+  it("@future(M-22.5) bottom-up walk computes deepest containers first", async () => {
     const { computeHierarchicalHealth } = await import(
       "../../src/computation/hierarchical-health.js"
     );
@@ -122,13 +122,13 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     expect(bloomHealth.level).toBeGreaterThan(results.get("pattern-alpha")!.level);
   });
 
-  it("@future(M-9.V) health includes 4-factor ΦL decomposition with maturity modifier", async () => {
+  it("@future(M-22.5) health includes 4-factor ΦL decomposition with maturity modifier", async () => {
     const { computeHierarchicalHealth } = await import(
       "../../src/computation/hierarchical-health.js"
     );
     const results = await computeHierarchicalHealth();
 
-    // v4.3 spec: ΦL = w₁×axiom_compliance + w₂×provenance_clarity +
+    // v5.0 spec: ΦL = w₁×axiom_compliance + w₂×provenance_clarity +
     //   w₃×usage_success_rate + w₄×temporal_stability
     // ΦL_effective = ΦL_raw × maturity_factor
     // maturity_factor = (1 - e^(-k₁ × observations)) × (1 - e^(-k₂ × connections))
@@ -136,15 +136,7 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     // The AggregateHealth result MUST include the 4-factor decomposition
     // and maturity modifier — not just a bare phiL_effective number.
     // This is the primary vertical compute gap.
-    const patternHealth = results.get("pattern-alpha")! as AggregateHealth & {
-      phiL_factors?: {
-        axiom_compliance: number;
-        provenance_clarity: number;
-        usage_success_rate: number;
-        temporal_stability: number;
-      };
-      maturity_factor?: number;
-    };
+    const patternHealth = results.get("pattern-alpha")!;
 
     // Per spec: aggregate health MUST carry the 4-factor decomposition
     expect(patternHealth.phiL_factors).toBeDefined();
@@ -159,13 +151,13 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     expect(patternHealth.maturity_factor!).toBeLessThanOrEqual(1);
   });
 
-  it("@future(M-9.V) aggregation applies topology-aware dampening to propagation", async () => {
+  it("@future(M-22.5) aggregation applies topology-aware dampening to propagation", async () => {
     const { computeHierarchicalHealth } = await import(
       "../../src/computation/hierarchical-health.js"
     );
     const results = await computeHierarchicalHealth();
 
-    // v4.3 spec: impact_at_container = component_ΦL_drop × weight × γ_effective(k)
+    // v5.0 spec: impact_at_container = component_ΦL_drop × weight × γ_effective(k)
     // γ_effective = min(γ_base, safety_budget / k)
     // For pattern-alpha with k=2: γ = min(0.7, 0.8/2) = 0.4
     //
@@ -174,10 +166,7 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     // With seed-1 (ΦL=0.9) and seed-2 (ΦL=0.3), raw mean = 0.6.
     // With dampening, the degradation from seed-2 should be attenuated:
     // The dampened result should differ from the raw mean.
-    const patternHealth = results.get("pattern-alpha")! as AggregateHealth & {
-      dampening_applied?: boolean;
-      gamma_effective?: number;
-    };
+    const patternHealth = results.get("pattern-alpha")!;
 
     // Per spec: aggregation must track that dampening was applied
     expect(patternHealth.dampening_applied).toBe(true);
@@ -185,8 +174,8 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     expect(patternHealth.gamma_effective).toBeCloseTo(0.4, 2);
   });
 
-  it("@future(M-9.V) cascade limit enforced: propagation stops at depth 2", async () => {
-    // v4.3 spec: CASCADE_LIMIT = 2
+  it("@future(M-22.5) cascade limit enforced: propagation stops at depth 2", async () => {
+    // v5.0 spec: CASCADE_LIMIT = 2
     expect(CASCADE_LIMIT).toBe(2);
 
     // Verify the dampening formula guarantees subcriticality for all k
@@ -203,16 +192,14 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
       "../../src/computation/hierarchical-health.js"
     );
     const results = await computeHierarchicalHealth();
-    const bloomHealth = results.get("bloom-core")! as AggregateHealth & {
-      cascade_depth?: number;
-    };
+    const bloomHealth = results.get("bloom-core")!;
 
     // Per spec: cascade depth must be tracked and limited
     expect(bloomHealth.cascade_depth).toBeDefined();
     expect(bloomHealth.cascade_depth!).toBeLessThanOrEqual(CASCADE_LIMIT);
   });
 
-  it("@future(M-9.V) leaf node health includes signal-conditioned ΦL", async () => {
+  it("@future(M-22.5) leaf node health includes signal-conditioned ΦL", async () => {
     const { computeHierarchicalHealth } = await import(
       "../../src/computation/hierarchical-health.js"
     );
@@ -223,9 +210,7 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     // Currently: leaf health is stored phiL from getPatternsWithHealth()
     // which is the qualityScore proxy. Real vertical compute requires
     // raw observations → 7-stage signal conditioning → 4-factor ΦL.
-    const seed1 = results.get("seed-1")! as AggregateHealth & {
-      signal_conditioned?: boolean;
-    };
+    const seed1 = results.get("seed-1")!;
 
     expect(seed1).toBeDefined();
     expect(seed1.phiL_effective).toBeGreaterThanOrEqual(0);
@@ -233,7 +218,7 @@ describe("computeHierarchicalHealth — @future(M-9.V) vertical compute", () => 
     expect(seed1.signal_conditioned).toBe(true);
   });
 
-  it("@future(M-9.V) empty graph returns empty map", async () => {
+  it("@future(M-22.5) empty graph returns empty map", async () => {
     // Override mocks for this test
     const queries = await import("../../src/graph/queries.js");
     vi.mocked(queries.getPatternsWithHealth).mockResolvedValueOnce([]);

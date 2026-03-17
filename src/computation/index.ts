@@ -82,7 +82,12 @@ export { aggregateHealth, weightedMean } from "./aggregation.js";
 export type { AggregateHealth, ChildHealth, SubgraphInput } from "./aggregation.js";
 
 // Hierarchical health
-export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
+export {
+  computeHierarchicalHealth,
+  computeSystemHealth,
+  propagatePhiLUpward,
+  PHI_L_PROPAGATION_NOISE_GATE,
+} from "./hierarchical-health.js";
 
 // Structural triggers
 export {

@@ -10,6 +10,23 @@ export interface AggregateHealth {
     constituentCount: number;
     /** Level in the hierarchy (0 = leaf) */
     level: number;
+    /** 4-factor ΦL decomposition (aggregated from children or read from leaf) */
+    phiL_factors?: {
+        axiom_compliance: number;
+        provenance_clarity: number;
+        usage_success_rate: number;
+        temporal_stability: number;
+    };
+    /** Maturity modifier applied to ΦL (from computeMaturityFactor) */
+    maturity_factor?: number;
+    /** Whether topology-aware dampening was applied during aggregation */
+    dampening_applied?: boolean;
+    /** Effective dampening factor γ_effective = min(0.7, 0.8/k) */
+    gamma_effective?: number;
+    /** Cascade depth in the containment hierarchy */
+    cascade_depth?: number;
+    /** Whether leaf ΦL comes from signal-conditioned observations */
+    signal_conditioned?: boolean;
 }
 /**
  * Input for a single child in the aggregation.

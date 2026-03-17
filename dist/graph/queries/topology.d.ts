@@ -21,6 +21,15 @@ export declare function getContainmentTree(rootId: string): Promise<{
     allNodes: string[];
 }>;
 /**
+ * Get the parent Bloom of a given node via CONTAINS edge.
+ * Returns null if the node has no parent (i.e., it is a root).
+ */
+export declare function getParentBloom(childId: string): Promise<{
+    id: string;
+    phiL: number;
+    degree: number;
+} | null>;
+/**
  * Get edges WITHIN a container's subgraph (for ΨH computation at that level).
  * Returns only edges where both endpoints are children of the container.
  */

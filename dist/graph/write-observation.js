@@ -5,6 +5,7 @@ import { conditionValue } from "../computation/condition-value.js";
 import { healthBand, bandOrdinal } from "../computation/health-band.js";
 import { computePhiL } from "../computation/phi-l.js";
 import { ALGEDONIC_THRESHOLD, propagateDegradation, } from "../computation/dampening.js";
+import { propagatePhiLUpward, PHI_L_PROPAGATION_NOISE_GATE, } from "../computation/hierarchical-health.js";
 import { recordObservation, updateBloomPhiL, updateObservationConditioned, } from "./queries.js";
 import { writeTransaction } from "./client.js";
 // ============ CORE FUNCTION ============
@@ -78,6 +79,13 @@ export async function writeObservation(observation, pipeline, context) {
         updatedPhiLStateJson = JSON.stringify(updatedState);
     }
     await updateBloomPhiL(observation.sourceBloomId, phiL.effective, phiL.trend, band, updatedPhiLStateJson);
+    // Step 7b: Propagate ΦL change upward through containment hierarchy (M-22.5)
+    if (context.previousPhiL !== undefined) {
+        const delta = Math.abs(phiL.effective - context.previousPhiL);
+        if (delta > PHI_L_PROPAGATION_NOISE_GATE) {
+            await propagatePhiLUpward(observation.sourceBloomId, context.previousPhiL, phiL.effective);
+        }
+    }
     // Step 8: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
     let cascadeResult = null;
     if (phiL.effective < ALGEDONIC_THRESHOLD &&

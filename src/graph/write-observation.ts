@@ -37,6 +37,10 @@ import {
   ALGEDONIC_THRESHOLD,
   propagateDegradation,
 } from "../computation/dampening.js";
+import {
+  propagatePhiLUpward,
+  PHI_L_PROPAGATION_NOISE_GATE,
+} from "../computation/hierarchical-health.js";
 import type {
   PropagationNode,
   PropagationResult,
@@ -209,6 +213,18 @@ export async function writeObservation(
     band,
     updatedPhiLStateJson,
   );
+
+  // Step 7b: Propagate ΦL change upward through containment hierarchy (M-22.5)
+  if (context.previousPhiL !== undefined) {
+    const delta = Math.abs(phiL.effective - context.previousPhiL);
+    if (delta > PHI_L_PROPAGATION_NOISE_GATE) {
+      await propagatePhiLUpward(
+        observation.sourceBloomId,
+        context.previousPhiL,
+        phiL.effective,
+      );
+    }
+  }
 
   // Step 8: Algedonic cascade -- if ΦL < 0.1, propagate with full severity
   let cascadeResult: PropagationResult | null = null;

@@ -92,6 +92,33 @@ export async function getContainmentTree(
 }
 
 /**
+ * Get the parent Bloom of a given node via CONTAINS edge.
+ * Returns null if the node has no parent (i.e., it is a root).
+ */
+export async function getParentBloom(
+  childId: string,
+): Promise<{ id: string; phiL: number; degree: number } | null> {
+  const result = await runQuery(
+    `MATCH (parent:Bloom)-[:CONTAINS]->(child {id: $childId})
+     OPTIONAL MATCH (parent)-[r]-()
+     WITH parent, count(r) AS degree
+     RETURN parent.id AS id,
+            coalesce(parent.phiL, 0.5) AS phiL,
+            degree
+     LIMIT 1`,
+    { childId },
+    "READ",
+  );
+  if (result.records.length === 0) return null;
+  const rec = result.records[0];
+  return {
+    id: rec.get("id"),
+    phiL: rec.get("phiL"),
+    degree: rec.get("degree"),
+  };
+}
+
+/**
  * Get edges WITHIN a container's subgraph (for ΨH computation at that level).
  * Returns only edges where both endpoints are children of the container.
  */

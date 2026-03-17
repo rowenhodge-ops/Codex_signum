@@ -21,7 +21,7 @@ export { computeNetworkState, computePatternState, } from "./signal-conditioning
 // Aggregation
 export { aggregateHealth, weightedMean } from "./aggregation.js";
 // Hierarchical health
-export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
+export { computeHierarchicalHealth, computeSystemHealth, propagatePhiLUpward, PHI_L_PROPAGATION_NOISE_GATE, } from "./hierarchical-health.js";
 // Structural triggers
 export { checkStructuralTriggers, checkLambda2Drop, checkFrictionSpike, checkCascadeActivation, checkEpsilonRSpike, checkPhiLVelocityAnomaly, checkOmegaGradientInversion, } from "./structural-triggers.js";
 // Structural review

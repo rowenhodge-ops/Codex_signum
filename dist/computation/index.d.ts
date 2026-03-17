@@ -14,7 +14,7 @@ export { computeNetworkState, computePatternState, } from "./signal-conditioning
 export type { NetworkStateResult, PatternSignalInput, PatternStateResult, } from "./signal-conditioning.js";
 export { aggregateHealth, weightedMean } from "./aggregation.js";
 export type { AggregateHealth, ChildHealth, SubgraphInput } from "./aggregation.js";
-export { computeHierarchicalHealth, computeSystemHealth } from "./hierarchical-health.js";
+export { computeHierarchicalHealth, computeSystemHealth, propagatePhiLUpward, PHI_L_PROPAGATION_NOISE_GATE, } from "./hierarchical-health.js";
 export { checkStructuralTriggers, checkLambda2Drop, checkFrictionSpike, checkCascadeActivation, checkEpsilonRSpike, checkPhiLVelocityAnomaly, checkOmegaGradientInversion, } from "./structural-triggers.js";
 export type { TriggerInputState, TriggeredEvent } from "./structural-triggers.js";
 export { runStructuralReview, computeGlobalLambda2, computeSpectralGap, computeHubDependencies, computeFrictionDistribution, assessDampening, } from "./structural-review.js";
