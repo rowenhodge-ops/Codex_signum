@@ -6,7 +6,7 @@
  *
  * @module codex-signum-core/graph
  */
-export { getDriver, getSession, closeDriver, runQuery, writeTransaction, readTransaction, healthCheck, } from "./client.js";
+export { getDriver, getSession, closeDriver, runQuery, writeTransaction, readTransaction, healthCheck, validateNeo4jEnv, } from "./client.js";
 export { migrateSchema, verifySchema, seedConstitutionalRules, RELATIONSHIP_TYPES, } from "./schema.js";
 export { 
 // Seeds (formerly Agents)

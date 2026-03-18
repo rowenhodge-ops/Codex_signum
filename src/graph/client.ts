@@ -6,14 +6,13 @@
  * Codex Signum — Neo4j Graph Client
  *
  * Singleton driver, session management, and query helpers.
- * Adapted from legacy agent/config/neo4jClient.ts but decoupled
- * from DND-Manager specifics.
+ * Substrate-agnostic — no consumer-specific dependencies.
  *
- * Environment variables:
+ * Environment variables (ALL required — no defaults):
  *   NEO4J_URI      — bolt+s:// or neo4j+s:// URI
- *   NEO4J_USER     — Username (default: "neo4j")
+ *   NEO4J_USER     — Username (NOT NEO4J_USERNAME)
  *   NEO4J_PASSWORD — Password
- *   NEO4J_DATABASE — Database name (default: "neo4j")
+ *   NEO4J_DATABASE — Database name (required for AuraDB — no default)
  *
  * @module codex-signum-core/graph/client
  */
@@ -50,25 +49,55 @@ function loadEnv(): void {
 }
 
 /**
+ * Validate that all required Neo4j env vars are present.
+ * Called lazily inside getDriver() — NOT at module scope.
+ * Detects the recurring NEO4J_USERNAME vs NEO4J_USER mistake.
+ */
+export function validateNeo4jEnv(): void {
+  // Detect the specific recurring mistake FIRST
+  if (process.env.NEO4J_USERNAME && !process.env.NEO4J_USER) {
+    throw new Error(
+      "Found NEO4J_USERNAME but the correct var name is NEO4J_USER (not NEO4J_USERNAME).\n" +
+        "See docs/NEO4J_CONNECTION.md for the correct export command.",
+    );
+  }
+
+  const required = [
+    "NEO4J_URI",
+    "NEO4J_USER",
+    "NEO4J_PASSWORD",
+    "NEO4J_DATABASE",
+  ];
+  const missing = required.filter((v) => !process.env[v]?.trim());
+
+  if (missing.length > 0) {
+    const lines = [
+      `Neo4j connection requires env vars: ${required.join(", ")}`,
+      `Missing: ${missing.join(", ")}`,
+      "",
+      "IMPORTANT: The user var is NEO4J_USER (not NEO4J_USERNAME).",
+      "",
+      "Export from .env (see docs/NEO4J_CONNECTION.md for the full command):",
+      '  eval "$(grep -E \'^(NEO4J_URI|NEO4J_USER|NEO4J_PASSWORD|NEO4J_DATABASE)=\' path/to/.env | tr -d \'\\r\' | sed \'s/^/export /\')"',
+      "",
+      "See docs/NEO4J_CONNECTION.md for details.",
+    ];
+    throw new Error(lines.join("\n"));
+  }
+}
+
+/**
  * Resolve Neo4j connection config from environment.
  */
 export function getConfig(): Neo4jConfig {
   loadEnv();
-
-  const uri = process.env.NEO4J_URI?.trim();
-  const password = process.env.NEO4J_PASSWORD?.trim();
-
-  if (!uri || !password) {
-    throw new Error(
-      "Neo4j configuration missing. Set NEO4J_URI and NEO4J_PASSWORD in .env or environment.",
-    );
-  }
+  validateNeo4jEnv();
 
   return {
-    uri,
-    user: process.env.NEO4J_USER?.trim() || "neo4j",
-    password,
-    database: process.env.NEO4J_DATABASE?.trim() || "neo4j",
+    uri: process.env.NEO4J_URI!.trim(),
+    user: process.env.NEO4J_USER!.trim(),
+    password: process.env.NEO4J_PASSWORD!.trim(),
+    database: process.env.NEO4J_DATABASE!.trim(),
   };
 }
 

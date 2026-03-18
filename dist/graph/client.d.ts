@@ -6,6 +6,12 @@ export interface Neo4jConfig {
     database: string;
 }
 /**
+ * Validate that all required Neo4j env vars are present.
+ * Called lazily inside getDriver() — NOT at module scope.
+ * Detects the recurring NEO4J_USERNAME vs NEO4J_USER mistake.
+ */
+export declare function validateNeo4jEnv(): void;
+/**
  * Resolve Neo4j connection config from environment.
  */
 export declare function getConfig(): Neo4jConfig;

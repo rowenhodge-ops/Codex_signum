@@ -16,6 +16,7 @@ export {
   writeTransaction,
   readTransaction,
   healthCheck,
+  validateNeo4jEnv,
 } from "./client.js";
 export {
   migrateSchema,
