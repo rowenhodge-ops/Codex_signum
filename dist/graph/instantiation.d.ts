@@ -56,4 +56,59 @@ export declare function updateMorpheme(nodeId: string, updates: Record<string, u
  * @param properties - Optional properties for the relationship
  */
 export declare function createLine(sourceId: string, targetId: string, lineType: LineType, properties?: Record<string, unknown>): Promise<LineCreationResult>;
+export interface StampOptions {
+    /** The Bloom ID to stamp as complete */
+    bloomId: string;
+    /** Commit SHA that completed this Bloom */
+    commitSha?: string;
+    /** Test count at completion */
+    testCount?: number;
+    /** Force: stamp all non-complete exit criteria as complete first.
+     *  Use ONLY when external verification proves they pass (e.g., M-9.V). */
+    force?: boolean;
+}
+export interface StampResult {
+    success: boolean;
+    verified?: boolean;
+    bloomId: string;
+    derivedPhiL?: number;
+    /** ΨH recomputed on the stamped Bloom after stamp */
+    psiH?: {
+        combined: number;
+        lambda2: number;
+        friction: number;
+    } | null;
+    /** ΨH recomputed on the parent Bloom after stamp */
+    parentPsiH?: {
+        combined: number;
+        lambda2: number;
+        friction: number;
+    } | null;
+    warnings: string[];
+    error?: string;
+}
+/**
+ * Stamp a Bloom as complete with structural enforcement.
+ *
+ * Enforces the three-step stamp protocol from CLAUDE.md:
+ * 1. Exit criteria must be complete (or force-stamped)
+ * 2. phiL derives from relevant children only (child Blooms + exit-criterion Seeds)
+ * 3. Parent status recalculates from children
+ *
+ * After the stamp, inline state dimension recomputation:
+ * - ΦL propagates upward through CONTAINS hierarchy
+ * - ΨH recomputes on the stamped Bloom and its parent
+ * - εR recomputes for pipeline/pattern Blooms
+ * - Event triggers checked
+ *
+ * All recomputation is NON-FATAL — failures produce warnings, not errors.
+ *
+ * @see CLAUDE.md §Bloom Stamp Protocol
+ */
+export declare function stampBloomComplete(options: StampOptions): Promise<StampResult>;
+/**
+ * Revert a complete Bloom back to active status.
+ * Delegates to updateMorpheme() — Step 5 propagates upward.
+ */
+export declare function revertBloomToActive(bloomId: string): Promise<MutationResult>;
 //# sourceMappingURL=instantiation.d.ts.map

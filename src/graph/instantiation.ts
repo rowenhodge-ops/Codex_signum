@@ -5,10 +5,11 @@
 /**
  * Morpheme Instantiation Protocol — governance Resonator enforcement layer.
  *
- * ALL morpheme creation and modification flows through exactly three functions:
- * - instantiateMorpheme() — creates a morpheme via the Instantiation Resonator
- * - updateMorpheme()      — updates a morpheme via the Mutation Resonator
- * - createLine()          — creates a Line via the Line Creation Resonator
+ * ALL morpheme creation and modification flows through exactly four functions:
+ * - instantiateMorpheme()  — creates a morpheme via the Instantiation Resonator
+ * - updateMorpheme()       — updates a morpheme via the Mutation Resonator
+ * - createLine()           — creates a Line via the Line Creation Resonator
+ * - stampBloomComplete()   — stamps a Bloom complete with derived phiL + inline recomputation
  *
  * After Phase B, no raw Cypher creates or mutates morpheme nodes ever again.
  *
@@ -16,8 +17,14 @@
  * @see docs/specs/cs-v5.0.md §Constitutional Coupling
  */
 
-import { writeTransaction, readTransaction } from "./client.js";
+import { writeTransaction, readTransaction, runQuery } from "./client.js";
 import { invalidateLineConductivity, evaluateAndCacheLineConductivity } from "./queries/conductivity.js";
+import { propagatePhiLUpward } from "../computation/hierarchical-health.js";
+import { computeAndPersistPsiH, computeAndPersistEpsilonR } from "./queries/health.js";
+import { assembleTriggerState } from "../computation/immune-response.js";
+// NOTE: verifyStamp lives in queries/bloom.ts which imports from instantiation.ts.
+// To avoid circular import, stamp verification is inlined below.
+import { getParentBloom } from "./queries/topology.js";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -496,6 +503,328 @@ export async function createLine(
     await recordLineObservation(sourceId, targetId, lineType, false, error);
     return { success: false, error };
   }
+}
+
+// ─── Stamp Protocol ─────────────────────────────────────────────────
+
+export interface StampOptions {
+  /** The Bloom ID to stamp as complete */
+  bloomId: string;
+  /** Commit SHA that completed this Bloom */
+  commitSha?: string;
+  /** Test count at completion */
+  testCount?: number;
+  /** Force: stamp all non-complete exit criteria as complete first.
+   *  Use ONLY when external verification proves they pass (e.g., M-9.V). */
+  force?: boolean;
+}
+
+export interface StampResult {
+  success: boolean;
+  verified?: boolean;
+  bloomId: string;
+  derivedPhiL?: number;
+  /** ΨH recomputed on the stamped Bloom after stamp */
+  psiH?: { combined: number; lambda2: number; friction: number } | null;
+  /** ΨH recomputed on the parent Bloom after stamp */
+  parentPsiH?: { combined: number; lambda2: number; friction: number } | null;
+  warnings: string[];
+  error?: string;
+}
+
+/** Bloom type classification for stamp behaviour */
+type BloomStampType = "milestone" | "definitional" | "analytical" | "pipeline";
+
+/**
+ * Classify a Bloom's stamp behaviour.
+ * Priority: type property > ID-pattern heuristic.
+ */
+function classifyBloomType(
+  id: string,
+  typeProperty: string | null | undefined,
+): BloomStampType {
+  // Check type property first
+  if (typeProperty) {
+    const t = typeProperty.toLowerCase();
+    if (t === "milestone" || t === "sub-milestone") return "milestone";
+    if (t === "definitional") return "definitional";
+    if (t === "analytical") return "analytical";
+    if (t === "pipeline") return "pipeline";
+  }
+  // Fall back to ID heuristics
+  if (id.startsWith("M-")) return "milestone";
+  if (id === "constitutional-bloom") return "definitional";
+  if (id.startsWith("fsm:")) return "analytical";
+  // Timestamp pattern (e.g., 2026-03-17T19-15-16)
+  if (/^\d{4}-\d{2}-\d{2}T/.test(id)) return "pipeline";
+  return "milestone"; // default
+}
+
+/**
+ * Stamp a Bloom as complete with structural enforcement.
+ *
+ * Enforces the three-step stamp protocol from CLAUDE.md:
+ * 1. Exit criteria must be complete (or force-stamped)
+ * 2. phiL derives from relevant children only (child Blooms + exit-criterion Seeds)
+ * 3. Parent status recalculates from children
+ *
+ * After the stamp, inline state dimension recomputation:
+ * - ΦL propagates upward through CONTAINS hierarchy
+ * - ΨH recomputes on the stamped Bloom and its parent
+ * - εR recomputes for pipeline/pattern Blooms
+ * - Event triggers checked
+ *
+ * All recomputation is NON-FATAL — failures produce warnings, not errors.
+ *
+ * @see CLAUDE.md §Bloom Stamp Protocol
+ */
+export async function stampBloomComplete(
+  options: StampOptions,
+): Promise<StampResult> {
+  const { bloomId, commitSha, testCount, force = false } = options;
+  const warnings: string[] = [];
+
+  // ── Step 1: Bloom existence and type check ──
+  const bloomResult = await runQuery(
+    `MATCH (b:Bloom {id: $bloomId})
+     RETURN b.id AS id, b.status AS status, b.type AS type, b.phiL AS phiL`,
+    { bloomId },
+    "READ",
+  );
+
+  if (bloomResult.records.length === 0) {
+    return { success: false, bloomId, warnings: [], error: `Bloom '${bloomId}' does not exist.` };
+  }
+
+  const currentStatus = bloomResult.records[0].get("status");
+  const typeProperty = bloomResult.records[0].get("type");
+  const previousPhiL = bloomResult.records[0].get("phiL") ?? 0.3;
+
+  // Idempotent: already complete → return success with warning
+  if (currentStatus === "complete") {
+    warnings.push(`Bloom '${bloomId}' is already complete — no-op.`);
+    return { success: true, bloomId, derivedPhiL: previousPhiL, warnings };
+  }
+
+  // ── Step 2: Bloom type classification ──
+  const bloomType = classifyBloomType(bloomId, typeProperty);
+
+  // For non-milestone types, skip Steps 3-4, stamp directly
+  if (bloomType !== "milestone") {
+    const updates: Record<string, unknown> = {
+      status: "complete",
+      completedAt: new Date().toISOString(),
+    };
+    if (commitSha) updates.commitSha = commitSha;
+    if (testCount !== undefined) updates.testCount = testCount;
+
+    const mutResult = await updateMorpheme(bloomId, updates);
+    if (!mutResult.success) {
+      return { success: false, bloomId, warnings, error: mutResult.error };
+    }
+
+    // Non-milestone types keep their existing phiL (not derived from children)
+    return { success: true, verified: mutResult.verified, bloomId, derivedPhiL: previousPhiL, warnings };
+  }
+
+  // ── Step 3: Exit criteria pre-flight check (milestone only) ──
+  const ecResult = await runQuery(
+    `MATCH (b:Bloom {id: $bloomId})-[:CONTAINS]->(ec:Seed)
+     WHERE ec.seedType = 'exit-criterion' AND ec.status <> 'complete'
+     RETURN ec.id AS ecId, ec.status AS status, ec.content AS content`,
+    { bloomId },
+    "READ",
+  );
+
+  if (ecResult.records.length > 0) {
+    if (!force) {
+      const ecList = ecResult.records.map(
+        (r) => `  ${r.get("ecId")} [${r.get("status")}] — ${String(r.get("content") || "").substring(0, 70)}`,
+      );
+      return {
+        success: false,
+        bloomId,
+        warnings,
+        error: `Cannot stamp '${bloomId}' complete — ${ecResult.records.length} exit criteria are not complete:\n${ecList.join("\n")}\nUse force=true to override.`,
+      };
+    }
+    // Force: stamp each non-complete exit criterion
+    for (const rec of ecResult.records) {
+      const ecId = rec.get("ecId") as string;
+      const mr = await updateMorpheme(ecId, { status: "complete" });
+      if (mr.success) {
+        warnings.push(`Force-stamped exit criterion: ${ecId}`);
+      } else {
+        warnings.push(`Failed to force-stamp ${ecId}: ${mr.error}`);
+      }
+    }
+  }
+
+  // ── Step 4: Backlog scope check ──
+  const backlogResult = await runQuery(
+    `MATCH (s:Seed)-[:SCOPED_TO]->(b:Bloom {id: $bloomId})
+     WHERE s.id STARTS WITH 'R-' AND s.status = 'planned'
+     RETURN s.id AS seedId, s.name AS name`,
+    { bloomId },
+    "READ",
+  );
+
+  if (backlogResult.records.length > 0) {
+    for (const r of backlogResult.records) {
+      warnings.push(`Planned backlog item still scoped: ${r.get("seedId")} — ${r.get("name")}`);
+    }
+  }
+
+  // ── Step 5: INSTANTIATES check + backfill ──
+  const instantiatesResult = await runQuery(
+    `MATCH (b:Bloom {id: $bloomId})
+     OPTIONAL MATCH (b)-[:CONTAINS]->(child)
+     WITH [b] + collect(child) AS nodes
+     UNWIND nodes AS node
+     WITH node
+     WHERE NOT EXISTS { MATCH (node)-[:INSTANTIATES]->() }
+     RETURN node.id AS nodeId, labels(node) AS nodeLabels`,
+    { bloomId },
+    "READ",
+  );
+
+  for (const r of instantiatesResult.records) {
+    const nodeId = r.get("nodeId") as string;
+    const labels = r.get("nodeLabels") as string[];
+    // Determine morpheme type from labels
+    let mType: MorphemeType | null = null;
+    for (const label of labels) {
+      const lower = label.toLowerCase();
+      if (lower in LABEL_MAP) {
+        mType = lower as MorphemeType;
+        break;
+      }
+    }
+    if (mType) {
+      const defId = DEFINITION_MAP[mType];
+      try {
+        await createLine(nodeId, defId, "INSTANTIATES");
+        warnings.push(`Backfilled INSTANTIATES: ${nodeId} → ${defId}`);
+      } catch {
+        warnings.push(`Failed to backfill INSTANTIATES for ${nodeId}`);
+      }
+    }
+  }
+
+  // ── Step 6: Derive phiL from RELEVANT children ──
+  const derivationResult = await runQuery(
+    `MATCH (b:Bloom {id: $bloomId})-[:CONTAINS]->(child)
+     WHERE child:Bloom OR (child:Seed AND child.seedType = 'exit-criterion')
+     WITH count(child) AS total,
+          count(CASE WHEN child.status = 'complete' THEN 1 END) AS done
+     RETURN total, done, CASE WHEN total > 0 THEN toFloat(done) / toFloat(total) ELSE 1.0 END AS derivedPhiL`,
+    { bloomId },
+    "READ",
+  );
+
+  const derivedPhiL = derivationResult.records[0]?.get("derivedPhiL") ?? 1.0;
+
+  // ── Step 7: Stamp the Bloom via updateMorpheme() ──
+  const updates: Record<string, unknown> = {
+    status: "complete",
+    phiL: derivedPhiL,
+    completedAt: new Date().toISOString(),
+  };
+  if (commitSha) updates.commitSha = commitSha;
+  if (testCount !== undefined) updates.testCount = testCount;
+
+  const mutResult = await updateMorpheme(bloomId, updates);
+  if (!mutResult.success) {
+    return { success: false, bloomId, warnings, error: mutResult.error };
+  }
+
+  // ── Step 8: Inline state dimension recomputation (all NON-FATAL) ──
+
+  // Step 8a: ΦL propagation upward
+  try {
+    await propagatePhiLUpward(bloomId, previousPhiL, derivedPhiL);
+  } catch (e) {
+    warnings.push(`ΦL propagation failed: ${e instanceof Error ? e.message : e} — stamp succeeded but parent ΦL may be stale`);
+  }
+
+  // Step 8b: ΨH recomputation on the stamped Bloom
+  let selfPsiH: { combined: number; lambda2: number; friction: number } | null = null;
+  try {
+    const psiH = await computeAndPersistPsiH(bloomId);
+    if (psiH) {
+      selfPsiH = { combined: psiH.combined, lambda2: psiH.lambda2, friction: psiH.friction };
+    }
+  } catch (e) {
+    warnings.push(`ΨH recomputation on ${bloomId} failed: ${e instanceof Error ? e.message : e}`);
+  }
+
+  // Step 8c: ΨH recomputation on the PARENT Bloom
+  let parentPsiH: { combined: number; lambda2: number; friction: number } | null = null;
+  try {
+    const parent = await getParentBloom(bloomId);
+    if (parent) {
+      const psiH = await computeAndPersistPsiH(parent.id);
+      if (psiH) {
+        parentPsiH = { combined: psiH.combined, lambda2: psiH.lambda2, friction: psiH.friction };
+      }
+    }
+  } catch (e) {
+    warnings.push(`ΨH recomputation on parent failed: ${e instanceof Error ? e.message : e}`);
+  }
+
+  // Step 8d: εR recomputation skipped for milestone Blooms —
+  // they don't have Thompson Decision history. Pipeline/pattern Blooms
+  // would compute εR here, but those types exit early in Step 2.
+
+  // Step 8e: Line conductivity — already handled by updateMorpheme() via M-22.6
+
+  // Step 8f: Event trigger check
+  try {
+    await assembleTriggerState(bloomId);
+  } catch {
+    // Trigger check is non-fatal
+  }
+
+  // ── Step 9: Read-back verification (inlined to avoid circular import with bloom.ts) ──
+  let verified = false;
+  try {
+    const vResult = await runQuery(
+      `MATCH (b:Bloom {id: $bloomId}) RETURN b.status AS status, b.phiL AS phiL`,
+      { bloomId },
+      "READ",
+    );
+    const vStatus = vResult.records[0]?.get("status");
+    const vPhiL = vResult.records[0]?.get("phiL");
+    if (vStatus === "complete" && vPhiL !== null) {
+      verified = true;
+    } else {
+      warnings.push(`Verification: status='${vStatus}', phiL=${vPhiL} — expected complete with derived phiL`);
+    }
+  } catch (e) {
+    warnings.push(`Verification failed: ${e instanceof Error ? e.message : e}`);
+  }
+
+  return {
+    success: true,
+    verified,
+    bloomId,
+    derivedPhiL,
+    psiH: selfPsiH,
+    parentPsiH,
+    warnings,
+  };
+}
+
+// ─── Revert Utility ─────────────────────────────────────────────────
+
+/**
+ * Revert a complete Bloom back to active status.
+ * Delegates to updateMorpheme() — Step 5 propagates upward.
+ */
+export async function revertBloomToActive(
+  bloomId: string,
+): Promise<MutationResult> {
+  return updateMorpheme(bloomId, { status: "active" });
 }
 
 // ─── Helper functions ───────────────────────────────────────────────

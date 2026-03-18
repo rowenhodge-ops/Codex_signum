@@ -97,43 +97,27 @@ If you need to know "what does this milestone require?", the answer is a CONTAIN
 - `status` on a parent Bloom derives from its children (all-complete/some-complete/none), not from manual SET
 - The only exception is leaf nodes (Seeds, terminal Blooms with no children) where status is set directly by the stamp operation
 
-### Milestone Bloom Stamp Protocol
+### Bloom Stamp Protocol
 
-Every sub-milestone stamp is THREE operations, not one. Missing any step breaks the structural hierarchy.
+ALL Bloom completion stamps go through `stampBloomComplete()` from `src/graph/instantiation.ts`. The function enforces:
 
-Step 1 — Stamp the sub-milestone:
+- Exit criteria must be complete (or force-stamped with `force: true`)
+- phiL derives from **relevant children only** (child Blooms + exit-criterion Seeds — NOT observation/operational Seeds)
+- Planned R-items scoped to the Bloom generate warnings
+- Missing INSTANTIATES wiring is backfilled
+- Read-back verification confirms persistence on AuraDB
 
-```cypher
-MERGE (b:Bloom {id: $subMilestoneId})
-SET b.status = 'complete', b.phiL = 0.9,
-    b.commitSha = $commitSha, b.testCount = $testCount,
-    b.completedAt = datetime()
-```
+**Inline state dimension recomputation:** After the stamp writes, the function calls:
 
-Step 2 — Wire to parent (MANDATORY — without this edge the sub-milestone is structurally invisible):
+- `propagatePhiLUpward()` — ΦL cascades to parent/grandparent with dampening
+- `computeAndPersistPsiH()` — ΨH recomputes on the stamped Bloom AND its parent (friction changed)
+- `assembleTriggerState()` — checks if the stamp caused any event triggers to fire
 
-```cypher
-MATCH (parent:Bloom {id: $parentId}), (b:Bloom {id: $subMilestoneId})
-MERGE (parent)-[:CONTAINS]->(b)
-```
+All recomputation is NON-FATAL. A ΨH failure does not roll back the stamp.
 
-Step 3 — Recalculate parent status from children:
+**Bloom type classification:** Milestone Blooms enforce exit criteria. Definitional (Constitutional Bloom), analytical (FSM layers), and pipeline Blooms skip child-status derivation.
 
-```cypher
-MATCH (child:Bloom)<-[:CONTAINS]-(parent:Bloom {id: $parentId})
-WITH parent,
-     count(child) AS total,
-     count(CASE WHEN child.status = 'complete' THEN 1 END) AS done
-SET parent.status = CASE
-      WHEN done = total THEN 'complete'
-      WHEN done > 0 THEN 'active'
-      ELSE 'planned' END,
-    parent.phiL = CASE
-      WHEN done = total THEN 0.9
-      WHEN done > 0 THEN 0.5
-      ELSE 0.3 END,
-    parent.updatedAt = datetime()
-```
+Manual `updateMorpheme()` calls that set `status: 'complete'` on Blooms are prohibited. Use `stampBloomComplete()` instead.
 
 Gate rule: Bloom stamps require Ro's in-session review before execution.
 
@@ -789,8 +773,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1664 | `npm test` at HEAD |
-| Barrel exports | 301 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1682 | `npm test` at HEAD |
+| Barrel exports | 303 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 

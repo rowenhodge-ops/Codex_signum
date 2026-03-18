@@ -173,30 +173,27 @@ describe("Rule 5: Parent milestones — status derives from children", () => {
 
 // ── Stamp protocol Step 3 exists in CLAUDE.md ────────────────────────────────
 
-describe("Rule 5: CLAUDE.md stamp protocol — Step 3 recalculation documented", () => {
+describe("Rule 5: CLAUDE.md stamp protocol — stampBloomComplete() documented (M-23.2)", () => {
   const claudeContent = readFileSync(
     join(process.cwd(), "CLAUDE.md"),
     "utf-8",
   );
 
-  it("stamp protocol documents three steps, not one", () => {
-    // The three-step stamp protocol must exist in CLAUDE.md
-    expect(claudeContent).toContain("Step 1");
-    expect(claudeContent).toContain("Step 2");
-    expect(claudeContent).toContain("Step 3");
+  it("stamp protocol references stampBloomComplete()", () => {
+    // M-23.2: stamp enforcement is now structural via stampBloomComplete()
+    expect(claudeContent).toContain("stampBloomComplete()");
+    expect(claudeContent).toContain("src/graph/instantiation.ts");
   });
 
-  it("Step 3 contains parent status recalculation from children", () => {
-    // Step 3 should contain the derivation query pattern
-    expect(claudeContent).toContain("WHEN done = total THEN 'complete'");
-    expect(claudeContent).toContain("WHEN done > 0 THEN 'active'");
-    expect(claudeContent).toContain("ELSE 'planned'");
+  it("documents that phiL derives from relevant children only", () => {
+    expect(claudeContent).toContain("relevant children only");
+    expect(claudeContent).toContain("exit-criterion");
   });
 
-  it("Step 3 derives phiL from status (not manual assignment)", () => {
-    expect(claudeContent).toContain("WHEN done = total THEN 0.9");
-    expect(claudeContent).toContain("WHEN done > 0 THEN 0.5");
-    expect(claudeContent).toContain("ELSE 0.3");
+  it("documents inline state dimension recomputation", () => {
+    expect(claudeContent).toContain("propagatePhiLUpward");
+    expect(claudeContent).toContain("computeAndPersistPsiH");
+    expect(claudeContent).toContain("NON-FATAL");
   });
 });
 

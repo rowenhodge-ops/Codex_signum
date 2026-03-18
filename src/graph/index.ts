@@ -186,6 +186,8 @@ export {
   instantiateMorpheme,
   updateMorpheme,
   createLine,
+  stampBloomComplete,
+  revertBloomToActive,
   VALID_CONTAINERS,
   VALID_LINE_TYPES,
 } from "./instantiation.js";
@@ -195,6 +197,8 @@ export type {
   InstantiationResult,
   MutationResult,
   LineCreationResult,
+  StampOptions,
+  StampResult,
 } from "./instantiation.js";
 
 // Inline conditioning write path
