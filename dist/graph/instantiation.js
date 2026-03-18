@@ -511,7 +511,8 @@ export async function stampBloomComplete(options) {
     // ── Step 5: INSTANTIATES check + backfill ──
     const instantiatesResult = await runQuery(`MATCH (b:Bloom {id: $bloomId})
      OPTIONAL MATCH (b)-[:CONTAINS]->(child)
-     WITH [b] + collect(child) AS nodes
+     WITH b, collect(child) AS children
+     WITH [b] + children AS nodes
      UNWIND nodes AS node
      WITH node
      WHERE NOT EXISTS { MATCH (node)-[:INSTANTIATES]->() }
