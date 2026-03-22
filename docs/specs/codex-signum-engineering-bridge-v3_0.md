@@ -2,10 +2,10 @@
 
 ## Implementation Constraints and Parameter Guide
 
-**Version:** 3.0
-**Companion to:** Codex Signum v5.0 (canonised at `e1f6d88`)
+**Version:** 3.1
+**Companion to:** Codex Signum v5.0 (canonised at `e1f6d88`, updated 2026-03-22)
 **Audience:** Implementors, coding agents, deployment engineers
-**Date:** 2026-03-16
+**Date:** 2026-03-22
 
 ---
 
@@ -15,7 +15,7 @@ This document translates the Codex Signum specification into concrete engineerin
 
 The Codex defines the grammar. This document tells you how to compute the grammar's properties in practice. The Bridge View Principle (Part 1.1) constrains what may appear in these computations.
 
-**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL), Superposition Operational Mechanics (instance lifecycle, three collapse modes, persistence), Event-Driven Execution Model (Resonator activation contract, per-Resonator transactions, concurrency management, migration path). Part 4 reframed: signal conditioning stages become seven named Resonators within a Signal Conditioning Bloom with intra-run/cross-run temporal scale distinction. Part 8 reframed: structural review triggers become input Lines to the Structural Review Resonator with five diagnostic output types. Morpheme shape derivation added to Part 5. Glossary rewritten from scratch against v5.0. M-17.6 additions: Part 7 reframed as morpheme compositions (recency = Line property, compaction = Resonator, distillation = Resonator). Part 6 reframed with structural defences and limitations per watchpoint. ΨH temporal decomposition (N-4) and composition-scope εR (N-5) added to Part 2. Build experience section: Thompson informed priors, context-blocked posteriors, exploration decay, hallucination detection (three-layer), CLAUDE.md governance. Deferred computation details verified against source: ΦL temporal_stability, εR spectral calibration, εR floor formula, ΨH hypothetical state. Vertical wiring specification: 8-row interface contract. M-17 complete.
+**What changed from v2.0:** This version codifies the Bridge View Principle — every formula must be a pure function of grammar-defined morpheme states and axiom-defined parameters. Seven formula corrections applied from the M-17.1 delta report, including the critical dampening safety fix (F-1). Writes against a live graph of 2,425 nodes with full morpheme identity, Constitutional Bloom, INSTANTIATES wiring, and governance Resonator enforcement. New sections: Line Conductivity (three-layer circuit model), Governance Resonators (Instantiation, Mutation, Line Creation), Remedy Archive (immune memory repair), Dimensional Profiles (partitioned ΦL), Superposition Operational Mechanics (instance lifecycle, three collapse modes, persistence), Event-Driven Execution Model (Resonator activation contract, per-Resonator transactions, concurrency management, migration path). Part 4 reframed: signal conditioning stages become seven named Resonators within a Signal Conditioning Bloom with intra-run/cross-run temporal scale distinction. Part 8 reframed: structural review triggers become input Lines to the Structural Review Resonator with five diagnostic output types. Morpheme shape derivation added to Part 5. Glossary rewritten from scratch against v5.0. M-17.6 additions: Part 7 reframed as morpheme compositions (recency = Line property, compaction = Resonator, distillation = Resonator). Part 6 reframed with structural defences and limitations per watchpoint. ΨH temporal decomposition (N-4) and composition-scope εR (N-5) added to Part 2. Build experience section: Thompson informed priors, context-blocked posteriors, exploration decay, hallucination detection (three-layer), CLAUDE.md governance. Deferred computation details verified against source: ΦL temporal_stability, εR spectral calibration, εR floor formula, ΨH hypothetical state. Vertical wiring specification: 8-row interface contract. M-17 complete. v3.1 (2026-03-22): Part 4 reframed — signal conditioning functions are inline computation within the observation write path, not separate Resonator nodes in the graph. Aligns with v5.0 §Transformation vs Structural Derivation (2026-03-22). Superposition ΨH references updated. Glossary updated.
 ---
 
 ## Part 1: Foundational Principle
@@ -572,7 +572,7 @@ Between invalidation triggers, the cached value is used. Implementation detail: 
 
 - **Governance Resonators:** the Line Creation Resonator evaluates conductivity at write time
 - **Dimensional Profiles (Part 2):** Layer 3 reads profiles from observation Grids
-- **Signal conditioning pipeline (Part 4):** processes signals that flow through conductive Lines (Part 4 will be reframed as named Resonators in M-17.5)
+- **Signal conditioning pipeline (Part 4):** processes signals that flow through conductive Lines — seven inline conditioning functions applied within the observation write path
 - **Part 3 (Degradation Cascade):** degradation cascade propagates through conductive CONTAINS Lines
 
 ---
@@ -668,7 +668,7 @@ When a DISPATCH Resonator (or any spawning mechanism) creates superposed instanc
 
 - **Its own concurrent governance morphemes:**
   - Its own Refinement Helix — with an INSTANTIATES Line to the Constitutional Bloom carrying the iteration bound. The Helix connects to the Assayer Resonator within the instance; the Assayer IS the Helix's evaluation mechanism (per CPT v3).
-  - Its own ΨH Resonator — computing harmonic signature from the instance's internal subgraph.
+  - Its own ΨH computation — harmonic signature computed inline from the instance's internal subgraph.
   - Its own per-Resonator ΦL computation — each Resonator within the instance has independent health.
   - Its own observation Grid — accumulating execution Seeds specific to this instance.
 - **Its own ΦL, ΨH, εR** — computed independently. One instance may be healthy while another degrades.
@@ -707,7 +707,7 @@ Each instance's governance evaluates independently:
 
 #### Parent-Level Observation
 
-The parent pattern's governance morphemes observe all instances. The parent's ΨH Resonator sees the subgraph including all instance Blooms. If instances diverge significantly (one healthy, one degrading), the runtime friction between instance Blooms' FLOWS_TO Lines to the collapse Resonator is high — the Lines connecting divergent instances to the collapse point show visible strain in Layer 3 contextual fitness (see Line Conductivity Part, Layer 3).
+The parent pattern's governance morphemes observe all instances. The parent's ΨH computation sees the subgraph including all instance Blooms. If instances diverge significantly (one healthy, one degrading), the runtime friction between instance Blooms' FLOWS_TO Lines to the collapse Resonator is high — the Lines connecting divergent instances to the collapse point show visible strain in Layer 3 contextual fitness (see Line Conductivity Part, Layer 3).
 
 This is the superposition equivalent of decomposition drift: instances started from the same task but produced structurally different results. The friction is a structural signal, not a monitoring overlay — it is a property of the Lines themselves.
 
@@ -794,7 +794,7 @@ After collapse, instances transition from Stratum 1 (active execution) to Stratu
 | Degradation cascade | Part 3 | Instance ΦL propagates through CONTAINS Lines to the parent pattern's ΦL via the collapse Resonator. Standard dampening applies: `γ_effective = min(0.7, 0.8/k)` where k is the parent's branching factor including instance Blooms. Cascade depth limit of 2 applies from the instance Bloom outward. |
 | Dimensional profiles | Part 2 (Dimensional Profiles) | Instance observations contribute to substrate dimensional profiles. A model's ΦL_reasoning accumulates from all instances, not just winners. Thompson reads these profiles for future selection. |
 | Remedy Archive | Part 7 (Immune Memory Repair) | If an instance repeatedly fails on a task dimension, the friction signal from its output Lines triggers remedy matching — potentially instantiating a compensatory morpheme for future instances of that task type. |
-| Signal conditioning | Part 4 | Instance observation streams flow through the seven Signal Conditioning Resonators within the Signal Conditioning Bloom before feeding aggregate computations. Each instance's observations enter the chain independently. |
+| Signal conditioning | Part 4 | Instance observation streams are processed by the seven inline conditioning functions within the observation write path before feeding aggregate computations. Each instance's observations enter the chain independently. |
 | Structural Review | Part 8 | Instance Bloom creation IS a topology change — adds nodes and edges to the graph. This triggers λ₂ recomputation and may activate the Structural Review Resonator if coherence shifts beyond the maturity-indexed threshold. |
 | Thompson sampling | (M-17.6 — future) | Collapse results update Thompson posteriors for the selected substrate. Non-selected instance results also update posteriors — the model tried, its result was observed, the posterior learns from both selected and non-selected outcomes. |
 
@@ -909,41 +909,41 @@ Passes Bridge View Principle: Resonator activation is a pure function of input L
 
 ---
 
-## Part 4: Signal Conditioning — Seven Resonators within a Bloom
+## Part 4: Signal Conditioning — Inline Observation Processing
 
-Raw observation streams are conditioned by seven named **Signal Conditioning Resonators** (Δ) within a **Signal Conditioning Bloom** (○). Each Resonator has its own ΦL, input/output Lines, and observation history. The Signal Conditioning Bloom CONTAINS all seven Resonators. Data flows through the chain via FLOWS_TO Lines: the output of each Resonator is the input to the next.
+Raw observation streams are conditioned by seven named functions applied inline within the `writeObservation()` path. Each conditioning function processes the signal in sequence: Debounce → Hampel → EWMA → CUSUM → MACD → Hysteresis → Trend. The functions are not separate graph entities — they are what the observation write path DOES as part of recording structural state. Making each conditioning step a separate Resonator node watching the observation stream would be a monitoring overlay (see v5.0 §Transformation vs Structural Derivation).
 
-These Resonators are already typed in the M-9.7b morpheme mapping. Their type IDs, functions, and parameters:
+These conditioning functions have type definitions in the Constitutional Bloom (mapped in M-9.7b). The type definitions prove grammar completeness (A7) — every conditioning function IS expressible as a Resonator composition. The implementation inlines them because instantiating each as a separate graph node would create a monitoring overlay. Their type IDs, functions, and parameters:
 
-| Resonator | Type ID | Function | Parameters |
+| Conditioning Function | Type ID | Function | Parameters |
 |---|---|---|---|
-| **Debounce Resonator** (Δ) | `resonator:signal:debounce` | Suppress duplicate events | Within 100ms; require persistence for 2–3 event intervals |
-| **Hampel Resonator** (Δ) | `resonator:signal:hampel` | Outlier rejection via median absolute deviation | 7-point window (k=3); flag where \|x − median\| > 3 × 1.4826 × MAD; replace with local median |
-| **EWMA Resonator** (Δ) | `resonator:signal:ewma` | Exponentially weighted moving average | S_t = α·x_t + (1−α)·S_{t-1}; α = 0.25 for leaves, 0.15 default, 0.08 for hubs |
-| **CUSUM Resonator** (Δ) | `resonator:signal:cusum` | Cumulative sum for mean shift detection | C_t = max(0, C_{t-1} + x_t − μ₀ − δ/2); threshold h ≈ 4–5 |
-| **MACD Resonator** (Δ) | `resonator:signal:macd` | Rate-of-change detection | Difference of fast EWMA (α=0.25) and slow EWMA (α=0.04) |
-| **Hysteresis Resonator** (Δ) | `resonator:signal:hysteresis` | Prevent state flapping near thresholds | Alarm ON when S_t < T_low; OFF when S_t > T_high; band ≥ 2× V_pp |
-| **Trend Resonator** (Δ) | `resonator:signal:trend` | Project trajectory for early warning | Linear fit over 30–50 events; alarm if projected time-to-threshold < warning horizon |
+| **Debounce** | `resonator:signal:debounce` | Suppress duplicate events | Within 100ms; require persistence for 2–3 event intervals |
+| **Hampel** | `resonator:signal:hampel` | Outlier rejection via median absolute deviation | 7-point window (k=3); flag where \|x − median\| > 3 × 1.4826 × MAD; replace with local median |
+| **EWMA** | `resonator:signal:ewma` | Exponentially weighted moving average | S_t = α·x_t + (1−α)·S_{t-1}; α = 0.25 for leaves, 0.15 default, 0.08 for hubs |
+| **CUSUM** | `resonator:signal:cusum` | Cumulative sum for mean shift detection | C_t = max(0, C_{t-1} + x_t − μ₀ − δ/2); threshold h ≈ 4–5 |
+| **MACD** | `resonator:signal:macd` | Rate-of-change detection | Difference of fast EWMA (α=0.25) and slow EWMA (α=0.04) |
+| **Hysteresis** | `resonator:signal:hysteresis` | Prevent state flapping near thresholds | Alarm ON when S_t < T_low; OFF when S_t > T_high; band ≥ 2× V_pp |
+| **Trend** | `resonator:signal:trend` | Project trajectory for early warning | Linear fit over 30–50 events; alarm if projected time-to-threshold < warning horizon |
 
-### Morpheme Grounding per Resonator
+### Parameter Grounding
 
-Each Signal Conditioning Resonator has:
+The conditioning functions are inline — they do not have their own graph nodes, containment, Lines, or ΦL. What IS instantiated:
 
-- **Containment:** CONTAINS Line from the Signal Conditioning Bloom to this Resonator
-- **Input Line:** FLOWS_TO from the previous Resonator's output (or from the raw observation stream for the Debounce Resonator)
-- **Output Line:** FLOWS_TO to the next Resonator (or to ΦL computation for the Trend Resonator)
-- **Observation Grid:** its own Grid (□) recording processing events (input count, output count, rejected count, processing latency)
-- **Its own ΦL:** computed from processing success rate, latency, and false positive/negative rates — fed by its own observation Grid
+- **Type definitions:** Config Seeds in the Constitutional Bloom (`resonator:signal:debounce` through `resonator:signal:trend`), mapped in M-9.7b. These demonstrate grammar completeness (A7) — every conditioning function is expressible as a Resonator composition in the grammar. They do not mandate separate graph nodes.
+- **Parameters:** Each function's tuning parameters (window sizes, α values, thresholds) are properties on the type definition Seeds in the Constitutional Bloom. Parameter calibration is a Helix operating at Scale 2.
+- **Observation of conditioning quality:** Processing metrics (rejection rates, false positive rates, conditioning latency) are recorded as properties on the observation Seeds themselves — not in a separate conditioning observation Grid. The conditioned observation IS the evidence of conditioning quality.
+
+The type definitions in the Constitutional Bloom (`resonator:signal:*`) prove grammar completeness — the A7 proof. They do not mandate separate graph nodes. See v5.0 §Transformation vs Structural Derivation.
 
 ### Intra-Run vs Cross-Run Temporal Scale
 
-Not all seven Resonators are meaningful at all temporal scales. The Hampel Resonator requires sufficient observation window size and is primarily a Scale 2 (cross-run) mechanism. All others are applicable at both scales:
+Not all seven conditioning functions are meaningful at all temporal scales. The Hampel filter requires sufficient observation window size and is primarily a Scale 2 (cross-run) mechanism. All others are applicable at both scales:
 
-| Resonator | Intra-Run (Scale 1) | Cross-Run (Scale 2) |
+| Function | Intra-Run (Scale 1) | Cross-Run (Scale 2) |
 |---|---|---|
 | Debounce | ✓ Suppress duplicate evaluations during rapid topology changes | ✓ Standard |
 | Hampel | ✗ Insufficient window size within a single run | ✓ Standard |
-| EWMA | ✓ Smooth per-Resonator ΦL to prevent single-execution noise | ✓ Standard |
+| EWMA | ✓ Smooth per-morpheme ΦL to prevent single-execution noise | ✓ Standard |
 | CUSUM | ✓ Detect mean shift in coherence during execution | ✓ Standard |
 | MACD | ✓ Rate-of-change detection on ΦL and coherence | ✓ Standard |
 | Hysteresis | ✓ Prevent intervention flapping during execution | ✓ Standard |
@@ -951,7 +951,7 @@ Not all seven Resonators are meaningful at all temporal scales. The Hampel Reson
 
 ### Rate-of-Change Detection
 
-**The MACD Resonator is critical.** Absolute thresholds detect degradation only after crossing a fixed level. Rate-of-change detection identifies rapid degradation *before* the threshold is reached. A system degrading from ΦL = 0.9 to 0.6 in 5 events is far more alarming than one at steady ΦL = 0.55.
+**The MACD function is critical.** Absolute thresholds detect degradation only after crossing a fixed level. Rate-of-change detection identifies rapid degradation *before* the threshold is reached. A system degrading from ΦL = 0.9 to 0.6 in 5 events is far more alarming than one at steady ΦL = 0.55.
 
 ### Early Warning Signals
 
@@ -961,7 +961,7 @@ Early warning signals for cascading failure (from critical slowing down theory):
 - Autocorrelation increases — health signals become more serially correlated
 - Cross-component correlation rises — previously independent failure signals begin correlating (strongest cascade predictor)
 
-Passes Bridge View Principle: all parameters are axiom-defined constants; all inputs are morpheme properties (observation Seeds); all outputs are morpheme properties (conditioned signal values). Each Resonator is a pure function of its input Line data and its axiom-defined parameters.
+Passes Bridge View Principle: all parameters are axiom-defined constants (stored as Config Seeds in the Constitutional Bloom); all inputs are morpheme properties (observation Seeds); all outputs are morpheme properties (conditioned signal values written back to the observation path). Each conditioning function is a pure function of its input data and its axiom-defined parameters.
 
 ---
 
@@ -1626,8 +1626,8 @@ The full data flow from raw observations to aggregated state dimensions, specify
 
 | Interface Point | From | To | What Flows |
 |---|---|---|---|
-| Observation → Conditioning | Raw observation Seeds in Grid | Signal Conditioning Bloom (7 Resonators, per R-2/M-17.5) | Raw metric values enter Debounce → Hampel → EWMA → CUSUM → MACD → Hysteresis → Trend |
-| Conditioning → ΦL | Signal conditioning output (Trend Resonator) | ΦL computation (4-factor formula) | Conditioned values feed axiom_compliance, provenance_clarity, usage_success_rate factors. temporal_stability computed from ring buffer. |
+| Observation → Conditioning | Raw observation Seeds in Grid | Inline conditioning functions (7 stages applied within writeObservation()) | Raw metric values enter Debounce → Hampel → EWMA → CUSUM → MACD → Hysteresis → Trend |
+| Conditioning → ΦL | Signal conditioning output (Trend function) | ΦL computation (4-factor formula) | Conditioned values feed axiom_compliance, provenance_clarity, usage_success_rate factors. temporal_stability computed from ring buffer. |
 | ΦL → Maturity | Raw ΦL | Maturity modifier | `ΦL_effective = ΦL_raw × maturity_factor` where maturity_factor = f(observations, connections) |
 | Node → Container | Component ΦL_effective | Parent Bloom ΦL | Dampened propagation via CONTAINS Line properties (Part 3): γ_effective = min(0.7, 0.8/k) |
 | Graph → ΨH | Live graph Laplacian | ΨH computation | λ₂ + TV_G → two-component ΨH. Temporal decomposition (Part 2, N-4) produces trend, transient friction, durable friction. |
@@ -1670,7 +1670,7 @@ For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Pattern
 | Seed (•) | Atomic data unit — observation, decision record, configuration, task, prompt template |
 | Line (→) | Connection with conductivity — data flow, transformation, feedback path. Three-layer evaluation (hygiene, shape, fitness). |
 | Bloom (○) | Scope boundary — pipeline, execution context, milestone, service boundary |
-| Resonator (Δ) | Transformation — LLM/AI model, pipeline stage, signal conditioning, governance enforcement |
+| Resonator (Δ) | Transformation — LLM/AI model invocation, Thompson selection, Assayer evaluation, distillation, classification, governance enforcement (Instantiation, Mutation, Line Creation) |
 | Grid (□) | Persistent data structure — observation history, archived signatures, remedy entries, threat archetypes |
 | Helix (🌀) | Feedback loop — refinement retry, learning cycle, evolutionary selection |
 | ΦL | Health score — 4-factor composite (axiom compliance, provenance clarity, usage success, temporal stability) × maturity modifier |
@@ -1693,8 +1693,8 @@ For the foundational anti-pattern taxonomy, see Codex Signum v5.0 §Anti-Pattern
 | Maturity index | 4-factor composite modulating thresholds — observation depth, connection density, component age, ecosystem ΦL |
 | TV_G | Graph Total Variation — measures signal smoothness across connections |
 | λ₂ | Fiedler value — algebraic connectivity of graph Laplacian |
-| Signal Conditioning Bloom | Scope containing the seven signal conditioning Resonators — processes raw observation streams into conditioned signals |
-| Signal Conditioning Resonator | One of seven named Resonators (Debounce, Hampel, EWMA, CUSUM, MACD, Hysteresis, Trend) within the Signal Conditioning Bloom |
+| Signal Conditioning Bloom | Conceptual scope for the seven conditioning functions. The functions run inline within the observation write path. The type definitions in the Constitutional Bloom (resonator:signal:*) prove grammar completeness. No separate Bloom is instantiated in the graph. |
+| Signal Conditioning Resonator | One of seven conditioning functions (Debounce, Hampel, EWMA, CUSUM, MACD, Hysteresis, Trend) applied inline during observation recording. Type definitions exist in the Constitutional Bloom for grammar completeness (A7). The computation runs inline — not as separate graph nodes. |
 | Structural Review Resonator | Diagnostic Resonator within Ecosystem Governance Bloom — monitors event Seeds, produces five diagnostic output types |
 | Data dependency DAG | The graph topology that determines execution order — Resonators activate when input Lines carry data, replacing sequential orchestration |
 | Collapse Resonator | Superposition resolution — selects, races, or synthesises outputs from superposed instances |
