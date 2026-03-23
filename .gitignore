@@ -14,6 +14,8 @@ dist/
 docs/audits/
 docs/plans/
 docs/prompts/
+# Exception: operational prompts that should survive across sessions
+!docs/Prompts/gcloud-vertex-auth-preferred-prompt.md
 
 # Journal is tracked (public narrative of development)
 # docs/journal/
