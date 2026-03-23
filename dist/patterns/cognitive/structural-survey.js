@@ -123,6 +123,12 @@ export async function surveyBloomTopology(bloomId) {
        MATCH (shared)-[:INSTANTIATES]->(def:Seed)
        WHERE def.seedType IN ['transformation-definition', 'bloom-definition']
        RETURN DISTINCT shared.id AS fromId, shared.name AS fromName,
+              def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType
+       UNION
+       MATCH (instance:Bloom)-[:INSTANTIATES]->(def:Seed)
+       WHERE def.seedType = 'bloom-definition'
+         AND instance.status IN ['active', 'planned']
+       RETURN DISTINCT instance.id AS fromId, instance.name AS fromName,
               def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType`, { bloomId });
         return res.records.map((r) => ({
             fromId: r.get("fromId"),
