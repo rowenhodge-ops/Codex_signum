@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
 /** Canonical Architect pipeline stages */
 export const ARCHITECT_STAGES = [
     "SURVEY",
@@ -13,37 +14,42 @@ export const ARCHITECT_STAGES = [
     "ADAPT",
 ];
 // ============ PIPELINE RUN QUERIES ============
-/** Create or update a PipelineRun node */
+/**
+ * Create a PipelineRun node through the Instantiation Protocol.
+ *
+ * Uses instantiateMorpheme('bloom') with:
+ * - transformationDefId: def:bloom:execution
+ * - a6Justification: distinct_temporal_scale (every run is unique)
+ * - Parent: props.bloomId (the Architect Bloom)
+ *
+ * After instantiation, adds the :PipelineRun specialisation label.
+ */
 export async function createPipelineRun(props) {
+    const highlander = {
+        transformationDefId: "def:bloom:execution",
+        a6Justification: "distinct_temporal_scale",
+    };
+    const result = await instantiateMorpheme("bloom", {
+        id: props.id,
+        name: `Pipeline Run ${props.id}`,
+        content: `Architect pipeline execution: ${props.intent.slice(0, 200)}`,
+        type: "pipeline",
+        status: props.status,
+        intent: props.intent,
+        bloomId: props.bloomId,
+        taskCount: props.taskCount,
+        startedAt: props.startedAt,
+        ...(props.completedAt ? { completedAt: props.completedAt } : {}),
+        ...(props.durationMs != null ? { durationMs: props.durationMs } : {}),
+        ...(props.modelDiversity != null ? { modelDiversity: props.modelDiversity } : {}),
+        ...(props.overallQuality != null ? { overallQuality: props.overallQuality } : {}),
+    }, props.bloomId, highlander);
+    if (!result.success) {
+        throw new Error(`PipelineRun creation failed: ${result.error}`);
+    }
+    // Add :PipelineRun specialisation label for query performance + constraint scoping
     await writeTransaction(async (tx) => {
-        await tx.run(`MERGE (pr:PipelineRun { id: $id })
-       ON CREATE SET
-         pr.intent = $intent,
-         pr.bloomId = $bloomId,
-         pr.taskCount = $taskCount,
-         pr.startedAt = datetime($startedAt),
-         pr.completedAt = CASE WHEN $completedAt IS NOT NULL THEN datetime($completedAt) ELSE null END,
-         pr.durationMs = $durationMs,
-         pr.modelDiversity = $modelDiversity,
-         pr.overallQuality = $overallQuality,
-         pr.status = $status,
-         pr.createdAt = datetime()
-       ON MATCH SET
-         pr.completedAt = COALESCE(CASE WHEN $completedAt IS NOT NULL THEN datetime($completedAt) ELSE null END, pr.completedAt),
-         pr.durationMs = COALESCE($durationMs, pr.durationMs),
-         pr.overallQuality = COALESCE($overallQuality, pr.overallQuality),
-         pr.modelDiversity = COALESCE($modelDiversity, pr.modelDiversity),
-         pr.status = $status,
-         pr.updatedAt = datetime()
-       WITH pr
-       MATCH (b:Bloom { id: $bloomId })
-       MERGE (pr)-[:EXECUTED_IN]->(b)`, {
-            ...props,
-            completedAt: props.completedAt ?? null,
-            durationMs: props.durationMs ?? null,
-            modelDiversity: props.modelDiversity ?? null,
-            overallQuality: props.overallQuality ?? null,
-        });
+        await tx.run(`MATCH (pr:Bloom {id: $id}) SET pr:PipelineRun`, { id: props.id });
     });
 }
 /** Update a PipelineRun when it completes */

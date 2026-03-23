@@ -64,8 +64,10 @@ export async function getPipelineRunStats(
   startedAt: string;
 }>> {
   const result = await runQuery(
-    `MATCH (pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom { id: $bloomId })
+    `MATCH (b:Bloom { id: $bloomId })
+     MATCH (pr:PipelineRun)
      WHERE pr.status = 'completed'
+       AND ((pr)-[:EXECUTED_IN]->(b) OR (b)-[:CONTAINS]->(pr))
      RETURN pr.id AS runId, pr.intent AS intent,
             COALESCE(pr.taskCount, 0) AS taskCount,
             COALESCE(pr.overallQuality, 0.0) AS overallQuality,
@@ -249,7 +251,8 @@ export async function assemblePatternHealthContext(
      WITH b, obsCount, count(r) AS connCount
      OPTIONAL MATCH (b)-[:CONTAINS]->(child)
      WITH b, obsCount, connCount, count(child) AS childCount
-     OPTIONAL MATCH (to:TaskOutput)-[:PRODUCED_BY]->(pr:PipelineRun)-[:EXECUTED_IN]->(b)
+     OPTIONAL MATCH (to:TaskOutput)-[:PRODUCED_BY]->(pr:PipelineRun)
+       WHERE (pr)-[:EXECUTED_IN]->(b) OR (b)-[:CONTAINS]->(pr)
      WITH b, obsCount, connCount, childCount,
           count(to) AS totalTasks,
           count(CASE WHEN to.status = 'succeeded' THEN 1 END) AS succeededTasks,
@@ -375,7 +378,8 @@ export async function getBloomDecisionCounts(
 
   // Path B: via PipelineRun
   const viaRunResult = await runQuery(
-    `MATCH (d:Decision)-[:DECIDED_DURING]->(pr:PipelineRun)-[:EXECUTED_IN]->(b:Bloom {id: $bloomId})
+    `MATCH (d:Decision)-[:DECIDED_DURING]->(pr:PipelineRun), (b:Bloom {id: $bloomId})
+     WHERE (pr)-[:EXECUTED_IN]->(b) OR (b)-[:CONTAINS]->(pr)
      RETURN d.id AS id, d.wasExploratory AS wasExploratory`,
     { bloomId },
     "READ",
