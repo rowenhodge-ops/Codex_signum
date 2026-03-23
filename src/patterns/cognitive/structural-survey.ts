@@ -150,7 +150,7 @@ export async function surveyBloomTopology(bloomId: string): Promise<BloomSurvey>
        UNION
        MATCH (instance:Bloom)-[:INSTANTIATES]->(def:Seed)
        WHERE def.seedType = 'bloom-definition'
-         AND instance.status IN ['active', 'planned']
+         AND instance.status IN ['active', 'planned', 'complete', 'created']
        RETURN DISTINCT instance.id AS fromId, instance.name AS fromName,
               def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType`,
       { bloomId },
