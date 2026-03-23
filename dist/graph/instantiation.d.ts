@@ -2,11 +2,34 @@ export type MorphemeType = "seed" | "bloom" | "resonator" | "grid" | "helix";
 /** Valid containment: which types can contain which */
 export declare const VALID_CONTAINERS: Record<string, MorphemeType[]>;
 /** Valid Line relationship types and their direction semantics */
-export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY"];
+export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY", "SPECIALISES"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
+/** A6 justification for creating a second instance of the same transformation */
+export type A6Justification = "distinct_learned_state" | "distinct_governance_scope" | "distinct_temporal_scale";
+/** Options for Highlander Protocol enforcement */
+export interface HighlanderOptions {
+    /** ID of transformation-level or bloom-level definition Seed.
+     *  MANDATORY for morphemeType 'resonator' or 'bloom'. */
+    transformationDefId?: string;
+    /** A6 justification for creating a new instance when one already exists.
+     *  If absent and existing instance found → compose (wire FLOWS_TO to existing). */
+    a6Justification?: A6Justification;
+    /** Source node for compose FLOWS_TO Line.
+     *  Required when composition is the outcome (existing found, no justification). */
+    requestingContextId?: string;
+}
+/** Result when composition occurs instead of creation */
+export interface ComposeResult {
+    composed: true;
+    existingId: string;
+    existingName: string;
+    lineCreated: boolean;
+    lineError?: string;
+}
 export interface InstantiationResult {
     success: boolean;
     nodeId?: string;
+    composed?: ComposeResult;
     error?: string;
 }
 export interface MutationResult {
@@ -32,7 +55,7 @@ export interface LineCreationResult {
  * @param properties - All properties for the node (must include required fields)
  * @param parentId - The Bloom (or Grid for seeds) that will CONTAIN this morpheme
  */
-export declare function instantiateMorpheme(morphemeType: MorphemeType, properties: Record<string, unknown>, parentId: string): Promise<InstantiationResult>;
+export declare function instantiateMorpheme(morphemeType: MorphemeType, properties: Record<string, unknown>, parentId: string, highlander?: HighlanderOptions): Promise<InstantiationResult>;
 /**
  * Update a morpheme's properties via the Mutation Resonator.
  *

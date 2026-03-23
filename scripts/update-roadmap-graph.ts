@@ -18,7 +18,7 @@ import {
   updateMorpheme,
   createLine,
 } from "../src/graph/instantiation.js";
-import type { MorphemeType, LineType } from "../src/graph/instantiation.js";
+import type { MorphemeType, LineType, HighlanderOptions } from "../src/graph/instantiation.js";
 import { closeDriver } from "../src/graph/client.js";
 import path from "path";
 import fs from "fs";
@@ -57,8 +57,14 @@ async function ensureMorpheme(
   type: MorphemeType,
   props: Record<string, unknown>,
   parentId: string,
+  highlander?: HighlanderOptions,
 ): Promise<void> {
-  const result = await instantiateMorpheme(type, props, parentId);
+  // Auto-derive Highlander options for bloom types if not explicitly provided
+  let hl = highlander;
+  if (type === "bloom" && !hl) {
+    hl = { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" };
+  }
+  const result = await instantiateMorpheme(type, props, parentId, hl);
   if (!result.success) {
     console.error(`  ✗ ${type} ${props.id}: ${result.error}`);
     throw new Error(result.error);

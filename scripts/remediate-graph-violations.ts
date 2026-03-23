@@ -22,7 +22,13 @@ import {
   instantiateMorpheme,
   stampBloomComplete,
 } from "../src/graph/instantiation.js";
+import type { HighlanderOptions } from "../src/graph/instantiation.js";
 import { runQuery, closeDriver } from "../src/graph/client.js";
+
+const MILESTONE_HIGHLANDER: HighlanderOptions = {
+  transformationDefId: "def:bloom:milestone",
+  a6Justification: "distinct_governance_scope",
+};
 import { computeAndPersistPsiH } from "../src/graph/queries/health.js";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -618,6 +624,7 @@ async function phaseI_CreateM23Milestone(): Promise<void> {
       status: "active",
     },
     "roadmap-v7",
+    MILESTONE_HIGHLANDER,
   );
   console.log(`  ${ir.success ? "✅" : "❌"} M-23 created${ir.error ? ": " + ir.error : ""}`);
 
@@ -633,6 +640,7 @@ async function phaseI_CreateM23Milestone(): Promise<void> {
       status: "complete",
     },
     "M-23",
+    MILESTONE_HIGHLANDER,
   );
   console.log(`  ${ir.success ? "✅" : "❌"} M-23.1 created`);
 
@@ -648,6 +656,7 @@ async function phaseI_CreateM23Milestone(): Promise<void> {
       status: "complete",
     },
     "M-23",
+    MILESTONE_HIGHLANDER,
   );
   console.log(`  ${ir.success ? "✅" : "❌"} M-23.2 created`);
 
@@ -663,6 +672,7 @@ async function phaseI_CreateM23Milestone(): Promise<void> {
       status: "active",
     },
     "M-23",
+    MILESTONE_HIGHLANDER,
   );
   console.log(`  ${ir.success ? "✅" : "❌"} M-23.3 created`);
 

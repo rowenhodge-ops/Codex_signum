@@ -1,3 +1,4 @@
+import type { HighlanderOptions } from "../instantiation.js";
 export interface ResonatorProps {
     id: string;
     name: string;
@@ -10,7 +11,7 @@ export interface ResonatorProps {
  * Create a Resonator AND wire it to a parent Bloom via the Instantiation Protocol.
  * Delegates to instantiateMorpheme() for hygiene, containment, and INSTANTIATES wiring.
  */
-export declare function createContainedResonator(props: ResonatorProps, parentBloomId: string): Promise<void>;
+export declare function createContainedResonator(props: ResonatorProps, parentBloomId: string, highlander?: HighlanderOptions): Promise<void>;
 /** Ensure the 7 Architect stage Blooms exist and are contained in the Architect Bloom */
 export declare function ensureArchitectStages(architectBloomId: string): Promise<void>;
 /** @deprecated Use ensureArchitectStages instead */

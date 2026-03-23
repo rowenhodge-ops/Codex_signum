@@ -18,7 +18,13 @@ import {
   instantiateMorpheme,
   createLine,
 } from "../src/graph/instantiation.js";
+import type { HighlanderOptions } from "../src/graph/instantiation.js";
 import { closeDriver } from "../src/graph/client.js";
+
+const MILESTONE_HIGHLANDER: HighlanderOptions = {
+  transformationDefId: "def:bloom:milestone",
+  a6Justification: "distinct_governance_scope",
+};
 
 // ─── Load environment ───────────────────────────────────────────────
 
@@ -532,6 +538,7 @@ async function phase4(parentBloomId: string): Promise<void> {
       phiL: 0.0,
     },
     parentBloomId,
+    MILESTONE_HIGHLANDER,
   );
 
   if (bloomResult.success) {

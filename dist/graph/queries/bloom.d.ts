@@ -1,4 +1,5 @@
 import type { Record as Neo4jRecord } from "neo4j-driver";
+import type { HighlanderOptions } from "../instantiation.js";
 /** Properties for creating/updating a Bloom node (scoped composition of morphemes) */
 export interface BloomProps {
     id: string;
@@ -63,7 +64,7 @@ export declare function updateBloomPhiL(bloomId: string, phiL: number, trend: "i
  * - Atomic CONTAINS + INSTANTIATES wiring
  * - Observation recording in the Instantiation Resonator's Grid
  */
-export declare function createContainedBloom(props: BloomProps, parentId: string, relationship?: 'CONTAINS' | 'HAS_MILESTONE' | 'HAS_PHASE' | 'HAS_STAGE'): Promise<void>;
+export declare function createContainedBloom(props: BloomProps, parentId: string, relationship?: 'CONTAINS' | 'HAS_MILESTONE' | 'HAS_PHASE' | 'HAS_STAGE', highlander?: HighlanderOptions): Promise<void>;
 /**
  * Update a Bloom's status via the Mutation Resonator with parent status recalculation.
  * G3 health derivation: parent status = f(children), not manual assignment.

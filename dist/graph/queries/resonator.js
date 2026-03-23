@@ -9,8 +9,8 @@ import { ARCHITECT_STAGES } from "./pipeline-run.js";
  * Create a Resonator AND wire it to a parent Bloom via the Instantiation Protocol.
  * Delegates to instantiateMorpheme() for hygiene, containment, and INSTANTIATES wiring.
  */
-export async function createContainedResonator(props, parentBloomId) {
-    const result = await instantiateMorpheme("resonator", { ...props }, parentBloomId);
+export async function createContainedResonator(props, parentBloomId, highlander) {
+    const result = await instantiateMorpheme("resonator", { ...props }, parentBloomId, highlander);
     if (!result.success) {
         throw new Error(result.error ?? "Resonator instantiation failed");
     }

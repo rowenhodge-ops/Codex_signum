@@ -194,6 +194,9 @@ export {
 export type {
   MorphemeType,
   LineType,
+  A6Justification,
+  HighlanderOptions,
+  ComposeResult,
   InstantiationResult,
   MutationResult,
   LineCreationResult,

@@ -72,6 +72,12 @@ export const VALID_LINE_TYPES = [
     "PROCESSED",
     "REFERENCES",
     "SPECIFIED_BY",
+    "SPECIALISES",
+];
+const VALID_A6_JUSTIFICATIONS = [
+    "distinct_learned_state",
+    "distinct_governance_scope",
+    "distinct_temporal_scale",
 ];
 // ─── Instantiation Resonator ────────────────────────────────────────
 /**
@@ -84,7 +90,7 @@ export const VALID_LINE_TYPES = [
  * @param properties - All properties for the node (must include required fields)
  * @param parentId - The Bloom (or Grid for seeds) that will CONTAIN this morpheme
  */
-export async function instantiateMorpheme(morphemeType, properties, parentId) {
+export async function instantiateMorpheme(morphemeType, properties, parentId, highlander) {
     const nodeId = properties.id;
     // ── Step 1: Morpheme hygiene check ──
     const required = REQUIRED_PROPERTIES[morphemeType];
@@ -122,6 +128,122 @@ export async function instantiateMorpheme(morphemeType, properties, parentId) {
         await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
         return { success: false, error };
     }
+    // ── Step 2.5: Highlander Protocol (Resonator/Bloom only) ──
+    if (morphemeType === "resonator" || morphemeType === "bloom") {
+        if (!highlander?.transformationDefId) {
+            const error = `Instantiation rejected: ${morphemeType} creation requires transformationDefId (Highlander Protocol, A6 Minimal Authority). id=${nodeId ?? "unknown"}`;
+            await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+            return { success: false, error };
+        }
+        // Validate the definition exists in the Constitutional Bloom
+        const defExists = await readTransaction(async (tx) => {
+            const res = await tx.run(`MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS]->(def:Seed {id: $defId})
+         WHERE def.status = 'active'
+         RETURN def.id`, { defId: highlander.transformationDefId });
+            return res.records.length > 0;
+        });
+        if (!defExists) {
+            const error = `Instantiation rejected: transformation definition '${highlander.transformationDefId}' does not exist in Constitutional Bloom. id=${nodeId ?? "unknown"}`;
+            await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+            return { success: false, error };
+        }
+        // Pre-creation uniqueness query
+        const existingInstances = await readTransaction(async (tx) => {
+            const res = await tx.run(`MATCH (existing)-[:INSTANTIATES]->(def:Seed {id: $defId})
+         WHERE (existing:Resonator OR existing:Bloom)
+           AND existing.status IN ['active', 'planned']
+         RETURN existing.id AS id, existing.name AS name`, { defId: highlander.transformationDefId });
+            return res.records.map((r) => ({
+                id: r.get("id"),
+                name: r.get("name"),
+            }));
+        });
+        if (existingInstances.length > 0) {
+            const existing = existingInstances[0];
+            if (highlander.a6Justification) {
+                // Validate justification is one of the three valid values
+                if (!VALID_A6_JUSTIFICATIONS.includes(highlander.a6Justification)) {
+                    const error = `Instantiation rejected: invalid A6 justification '${highlander.a6Justification}'. Valid: ${VALID_A6_JUSTIFICATIONS.join(", ")}. id=${nodeId ?? "unknown"}`;
+                    await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+                    return { success: false, error };
+                }
+                // Justified new instance — store justification, fall through to creation
+                properties.a6Justification = highlander.a6Justification;
+                properties.transformationDefId = highlander.transformationDefId;
+            }
+            else if (highlander.requestingContextId) {
+                // Compose: wire FLOWS_TO to existing instance
+                try {
+                    const lineResult = await createLine(highlander.requestingContextId, existing.id, "FLOWS_TO", { label: "composed", composedAt: new Date().toISOString() });
+                    return {
+                        success: true,
+                        composed: {
+                            composed: true,
+                            existingId: existing.id,
+                            existingName: existing.name,
+                            lineCreated: lineResult.success,
+                            lineError: lineResult.success ? undefined : lineResult.error,
+                        },
+                    };
+                }
+                catch (err) {
+                    return {
+                        success: true,
+                        composed: {
+                            composed: true,
+                            existingId: existing.id,
+                            existingName: existing.name,
+                            lineCreated: false,
+                            lineError: err instanceof Error ? err.message : String(err),
+                        },
+                    };
+                }
+            }
+            else {
+                // Neither justification nor context → hard reject + Violation Seed
+                const violationContent = `Resonator/Bloom creation for '${properties.name ?? nodeId}' rejected. Active instance '${existing.id}' already INSTANTIATES definition '${highlander.transformationDefId}'. Provide A6 justification (distinct_learned_state, distinct_governance_scope, distinct_temporal_scale) or requestingContextId for composition.`;
+                // Bootstrap Violation Grid if needed, then record violation
+                try {
+                    await ensureViolationGrid();
+                    const violationId = `violation:a6:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                    await writeTransaction(async (tx) => {
+                        await tx.run(`MATCH (g:Grid {id: 'grid:violation:ecosystem'})
+               CREATE (v:Seed {
+                 id: $violationId,
+                 seedType: 'violation',
+                 name: $name,
+                 content: $content,
+                 status: 'active',
+                 severity: 'error',
+                 transformationDefId: $defId,
+                 existingInstanceId: $existingId,
+                 attemptedNodeId: $attemptedId,
+                 createdAt: datetime()
+               })
+               WITH g, v
+               MERGE (g)-[:CONTAINS]->(v)`, {
+                            violationId,
+                            name: `A6 Violation: Unjustified duplication of ${existing.name}`,
+                            content: violationContent,
+                            defId: highlander.transformationDefId,
+                            existingId: existing.id,
+                            attemptedId: nodeId ?? "unknown",
+                        });
+                    });
+                }
+                catch {
+                    // Violation recording is non-fatal
+                }
+                const error = `Instantiation rejected: Active instance '${existing.id}' already INSTANTIATES '${highlander.transformationDefId}'. Provide a6Justification or requestingContextId. id=${nodeId ?? "unknown"}`;
+                await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+                return { success: false, error };
+            }
+        }
+        else {
+            // First instance — store transformationDefId, fall through to creation
+            properties.transformationDefId = highlander.transformationDefId;
+        }
+    }
     // ── Steps 3-5: Create node + CONTAINS + INSTANTIATES (atomic) ──
     const label = LABEL_MAP[morphemeType];
     const definitionId = DEFINITION_MAP[morphemeType];
@@ -153,9 +275,14 @@ export async function instantiateMorpheme(morphemeType, properties, parentId) {
             // Wire CONTAINS: parent→child (G3)
             await tx.run(`MATCH (p {id: $parentId}), (n:${label} {id: $nodeId})
          MERGE (p)-[:CONTAINS]->(n)`, { parentId, nodeId });
-            // Wire INSTANTIATES: instance→definition
+            // Wire INSTANTIATES: instance→type-level definition
             await tx.run(`MATCH (n:${label} {id: $nodeId}), (def:Seed {id: $definitionId})
          MERGE (n)-[:INSTANTIATES]->(def)`, { nodeId, definitionId });
+            // Wire INSTANTIATES: instance→transformation-level definition (Highlander)
+            if (highlander?.transformationDefId) {
+                await tx.run(`MATCH (n:${label} {id: $nodeId}), (tdef:Seed {id: $tdefId})
+           MERGE (n)-[:INSTANTIATES]->(tdef)`, { nodeId, tdefId: highlander.transformationDefId });
+            }
         });
         // ── Step 7: Record observation ──
         await recordInstantiationObservation(morphemeType, nodeId, parentId, true);
@@ -204,6 +331,25 @@ export async function updateMorpheme(nodeId, updates, newParentId) {
         const content = updates.content;
         if (!content || content.trim() === "") {
             const error = `Mutation rejected: cannot set empty content on ${morphemeType} '${nodeId}'. Every morpheme carries meaning (A1).`;
+            await recordMutationObservation(nodeId, false, error);
+            return { success: false, error };
+        }
+    }
+    // ── Step 2.5: Retirement guard (Resonator/Bloom only) ──
+    if ((morphemeType === "resonator" || morphemeType === "bloom") &&
+        (updates.status === "retired" || updates.status === "archived")) {
+        const consumers = await readTransaction(async (tx) => {
+            const res = await tx.run(`MATCH (n {id: $nodeId})-[:FLOWS_TO]->(consumer)
+         WHERE consumer.status IN ['active', 'planned']
+         RETURN consumer.id AS id, consumer.name AS name`, { nodeId });
+            return res.records.map((r) => ({
+                id: r.get("id"),
+                name: r.get("name"),
+            }));
+        });
+        if (consumers.length > 0) {
+            const consumerList = consumers.map((c) => c.id).join(", ");
+            const error = `Mutation rejected: cannot retire '${nodeId}' — ${consumers.length} active consumer(s) still wired via FLOWS_TO: ${consumerList}. Remove consumer Lines first (scope reduction, not deletion).`;
             await recordMutationObservation(nodeId, false, error);
             return { success: false, error };
         }
@@ -666,6 +812,27 @@ async function getNodeInfo(nodeId) {
     if (!morphemeType)
         return null;
     return { morphemeType, label: LABEL_MAP[morphemeType] };
+}
+/**
+ * Ensure the ecosystem-level Violation Grid exists in the Constitutional Bloom.
+ * Bootstraps it if needed. Used by the Highlander Protocol to record A6 violations.
+ */
+async function ensureViolationGrid() {
+    const exists = await nodeExists("grid:violation:ecosystem");
+    if (!exists) {
+        await writeTransaction(async (tx) => {
+            await tx.run(`MERGE (g:Grid {id: 'grid:violation:ecosystem'})
+         ON CREATE SET
+           g.name = 'Ecosystem Violation Grid',
+           g.type = 'violation',
+           g.content = 'Receives Violation Seeds from Highlander Protocol enforcement and future Assayer evaluations.',
+           g.status = 'active',
+           g.createdAt = datetime()
+         WITH g
+         MATCH (cb:Bloom {id: 'constitutional-bloom'})
+         MERGE (cb)-[:CONTAINS]->(g)`, {});
+        });
+    }
 }
 /**
  * Check if a node exists.

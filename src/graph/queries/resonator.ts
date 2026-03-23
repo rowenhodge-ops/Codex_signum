@@ -4,6 +4,7 @@
 
 import { writeTransaction } from "../client.js";
 import { instantiateMorpheme } from "../instantiation.js";
+import type { HighlanderOptions } from "../instantiation.js";
 import { ARCHITECT_STAGES } from "./pipeline-run.js";
 
 // ============ TYPES ============
@@ -26,8 +27,9 @@ export interface ResonatorProps {
 export async function createContainedResonator(
   props: ResonatorProps,
   parentBloomId: string,
+  highlander?: HighlanderOptions,
 ): Promise<void> {
-  const result = await instantiateMorpheme("resonator", { ...props }, parentBloomId);
+  const result = await instantiateMorpheme("resonator", { ...props }, parentBloomId, highlander);
   if (!result.success) {
     throw new Error(result.error ?? "Resonator instantiation failed");
   }

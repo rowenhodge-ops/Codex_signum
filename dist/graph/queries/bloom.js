@@ -145,7 +145,7 @@ export async function updateBloomPhiL(bloomId, phiL, trend, healthBandValue, phi
  * - Atomic CONTAINS + INSTANTIATES wiring
  * - Observation recording in the Instantiation Resonator's Grid
  */
-export async function createContainedBloom(props, parentId, relationship = 'CONTAINS') {
+export async function createContainedBloom(props, parentId, relationship = 'CONTAINS', highlander) {
     // content is required by the protocol; fall back to description for backward compat
     const content = props.content ?? props.description ?? '';
     const { id, name, type, status, description, morphemeKinds, domain, phiL, ...rest } = props;
@@ -159,7 +159,7 @@ export async function createContainedBloom(props, parentId, relationship = 'CONT
         observationCount: 0,
         connectionCount: 0,
     };
-    const result = await instantiateMorpheme("bloom", properties, parentId);
+    const result = await instantiateMorpheme("bloom", properties, parentId, highlander);
     if (!result.success) {
         throw new Error(result.error ?? "Bloom instantiation failed");
     }

@@ -40,6 +40,7 @@ import {
 import type {
   MorphemeType,
   LineType,
+  HighlanderOptions,
 } from "../../src/graph/instantiation.js";
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -93,6 +94,63 @@ function mockBloomParentAndNodeExists(parentId: string, nodeId?: string) {
     // Count query for parent
     if (query.includes("count(n)") && params?.nodeId === parentId) {
       return { records: [{ get: () => 1 }] };
+    }
+    return { records: [] };
+  });
+}
+
+/** Highlander test fixture: valid transformation definition IDs */
+const TEST_TRANSFORMATION_DEF = "def:transformation:test";
+const TEST_BLOOM_DEF = "def:bloom:test";
+
+/**
+ * Configure mockRun for Highlander Protocol testing.
+ * Handles parent type, definition existence, uniqueness check, and node creation.
+ */
+function mockHighlanderEnvironment(opts: {
+  parentId: string;
+  defExists?: boolean;
+  existingInstances?: Array<{ id: string; name: string }>;
+  nodeId?: string;
+}) {
+  const { parentId, defExists = true, existingInstances = [], nodeId } = opts;
+  mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+    // Parent type query
+    if (query.includes("labels(n)") && params?.nodeId === parentId) {
+      return { records: [{ get: () => ["Bloom"] }] };
+    }
+    // Count query for parent
+    if (query.includes("count(n)") && params?.nodeId === parentId) {
+      return { records: [{ get: () => 1 }] };
+    }
+    // Constitutional Bloom definition check
+    if (query.includes("constitutional-bloom") && query.includes("CONTAINS") && params?.defId) {
+      if (defExists) {
+        return { records: [{ get: () => params!.defId }] };
+      }
+      return { records: [] };
+    }
+    // Uniqueness check (existing instances)
+    if (query.includes("INSTANTIATES") && query.includes("existing") && params?.defId) {
+      if (existingInstances.length > 0) {
+        return {
+          records: existingInstances.map(inst => ({
+            get: (key: string) => key === "id" ? inst.id : inst.name,
+          })),
+        };
+      }
+      return { records: [] };
+    }
+    // Node existence for compose FLOWS_TO endpoints
+    if (query.includes("count(n)") && nodeId && params?.nodeId === nodeId) {
+      return { records: [{ get: () => 1 }] };
+    }
+    if (query.includes("count(n)")) {
+      return { records: [{ get: () => 1 }] };
+    }
+    // Violation Grid existence
+    if (query.includes("grid:violation:ecosystem")) {
+      return { records: [{ get: () => 0 }] };
     }
     return { records: [] };
   });
@@ -305,7 +363,7 @@ describe("instantiateMorpheme()", () => {
     });
 
     it("allows Bloom inside Bloom (nested containment)", async () => {
-      mockBloomParentAndNodeExists("parent-bloom");
+      mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
       const result = await instantiateMorpheme("bloom", {
         id: "child-bloom",
@@ -313,13 +371,13 @@ describe("instantiateMorpheme()", () => {
         type: "milestone",
         content: "A sub-milestone",
         status: "planned",
-      }, "parent-bloom");
+      }, "parent-bloom", { transformationDefId: TEST_BLOOM_DEF });
 
       expect(result.success).toBe(true);
     });
 
     it("allows Resonator inside Bloom", async () => {
-      mockBloomParentAndNodeExists("parent-bloom");
+      mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
       const result = await instantiateMorpheme("resonator", {
         id: "test-resonator",
@@ -327,7 +385,7 @@ describe("instantiateMorpheme()", () => {
         type: "computation",
         content: "Computes ΦL from four factors",
         status: "active",
-      }, "parent-bloom");
+      }, "parent-bloom", { transformationDefId: TEST_TRANSFORMATION_DEF });
 
       expect(result.success).toBe(true);
     });
@@ -389,7 +447,7 @@ describe("instantiateMorpheme()", () => {
     });
 
     it("wires INSTANTIATES to correct definition", async () => {
-      mockBloomParentAndNodeExists("parent-bloom");
+      mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
       await instantiateMorpheme("resonator", {
         id: "new-res",
@@ -397,11 +455,11 @@ describe("instantiateMorpheme()", () => {
         type: "governance",
         content: "A resonator",
         status: "active",
-      }, "parent-bloom");
+      }, "parent-bloom", { transformationDefId: TEST_TRANSFORMATION_DEF });
 
-      // Find the INSTANTIATES call
+      // Find the type-level INSTANTIATES call
       const instantiatesCall = mockRun.mock.calls.find(
-        c => (c[0] as string).includes("INSTANTIATES"),
+        c => (c[0] as string).includes("INSTANTIATES") && (c[1] as Record<string, unknown>)?.definitionId,
       );
       expect(instantiatesCall).toBeDefined();
       expect(instantiatesCall![1]).toEqual(
@@ -756,7 +814,12 @@ describe("all morpheme types accepted", () => {
   for (const type of allTypes) {
     it(`accepts ${type} with all required properties`, async () => {
       vi.clearAllMocks();
-      mockBloomParentAndNodeExists("parent-bloom");
+      // Bloom/Resonator need Highlander environment; others just need parent
+      if (type === "bloom" || type === "resonator") {
+        mockHighlanderEnvironment({ parentId: "parent-bloom" });
+      } else {
+        mockBloomParentAndNodeExists("parent-bloom");
+      }
 
       const props: Record<string, unknown> = {
         id: `test-${type}`,
@@ -772,7 +835,13 @@ describe("all morpheme types accepted", () => {
       if (type === "grid") props.type = "observation";
       if (type === "helix") props.mode = "learning";
 
-      const result = await instantiateMorpheme(type, props, "parent-bloom");
+      // Bloom/Resonator require Highlander options
+      const highlander: HighlanderOptions | undefined =
+        (type === "bloom" || type === "resonator")
+          ? { transformationDefId: type === "bloom" ? TEST_BLOOM_DEF : TEST_TRANSFORMATION_DEF }
+          : undefined;
+
+      const result = await instantiateMorpheme(type, props, "parent-bloom", highlander);
       expect(result.success).toBe(true);
       expect(result.nodeId).toBe(`test-${type}`);
     });
@@ -794,11 +863,13 @@ describe("createContainedBloom delegation", () => {
   });
 
   it("delegates to instantiateMorpheme with morphemeType bloom", async () => {
-    mockBloomParentAndNodeExists("parent-bloom");
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
     await createContainedBloom(
       { id: "b-1", name: "Test Bloom", type: "test", status: "planned", content: "Test content" },
       "parent-bloom",
+      "CONTAINS",
+      { transformationDefId: TEST_BLOOM_DEF },
     );
 
     // Should have run MERGE with Bloom label (from instantiateMorpheme)
@@ -807,22 +878,22 @@ describe("createContainedBloom delegation", () => {
     );
     expect(mergeCalls.length).toBeGreaterThan(0);
 
-    // Should wire INSTANTIATES (definitionId is a parameter, not inline in query)
-    const instCalls = mockRun.mock.calls.filter(
-      c => (c[0] as string).includes("INSTANTIATES"),
+    // Should wire type-level INSTANTIATES (definitionId param)
+    const typeLevelInst = mockRun.mock.calls.find(
+      c => (c[0] as string).includes("INSTANTIATES") && (c[1] as Record<string, unknown>)?.definitionId,
     );
-    expect(instCalls.length).toBeGreaterThan(0);
-    // Verify the definition target is bloom
-    const instParams = instCalls[0][1] as Record<string, unknown>;
-    expect(instParams.definitionId).toBe("def:morpheme:bloom");
+    expect(typeLevelInst).toBeDefined();
+    expect((typeLevelInst![1] as Record<string, unknown>).definitionId).toBe("def:morpheme:bloom");
   });
 
   it("falls back description → content for backward compatibility", async () => {
-    mockBloomParentAndNodeExists("parent-bloom");
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
     await createContainedBloom(
       { id: "b-2", name: "Desc Bloom", type: "test", status: "planned", description: "From description" },
       "parent-bloom",
+      "CONTAINS",
+      { transformationDefId: TEST_BLOOM_DEF },
     );
 
     // Should succeed (content derived from description)
@@ -833,11 +904,13 @@ describe("createContainedBloom delegation", () => {
   });
 
   it("records observation in instantiation Grid", async () => {
-    mockBloomParentAndNodeExists("parent-bloom");
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
     await createContainedBloom(
       { id: "b-3", name: "Obs Bloom", type: "test", status: "planned", content: "Observed" },
       "parent-bloom",
+      "CONTAINS",
+      { transformationDefId: TEST_BLOOM_DEF },
     );
 
     const obsCalls = mockRun.mock.calls.filter(
@@ -857,11 +930,12 @@ describe("createContainedResonator delegation", () => {
   });
 
   it("delegates to instantiateMorpheme with morphemeType resonator", async () => {
-    mockBloomParentAndNodeExists("parent-bloom");
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
     await createContainedResonator(
       { id: "r-1", name: "Test Resonator", content: "Transforms input", type: "test", status: "active" },
       "parent-bloom",
+      { transformationDefId: TEST_TRANSFORMATION_DEF },
     );
 
     // Should MERGE with Resonator label
@@ -870,13 +944,12 @@ describe("createContainedResonator delegation", () => {
     );
     expect(mergeCalls.length).toBeGreaterThan(0);
 
-    // Should wire INSTANTIATES (definitionId is a parameter, not inline)
-    const instCalls = mockRun.mock.calls.filter(
-      c => (c[0] as string).includes("INSTANTIATES"),
+    // Should wire type-level INSTANTIATES (definitionId param)
+    const typeLevelInst = mockRun.mock.calls.find(
+      c => (c[0] as string).includes("INSTANTIATES") && (c[1] as Record<string, unknown>)?.definitionId,
     );
-    expect(instCalls.length).toBeGreaterThan(0);
-    const instParams = instCalls[0][1] as Record<string, unknown>;
-    expect(instParams.definitionId).toBe("def:morpheme:resonator");
+    expect(typeLevelInst).toBeDefined();
+    expect((typeLevelInst![1] as Record<string, unknown>).definitionId).toBe("def:morpheme:resonator");
   });
 
   it("rejects empty content (A1 enforcement)", async () => {
@@ -923,4 +996,439 @@ describe("updateBloomStatus delegation", () => {
 
     await expect(updateBloomStatus("missing", "complete")).rejects.toThrow("does not exist");
   });
+});
+
+// ════════════════════════════════════════════════════════════════════
+// Highlander Protocol (A6 uniqueness enforcement)
+// ════════════════════════════════════════════════════════════════════
+
+describe("Highlander Protocol", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Test 1: No guard for Seeds
+  it("no guard for Seeds — succeeds without highlander param", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    const result = await instantiateMorpheme("seed", {
+      id: "seed-no-guard",
+      name: "Test",
+      seedType: "test",
+      content: "Seed content",
+      status: "active",
+    }, "parent-bloom");
+
+    expect(result.success).toBe(true);
+  });
+
+  // Test 2: No guard for Grids
+  it("no guard for Grids — succeeds without highlander param", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    const result = await instantiateMorpheme("grid", {
+      id: "grid-no-guard",
+      name: "Test Grid",
+      type: "observation",
+      content: "Grid content",
+      status: "active",
+    }, "parent-bloom");
+
+    expect(result.success).toBe(true);
+  });
+
+  // Test 3: No guard for Helixes
+  it("no guard for Helixes — succeeds without highlander param", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    const result = await instantiateMorpheme("helix", {
+      id: "helix-no-guard",
+      name: "Test Helix",
+      mode: "learning",
+      content: "Helix content",
+      status: "active",
+    }, "parent-bloom");
+
+    expect(result.success).toBe(true);
+  });
+
+  // Test 4: Hard reject for Resonator without transformationDefId
+  it("rejects Resonator without transformationDefId", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "res-no-def",
+      name: "Bad Resonator",
+      type: "computation",
+      content: "No def ID",
+      status: "active",
+    }, "parent-bloom");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Highlander Protocol");
+    expect(result.error).toContain("transformationDefId");
+  });
+
+  // Test 5: Hard reject for Bloom without transformationDefId
+  it("rejects Bloom without transformationDefId", async () => {
+    mockBloomParentAndNodeExists("parent-bloom");
+
+    const result = await instantiateMorpheme("bloom", {
+      id: "bloom-no-def",
+      name: "Bad Bloom",
+      type: "milestone",
+      content: "No def ID",
+      status: "active",
+    }, "parent-bloom");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Highlander Protocol");
+    expect(result.error).toContain("transformationDefId");
+  });
+
+  // Test 6: Reject for non-existent transformationDefId
+  it("rejects non-existent transformationDefId", async () => {
+    mockHighlanderEnvironment({ parentId: "parent-bloom", defExists: false });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "res-bad-def",
+      name: "Bad Def Resonator",
+      type: "computation",
+      content: "Non-existent def",
+      status: "active",
+    }, "parent-bloom", { transformationDefId: "def:transformation:nonexistent" });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("does not exist in Constitutional Bloom");
+  });
+
+  // Test 7: First instance succeeds
+  it("first instance succeeds — creates with both INSTANTIATES edges", async () => {
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "first-res",
+      name: "First Resonator",
+      type: "computation",
+      content: "First instance",
+      status: "active",
+    }, "parent-bloom", { transformationDefId: TEST_TRANSFORMATION_DEF });
+
+    expect(result.success).toBe(true);
+    expect(result.nodeId).toBe("first-res");
+
+    // Should have type-level AND transformation-level INSTANTIATES
+    const instCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("INSTANTIATES"),
+    );
+    expect(instCalls.length).toBeGreaterThanOrEqual(2);
+
+    // One should reference the type-level def
+    const typeLevelCall = instCalls.find(c => (c[1] as Record<string, unknown>)?.definitionId);
+    expect(typeLevelCall).toBeDefined();
+
+    // One should reference the transformation-level def
+    const transformCall = instCalls.find(c => (c[1] as Record<string, unknown>)?.tdefId);
+    expect(transformCall).toBeDefined();
+    expect((transformCall![1] as Record<string, unknown>).tdefId).toBe(TEST_TRANSFORMATION_DEF);
+  });
+
+  // Test 8: Compose pathway
+  it("compose pathway — wires FLOWS_TO to existing, no new node", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "duplicate-res",
+      name: "Duplicate",
+      type: "computation",
+      content: "Should compose",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+      requestingContextId: "requester-bloom",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.composed).toBeDefined();
+    expect(result.composed!.composed).toBe(true);
+    expect(result.composed!.existingId).toBe("existing-res");
+    expect(result.composed!.existingName).toBe("Existing Resonator");
+    expect(result.composed!.lineCreated).toBe(true);
+    expect(result.nodeId).toBeUndefined(); // No new node created
+  });
+
+  // Test 9: Compose without requestingContextId rejects
+  it("rejects existing instance without justification or requestingContextId", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "bad-duplicate",
+      name: "Bad Duplicate",
+      type: "computation",
+      content: "Should be rejected",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("existing-res");
+    expect(result.error).toContain("a6Justification");
+  });
+
+  // Test 10: Violation Seed content is queryable
+  it("creates Violation Seed on unjustified duplication", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    await instantiateMorpheme("resonator", {
+      id: "bad-dup-2",
+      name: "Another Bad Duplicate",
+      type: "computation",
+      content: "Should create violation",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+    });
+
+    // Check that a violation Seed was created (via writeTransaction)
+    const violationCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("violation") && (c[0] as string).includes("Seed"),
+    );
+    expect(violationCalls.length).toBeGreaterThan(0);
+  });
+
+  // Test 11: Justify pathway
+  it("justify pathway — creates new instance with a6Justification property", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "justified-res",
+      name: "Justified Resonator",
+      type: "computation",
+      content: "Justified new instance",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+      a6Justification: "distinct_governance_scope",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.nodeId).toBe("justified-res");
+  });
+
+  // Test 12: Invalid justification string rejects
+  it("rejects invalid A6 justification string", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "bad-justify",
+      name: "Bad Justify",
+      type: "computation",
+      content: "Invalid justification",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+      a6Justification: "made_up_reason" as any,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("invalid A6 justification");
+  });
+
+  // Test 13: Mutation guard blocks retirement with consumers
+  it("mutation guard blocks retirement with active FLOWS_TO consumers", async () => {
+    // Mock: node exists as Resonator, has active consumers
+    mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+      if (query.includes("labels(n)") && params?.nodeId === "res-with-consumers") {
+        return { records: [{ get: () => ["Resonator"] }] };
+      }
+      if (query.includes("FLOWS_TO") && query.includes("consumer")) {
+        return {
+          records: [
+            { get: (key: string) => key === "id" ? "consumer-1" : "Consumer One" },
+            { get: (key: string) => key === "id" ? "consumer-2" : "Consumer Two" },
+          ],
+        };
+      }
+      return { records: [] };
+    });
+
+    const result = await updateMorpheme("res-with-consumers", { status: "retired" });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("cannot retire");
+    expect(result.error).toContain("consumer-1");
+    expect(result.error).toContain("consumer-2");
+  });
+
+  // Test 14: Mutation guard allows retirement without consumers
+  it("mutation guard allows retirement without active consumers", async () => {
+    // Mock: node exists as Resonator, no active consumers
+    mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+      if (query.includes("labels(n)") && params?.nodeId === "res-no-consumers") {
+        return { records: [{ get: () => ["Resonator"] }] };
+      }
+      if (query.includes("FLOWS_TO") && query.includes("consumer")) {
+        return { records: [] }; // No consumers
+      }
+      // properties(n) read-back verification
+      if (query.includes("properties(n)") && params?.nodeId === "res-no-consumers") {
+        return { records: [{ get: () => ({ id: "res-no-consumers", status: "retired" }) }] };
+      }
+      return { records: [] };
+    });
+
+    const result = await updateMorpheme("res-no-consumers", { status: "retired" });
+
+    expect(result.success).toBe(true);
+  });
+
+  // Test 15: Violation Grid bootstrap
+  it("bootstraps Violation Grid on first violation", async () => {
+    mockHighlanderEnvironment({
+      parentId: "parent-bloom",
+      existingInstances: [{ id: "existing-res", name: "Existing Resonator" }],
+    });
+
+    await instantiateMorpheme("resonator", {
+      id: "trigger-grid-bootstrap",
+      name: "Trigger Grid",
+      type: "computation",
+      content: "Forces violation grid creation",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+    });
+
+    // Check that the violation grid creation query was issued
+    const gridCalls = mockRun.mock.calls.filter(
+      c => (c[0] as string).includes("grid:violation:ecosystem"),
+    );
+    expect(gridCalls.length).toBeGreaterThan(0);
+  });
+
+  // Test 16: Transformation-level INSTANTIATES verifiable
+  it("transformation-level INSTANTIATES uses correct definition", async () => {
+    mockHighlanderEnvironment({ parentId: "parent-bloom" });
+
+    await instantiateMorpheme("bloom", {
+      id: "bloom-with-tdef",
+      name: "Bloom With TDef",
+      type: "milestone",
+      content: "Has transformation def",
+      status: "active",
+    }, "parent-bloom", { transformationDefId: TEST_BLOOM_DEF });
+
+    // Find transformation-level INSTANTIATES call
+    const tdefCall = mockRun.mock.calls.find(
+      c => (c[0] as string).includes("INSTANTIATES") && (c[1] as Record<string, unknown>)?.tdefId,
+    );
+    expect(tdefCall).toBeDefined();
+    expect((tdefCall![1] as Record<string, unknown>).tdefId).toBe(TEST_BLOOM_DEF);
+  });
+
+  // Test 18: Compose pathway handles Line creation failure
+  it("compose handles Line creation failure gracefully", async () => {
+    // Mock: existing instance found, but requestingContextId node doesn't exist for Line
+    mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+      // Parent type
+      if (query.includes("labels(n)") && params?.nodeId === "parent-bloom") {
+        return { records: [{ get: () => ["Bloom"] }] };
+      }
+      // Definition exists
+      if (query.includes("constitutional-bloom") && query.includes("CONTAINS")) {
+        return { records: [{ get: () => "def" }] };
+      }
+      // Existing instance
+      if (query.includes("INSTANTIATES") && query.includes("existing")) {
+        return {
+          records: [{
+            get: (key: string) => key === "id" ? "existing-res" : "Existing Resonator",
+          }],
+        };
+      }
+      // Line creation: source doesn't exist (fail)
+      if (query.includes("count(n)") && params?.nodeId === "bad-requester") {
+        return { records: [{ get: () => 0 }] };
+      }
+      return { records: [] };
+    });
+
+    const result = await instantiateMorpheme("resonator", {
+      id: "compose-fail-res",
+      name: "Compose Fail",
+      type: "computation",
+      content: "Line will fail",
+      status: "active",
+    }, "parent-bloom", {
+      transformationDefId: TEST_TRANSFORMATION_DEF,
+      requestingContextId: "bad-requester",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.composed).toBeDefined();
+    expect(result.composed!.composed).toBe(true);
+    expect(result.composed!.existingId).toBe("existing-res");
+    expect(result.composed!.lineCreated).toBe(false);
+    expect(result.composed!.lineError).toBeDefined();
+  });
+
+  // Test: SPECIALISES is a valid line type
+  it("SPECIALISES is in VALID_LINE_TYPES", async () => {
+    const { VALID_LINE_TYPES } = await import("../../src/graph/instantiation.js");
+    expect(VALID_LINE_TYPES).toContain("SPECIALISES");
+  });
+
+  // Test: Retirement guard only fires for Resonator/Bloom
+  it("retirement guard does not fire for Seeds", async () => {
+    mockNodeLabels("existing-seed", ["Seed"]);
+
+    const result = await updateMorpheme("existing-seed", { status: "retired" });
+
+    // Should succeed (Seeds don't have retirement guard)
+    expect(result.success).toBe(true);
+  });
+
+  // Test: All three valid justifications accepted
+  for (const justification of [
+    "distinct_learned_state",
+    "distinct_governance_scope",
+    "distinct_temporal_scale",
+  ] as const) {
+    it(`accepts A6 justification: ${justification}`, async () => {
+      vi.clearAllMocks();
+      mockHighlanderEnvironment({
+        parentId: "parent-bloom",
+        existingInstances: [{ id: "existing-res", name: "Existing" }],
+      });
+
+      const result = await instantiateMorpheme("resonator", {
+        id: `justified-${justification}`,
+        name: "Justified",
+        type: "computation",
+        content: "Justified instance",
+        status: "active",
+      }, "parent-bloom", {
+        transformationDefId: TEST_TRANSFORMATION_DEF,
+        a6Justification: justification,
+      });
+
+      expect(result.success).toBe(true);
+    });
+  }
 });

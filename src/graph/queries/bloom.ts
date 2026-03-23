@@ -5,7 +5,7 @@
 import type { Record as Neo4jRecord } from "neo4j-driver";
 import { runQuery, writeTransaction } from "../client.js";
 import { instantiateMorpheme, updateMorpheme, createLine } from "../instantiation.js";
-import type { LineType } from "../instantiation.js";
+import type { LineType, HighlanderOptions } from "../instantiation.js";
 
 // ============ TYPES ============
 
@@ -227,6 +227,7 @@ export async function createContainedBloom(
   props: BloomProps,
   parentId: string,
   relationship: 'CONTAINS' | 'HAS_MILESTONE' | 'HAS_PHASE' | 'HAS_STAGE' = 'CONTAINS',
+  highlander?: HighlanderOptions,
 ): Promise<void> {
   // content is required by the protocol; fall back to description for backward compat
   const content = props.content ?? props.description ?? '';
@@ -243,7 +244,7 @@ export async function createContainedBloom(
     connectionCount: 0,
   };
 
-  const result = await instantiateMorpheme("bloom", properties, parentId);
+  const result = await instantiateMorpheme("bloom", properties, parentId, highlander);
   if (!result.success) {
     throw new Error(result.error ?? "Bloom instantiation failed");
   }

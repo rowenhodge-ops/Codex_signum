@@ -26,7 +26,7 @@ import {
   updateMorpheme,
   createLine,
 } from "../src/graph/instantiation.js";
-import type { MorphemeType, LineType } from "../src/graph/instantiation.js";
+import type { MorphemeType, LineType, HighlanderOptions } from "../src/graph/instantiation.js";
 import { runQuery, closeDriver } from "../src/graph/client.js";
 import { computeAndPersistPsiH } from "../src/graph/queries/health.js";
 
@@ -64,8 +64,14 @@ async function ensureMorpheme(
   type: MorphemeType,
   props: Record<string, unknown>,
   parentId: string,
+  highlander?: HighlanderOptions,
 ): Promise<void> {
-  const result = await instantiateMorpheme(type, props, parentId);
+  // Auto-derive Highlander options for bloom types if not explicitly provided
+  let hl = highlander;
+  if (type === "bloom" && !hl) {
+    hl = { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" };
+  }
+  const result = await instantiateMorpheme(type, props, parentId, hl);
   if (!result.success) {
     console.error(`  ✗ ${type} ${props.id}: ${result.error}`);
     throw new Error(result.error);
@@ -350,6 +356,7 @@ async function phase3_createM25(): Promise<void> {
         "standard and the creation guard, then let it build what it needs.",
     },
     "roadmap-v7",
+    { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" },
   );
 
   // M-25.1: Highlander Protocol
@@ -369,6 +376,7 @@ async function phase3_createM25(): Promise<void> {
         "Source: prompt-1-highlander-protocol.md (approved 2026-03-23).",
     },
     "M-25",
+    { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" },
   );
 
   // M-25.2: Cognitive Bloom
@@ -388,6 +396,7 @@ async function phase3_createM25(): Promise<void> {
         "Source: prompt-2-cognitive-bloom.md (approved 2026-03-23).",
     },
     "M-25",
+    { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" },
   );
 
   // M-25.3: First Cycle
@@ -407,6 +416,7 @@ async function phase3_createM25(): Promise<void> {
         "Resonators exist, Lines exist, λ₂ > 0. The system has built itself.",
     },
     "M-25",
+    { transformationDefId: "def:bloom:milestone", a6Justification: "distinct_governance_scope" },
   );
 
   // Exit criteria
