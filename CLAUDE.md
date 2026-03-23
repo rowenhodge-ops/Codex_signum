@@ -539,6 +539,97 @@ DevAgent uses Thompson routing per stage. Quality assessment is V1 mechanical (p
 
 ---
 
+## Cognitive Bloom — Self-Survey Workflow
+
+The Cognitive Bloom surveys the system's own topology, compares it against its constitution, and proposes structural changes. The workflow has strict boundaries between what Claude Code does and what Ro decides.
+
+### The Loop
+
+```
+SURVEY (Claude Code) → INTENT (file) → REVIEW (Ro) → PROMPT (chat) → EXECUTE (Claude Code) → VERIFY (Ro + chat)
+```
+
+### Step 1: Run the Survey (Claude Code)
+
+```bash
+npx tsx scripts/cognitive.ts survey architect
+```
+
+This is a READ-ONLY diagnostic. It queries Neo4j, computes gaps, and writes an intent JSON file to `docs/cognitive-output/intent-{N}.json`. The cycle number auto-increments from the Observation Grid.
+
+**After the survey completes, STOP.** Report the results:
+
+- Gap count (constitutional + topological)
+- Pre-survey spectral properties (lambda2, psiH, phiL)
+- Top proposed changes
+- Intent file path
+
+**Do NOT proceed to create morphemes, wire Lines, or execute the intent.**
+
+### Step 2: Review the Intent (Ro)
+
+Ro reads the intent file and decides:
+
+- Which proposed changes to approve
+- Whether to modify the scope
+- Whether to defer to the next cycle
+
+### Step 3: Generate Execution Prompt (Chat with Opus)
+
+Ro brings the intent to the chat session. Opus generates a `[NO-PIPELINE]` bootstrap script prompt with:
+
+- Exact Resonator/Bloom IDs and properties
+- Parent discovery queries (not hardcoded)
+- FLOWS_TO wiring maps with stage matching
+- Verification queries
+- Exit criteria
+
+### Step 4: Execute the Prompt (Claude Code)
+
+Claude Code receives the prompt and executes the bootstrap script. After execution:
+
+- Report what was created
+- Report what was wired
+- Report verification results
+- Commit and push
+
+**Do NOT run another survey cycle. Do NOT improvise additional changes.**
+
+### Step 5: Verify (Ro + Chat)
+
+Ro shares the execution results with Opus. Opus verifies against the prompt spec via GitHub MCP. If clean, Ro runs the next survey cycle (back to Step 1).
+
+### What the Observation Grid Records
+
+Every survey cycle writes an observation Seed to `grid:cognitive-observations` via `recordCycleObservation()`:
+
+- Pre-survey spectral state (lambda2, psiH, phiL)
+- Gap count and classification
+- Proposed change count
+- Cycle number
+
+The Learning Helix (Scale 2) reads this Grid to calibrate priority weights across cycles. This is how the system learns which gap types to prioritise.
+
+### Feeding Intent to the Architect Pipeline
+
+For analytical/generative work (not just graph mutations), the intent can flow through the Architect:
+
+```bash
+npx tsx scripts/architect.ts plan --intent-file=docs/cognitive-output/intent-{N}.json
+```
+
+This forces `autoGate = false` — Ro must approve at GATE. Use this path when the intent requires LLM reasoning, code changes, or multi-step decomposition. Use the bootstrap script path for pure graph mutations.
+
+### What Claude Code Must NEVER Do
+
+- Execute intent file contents without a prompt from Ro
+- Run survey and then immediately act on the results
+- Create morphemes or wire Lines based on survey output without an explicit prompt
+- Feed intent files to the Architect without Ro's instruction
+- Chain survey → execute → survey in a single session
+
+---
+
 ## SURVEY Broadening — Document Discovery & Claim Extraction
 
 SURVEY now auto-discovers the documentation corpus and cross-references it against implementation:
@@ -773,8 +864,8 @@ These are the current baselines. Test counts must only go up. Export counts may 
 
 | Metric | Baseline | Source |
 |---|---|---|
-| Tests passing | 1682 | `npm test` at HEAD |
-| Barrel exports | 303 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
+| Tests passing | 1704 | `npm test` at HEAD |
+| Barrel exports | 308 | `node -e "const c = require('./dist'); console.log(Object.keys(c).length)"` |
 
 ### Pipeline Test Coverage Gate
 
