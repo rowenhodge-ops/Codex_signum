@@ -15,6 +15,8 @@ export { checkRefinementScale, checkLearningScale, checkEvolutionaryScale, } fro
 export { survey, extractClaims, discoverDocumentSources, parseHypotheses, classify, classifyTask, sequence, gate, adapt, decompose, buildDecomposePrompt, dispatch, registerDeterministicExecutor, clearDeterministicExecutors, getDeterministicExecutorCount, MECHANICAL_CONFIDENCE_THRESHOLD, executePlan, parallelDecompose, scorePlan, selectReasoningTier, createMockModelExecutor, createMockTaskExecutor, MAX_ADAPTATIONS_PER_PLAN, MAX_TASKS_PER_PLAN, MANDATORY_HUMAN_GATE, 
 // Quality gates — source verification
 detectUnsourcedReferences, DOCUMENT_NAME_MAP, extractPathReferences, resolveDocumentReferences, validateFilePaths, getDirectoryListing, } from "./architect/index.js";
+// Cognitive Bloom — self-knowledge pattern
+export { surveyBloomTopology, queryTransformationDefinitions, computeConstitutionalDelta, synthesizeIntent, runCognitiveCycle, } from "./cognitive/index.js";
 // Retrospective — deterministic graph queries, no LLM
 export { runRetrospective, deriveConvergenceStatus, worstBand, } from "./retrospective/index.js";
 //# sourceMappingURL=index.js.map

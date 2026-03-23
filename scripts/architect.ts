@@ -86,6 +86,45 @@ function loadEnv(repoPath: string): void {
   }
 }
 
+// ── Cognitive Bloom intent file reader ────────────────────────────────────────
+
+interface CognitiveIntentFile {
+  intentId: string;
+  source: string;
+  cycleNumber: number;
+  gapType: string;
+  proposedChanges: Array<{
+    changeType: string;
+    targetDefId?: string;
+    description: string;
+    a6Justification?: string;
+  }>;
+  preSurveyLambda2: number;
+  preSurveyPsiH: number;
+  governanceModifying: boolean;
+}
+
+function cognitiveIntentToString(intent: CognitiveIntentFile): string {
+  const changes = intent.proposedChanges
+    .map((c) => `- ${c.changeType}: ${c.description}`)
+    .join("\n");
+  return `[Cognitive Bloom Cycle ${intent.cycleNumber}] ${intent.gapType} gaps.\n` +
+         `Pre-survey: lambda2=${intent.preSurveyLambda2}, psiH=${intent.preSurveyPsiH}\n` +
+         `Proposed changes:\n${changes}`;
+}
+
+function loadCognitiveIntentFile(filePath: string): string {
+  const absolutePath = resolve(process.cwd(), filePath);
+  if (!existsSync(absolutePath)) {
+    console.error(`Intent file not found: ${absolutePath}`);
+    process.exit(1);
+  }
+  const content = readFileSync(absolutePath, "utf-8");
+  const intent = JSON.parse(content) as CognitiveIntentFile;
+  console.log(`  Loaded Cognitive Bloom intent: cycle ${intent.cycleNumber}, ${intent.proposedChanges.length} changes`);
+  return cognitiveIntentToString(intent);
+}
+
 // ── CLI argument parsing ────────────────────────────────────────────────────
 
 function printUsage(): void {
@@ -101,11 +140,13 @@ Options:
   --decompose-n=N      Best-of-N decompose attempts (default: 1)
   --allow-degraded     Allow running with missing providers (warning instead of error)
   --milestone=LABEL    Milestone label for auto-commit (default: "run")
+  --intent-file=PATH   Read intent from Cognitive Bloom JSON file (forces human GATE)
 
 Examples:
   npx tsx scripts/architect.ts plan "Add hub-aware dampening to cascade propagation"
   npx tsx scripts/architect.ts plan "Fix hysteresis ratio" --auto-gate --dry-run
   npx tsx scripts/architect.ts plan "Implement memory compaction" --decompose-n=3
+  npx tsx scripts/architect.ts plan --intent-file=docs/cognitive-output/intent-1.json
 `);
 }
 
@@ -117,6 +158,7 @@ interface CliArgs {
   decomposeN: number;
   allowDegraded: boolean;
   milestone: string;
+  intentFile: string | null;
 }
 
 function parseArgs(): CliArgs | null {
@@ -132,19 +174,14 @@ function parseArgs(): CliArgs | null {
     return null;
   }
 
-  const intent = args[1];
-  if (!intent) {
-    console.error('Missing intent. Usage: npx tsx scripts/architect.ts plan "<intent>"');
-    return null;
-  }
-
   let autoGate = false;
   let dryRun = false;
   let decomposeN = 1;
   let allowDegraded = false;
   let milestone = "run";
+  let intentFile: string | null = null;
 
-  for (const arg of args.slice(2)) {
+  for (const arg of args.slice(1)) {
     if (arg === "--auto-gate") autoGate = true;
     else if (arg === "--dry-run") dryRun = true;
     else if (arg === "--allow-degraded") allowDegraded = true;
@@ -153,10 +190,27 @@ function parseArgs(): CliArgs | null {
       if (isNaN(decomposeN) || decomposeN < 1) decomposeN = 1;
     } else if (arg.startsWith("--milestone=")) {
       milestone = arg.split("=")[1] || "run";
+    } else if (arg.startsWith("--intent-file=")) {
+      intentFile = arg.split("=")[1] || null;
     }
   }
 
-  return { command, intent, autoGate, dryRun, decomposeN, allowDegraded, milestone };
+  // Resolve intent: from --intent-file or from positional arg
+  let intent: string;
+  if (intentFile) {
+    intent = loadCognitiveIntentFile(intentFile);
+    autoGate = false; // Cognitive Bloom intents ALWAYS require human GATE
+  } else {
+    const positionalIntent = args[1];
+    if (!positionalIntent || positionalIntent.startsWith("--")) {
+      console.error('Missing intent. Usage: npx tsx scripts/architect.ts plan "<intent>"');
+      console.error('  Or: npx tsx scripts/architect.ts plan --intent-file=<path>');
+      return null;
+    }
+    intent = positionalIntent;
+  }
+
+  return { command, intent, autoGate, dryRun, decomposeN, allowDegraded, milestone, intentFile };
 }
 
 // ── Survey → PipelineSurveyOutput conversion ────────────────────────────────
@@ -209,9 +263,12 @@ async function main(): Promise<void> {
   console.log("\n" + SEP);
   console.log("  CODEX SIGNUM — ARCHITECT SELF-HOSTING");
   console.log(SEP);
+  if (cliArgs.intentFile) {
+    console.log(`\n  Source: Cognitive Bloom intent file: ${cliArgs.intentFile}`);
+  }
   console.log(`\n  Intent: ${cliArgs.intent}`);
   console.log(`  Mode:   ${cliArgs.dryRun ? "DRY RUN" : "LIVE"}`);
-  console.log(`  Gate:   ${cliArgs.autoGate ? "AUTO" : "HUMAN"}`);
+  console.log(`  Gate:   ${cliArgs.autoGate ? "AUTO" : "HUMAN"}${cliArgs.intentFile ? " (forced by Cognitive Bloom)" : ""}`);
   console.log(`  DecomposeN: ${cliArgs.decomposeN}`);
 
   // Load API keys from .env files (only sets vars not already in environment)

@@ -161,6 +161,22 @@ export type {
   StructuralClaim,
 } from "./assayer/index.js";
 
+// Cognitive Bloom — self-knowledge pattern
+export {
+  surveyBloomTopology,
+  queryTransformationDefinitions,
+  computeConstitutionalDelta,
+  synthesizeIntent,
+  runCognitiveCycle,
+} from "./cognitive/index.js";
+export type {
+  BloomSurvey,
+  GapSeed,
+  CognitiveIntent,
+  TransformationDef,
+  CognitiveCycleOptions,
+} from "./cognitive/index.js";
+
 // Retrospective — deterministic graph queries, no LLM
 export {
   runRetrospective,
