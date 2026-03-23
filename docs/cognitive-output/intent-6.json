@@ -1,0 +1,37 @@
+{
+  "intentId": "cognitive-intent-6-1774265310868",
+  "source": "cognitive-bloom",
+  "cycleNumber": 6,
+  "timestamp": "2026-03-23T11:28:30.865Z",
+  "gapType": "mixed",
+  "proposedChanges": [
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:adaptation-analysis",
+      "description": "Create instance of Adaptation Analysis Transformation Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:constitutional",
+      "description": "Create instance of Constitutional Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:architect",
+      "description": "Create instance of Architect Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:devagent",
+      "description": "Create instance of DevAgent Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:cognitive",
+      "description": "Create instance of Cognitive Bloom Definition"
+    }
+  ],
+  "preSurveyLambda2": 0,
+  "preSurveyPsiH": 0.6,
+  "governanceModifying": true
+}

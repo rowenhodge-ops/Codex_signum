@@ -1,0 +1,25 @@
+{
+  "intentId": "cognitive-intent-8-1774285094325",
+  "source": "cognitive-bloom",
+  "cycleNumber": 8,
+  "timestamp": "2026-03-23T16:58:14.323Z",
+  "gapType": "mixed",
+  "proposedChanges": [
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:assayer",
+      "description": "Create instance of Assayer Bloom Definition"
+    },
+    {
+      "changeType": "create_line",
+      "description": "Wire FLOWS_TO from architect_GATE"
+    },
+    {
+      "changeType": "mutate",
+      "description": "[Advisory] lambda2=0: disconnected components. Stages have no inter-edges."
+    }
+  ],
+  "preSurveyLambda2": 0,
+  "preSurveyPsiH": 0.6,
+  "governanceModifying": true
+}
