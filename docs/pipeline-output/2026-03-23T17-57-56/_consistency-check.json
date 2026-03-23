@@ -1,0 +1,13 @@
+{
+  "issues": [
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"Seeds\" (not in the 9 canonical axioms)",
+      "tasks": [
+        "t8"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-23T18:09:51.086Z",
+  "taskCount": 8
+}
