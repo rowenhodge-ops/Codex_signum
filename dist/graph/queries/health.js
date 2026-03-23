@@ -353,6 +353,25 @@ export async function getCompositionSubgraph(bloomId) {
             }
         }
     }
+    // Hub-mediated edges: children connected through shared FLOWS_TO targets outside containment
+    const hubResult = await runQuery(`MATCH (parent:Bloom {id: $bloomId})-[:CONTAINS]->(child1)
+     MATCH (parent)-[:CONTAINS]->(child2)
+     WHERE child1 <> child2
+     MATCH (child1)-[:FLOWS_TO]->(shared)<-[:FLOWS_TO]-(child2)
+     WHERE NOT (parent)-[:CONTAINS]->(shared)
+     WITH DISTINCT
+       CASE WHEN child1.id < child2.id THEN child1.id ELSE child2.id END AS fromId,
+       CASE WHEN child1.id < child2.id THEN child2.id ELSE child1.id END AS toId
+     RETURN fromId, toId`, { bloomId }, "READ");
+    for (const rec of hubResult.records) {
+        const fromId = String(rec.get("fromId"));
+        const toId = String(rec.get("toId"));
+        const edgeKey = `${fromId}->${toId}`;
+        if (!edgeSet.has(edgeKey) && nodeMap.has(fromId) && nodeMap.has(toId)) {
+            edgeSet.add(edgeKey);
+            edges.push({ from: fromId, to: toId, weight: 1.0 });
+        }
+    }
     // No children found
     if (nodeHealths.length === 0)
         return null;
