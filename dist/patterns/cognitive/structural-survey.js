@@ -110,11 +110,19 @@ export async function surveyBloomTopology(bloomId) {
     });
     const interChildLines = [...directLines, ...hubLines];
     // 4. INSTANTIATES EDGES (transformation-level only)
+    // Includes nodes reachable via FLOWS_TO from children (shared ecosystem Resonators)
     const instantiatesEdges = await readTransaction(async (tx) => {
         const res = await tx.run(`MATCH (b:Bloom {id: $bloomId})-[:CONTAINS*1..2]->(node)
        MATCH (node)-[:INSTANTIATES]->(def:Seed)
        WHERE def.seedType IN ['transformation-definition', 'bloom-definition']
        RETURN DISTINCT node.id AS fromId, node.name AS fromName,
+              def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType
+       UNION
+       MATCH (b:Bloom {id: $bloomId})-[:CONTAINS]->(child)-[:FLOWS_TO]->(shared)
+       WHERE NOT (b)-[:CONTAINS]->(shared)
+       MATCH (shared)-[:INSTANTIATES]->(def:Seed)
+       WHERE def.seedType IN ['transformation-definition', 'bloom-definition']
+       RETURN DISTINCT shared.id AS fromId, shared.name AS fromName,
               def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType`, { bloomId });
         return res.records.map((r) => ({
             fromId: r.get("fromId"),

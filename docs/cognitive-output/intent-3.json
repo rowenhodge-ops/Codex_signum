@@ -1,0 +1,37 @@
+{
+  "intentId": "cognitive-intent-3-1774263020393",
+  "source": "cognitive-bloom",
+  "cycleNumber": 3,
+  "timestamp": "2026-03-23T10:50:20.391Z",
+  "gapType": "mixed",
+  "proposedChanges": [
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:mutation",
+      "description": "Create instance of Mutation Transformation Definition"
+    },
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:line-creation",
+      "description": "Create instance of Line Creation Transformation Definition"
+    },
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:rule-classification",
+      "description": "Create instance of Rule-Based Classification Transformation Definition"
+    },
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:topological-sort",
+      "description": "Create instance of Topological Sort Transformation Definition"
+    },
+    {
+      "changeType": "create_resonator",
+      "targetDefId": "def:transformation:task-dispatch",
+      "description": "Create instance of Task Dispatch Transformation Definition"
+    }
+  ],
+  "preSurveyLambda2": 0,
+  "preSurveyPsiH": 0.6,
+  "governanceModifying": true
+}
