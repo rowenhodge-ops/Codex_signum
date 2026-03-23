@@ -1,0 +1,290 @@
+{
+  "runId": "2026-03-23T23-10-58",
+  "intent": "R-62: Route four operational node types through instantiateMorpheme(). :Observation, :Decision, :TaskOutput, and :Distillation create nodes via raw Cypher bypassing the Instantiation Protocol. All four are Seeds by v5.0 grammar. Each needs creation routed through instantiateMorpheme('seed'), Grid parent for CONTAINS, Option B multi-label retyping. Do NOT touch governance Resonator self-observation in instantiation.ts — that's the recursion boundary. Files: src/graph/queries/observation.ts, decision.ts, task-output.ts, distillation.ts, write-observation.ts, src/memory/graph-operations.ts, scripts/bootstrap-task-executor.ts",
+  "startedAt": "2026-03-23T23:31:20.143Z",
+  "completedAt": "2026-03-23T23:54:14.571Z",
+  "tasks": [
+    {
+      "taskId": "t1",
+      "title": "Extend instantiateMorpheme to accept seed sub-type for multi-label retyping",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 130379,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t1-extend-instantiatemorpheme-to-accept-seed-sub-type-for-multi.md",
+      "outputChars": 12447
+    },
+    {
+      "taskId": "t2",
+      "title": "Route :Observation creation in observation.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:8k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "8k",
+      "status": "succeeded",
+      "durationMs": 88081,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t2-route-observation-creation-in-observation-ts-through-instant.md",
+      "outputChars": 11436
+    },
+    {
+      "taskId": "t3",
+      "title": "Route :Decision creation in decision.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 101288,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t3-route-decision-creation-in-decision-ts-through-instantiatemo.md",
+      "outputChars": 18261
+    },
+    {
+      "taskId": "t4",
+      "title": "Route :TaskOutput creation in task-output.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 98916,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t4-route-taskoutput-creation-in-task-output-ts-through-instanti.md",
+      "outputChars": 19045
+    },
+    {
+      "taskId": "t5",
+      "title": "Route :Distillation creation in distillation.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:8k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "8k",
+      "status": "succeeded",
+      "durationMs": 80525,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t5-route-distillation-creation-in-distillation-ts-through-insta.md",
+      "outputChars": 15601
+    },
+    {
+      "taskId": "t7",
+      "title": "Route operational node creation in graph-operations.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 150331,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t7-route-operational-node-creation-in-graph-operations-ts-throu.md",
+      "outputChars": 20857
+    },
+    {
+      "taskId": "t8",
+      "title": "Route :TaskOutput creation in bootstrap-task-executor.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 0.5,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 95253,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t8-route-taskoutput-creation-in-bootstrap-task-executor-ts-thro.md",
+      "outputChars": 12423
+    },
+    {
+      "taskId": "t9",
+      "title": "Update graph/index.ts exports if instantiateMorpheme signature changed",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.6666666666666666,
+        "signals": [
+          "source files: 1",
+          "mechanical ops: re-export, barrel"
+        ],
+        "layer": "file_type"
+      },
+      "model": "gemini-2.5-pro:default",
+      "provider": "vertex-ai",
+      "thinkingMode": "default",
+      "status": "succeeded",
+      "durationMs": 48653,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t9-update-graph-index-ts-exports-if-instantiatemorpheme-signatu.md",
+      "outputChars": 5879
+    },
+    {
+      "taskId": "t10",
+      "title": "Verify governance Resonator self-observation is untouched in instantiation.ts",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "audit",
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 88335,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t10-verify-governance-resonator-self-observation-is-untouched-in.md",
+      "outputChars": 12911
+    },
+    {
+      "taskId": "t11",
+      "title": "Update instantiation protocol conformance tests for seed sub-types",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 91769,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t11-update-instantiation-protocol-conformance-tests-for-seed-sub.md",
+      "outputChars": 16085
+    },
+    {
+      "taskId": "t6",
+      "title": "Route :Observation creation in write-observation.ts through instantiateMorpheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 71512,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t6-route-observation-creation-in-write-observation-ts-through-i.md",
+      "outputChars": 7858
+    },
+    {
+      "taskId": "t12",
+      "title": "Run full test suite and fix any regressions from routing changes",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 0.5,
+        "signals": [
+          "no keywords matched — defaulting to generative"
+        ],
+        "layer": "default"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 132571,
+      "outputFile": "docs\\pipeline-output\\2026-03-23T23-10-58\\t12-run-full-test-suite-and-fix-any-regressions-from-routing-cha.md",
+      "outputChars": 19971
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "succeeded": 12,
+    "failed": 0,
+    "totalDurationMs": 1177613,
+    "totalOutputChars": 172774,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:high",
+      "claude-opus-4-5:extended:8k",
+      "claude-opus-4-6:adaptive:medium",
+      "claude-opus-4-6:adaptive:low",
+      "claude-opus-4-5:extended:32k",
+      "gemini-2.5-pro:default",
+      "claude-opus-4-5:extended:16k"
+    ]
+  }
+}
