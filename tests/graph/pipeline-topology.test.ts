@@ -13,7 +13,7 @@ import {
   createTaskOutput,
   getTaskOutputsForRun,
   queryTaskOutputsByModel,
-  ensureArchitectResonators,
+  ensureArchitectStages,
   linkTaskOutputToStage,
   // M-9.5 additions
   failPipelineRun,
@@ -191,8 +191,8 @@ describe("Pipeline Topology — Exports", () => {
     expect(typeof queryTaskOutputsByModel).toBe("function");
   });
 
-  it("exports ensureArchitectResonators as a function", () => {
-    expect(typeof ensureArchitectResonators).toBe("function");
+  it("exports ensureArchitectStages as a function", () => {
+    expect(typeof ensureArchitectStages).toBe("function");
   });
 
   it("exports linkTaskOutputToStage as a function", () => {
@@ -218,7 +218,7 @@ describe("Pipeline Topology — Package-level barrel re-exports", () => {
     expect(typeof root.createTaskOutput).toBe("function");
     expect(typeof root.getTaskOutputsForRun).toBe("function");
     expect(typeof root.queryTaskOutputsByModel).toBe("function");
-    expect(typeof root.ensureArchitectResonators).toBe("function");
+    expect(typeof root.ensureArchitectStages).toBe("function");
     expect(typeof root.linkTaskOutputToStage).toBe("function");
 
     // Constant

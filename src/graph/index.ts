@@ -81,7 +81,6 @@ export {
   queryTaskOutputsByModel,
   createContainedResonator,
   ensureArchitectStages,
-  ensureArchitectResonators,
   linkTaskOutputToStage,
   // Pipeline Analytics
   getPipelineStageHealth,

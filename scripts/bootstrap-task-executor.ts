@@ -27,7 +27,7 @@ import {
   createPipelineRun,
   completePipelineRun,
   createTaskOutput,
-  ensureArchitectResonators,
+  ensureArchitectStages,
   linkTaskOutputToStage,
   updateDecisionQuality,
   tryCreateAndLinkSeed,
@@ -606,7 +606,7 @@ export function createBootstrapTaskExecutor(
         // Initialize graph tracking if enabled
         if (config?.graphEnabled && config.architectBloomId) {
           try {
-            await ensureArchitectResonators(config.architectBloomId);
+            await ensureArchitectStages(config.architectBloomId);
             await createPipelineRun({
               id: currentRunId,
               intent: currentIntent,

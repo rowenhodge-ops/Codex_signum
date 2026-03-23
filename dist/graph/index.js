@@ -26,7 +26,7 @@ ensureContextCluster,
 // Human Feedback
 recordHumanFeedback, getHumanFeedbackForRun, listPendingFeedbackRuns, getCalibrationMetrics, 
 // Pipeline Topology
-ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, createContainedResonator, ensureArchitectStages, ensureArchitectResonators, linkTaskOutputToStage, 
+ARCHITECT_STAGES, createPipelineRun, completePipelineRun, getPipelineRun, listPipelineRuns, createTaskOutput, getTaskOutputsForRun, queryTaskOutputsByModel, createContainedResonator, ensureArchitectStages, linkTaskOutputToStage, 
 // Pipeline Analytics
 getPipelineStageHealth, getPipelineRunStats, 
 // Pipeline Lifecycle Extensions (M-9.5)

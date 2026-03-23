@@ -35,32 +35,54 @@ export async function createContainedResonator(
   }
 }
 
+const STAGE_CONTENT: Record<string, string> = {
+  SURVEY: "Discovers codebase structure, graph state, specification references, and gap analysis for the intent",
+  DECOMPOSE: "Breaks the intent into atomic Task Seeds with file paths, acceptance criteria, and dependency edges",
+  CLASSIFY: "Enriches each Task Seed with taskType, kanoClass, estimatedComplexity, and routingHint via rule config",
+  SEQUENCE: "Computes execution order via topological sort of Task Seed dependency graph",
+  GATE: "Presents the execution plan for human review; captures approval, modification, or abort decision",
+  DISPATCH: "Routes each Task Seed to its execution substrate via Thompson selection and executes",
+  ADAPT: "Analyses execution outcomes and ΨH friction to determine whether replanning is needed",
+};
+
 /** Ensure the 7 Architect stage Blooms exist and are contained in the Architect Bloom */
 export async function ensureArchitectStages(
   architectBloomId: string,
 ): Promise<void> {
-  await writeTransaction(async (tx) => {
-    for (const stage of ARCHITECT_STAGES) {
-      await tx.run(
-        `MERGE (r:Bloom:Stage { id: $stageId })
-         ON CREATE SET
-           r.name = $stage,
-           r.stage = $stage,
-           r.createdAt = datetime()
-         WITH r
-         MATCH (b:Bloom { id: $bloomId })
-         MERGE (b)-[:CONTAINS]->(r)`,
-        {
-          stageId: `${architectBloomId}_${stage}`,
-          stage,
-          bloomId: architectBloomId,
-        },
-      );
+  for (const stage of ARCHITECT_STAGES) {
+    const stageId = `${architectBloomId}_${stage}`;
+    const highlander: HighlanderOptions = {
+      transformationDefId: "def:bloom:stage",
+      a6Justification: "distinct_governance_scope",
+    };
+
+    const result = await instantiateMorpheme(
+      "bloom",
+      {
+        id: stageId,
+        name: stage,
+        content: STAGE_CONTENT[stage],
+        type: "stage",
+        status: "active",
+        stage,
+      },
+      architectBloomId,
+      highlander,
+    );
+
+    if (!result.success && !result.composed) {
+      console.warn(`  [GRAPH] ⚠️  Stage ${stage} instantiation: ${result.error}`);
     }
-  });
+
+    // Add :Stage specialisation label (same pattern as PipelineRun)
+    await writeTransaction(async (tx) => {
+      await tx.run(
+        `MATCH (s:Bloom {id: $stageId}) SET s:Stage`,
+        { stageId },
+      );
+    });
+  }
 }
-/** @deprecated Use ensureArchitectStages instead */
-export const ensureArchitectResonators = ensureArchitectStages;
 
 /** Link a TaskOutput to the Stage Bloom for its assigned stage */
 export async function linkTaskOutputToStage(
