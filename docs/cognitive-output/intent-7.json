@@ -1,0 +1,36 @@
+{
+  "intentId": "cognitive-intent-7-1774284004713",
+  "source": "cognitive-bloom",
+  "cycleNumber": 7,
+  "timestamp": "2026-03-23T16:40:04.711Z",
+  "gapType": "mixed",
+  "proposedChanges": [
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:constitutional",
+      "description": "Create instance of Constitutional Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:architect",
+      "description": "Create instance of Architect Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:devagent",
+      "description": "Create instance of DevAgent Bloom Definition"
+    },
+    {
+      "changeType": "create_bloom",
+      "targetDefId": "def:bloom:assayer",
+      "description": "Create instance of Assayer Bloom Definition"
+    },
+    {
+      "changeType": "create_line",
+      "description": "Wire FLOWS_TO from architect_GATE"
+    }
+  ],
+  "preSurveyLambda2": 0,
+  "preSurveyPsiH": 0.6,
+  "governanceModifying": true
+}
