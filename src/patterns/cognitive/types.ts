@@ -108,3 +108,60 @@ export interface TransformationDef {
   ioShape: string;
   scope: string;
 }
+
+// ─── Compliance Evaluation Types ────────────────────────────────────
+
+/** What triggered this evaluation */
+export type EvaluationTrigger =
+  | "inline_instantiation"   // Fired by instantiateMorpheme() hook
+  | "inline_mutation"        // Fired by updateMorpheme() hook
+  | "explicit_evaluate"      // Direct call to evaluate()
+  | "explicit_sweep";        // Batch call via sweep()
+
+/** Single check result */
+export interface CheckResult {
+  checkId: string;            // e.g., "G1", "A4", "anti:monitoring-overlay"
+  checkName: string;          // Human-readable name
+  passed: boolean;
+  severity: "info" | "warning" | "error" | "critical";
+  evidence: string;           // What was found
+  remediation?: string;       // How to fix it
+}
+
+/** Full evaluation result for a single morpheme */
+export interface EvaluationResult {
+  targetId: string;
+  targetType: string;         // MorphemeType
+  trigger: EvaluationTrigger;
+  checks: CheckResult[];
+  overallVerdict: "pass" | "warning" | "violation";
+  violationCount: number;
+  warningCount: number;
+  processingTimeMs: number;
+}
+
+/** Sweep result for batch evaluation */
+export interface SweepResult {
+  scopeBloomId: string;
+  evaluatedCount: number;
+  passCount: number;
+  violationCount: number;
+  warningCount: number;
+  results: EvaluationResult[];
+  processingTimeMs: number;
+}
+
+/** Structural context of a morpheme — read once, used by all check suites */
+export interface TargetNode {
+  id: string;
+  morphemeType: string;
+  labels: string[];
+  properties: Record<string, unknown>;
+  containsParentId: string | null;
+  containsParentType: string | null;
+  containsChildren: Array<{ id: string; labels: string[] }>;
+  instantiatesTargets: Array<{ id: string; name: string; seedType?: string }>;
+  flowsToTargets: Array<{ id: string; labels: string[]; containsParentId?: string }>;
+  flowsFromSources: Array<{ id: string; labels: string[]; containsParentId?: string }>;
+  allRelationshipTypes: string[];
+}

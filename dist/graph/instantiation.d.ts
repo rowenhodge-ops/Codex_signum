@@ -40,12 +40,16 @@ export interface InstantiationResult {
     nodeId?: string;
     composed?: ComposeResult;
     error?: string;
+    /** Gnosis Compliance Evaluation result (if in scope, non-fatal) */
+    evaluationResult?: import("../patterns/cognitive/types.js").EvaluationResult;
 }
 export interface MutationResult {
     success: boolean;
     verified?: boolean;
     nodeId?: string;
     error?: string;
+    /** Gnosis Compliance Evaluation result (if in scope, non-fatal) */
+    evaluationResult?: import("../patterns/cognitive/types.js").EvaluationResult;
 }
 export interface LineCreationResult {
     success: boolean;

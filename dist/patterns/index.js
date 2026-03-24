@@ -16,7 +16,9 @@ export { survey, extractClaims, discoverDocumentSources, parseHypotheses, classi
 // Quality gates — source verification
 detectUnsourcedReferences, DOCUMENT_NAME_MAP, extractPathReferences, resolveDocumentReferences, validateFilePaths, getDirectoryListing, } from "./architect/index.js";
 // Cognitive Bloom — self-knowledge pattern
-export { surveyBloomTopology, queryTransformationDefinitions, computeConstitutionalDelta, synthesizeIntent, runCognitiveCycle, } from "./cognitive/index.js";
+export { surveyBloomTopology, queryTransformationDefinitions, computeConstitutionalDelta, synthesizeIntent, runCognitiveCycle, 
+// Compliance Evaluation faculty
+evaluate, readTargetNode, sweep, checkGrammar, checkAxioms, checkAntiPatterns, } from "./cognitive/index.js";
 // Retrospective — deterministic graph queries, no LLM
 export { runRetrospective, deriveConvergenceStatus, worstBand, } from "./retrospective/index.js";
 //# sourceMappingURL=index.js.map

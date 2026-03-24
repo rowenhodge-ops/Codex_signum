@@ -147,6 +147,8 @@ export interface InstantiationResult {
   nodeId?: string;
   composed?: ComposeResult;
   error?: string;
+  /** Gnosis Compliance Evaluation result (if in scope, non-fatal) */
+  evaluationResult?: import("../patterns/cognitive/types.js").EvaluationResult;
 }
 
 export interface MutationResult {
@@ -154,6 +156,8 @@ export interface MutationResult {
   verified?: boolean;  // true = read-back confirmed persistence
   nodeId?: string;
   error?: string;
+  /** Gnosis Compliance Evaluation result (if in scope, non-fatal) */
+  evaluationResult?: import("../patterns/cognitive/types.js").EvaluationResult;
 }
 
 export interface LineCreationResult {
@@ -443,7 +447,19 @@ export async function instantiateMorpheme(
 
     // ── Step 7: Record observation ──
     await recordInstantiationObservation(morphemeType, nodeId!, parentId, true);
-    return { success: true, nodeId: nodeId! };
+
+    // ── Step 8: Gnosis Compliance Evaluation (structural cognition, non-fatal) ──
+    let evaluationResult: import("../patterns/cognitive/types.js").EvaluationResult | undefined;
+    try {
+      if (await isInEvaluationScope(parentId, nodeId!)) {
+        const { evaluate } = await import("../patterns/cognitive/evaluation.js");
+        evaluationResult = await evaluate(nodeId!, "inline_instantiation");
+      }
+    } catch {
+      // Evaluation is non-fatal — Gnosis may not be bootstrapped yet
+    }
+
+    return { success: true, nodeId: nodeId!, evaluationResult };
   } catch (err) {
     const error = `Instantiation failed: ${err instanceof Error ? err.message : String(err)}`;
     await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
@@ -647,7 +663,19 @@ export async function updateMorpheme(
     }
 
     await recordMutationObservation(nodeId, true);
-    return { success: true, verified: true, nodeId };
+
+    // ── Step 6.5: Gnosis Compliance Evaluation (structural cognition, non-fatal) ──
+    let evaluationResult: import("../patterns/cognitive/types.js").EvaluationResult | undefined;
+    try {
+      if (await isInEvaluationScope(nodeId, nodeId)) {
+        const { evaluate } = await import("../patterns/cognitive/evaluation.js");
+        evaluationResult = await evaluate(nodeId, "inline_mutation");
+      }
+    } catch {
+      // Evaluation is non-fatal
+    }
+
+    return { success: true, verified: true, nodeId, evaluationResult };
   } catch (err) {
     const error = `Mutation failed: ${err instanceof Error ? err.message : String(err)}`;
     await recordMutationObservation(nodeId, false, error);
@@ -1133,6 +1161,59 @@ async function ensureViolationGrid(): Promise<void> {
         {},
       );
     });
+  }
+}
+
+/**
+ * Determine if a morpheme is in Gnosis Compliance Evaluation scope.
+ *
+ * Three checks in sequence (combined into a single Cypher query per check):
+ * 1. Recursion boundary — never evaluate Gnosis's own children
+ * 2. Constitutional Bloom exclusion — internal definition/observation Seeds
+ * 3. Scope check — parent Bloom must have FLOWS_TO to resonator:compliance-evaluation
+ *
+ * @param contextId - The parent/context node ID (parentId for instantiation, nodeId for mutation)
+ * @param targetId - The node to evaluate
+ */
+async function isInEvaluationScope(
+  contextId: string,
+  targetId: string,
+): Promise<boolean> {
+  try {
+    return await readTransaction(async (tx) => {
+      // 1. Recursion boundary — never evaluate Gnosis's own children
+      const gnosisCheck = await tx.run(
+        `OPTIONAL MATCH (gnosis:Bloom)-[:INSTANTIATES]->(def:Seed {id: 'def:bloom:cognitive'})
+         WITH gnosis
+         WHERE gnosis IS NOT NULL
+         OPTIONAL MATCH (gnosis)-[:CONTAINS*1..5]->(child)
+         WHERE child.id = $targetId
+         RETURN count(child) > 0 AS isGnosisInternal`,
+        { targetId },
+      );
+      if (gnosisCheck.records[0]?.get("isGnosisInternal") === true) return false;
+
+      // 2. Exclude Constitutional Bloom internals
+      const cbCheck = await tx.run(
+        `OPTIONAL MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS*1..5]->(child)
+         WHERE child.id = $targetId
+         RETURN count(child) > 0 AS isCbInternal`,
+        { targetId },
+      );
+      if (cbCheck.records[0]?.get("isCbInternal") === true) return false;
+
+      // 3. Scope check — walk up from contextId to find parent Bloom with FLOWS_TO
+      const scopeCheck = await tx.run(
+        `OPTIONAL MATCH (parent:Bloom)-[:CONTAINS*1..5]->(cn {id: $contextId})
+         WHERE (parent)-[:FLOWS_TO]->(:Resonator {id: 'resonator:compliance-evaluation'})
+         RETURN count(parent) > 0 AS inScope`,
+        { contextId },
+      );
+      return scopeCheck.records[0]?.get("inScope") === true;
+    });
+  } catch {
+    // If scope check fails (Gnosis not bootstrapped, etc.), default to not in scope
+    return false;
   }
 }
 

@@ -89,4 +89,65 @@ export interface TransformationDef {
     ioShape: string;
     scope: string;
 }
+/** What triggered this evaluation */
+export type EvaluationTrigger = "inline_instantiation" | "inline_mutation" | "explicit_evaluate" | "explicit_sweep";
+/** Single check result */
+export interface CheckResult {
+    checkId: string;
+    checkName: string;
+    passed: boolean;
+    severity: "info" | "warning" | "error" | "critical";
+    evidence: string;
+    remediation?: string;
+}
+/** Full evaluation result for a single morpheme */
+export interface EvaluationResult {
+    targetId: string;
+    targetType: string;
+    trigger: EvaluationTrigger;
+    checks: CheckResult[];
+    overallVerdict: "pass" | "warning" | "violation";
+    violationCount: number;
+    warningCount: number;
+    processingTimeMs: number;
+}
+/** Sweep result for batch evaluation */
+export interface SweepResult {
+    scopeBloomId: string;
+    evaluatedCount: number;
+    passCount: number;
+    violationCount: number;
+    warningCount: number;
+    results: EvaluationResult[];
+    processingTimeMs: number;
+}
+/** Structural context of a morpheme — read once, used by all check suites */
+export interface TargetNode {
+    id: string;
+    morphemeType: string;
+    labels: string[];
+    properties: Record<string, unknown>;
+    containsParentId: string | null;
+    containsParentType: string | null;
+    containsChildren: Array<{
+        id: string;
+        labels: string[];
+    }>;
+    instantiatesTargets: Array<{
+        id: string;
+        name: string;
+        seedType?: string;
+    }>;
+    flowsToTargets: Array<{
+        id: string;
+        labels: string[];
+        containsParentId?: string;
+    }>;
+    flowsFromSources: Array<{
+        id: string;
+        labels: string[];
+        containsParentId?: string;
+    }>;
+    allRelationshipTypes: string[];
+}
 //# sourceMappingURL=types.d.ts.map

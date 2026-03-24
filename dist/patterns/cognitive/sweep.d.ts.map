@@ -1,0 +1,1 @@
+{"version":3,"file":"sweep.d.ts","sourceRoot":"","sources":["../../../src/patterns/cognitive/sweep.ts"],"names":[],"mappings":"AAIA;;;;;;;GAOG;AAEH,OAAO,KAAK,EAAE,WAAW,EAAoB,MAAM,YAAY,CAAC;AA2BhE;;;;;;GAMG;AACH,wBAAsB,KAAK,CACzB,OAAO,EAAE,MAAM,EACf,OAAO,CAAC,EAAE;IAAE,QAAQ,CAAC,EAAE,MAAM,CAAC;IAAC,eAAe,CAAC,EAAE,OAAO,CAAA;CAAE,GACzD,OAAO,CAAC,WAAW,CAAC,CAkEtB"}

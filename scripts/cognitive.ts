@@ -60,29 +60,37 @@ function loadEnv(): void {
 
 function printUsage(): void {
   console.log(`
-Codex Signum -- Cognitive Bloom CLI
+Codex Signum -- Gnosis Cognitive Bloom CLI
 
 Usage:
-  npx tsx scripts/cognitive.ts survey <bloomId>
+  npx tsx scripts/cognitive.ts survey <bloomId>     Survey topology + produce intent
+  npx tsx scripts/cognitive.ts evaluate <nodeId>     Evaluate one morpheme for compliance
+  npx tsx scripts/cognitive.ts sweep <bloomId>       Sweep all children for compliance
 
-Options:
+Survey options:
   --cycle=N      Force cycle number (default: auto-increment from Observation Grid)
   --with-llm     Enable LLM substrate for topological gap reasoning
   --scopes=a,b   Comma-separated definition scopes to check (default: ecosystem,architect)
 
+Sweep options:
+  --depth=N      Max containment depth (default: 3)
+  --include-complete   Include completed morphemes (default: skip)
+
 Examples:
   npx tsx scripts/cognitive.ts survey architect
-  npx tsx scripts/cognitive.ts survey architect --cycle=1
-  npx tsx scripts/cognitive.ts survey architect --with-llm --scopes=ecosystem,architect,dev-agent
+  npx tsx scripts/cognitive.ts evaluate resonator:compliance-evaluation
+  npx tsx scripts/cognitive.ts sweep architect --depth=5
 `);
 }
 
 interface CliArgs {
-  command: "survey";
-  targetBloomId: string;
+  command: "survey" | "evaluate" | "sweep";
+  targetId: string;
   cycleNumber: number | null;
   withLlm: boolean;
   scopes: string[];
+  depth: number;
+  includeComplete: boolean;
 }
 
 function parseArgs(): CliArgs | null {
@@ -92,33 +100,39 @@ function parseArgs(): CliArgs | null {
     return null;
   }
 
-  const command = args[0];
-  if (command !== "survey") {
-    console.error(`Unknown command: ${command}. Only "survey" is supported.`);
+  const command = args[0] as string;
+  if (command !== "survey" && command !== "evaluate" && command !== "sweep") {
+    console.error(`Unknown command: ${command}. Supported: survey, evaluate, sweep`);
     return null;
   }
 
-  const targetBloomId = args[1];
-  if (!targetBloomId) {
-    console.error("Missing target Bloom ID. Usage: npx tsx scripts/cognitive.ts survey <bloomId>");
+  const targetId = args[1];
+  if (!targetId) {
+    console.error(`Missing target ID. Usage: npx tsx scripts/cognitive.ts ${command} <id>`);
     return null;
   }
 
   let cycleNumber: number | null = null;
   let withLlm = false;
   let scopes = ["ecosystem", "architect"];
+  let depth = 3;
+  let includeComplete = false;
 
   for (const arg of args.slice(2)) {
     if (arg === "--with-llm") withLlm = true;
+    else if (arg === "--include-complete") includeComplete = true;
     else if (arg.startsWith("--cycle=")) {
       cycleNumber = parseInt(arg.split("=")[1], 10);
       if (isNaN(cycleNumber) || cycleNumber < 1) cycleNumber = null;
     } else if (arg.startsWith("--scopes=")) {
       scopes = arg.split("=")[1].split(",").map((s) => s.trim()).filter(Boolean);
+    } else if (arg.startsWith("--depth=")) {
+      depth = parseInt(arg.split("=")[1], 10);
+      if (isNaN(depth) || depth < 1) depth = 3;
     }
   }
 
-  return { command, targetBloomId, cycleNumber, withLlm, scopes };
+  return { command: command as CliArgs["command"], targetId, cycleNumber, withLlm, scopes, depth, includeComplete };
 }
 
 /**
@@ -194,10 +208,73 @@ async function main(): Promise<void> {
   loadEnv();
 
   const SEP = "═".repeat(60);
+
+  // ── Evaluate command ─────────────────────────────────────────────
+  if (cliArgs.command === "evaluate") {
+    const { evaluate } = await import("../src/patterns/cognitive/evaluation.js");
+    console.log("\n" + SEP);
+    console.log("  CODEX SIGNUM -- GNOSIS COMPLIANCE EVALUATION");
+    console.log(SEP);
+    console.log(`\n  Target: ${cliArgs.targetId}`);
+
+    const result = await evaluate(cliArgs.targetId, "explicit_evaluate");
+
+    console.log(`\n  Verdict: ${result.overallVerdict.toUpperCase()}`);
+    console.log(`  Type: ${result.targetType}`);
+    console.log(`  Violations: ${result.violationCount}, Warnings: ${result.warningCount}`);
+    console.log(`  Time: ${result.processingTimeMs}ms`);
+    console.log(`\n  Checks (${result.checks.length}):`);
+    for (const check of result.checks) {
+      const icon = check.passed ? "  [pass]" : check.severity === "warning" ? "  [WARN]" : "  [FAIL]";
+      console.log(`    ${icon} ${check.checkId}: ${check.checkName}`);
+      if (!check.passed) {
+        console.log(`           ${check.evidence}`);
+        if (check.remediation) console.log(`           Fix: ${check.remediation}`);
+      }
+    }
+    console.log("");
+    return;
+  }
+
+  // ── Sweep command ────────────────────────────────────────────────
+  if (cliArgs.command === "sweep") {
+    const { sweep } = await import("../src/patterns/cognitive/sweep.js");
+    console.log("\n" + SEP);
+    console.log("  CODEX SIGNUM -- GNOSIS COMPLIANCE SWEEP");
+    console.log(SEP);
+    console.log(`\n  Scope Bloom: ${cliArgs.targetId}`);
+    console.log(`  Max depth: ${cliArgs.depth}`);
+    console.log(`  Include complete: ${cliArgs.includeComplete}`);
+
+    const result = await sweep(cliArgs.targetId, {
+      maxDepth: cliArgs.depth,
+      includeComplete: cliArgs.includeComplete,
+    });
+
+    console.log(`\n  Evaluated: ${result.evaluatedCount}`);
+    console.log(`  Pass: ${result.passCount}, Violations: ${result.violationCount}, Warnings: ${result.warningCount}`);
+    console.log(`  Time: ${result.processingTimeMs}ms`);
+
+    // Show violations and warnings
+    const issues = result.results.filter(r => r.overallVerdict !== "pass");
+    if (issues.length > 0) {
+      console.log(`\n  Issues (${issues.length}):`);
+      for (const r of issues) {
+        console.log(`\n    ${r.targetId} (${r.targetType}): ${r.overallVerdict.toUpperCase()}`);
+        for (const check of r.checks.filter(c => !c.passed)) {
+          console.log(`      [${check.severity}] ${check.checkId}: ${check.evidence}`);
+        }
+      }
+    }
+    console.log("");
+    return;
+  }
+
+  // ── Survey command (existing) ────────────────────────────────────
   console.log("\n" + SEP);
   console.log("  CODEX SIGNUM -- COGNITIVE BLOOM SURVEY");
   console.log(SEP);
-  console.log(`\n  Target: ${cliArgs.targetBloomId}`);
+  console.log(`\n  Target: ${cliArgs.targetId}`);
   console.log(`  Scopes: ${cliArgs.scopes.join(", ")}`);
   console.log(`  LLM:    ${cliArgs.withLlm ? "enabled" : "disabled"}`);
 
@@ -226,7 +303,7 @@ async function main(): Promise<void> {
   // Run cycle
   console.log("\n── CYCLE " + cycleNumber + " ─────────────────────────────────────────────");
   const intent = await runCognitiveCycle({
-    targetBloomId: cliArgs.targetBloomId,
+    targetBloomId: cliArgs.targetId,
     definitionScopes: cliArgs.scopes,
     cycleNumber,
     maxChanges: config.maxChanges,

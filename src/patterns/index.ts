@@ -168,6 +168,13 @@ export {
   computeConstitutionalDelta,
   synthesizeIntent,
   runCognitiveCycle,
+  // Compliance Evaluation faculty
+  evaluate,
+  readTargetNode,
+  sweep,
+  checkGrammar,
+  checkAxioms,
+  checkAntiPatterns,
 } from "./cognitive/index.js";
 export type {
   BloomSurvey,
@@ -175,6 +182,12 @@ export type {
   CognitiveIntent,
   TransformationDef,
   CognitiveCycleOptions,
+  // Compliance Evaluation types
+  EvaluationTrigger,
+  EvaluationResult,
+  CheckResult,
+  SweepResult,
+  TargetNode,
 } from "./cognitive/index.js";
 
 // Retrospective — deterministic graph queries, no LLM
