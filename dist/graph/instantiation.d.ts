@@ -17,8 +17,8 @@ export interface InstantiationOptions {
 export type A6Justification = "distinct_learned_state" | "distinct_governance_scope" | "distinct_temporal_scale";
 /** Options for Highlander Protocol enforcement */
 export interface HighlanderOptions {
-    /** ID of transformation-level or bloom-level definition Seed.
-     *  MANDATORY for morphemeType 'resonator' or 'bloom'. */
+    /** ID of transformation-level, bloom-level, grid-level, or helix-level definition Seed.
+     *  MANDATORY for morphemeType 'resonator', 'bloom', 'grid', or 'helix'. */
     transformationDefId?: string;
     /** A6 justification for creating a new instance when one already exists.
      *  If absent and existing instance found → compose (wire FLOWS_TO to existing). */

@@ -3,9 +3,11 @@
  *
  * [NO-PIPELINE] — Graph mutations from known spec (Prompt 1, Stream A).
  *
- * Creates 23 definition Seeds in the Constitutional Bloom:
+ * Creates 28 definition Seeds in the Constitutional Bloom:
  * - 15 transformation-level definitions (7 ecosystem + 4 architect + 1 devagent + 3 cognitive)
  * - 8 bloom-level definitions (5 singleton + 3 multi-instance)
+ * - 3 grid-level definitions (1 multi-instance + 2 singleton)
+ * - 2 helix-level definitions (2 multi-instance)
  * Each with SPECIALISES Line to its type-level definition.
  *
  * Also backfills pre-existing Resonators/Blooms with transformation-level INSTANTIATES edges.
@@ -184,6 +186,67 @@ const TRANSFORMATION_DEFS: TransformationDef[] = [
   },
 ];
 
+// ── Grid-Level Definitions ───────────────────────────────────────────────────
+
+interface GridDef {
+  id: string;
+  name: string;
+  content: string;
+  scope: string;
+  expectedInstances: string;
+}
+
+const GRID_DEFS: GridDef[] = [
+  {
+    id: "def:grid:observation",
+    name: "Observation Grid Definition",
+    content: "Receives observation Seeds from a Resonator's execution. Justified per-stage or per-faculty where the consumer (Learning Helix, Compliance Evaluation) reads from a specific scope.",
+    scope: "pattern",
+    expectedInstances: "Many (distinct governance scope per stage/faculty)",
+  },
+  {
+    id: "def:grid:violation",
+    name: "Violation Grid Definition",
+    content: "Receives Violation Seeds from Compliance Evaluation and Highlander Protocol enforcement. One per ecosystem — all violations centralised.",
+    scope: "ecosystem",
+    expectedInstances: "1 (singleton)",
+  },
+  {
+    id: "def:grid:model-selection",
+    name: "Model Selection Grid Definition",
+    content: "Stores Thompson posterior distributions keyed by context cluster. Shared across all Thompson Selection consumers.",
+    scope: "ecosystem",
+    expectedInstances: "1 (singleton)",
+  },
+];
+
+// ── Helix-Level Definitions ──────────────────────────────────────────────────
+
+interface HelixDef {
+  id: string;
+  name: string;
+  content: string;
+  scope: string;
+  expectedInstances: string;
+}
+
+const HELIX_DEFS: HelixDef[] = [
+  {
+    id: "def:helix:refinement",
+    name: "Refinement Helix Definition",
+    content: "Scale 1 correction cycle — reads Violation Seeds, fires Return Lines to producing stage, bounds iteration count. Per-pattern (distinct governance scope).",
+    scope: "pattern",
+    expectedInstances: "Many (distinct governance scope per pattern)",
+  },
+  {
+    id: "def:helix:learning",
+    name: "Learning Helix Definition",
+    content: "Scale 2 cross-execution learning — reads observation Grid, distils patterns, calibrates parameters. Per-pattern or per-faculty (distinct learned state).",
+    scope: "pattern",
+    expectedInstances: "Many (distinct learned state per pattern/faculty)",
+  },
+];
+
 const BLOOM_DEFS: BloomDef[] = [
   {
     id: "def:bloom:constitutional",
@@ -347,13 +410,78 @@ async function phase3(): Promise<void> {
   console.log(`\n  Bloom defs: ${created} created/updated`);
 }
 
+// ── Phase 3b: Create 3 Grid Definitions ──────────────────────────────────────
+
+async function phase3b(): Promise<void> {
+  console.log("\n═══ Phase 3b: Grid Definitions (3) ═══\n");
+
+  let created = 0;
+
+  for (const def of GRID_DEFS) {
+    const result = await instantiateMorpheme(
+      "seed",
+      {
+        id: def.id,
+        name: def.name,
+        content: def.content,
+        seedType: "grid-definition",
+        scope: def.scope,
+        expectedInstances: def.expectedInstances,
+        status: "active",
+      },
+      "constitutional-bloom",
+    );
+
+    if (result.success) {
+      ok(def.id);
+      created++;
+    } else {
+      fail(def.id, result.error ?? "unknown");
+    }
+  }
+
+  console.log(`\n  Grid defs: ${created} created/updated`);
+}
+
+// ── Phase 3c: Create 2 Helix Definitions ─────────────────────────────────────
+
+async function phase3c(): Promise<void> {
+  console.log("\n═══ Phase 3c: Helix Definitions (2) ═══\n");
+
+  let created = 0;
+
+  for (const def of HELIX_DEFS) {
+    const result = await instantiateMorpheme(
+      "seed",
+      {
+        id: def.id,
+        name: def.name,
+        content: def.content,
+        seedType: "helix-definition",
+        scope: def.scope,
+        expectedInstances: def.expectedInstances,
+        status: "active",
+      },
+      "constitutional-bloom",
+    );
+
+    if (result.success) {
+      ok(def.id);
+      created++;
+    } else {
+      fail(def.id, result.error ?? "unknown");
+    }
+  }
+
+  console.log(`\n  Helix defs: ${created} created/updated`);
+}
+
 // ── Phase 4: SPECIALISES Lines ───────────────────────────────────────────────
 
 async function phase4(resDef: string, bloomDef: string): Promise<void> {
-  console.log("\n═══ Phase 4: SPECIALISES Lines (23) ═══\n");
+  console.log("\n═══ Phase 4: SPECIALISES Lines (28) ═══\n");
 
   let created = 0;
-  const seedDef = "def:morpheme:seed";
 
   // Transformation defs → type-level resonator def
   // (Transformation definitions describe Resonator transformation contracts)
@@ -376,6 +504,30 @@ async function phase4(resDef: string, bloomDef: string): Promise<void> {
       created++;
     } else {
       ok(`${def.id} → ${bloomDef} (${result.error?.includes("already") ? "exists" : result.error})`);
+    }
+  }
+
+  // Grid defs → type-level grid def
+  const gridDef = "def:morpheme:grid";
+  for (const def of GRID_DEFS) {
+    const result = await createLine(def.id, gridDef, "SPECIALISES" as LineType);
+    if (result.success) {
+      ok(`${def.id} → ${gridDef}`);
+      created++;
+    } else {
+      ok(`${def.id} → ${gridDef} (${result.error?.includes("already") ? "exists" : result.error})`);
+    }
+  }
+
+  // Helix defs → type-level helix def
+  const helixDef = "def:morpheme:helix";
+  for (const def of HELIX_DEFS) {
+    const result = await createLine(def.id, helixDef, "SPECIALISES" as LineType);
+    if (result.success) {
+      ok(`${def.id} → ${helixDef}`);
+      created++;
+    } else {
+      ok(`${def.id} → ${helixDef} (${result.error?.includes("already") ? "exists" : result.error})`);
     }
   }
 
@@ -421,19 +573,35 @@ function mapResonatorToDefinition(id: string, type: string | null, name: string 
   return null;
 }
 
-async function phase5(): Promise<void> {
-  console.log("\n═══ Phase 5: Backfill Pre-Existing Resonators/Blooms ═══\n");
+/** Mapping from Grid type to definition ID */
+function mapGridToDefinition(id: string, type: string | null): string | null {
+  if (type === "violation" || id.includes("violation")) return "def:grid:violation";
+  if (type === "model-selection" || id.includes("model-selection") || id.includes("thompson")) return "def:grid:model-selection";
+  // Default: observation Grids
+  if (type === "observation" || id.includes("observation")) return "def:grid:observation";
+  return "def:grid:observation"; // safe default — most Grids are observation
+}
 
-  // Find all active/planned Resonators and Blooms without transformation-level INSTANTIATES
+/** Mapping from Helix mode to definition ID */
+function mapHelixToDefinition(id: string, mode: string | null): string | null {
+  if (mode === "refinement" || mode === "correction" || id.includes("refinement")) return "def:helix:refinement";
+  // Default: learning Helixes
+  return "def:helix:learning";
+}
+
+async function phase5(): Promise<void> {
+  console.log("\n═══ Phase 5: Backfill Pre-Existing Resonators/Blooms/Grids/Helixes ═══\n");
+
+  // Find all active/planned Resonators, Blooms, Grids, Helixes without definition-level INSTANTIATES
   const result = await runQuery(
     `MATCH (n)
-     WHERE (n:Resonator OR n:Bloom)
+     WHERE (n:Resonator OR n:Bloom OR n:Grid OR n:Helix)
        AND n.status IN ['active', 'planned', 'complete']
        AND NOT EXISTS {
          MATCH (n)-[:INSTANTIATES]->(def:Seed)
-         WHERE def.seedType IN ['transformation-definition', 'bloom-definition']
+         WHERE def.seedType IN ['transformation-definition', 'bloom-definition', 'grid-definition', 'helix-definition']
        }
-     RETURN n.id AS id, n.name AS name, n.type AS type, labels(n) AS labels
+     RETURN n.id AS id, n.name AS name, n.type AS type, n.mode AS mode, labels(n) AS labels
      ORDER BY n.id`,
     {},
     "READ",
@@ -446,9 +614,12 @@ async function phase5(): Promise<void> {
     const id = r.get("id") as string;
     const name = r.get("name") as string | null;
     const type = r.get("type") as string | null;
+    const mode = r.get("mode") as string | null;
     const labels = r.get("labels") as string[];
     const isBloom = labels.includes("Bloom");
     const isResonator = labels.includes("Resonator");
+    const isGrid = labels.includes("Grid");
+    const isHelix = labels.includes("Helix");
 
     let defId: string | null = null;
 
@@ -456,6 +627,10 @@ async function phase5(): Promise<void> {
       defId = mapBloomToDefinition(id, type, name);
     } else if (isResonator) {
       defId = mapResonatorToDefinition(id, type, name);
+    } else if (isGrid) {
+      defId = mapGridToDefinition(id, type);
+    } else if (isHelix) {
+      defId = mapHelixToDefinition(id, mode);
     }
 
     if (defId) {
@@ -514,35 +689,57 @@ async function phase6(): Promise<void> {
   const bCnt = bDefCount.records[0]?.get("cnt") ?? 0;
   console.log(`  Bloom definitions: ${bCnt} (expected 8)`);
 
+  // Count grid defs
+  const gDefCount = await runQuery(
+    `MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS]->(s:Seed)
+     WHERE s.seedType = 'grid-definition'
+     RETURN count(s) AS cnt`,
+    {},
+    "READ",
+  );
+  const gCnt = gDefCount.records[0]?.get("cnt") ?? 0;
+  console.log(`  Grid definitions: ${gCnt} (expected 3)`);
+
+  // Count helix defs
+  const hDefCount = await runQuery(
+    `MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS]->(s:Seed)
+     WHERE s.seedType = 'helix-definition'
+     RETURN count(s) AS cnt`,
+    {},
+    "READ",
+  );
+  const hCnt = hDefCount.records[0]?.get("cnt") ?? 0;
+  console.log(`  Helix definitions: ${hCnt} (expected 2)`);
+
   // Count SPECIALISES lines
   const specCount = await runQuery(
     `MATCH (s:Seed)-[:SPECIALISES]->(t:Seed)
-     WHERE s.seedType IN ['transformation-definition', 'bloom-definition']
+     WHERE s.seedType IN ['transformation-definition', 'bloom-definition', 'grid-definition', 'helix-definition']
      RETURN count(*) AS cnt`,
     {},
     "READ",
   );
   const sCnt = specCount.records[0]?.get("cnt") ?? 0;
-  console.log(`  SPECIALISES Lines: ${sCnt} (expected 23)`);
+  console.log(`  SPECIALISES Lines: ${sCnt} (expected 28)`);
 
-  // Count remaining Resonators/Blooms without transformation-level INSTANTIATES
+  // Count remaining nodes without definition-level INSTANTIATES
   const remaining = await runQuery(
     `MATCH (n)
-     WHERE (n:Resonator OR n:Bloom)
+     WHERE (n:Resonator OR n:Bloom OR n:Grid OR n:Helix)
        AND n.status IN ['active', 'planned', 'complete']
        AND NOT EXISTS {
          MATCH (n)-[:INSTANTIATES]->(def:Seed)
-         WHERE def.seedType IN ['transformation-definition', 'bloom-definition']
+         WHERE def.seedType IN ['transformation-definition', 'bloom-definition', 'grid-definition', 'helix-definition']
        }
      RETURN count(n) AS cnt`,
     {},
     "READ",
   );
   const rCnt = remaining.records[0]?.get("cnt") ?? 0;
-  console.log(`  Resonators/Blooms without transformation-level INSTANTIATES: ${rCnt}`);
+  console.log(`  Nodes without definition-level INSTANTIATES: ${rCnt}`);
 
   // Summary
-  const allGood = tCnt >= 15 && bCnt >= 8 && sCnt >= 23;
+  const allGood = tCnt >= 15 && bCnt >= 8 && gCnt >= 3 && hCnt >= 2 && sCnt >= 28;
   console.log(`\n  ${allGood ? "✅" : "⚠️"} ${allGood ? "All definitions in place" : "Some definitions missing — check above"}`);
 }
 
@@ -551,7 +748,7 @@ async function phase6(): Promise<void> {
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════════╗");
   console.log("║  Highlander Protocol — Definition Seeds Bootstrap           ║");
-  console.log("║  23 definitions + SPECIALISES Lines + backfill              ║");
+  console.log("║  28 definitions + SPECIALISES Lines + backfill              ║");
   console.log("╚══════════════════════════════════════════════════════════════╝");
 
   const backfillOnly = process.argv.includes("--backfill-only");
@@ -561,6 +758,8 @@ async function main() {
       const { resDef, bloomDef } = await phase1();
       await phase2();
       await phase3();
+      await phase3b();
+      await phase3c();
       await phase4(resDef, bloomDef);
     }
     await phase5();

@@ -301,26 +301,32 @@ function checkG5(target: TargetNode): CheckResult[] {
 }
 
 /**
- * G6: Uniqueness (Highlander Protocol) — Resonators and Blooms should have
- * transformation-level INSTANTIATES edges.
+ * G6: Uniqueness (Highlander Protocol) — Resonators, Blooms, Grids, and Helixes
+ * should have definition-level INSTANTIATES edges. Seeds are exempt (data, not structure).
  */
 function checkG6(target: TargetNode): CheckResult {
-  // Only applies to Resonators and Blooms (not Seeds, Grids, Helixes)
   const isResonator = target.labels.includes("Resonator");
   const isBloom = target.labels.includes("Bloom") || target.labels.includes("Stage");
-  if (!isResonator && !isBloom) {
+  const isGrid = target.labels.includes("Grid");
+  const isHelix = target.labels.includes("Helix");
+  if (!isResonator && !isBloom && !isGrid && !isHelix) {
     return {
       checkId: "G6",
       checkName: "Uniqueness — Highlander Protocol",
       passed: true,
       severity: "info",
-      evidence: `G6 not applicable to ${target.morphemeType}.`,
+      evidence: `G6 not applicable to Seeds.`,
     };
   }
 
-  // Check for transformation-level or bloom-level definition INSTANTIATES
+  const typeLabel = isResonator ? "Resonator" : isBloom ? "Bloom" : isGrid ? "Grid" : "Helix";
+
+  // Check for definition-level INSTANTIATES (transformation, bloom, grid, or helix definition)
   const hasTransformationDef = target.instantiatesTargets.some(
-    t => t.seedType === "transformation-definition" || t.seedType === "bloom-definition",
+    t => t.seedType === "transformation-definition"
+      || t.seedType === "bloom-definition"
+      || t.seedType === "grid-definition"
+      || t.seedType === "helix-definition",
   );
 
   // Also check for type-level definition (def:morpheme:*)
@@ -334,9 +340,9 @@ function checkG6(target: TargetNode): CheckResult {
       checkName: "Uniqueness — Highlander Protocol",
       passed: false,
       severity: "warning",
-      evidence: `${isResonator ? "Resonator" : "Bloom"} '${target.id}' has no transformation-level INSTANTIATES edge. ` +
+      evidence: `${typeLabel} '${target.id}' has no definition-level INSTANTIATES edge. ` +
         `Found INSTANTIATES targets: ${target.instantiatesTargets.map(t => t.id).join(", ") || "none"}.`,
-      remediation: "Wire an INSTANTIATES edge to the appropriate transformation-definition or bloom-definition Seed.",
+      remediation: "Wire an INSTANTIATES edge to the appropriate definition Seed (transformation-definition, bloom-definition, grid-definition, or helix-definition).",
     };
   }
 
@@ -346,8 +352,8 @@ function checkG6(target: TargetNode): CheckResult {
       checkName: "Uniqueness — Highlander Protocol",
       passed: false,
       severity: "warning",
-      evidence: `${isResonator ? "Resonator" : "Bloom"} '${target.id}' has transformation-level INSTANTIATES but no type-level INSTANTIATES (def:morpheme:*).`,
-      remediation: "Wire an INSTANTIATES edge to the type-level definition (e.g., def:morpheme:resonator).",
+      evidence: `${typeLabel} '${target.id}' has definition-level INSTANTIATES but no type-level INSTANTIATES (def:morpheme:*).`,
+      remediation: "Wire an INSTANTIATES edge to the type-level definition (e.g., def:morpheme:resonator, def:morpheme:grid).",
     };
   }
 
@@ -356,6 +362,6 @@ function checkG6(target: TargetNode): CheckResult {
     checkName: "Uniqueness — Highlander Protocol",
     passed: true,
     severity: "info",
-    evidence: `Both type-level and transformation-level INSTANTIATES present. Targets: ${target.instantiatesTargets.map(t => t.id).join(", ")}.`,
+    evidence: `Both type-level and definition-level INSTANTIATES present. Targets: ${target.instantiatesTargets.map(t => t.id).join(", ")}.`,
   };
 }

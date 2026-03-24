@@ -102,6 +102,8 @@ function mockBloomParentAndNodeExists(parentId: string, nodeId?: string) {
 /** Highlander test fixture: valid transformation definition IDs */
 const TEST_TRANSFORMATION_DEF = "def:transformation:test";
 const TEST_BLOOM_DEF = "def:bloom:test";
+const TEST_GRID_DEF = "def:grid:test";
+const TEST_HELIX_DEF = "def:helix:test";
 
 /**
  * Configure mockRun for Highlander Protocol testing.
@@ -391,7 +393,7 @@ describe("instantiateMorpheme()", () => {
     });
 
     it("allows Grid inside Bloom", async () => {
-      mockBloomParentAndNodeExists("parent-bloom");
+      mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
       const result = await instantiateMorpheme("grid", {
         id: "test-grid",
@@ -399,13 +401,13 @@ describe("instantiateMorpheme()", () => {
         type: "observation",
         content: "Stores observation Seeds",
         status: "active",
-      }, "parent-bloom");
+      }, "parent-bloom", { transformationDefId: TEST_GRID_DEF });
 
       expect(result.success).toBe(true);
     });
 
     it("allows Helix inside Bloom", async () => {
-      mockBloomParentAndNodeExists("parent-bloom");
+      mockHighlanderEnvironment({ parentId: "parent-bloom" });
 
       const result = await instantiateMorpheme("helix", {
         id: "test-helix",
@@ -413,7 +415,7 @@ describe("instantiateMorpheme()", () => {
         mode: "learning",
         content: "Thompson posterior learning across executions",
         status: "active",
-      }, "parent-bloom");
+      }, "parent-bloom", { transformationDefId: TEST_HELIX_DEF });
 
       expect(result.success).toBe(true);
     });
@@ -814,11 +816,11 @@ describe("all morpheme types accepted", () => {
   for (const type of allTypes) {
     it(`accepts ${type} with all required properties`, async () => {
       vi.clearAllMocks();
-      // Bloom/Resonator need Highlander environment; others just need parent
-      if (type === "bloom" || type === "resonator") {
-        mockHighlanderEnvironment({ parentId: "parent-bloom" });
-      } else {
+      // Seeds just need parent; everything else needs Highlander environment
+      if (type === "seed") {
         mockBloomParentAndNodeExists("parent-bloom");
+      } else {
+        mockHighlanderEnvironment({ parentId: "parent-bloom" });
       }
 
       const props: Record<string, unknown> = {
@@ -835,11 +837,15 @@ describe("all morpheme types accepted", () => {
       if (type === "grid") props.type = "observation";
       if (type === "helix") props.mode = "learning";
 
-      // Bloom/Resonator require Highlander options
+      // All structural types (non-seed) require Highlander options
+      const defMap: Record<string, string> = {
+        bloom: TEST_BLOOM_DEF,
+        resonator: TEST_TRANSFORMATION_DEF,
+        grid: TEST_GRID_DEF,
+        helix: TEST_HELIX_DEF,
+      };
       const highlander: HighlanderOptions | undefined =
-        (type === "bloom" || type === "resonator")
-          ? { transformationDefId: type === "bloom" ? TEST_BLOOM_DEF : TEST_TRANSFORMATION_DEF }
-          : undefined;
+        type !== "seed" ? { transformationDefId: defMap[type] } : undefined;
 
       const result = await instantiateMorpheme(type, props, "parent-bloom", highlander);
       expect(result.success).toBe(true);
@@ -1022,8 +1028,8 @@ describe("Highlander Protocol", () => {
     expect(result.success).toBe(true);
   });
 
-  // Test 2: No guard for Grids
-  it("no guard for Grids — succeeds without highlander param", async () => {
+  // Test 2: Guard enforced for Grids
+  it("rejects Grid without transformationDefId", async () => {
     mockBloomParentAndNodeExists("parent-bloom");
 
     const result = await instantiateMorpheme("grid", {
@@ -1034,11 +1040,13 @@ describe("Highlander Protocol", () => {
       status: "active",
     }, "parent-bloom");
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Highlander Protocol");
+    expect(result.error).toContain("transformationDefId");
   });
 
-  // Test 3: No guard for Helixes
-  it("no guard for Helixes — succeeds without highlander param", async () => {
+  // Test 3: Guard enforced for Helixes
+  it("rejects Helix without transformationDefId", async () => {
     mockBloomParentAndNodeExists("parent-bloom");
 
     const result = await instantiateMorpheme("helix", {
@@ -1049,7 +1057,9 @@ describe("Highlander Protocol", () => {
       status: "active",
     }, "parent-bloom");
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Highlander Protocol");
+    expect(result.error).toContain("transformationDefId");
   });
 
   // Test 4: Hard reject for Resonator without transformationDefId

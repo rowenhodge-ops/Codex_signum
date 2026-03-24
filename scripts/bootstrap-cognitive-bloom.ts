@@ -150,7 +150,9 @@ async function main(): Promise<void> {
     content: "Scale 2 cross-cycle learning. Reads Cognitive Bloom Observation Grid and Architect/DevAgent Observation Grids via FLOWS_TO Lines. Calibrates Intent Resonator priority weights: which gaps improve lambda2 when closed, how many changes per cycle is optimal, when to stop. Hooks into Distilled Memory Grid for long-term pattern recognition.",
     mode: "learning",
     status: "active",
-  }, "cognitive-bloom"));
+  }, "cognitive-bloom",
+    { transformationDefId: "def:helix:learning", a6Justification: "distinct_learned_state" },
+  ));
 
   // A.6: Observation Grid
   console.log("\n── A.6: Observation Grid ────────────────────────────────");
@@ -160,7 +162,9 @@ async function main(): Promise<void> {
     content: "Records per-cycle survey results: what was found (Survey Seed summary), what was proposed (Intent Seed summary), what was executed (Architect outcome), what changed (post-cycle lambda2 delta). Justified consumer: Learning Helix.",
     type: "observation",
     status: "active",
-  }, "cognitive-bloom"));
+  }, "cognitive-bloom",
+    { transformationDefId: "def:grid:observation", a6Justification: "distinct_governance_scope" },
+  ));
 
   // A.7: Config Seeds
   console.log("\n── A.7: Config Seeds ────────────────────────────────────");

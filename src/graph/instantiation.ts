@@ -118,8 +118,8 @@ const VALID_A6_JUSTIFICATIONS: readonly string[] = [
 
 /** Options for Highlander Protocol enforcement */
 export interface HighlanderOptions {
-  /** ID of transformation-level or bloom-level definition Seed.
-   *  MANDATORY for morphemeType 'resonator' or 'bloom'. */
+  /** ID of transformation-level, bloom-level, grid-level, or helix-level definition Seed.
+   *  MANDATORY for morphemeType 'resonator', 'bloom', 'grid', or 'helix'. */
   transformationDefId?: string;
 
   /** A6 justification for creating a new instance when one already exists.
@@ -244,8 +244,8 @@ export async function instantiateMorpheme(
     }
   }
 
-  // ── Step 2.5: Highlander Protocol (Resonator/Bloom only) ──
-  if (morphemeType === "resonator" || morphemeType === "bloom") {
+  // ── Step 2.5: Highlander Protocol (Resonator/Bloom/Grid/Helix) ──
+  if (morphemeType === "resonator" || morphemeType === "bloom" || morphemeType === "grid" || morphemeType === "helix") {
     if (!highlander?.transformationDefId) {
       const error = `Instantiation rejected: ${morphemeType} creation requires transformationDefId (Highlander Protocol, A6 Minimal Authority). id=${nodeId ?? "unknown"}`;
       await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
@@ -273,7 +273,7 @@ export async function instantiateMorpheme(
     const existingInstances = await readTransaction(async (tx) => {
       const res = await tx.run(
         `MATCH (existing)-[:INSTANTIATES]->(def:Seed {id: $defId})
-         WHERE (existing:Resonator OR existing:Bloom)
+         WHERE (existing:Resonator OR existing:Bloom OR existing:Grid OR existing:Helix)
            AND existing.status IN ['active', 'planned']
          RETURN existing.id AS id, existing.name AS name`,
         { defId: highlander.transformationDefId },
@@ -330,7 +330,7 @@ export async function instantiateMorpheme(
         }
       } else {
         // Neither justification nor context → hard reject + Violation Seed
-        const violationContent = `Resonator/Bloom creation for '${properties.name ?? nodeId}' rejected. Active instance '${existing.id}' already INSTANTIATES definition '${highlander.transformationDefId}'. Provide A6 justification (distinct_learned_state, distinct_governance_scope, distinct_temporal_scale) or requestingContextId for composition.`;
+        const violationContent = `${morphemeType} creation for '${properties.name ?? nodeId}' rejected. Active instance '${existing.id}' already INSTANTIATES definition '${highlander.transformationDefId}'. Provide A6 justification (distinct_learned_state, distinct_governance_scope, distinct_temporal_scale) or requestingContextId for composition.`;
 
         // Bootstrap Violation Grid if needed, then record violation
         try {

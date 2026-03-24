@@ -1,6 +1,7 @@
 // Copyright 2024-2026 Rowen Hodge
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
+import { readTransaction } from "../../../graph/client.js";
 // Anti-pattern names constructed at runtime to avoid tripping source-level
 // static scanners. No monitoring overlay implementation exists here — only
 // structural signature detection via runtime-constructed check names.
@@ -10,7 +11,7 @@ const AP_MONITOR = ["Monitoring", "Overlay"].join(" ");
  */
 export async function checkAntiPatterns(target) {
     const results = [];
-    results.push(checkMonitoringOverlay(target));
+    results.push(await checkMonitoringOverlay(target));
     results.push(checkShadowOperations(target));
     results.push(checkGovernanceTheatre(target));
     results.push(checkDimensionalCollapse(target));
@@ -19,31 +20,19 @@ export async function checkAntiPatterns(target) {
     return results;
 }
 /**
- * Anti-pattern: observation-only Resonator with read-only connections to
- * operational nodes that only writes to Grids, with no transformation of its own.
+ * Anti-pattern: node that receives inbound flows and writes only to Grids
+ * where none of those Grids have downstream consumers via FLOWS_TO.
  *
- * Excludes Helixes (Learning Helix legitimately reads Grids and writes calibration).
+ * No monitoring overlay implementation here — only structural signature detection.
+ * Detection is topology-based, not type-based. Dead-end Grid writes are flagged
+ * regardless of the writing node's label; Grid writes with downstream consumers
+ * pass regardless of label.
+ *
+ * Secondary safeguard: a node with a constitutional transformation definition
+ * passes even with dead-end Grids (the consumer FLOWS_TO may not be wired yet
+ * during bootstrapping).
  */
-function checkMonitoringOverlay(target) {
-    if (!target.labels.includes("Resonator")) {
-        return {
-            checkId: "anti:monitoring-overlay",
-            checkName: AP_MONITOR,
-            passed: true,
-            severity: "info",
-            evidence: "Not a Resonator — check not applicable.",
-        };
-    }
-    // Exclude Helixes (they legitimately read Grids)
-    if (target.labels.includes("Helix")) {
-        return {
-            checkId: "anti:monitoring-overlay",
-            checkName: AP_MONITOR,
-            passed: true,
-            severity: "info",
-            evidence: "Helix — legitimate Grid reader, not an observation-only overlay.",
-        };
-    }
+async function checkMonitoringOverlay(target) {
     // Check: all outbound FLOWS_TO targets are Grids
     const outboundFlows = target.flowsToTargets;
     if (outboundFlows.length === 0) {
@@ -58,19 +47,48 @@ function checkMonitoringOverlay(target) {
     const allTargetsAreGrids = outboundFlows.every(ft => ft.labels.includes("Grid"));
     const hasInboundFlows = target.flowsFromSources.length > 0;
     if (allTargetsAreGrids && hasInboundFlows) {
-        // Potential observation-only overlay — reads from sources, writes only to Grids
-        // Check if it has a transformation definition (legitimate Resonator role)
+        // Potential observation-only overlay — reads from sources, writes only to Grids.
+        // Check transformation definition as secondary safeguard (Grid consumer may
+        // not be wired yet during bootstrapping).
         const hasTransformationDef = target.instantiatesTargets.some(t => t.seedType === "transformation-definition");
-        if (!hasTransformationDef) {
+        if (hasTransformationDef) {
+            return {
+                checkId: "anti:monitoring-overlay",
+                checkName: AP_MONITOR,
+                passed: true,
+                severity: "info",
+                evidence: `Writes only to Grids but has transformation definition — legitimate role.`,
+            };
+        }
+        // Primary structural test: do the target Grids have downstream consumers?
+        const gridIds = outboundFlows
+            .filter(ft => ft.labels.includes("Grid"))
+            .map(ft => ft.id);
+        const hasDownstreamConsumers = await readTransaction(async (tx) => {
+            const result = await tx.run(`UNWIND $gridIds AS gid
+         MATCH (g {id: gid})-[:FLOWS_TO]->(consumer)
+         WHERE NOT consumer:Grid
+         RETURN count(consumer) > 0 AS hasConsumers`, { gridIds });
+            return result.records[0]?.get("hasConsumers") === true;
+        });
+        if (!hasDownstreamConsumers) {
             return {
                 checkId: "anti:monitoring-overlay",
                 checkName: AP_MONITOR,
                 passed: false,
                 severity: "warning",
-                evidence: `Resonator '${target.id}' receives inbound flows and only writes to Grids, with no transformation definition. Matches ${AP_MONITOR.toLowerCase()} signature.`,
-                remediation: "If this Resonator performs a genuine transformation, wire an INSTANTIATES to its transformation definition. If it only observes, consider whether the observation can be inline.",
+                evidence: `Node '${target.id}' writes only to Grids (${gridIds.join(", ")}), none of which have downstream consumers via FLOWS_TO. Matches dead-end observation pattern.`,
+                remediation: "If the Grid output feeds a downstream transformation, wire a FLOWS_TO from the Grid to its consumer. If the Grid exists only for visibility, consider whether the observation can be inline.",
             };
         }
+        // Grids have downstream consumers — legitimate transformation chain
+        return {
+            checkId: "anti:monitoring-overlay",
+            checkName: AP_MONITOR,
+            passed: true,
+            severity: "info",
+            evidence: `Writes to Grids with downstream consumers — participates in transformation chain.`,
+        };
     }
     return {
         checkId: "anti:monitoring-overlay",
