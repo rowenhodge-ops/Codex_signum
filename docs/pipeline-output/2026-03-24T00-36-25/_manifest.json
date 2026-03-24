@@ -1,0 +1,317 @@
+{
+  "runId": "2026-03-24T00-36-25",
+  "intent": "R-63: Design adversarial perimeter defence for the graph. Anyone with Neo4j write access can inject morpheme-labeled nodes via raw Cypher, bypassing all three enforcement layers. Injected nodes have no INSTANTIATES wiring, no CONTAINS placement, no observation recording — the governance layer is structurally blind. The fix must be structural enforcement at the database layer, NOT a periodic scan (compliance-as-monitoring anti-pattern). The design challenge: how does the database itself distinguish a governed write from an ungoverned write without creating a monitoring overlay? Explore Neo4j native capabilities: triggers, APOC callbacks, transaction metadata, property constraints, uniqueness constraints. Also explore cryptographic write tokens and append-only provenance chains. The solution must satisfy: (a) structural enforcement not detection, (b) no monitoring overlay, (c) works when the application layer is compromised. Reference: v5.0 Constitutional Coupling, A6 Minimal Authority, 10 compliance kills. Produce analysis and design options, not implementation code.",
+  "startedAt": "2026-03-24T00:51:20.821Z",
+  "completedAt": "2026-03-24T01:36:20.572Z",
+  "tasks": [
+    {
+      "taskId": "t1",
+      "title": "Document adversarial threat model for graph write perimeter",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "write",
+          "document"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 312532,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t1-document-adversarial-threat-model-for-graph-write-perimeter.md",
+      "outputChars": 40951
+    },
+    {
+      "taskId": "t3",
+      "title": "Survey Neo4j 5.x native structural enforcement capabilities",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "document",
+          "research"
+        ],
+        "layer": "keyword"
+      },
+      "model": "gemini-2.5-flash:default",
+      "provider": "vertex-ai",
+      "thinkingMode": "default",
+      "status": "succeeded",
+      "durationMs": 64857,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t3-survey-neo4j-5-x-native-structural-enforcement-capabilities.md",
+      "outputChars": 21588
+    },
+    {
+      "taskId": "t2",
+      "title": "Audit existing enforcement layers and map bypass vectors in source",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "audit",
+          "assess",
+          "write",
+          "document"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 152986,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t2-audit-existing-enforcement-layers-and-map-bypass-vectors-in-.md",
+      "outputChars": 19815
+    },
+    {
+      "taskId": "t4",
+      "title": "Design Option A — Mandatory property existence constraints as structural gatekeeping",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "analyze"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 192804,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t4-design-option-a-mandatory-property-existence-constraints-as-.md",
+      "outputChars": 36067
+    },
+    {
+      "taskId": "t5",
+      "title": "Design Option B — Cryptographic write token scheme",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "design",
+          "analyze",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 147863,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t5-design-option-b-cryptographic-write-token-scheme.md",
+      "outputChars": 22232
+    },
+    {
+      "taskId": "t6",
+      "title": "Design Option C — Append-only provenance hash chains",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "analyze",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 231877,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t6-design-option-c-append-only-provenance-hash-chains.md",
+      "outputChars": 39183
+    },
+    {
+      "taskId": "t7",
+      "title": "Design Option D — APOC trigger-based transaction rejection",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "analyze",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 258738,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t7-design-option-d-apoc-trigger-based-transaction-rejection.md",
+      "outputChars": 45163
+    },
+    {
+      "taskId": "t8",
+      "title": "Design Option E — Neo4j RBAC with label-restricted write roles",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "analyze",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:8k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "8k",
+      "status": "succeeded",
+      "durationMs": 159191,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t8-design-option-e-neo4j-rbac-with-label-restricted-write-roles.md",
+      "outputChars": 30680
+    },
+    {
+      "taskId": "t9",
+      "title": "Build comparative evaluation matrix against R-63 criteria",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "build"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 180942,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t9-build-comparative-evaluation-matrix-against-r-63-criteria.md",
+      "outputChars": 25093
+    },
+    {
+      "taskId": "t10",
+      "title": "Synthesize recommended adversarial perimeter architecture",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "design",
+          "architect",
+          "synthesize"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 277118,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t10-synthesize-recommended-adversarial-perimeter-architecture.md",
+      "outputChars": 48822
+    },
+    {
+      "taskId": "t11",
+      "title": "Draft schema migration specification for perimeter enforcement",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "implement",
+          "design",
+          "architect",
+          "document"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 266716,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t11-draft-schema-migration-specification-for-perimeter-enforceme.md",
+      "outputChars": 33341
+    },
+    {
+      "taskId": "t12",
+      "title": "Draft adversarial test strategy for perimeter verification",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "design",
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 277679,
+      "outputFile": "docs\\pipeline-output\\2026-03-24T00-36-25\\t12-draft-adversarial-test-strategy-for-perimeter-verification.md",
+      "outputChars": 52894
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "succeeded": 12,
+    "failed": 0,
+    "totalDurationMs": 2523303,
+    "totalOutputChars": 415829,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:medium",
+      "gemini-2.5-flash:default",
+      "claude-opus-4-5:extended:16k",
+      "claude-opus-4-6:adaptive:high",
+      "claude-opus-4-5:extended:8k",
+      "claude-opus-4-5:extended:32k",
+      "claude-opus-4-6:adaptive:low"
+    ]
+  }
+}

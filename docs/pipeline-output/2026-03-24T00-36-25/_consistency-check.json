@@ -1,0 +1,13 @@
+{
+  "issues": [
+    {
+      "type": "wrong-stage-name",
+      "description": "Non-canonical pipeline stage \"APOC\" (not in SURVEY/.../ADAPT)",
+      "tasks": [
+        "t10"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-24T01:36:20.612Z",
+  "taskCount": 12
+}
