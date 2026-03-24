@@ -4,6 +4,15 @@ export declare const VALID_CONTAINERS: Record<string, MorphemeType[]>;
 /** Valid Line relationship types and their direction semantics */
 export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY", "SPECIALISES"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
+/** Specialisation sub-type for Seeds — adds a secondary Neo4j label */
+export type SeedSubType = 'Observation' | 'Decision' | 'TaskOutput' | 'Distillation';
+export declare const VALID_SEED_SUBTYPES: readonly string[];
+/** Options for seed specialisation (fifth parameter) */
+export interface InstantiationOptions {
+    /** Secondary Neo4j label for Option B multi-label retyping.
+     *  Only valid when morphemeType === 'seed'. */
+    subType?: SeedSubType;
+}
 /** A6 justification for creating a second instance of the same transformation */
 export type A6Justification = "distinct_learned_state" | "distinct_governance_scope" | "distinct_temporal_scale";
 /** Options for Highlander Protocol enforcement */
@@ -55,7 +64,7 @@ export interface LineCreationResult {
  * @param properties - All properties for the node (must include required fields)
  * @param parentId - The Bloom (or Grid for seeds) that will CONTAIN this morpheme
  */
-export declare function instantiateMorpheme(morphemeType: MorphemeType, properties: Record<string, unknown>, parentId: string, highlander?: HighlanderOptions): Promise<InstantiationResult>;
+export declare function instantiateMorpheme(morphemeType: MorphemeType, properties: Record<string, unknown>, parentId: string, highlander?: HighlanderOptions, options?: InstantiationOptions): Promise<InstantiationResult>;
 /**
  * Update a morpheme's properties via the Mutation Resonator.
  *

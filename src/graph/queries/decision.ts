@@ -4,6 +4,8 @@
 
 import type { Record as Neo4jRecord } from "neo4j-driver";
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
+import type { InstantiationOptions } from "../instantiation.js";
 
 // ============ TYPES ============
 
@@ -58,47 +60,64 @@ export interface ContextClusterProps {
 // ============ DECISION QUERIES ============
 
 export async function recordDecision(props: DecisionProps): Promise<void> {
+  // Determine parent scope
+  const parentId = props.madeByBloomId ?? "architect";
+
+  // Create Decision Seed through Instantiation Protocol
+  const result = await instantiateMorpheme(
+    "seed",
+    {
+      id: props.id,
+      name: `decision:${props.taskType}:${props.complexity}`,
+      content: `Thompson selection: ${props.selectedSeedId} for ${props.taskType}/${props.complexity} (${props.wasExploratory ? "exploration" : "exploitation"})`,
+      seedType: "decision",
+      status: "pending",
+      selectedSeedId: props.selectedSeedId,
+      taskType: props.taskType,
+      complexity: props.complexity,
+      domain: props.domain ?? null,
+      wasExploratory: props.wasExploratory,
+      qualityRequirement: props.qualityRequirement ?? null,
+      costCeiling: props.costCeiling ?? null,
+      runId: props.runId ?? null,
+      taskId: props.taskId ?? null,
+      timestamp: new Date().toISOString(),
+    },
+    parentId,
+    undefined,
+    { subType: "Decision" },
+  );
+
+  if (!result.success) {
+    throw new Error(`Decision creation failed: ${result.error}`);
+  }
+
+  // Domain-specific wiring: ROUTED_TO, ORIGINATED_FROM, IN_CONTEXT
   await writeTransaction(async (tx) => {
-    // Create Decision node
+    // ROUTED_TO the selected model Seed
     await tx.run(
-      `CREATE (d:Decision {
-         id: $id,
-        selectedSeedId: $selectedSeedId,
-         taskType: $taskType,
-         complexity: $complexity,
-         domain: $domain,
-         wasExploratory: $wasExploratory,
-         qualityRequirement: $qualityRequirement,
-         costCeiling: $costCeiling,
-         runId: $runId,
-         taskId: $taskId,
-         timestamp: datetime(),
-         status: 'pending'
-       })
-       WITH d
-       MATCH (s:Seed { id: $selectedSeedId })
-       MERGE (d)-[:ROUTED_TO]->(s)
-       WITH d
-       OPTIONAL MATCH (b:Bloom { id: $madeByBloomId })
-       FOREACH (_ IN CASE WHEN b IS NOT NULL THEN [1] ELSE [] END |
-         MERGE (d)-[:ORIGINATED_FROM]->(b)
-       )
-       WITH d
-       OPTIONAL MATCH (cc:ContextCluster { id: $contextClusterId })
-       FOREACH (_ IN CASE WHEN cc IS NOT NULL THEN [1] ELSE [] END |
-         MERGE (d)-[:IN_CONTEXT]->(cc)
-       )`,
-      {
-        ...props,
-        domain: props.domain ?? null,
-        madeByBloomId: props.madeByBloomId ?? null,
-        contextClusterId: props.contextClusterId ?? null,
-        qualityRequirement: props.qualityRequirement ?? null,
-        costCeiling: props.costCeiling ?? null,
-        runId: props.runId ?? null,
-        taskId: props.taskId ?? null,
-      },
+      `MATCH (d:Decision {id: $id}), (s:Seed {id: $selectedSeedId})
+       MERGE (d)-[:ROUTED_TO]->(s)`,
+      { id: props.id, selectedSeedId: props.selectedSeedId },
     );
+
+    // ORIGINATED_FROM the parent Bloom (if specified)
+    if (props.madeByBloomId) {
+      await tx.run(
+        `MATCH (d:Decision {id: $id}), (b:Bloom {id: $bloomId})
+         MERGE (d)-[:ORIGINATED_FROM]->(b)`,
+        { id: props.id, bloomId: props.madeByBloomId },
+      );
+    }
+
+    // IN_CONTEXT of the context cluster (if specified)
+    if (props.contextClusterId) {
+      await tx.run(
+        `MATCH (d:Decision {id: $id}), (cc:ContextCluster {id: $ccId})
+         MERGE (d)-[:IN_CONTEXT]->(cc)`,
+        { id: props.id, ccId: props.contextClusterId },
+      );
+    }
   });
 }
 

@@ -74,6 +74,9 @@ export const VALID_LINE_TYPES = [
     "SPECIFIED_BY",
     "SPECIALISES",
 ];
+export const VALID_SEED_SUBTYPES = [
+    'Observation', 'Decision', 'TaskOutput', 'Distillation',
+];
 const VALID_A6_JUSTIFICATIONS = [
     "distinct_learned_state",
     "distinct_governance_scope",
@@ -90,7 +93,7 @@ const VALID_A6_JUSTIFICATIONS = [
  * @param properties - All properties for the node (must include required fields)
  * @param parentId - The Bloom (or Grid for seeds) that will CONTAIN this morpheme
  */
-export async function instantiateMorpheme(morphemeType, properties, parentId, highlander) {
+export async function instantiateMorpheme(morphemeType, properties, parentId, highlander, options) {
     const nodeId = properties.id;
     // ── Step 1: Morpheme hygiene check ──
     const required = REQUIRED_PROPERTIES[morphemeType];
@@ -127,6 +130,19 @@ export async function instantiateMorpheme(morphemeType, properties, parentId, hi
         const error = `Instantiation rejected: '${parentType}' cannot contain '${morphemeType}'. Allowed: ${allowedChildren.join(", ")}.`;
         await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
         return { success: false, error };
+    }
+    // ── Step 2.3: Seed sub-type validation ──
+    if (options?.subType) {
+        if (morphemeType !== "seed") {
+            const error = `Instantiation rejected: subType '${options.subType}' is only valid for seeds, not '${morphemeType}'. id=${nodeId ?? "unknown"}`;
+            await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+            return { success: false, error };
+        }
+        if (!VALID_SEED_SUBTYPES.includes(options.subType)) {
+            const error = `Instantiation rejected: invalid subType '${options.subType}'. Valid: ${VALID_SEED_SUBTYPES.join(", ")}. id=${nodeId ?? "unknown"}`;
+            await recordInstantiationObservation(morphemeType, nodeId ?? "unknown", parentId, false, error);
+            return { success: false, error };
+        }
     }
     // ── Step 2.5: Highlander Protocol (Resonator/Bloom only) ──
     if (morphemeType === "resonator" || morphemeType === "bloom") {
@@ -282,6 +298,10 @@ export async function instantiateMorpheme(morphemeType, properties, parentId, hi
             if (highlander?.transformationDefId) {
                 await tx.run(`MATCH (n:${label} {id: $nodeId}), (tdef:Seed {id: $tdefId})
            MERGE (n)-[:INSTANTIATES]->(tdef)`, { nodeId, tdefId: highlander.transformationDefId });
+            }
+            // Wire secondary label for seed sub-types (Option B multi-label retyping)
+            if (morphemeType === "seed" && options?.subType) {
+                await tx.run(`MATCH (n:Seed {id: $nodeId}) SET n:${options.subType}`, { nodeId });
             }
         });
         // ── Step 7: Record observation ──

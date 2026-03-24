@@ -4,6 +4,8 @@
 
 import type { Record as Neo4jRecord } from "neo4j-driver";
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
+import type { InstantiationOptions } from "../instantiation.js";
 
 // ============ TYPES ============
 
@@ -36,30 +38,42 @@ export interface TaskOutputProps {
 export async function createTaskOutput(
   props: TaskOutputProps,
 ): Promise<void> {
+  // Create TaskOutput Seed through Instantiation Protocol
+  // Parent = the PipelineRun Bloom
+  const result = await instantiateMorpheme(
+    "seed",
+    {
+      id: props.id,
+      name: `task:${props.taskId}:${props.title.slice(0, 50)}`,
+      content: `Task output: ${props.title} [${props.taskType}] via ${props.modelUsed} (${props.status})`,
+      seedType: "task-output",
+      status: props.status === "succeeded" ? "active" : "failed",
+      runId: props.runId,
+      taskId: props.taskId,
+      title: props.title,
+      taskType: props.taskType,
+      modelUsed: props.modelUsed,
+      provider: props.provider,
+      outputLength: props.outputLength,
+      durationMs: props.durationMs,
+      qualityScore: props.qualityScore ?? null,
+      hallucinationFlagCount: props.hallucinationFlagCount,
+    },
+    props.runId,
+    undefined,
+    { subType: "TaskOutput" },
+  );
+
+  if (!result.success) {
+    throw new Error(`TaskOutput creation failed: ${result.error}`);
+  }
+
+  // Domain-specific wiring: PRODUCED relationship from PipelineRun
   await writeTransaction(async (tx) => {
     await tx.run(
-      `CREATE (to:TaskOutput {
-         id: $id,
-         runId: $runId,
-         taskId: $taskId,
-         title: $title,
-         taskType: $taskType,
-         modelUsed: $modelUsed,
-         provider: $provider,
-         outputLength: $outputLength,
-         durationMs: $durationMs,
-         qualityScore: $qualityScore,
-         hallucinationFlagCount: $hallucinationFlagCount,
-         status: $status,
-         createdAt: datetime()
-       })
-       WITH to
-       MATCH (pr:PipelineRun { id: $runId })
+      `MATCH (pr:PipelineRun {id: $runId}), (to:TaskOutput {id: $id})
        MERGE (pr)-[:PRODUCED]->(to)`,
-      {
-        ...props,
-        qualityScore: props.qualityScore ?? null,
-      },
+      { runId: props.runId, id: props.id },
     );
   });
 }

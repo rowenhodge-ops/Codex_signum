@@ -189,10 +189,13 @@ export {
   revertBloomToActive,
   VALID_CONTAINERS,
   VALID_LINE_TYPES,
+  VALID_SEED_SUBTYPES,
 } from "./instantiation.js";
 export type {
   MorphemeType,
   LineType,
+  SeedSubType,
+  InstantiationOptions,
   A6Justification,
   HighlanderOptions,
   ComposeResult,

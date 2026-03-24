@@ -2,26 +2,31 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
 // ============ OBSERVATION QUERIES ============
 export async function recordObservation(props) {
+    // Create Observation Seed through Instantiation Protocol
+    const result = await instantiateMorpheme("seed", {
+        id: props.id,
+        name: `obs:${props.metric}`,
+        content: `Observation: ${props.metric}=${props.value}${props.context ? ` in ${props.context}` : ""}`,
+        seedType: "observation",
+        status: "active",
+        metric: props.metric,
+        value: props.value,
+        unit: props.unit ?? null,
+        context: props.context ?? null,
+        timestamp: new Date().toISOString(),
+        retained: true,
+    }, props.sourceBloomId, undefined, { subType: "Observation" });
+    if (!result.success) {
+        throw new Error(`Observation creation failed: ${result.error}`);
+    }
+    // Domain-specific wiring: OBSERVED_IN + counter update
     await writeTransaction(async (tx) => {
-        await tx.run(`CREATE (o:Observation {
-         id: $id,
-         metric: $metric,
-         value: $value,
-         unit: $unit,
-         context: $context,
-         timestamp: datetime(),
-         retained: true
-       })
-       WITH o
-       MATCH (b:Bloom { id: $sourceBloomId })
+        await tx.run(`MATCH (o:Observation {id: $id}), (b:Bloom {id: $bloomId})
        MERGE (o)-[:OBSERVED_IN]->(b)
-       SET b.observationCount = coalesce(b.observationCount, 0) + 1`, {
-            ...props,
-            unit: props.unit ?? null,
-            context: props.context ?? null,
-        });
+       SET b.observationCount = coalesce(b.observationCount, 0) + 1`, { id: props.id, bloomId: props.sourceBloomId });
     });
 }
 /** Get observations for ΦL computation — recent, for a given bloom */

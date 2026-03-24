@@ -2,24 +2,32 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery, writeTransaction } from "../client.js";
+import { instantiateMorpheme } from "../instantiation.js";
 // ============ DISTILLATION QUERIES ============
 export async function createDistillation(props) {
-    await writeTransaction(async (tx) => {
-        // Create distillation node
-        await tx.run(`CREATE (di:Distillation {
-         id: $id,
-         pattern: $pattern,
-         confidence: $confidence,
-         observationCount: toInteger($observationCount),
-         insight: $insight,
-         createdAt: datetime()
-       })`, props);
-        // Link to source observations
-        for (const obsId of props.sourceObservationIds) {
-            await tx.run(`MATCH (di:Distillation { id: $distId }), (o:Observation { id: $obsId })
-         MERGE (di)-[:DISTILLED_FROM]->(o)`, { distId: props.id, obsId });
-        }
-    });
+    // Create Distillation Seed through Instantiation Protocol
+    const result = await instantiateMorpheme("seed", {
+        id: props.id,
+        name: `distillation:${props.id}`,
+        content: props.insight,
+        seedType: "distillation",
+        status: "active",
+        pattern: props.pattern,
+        confidence: props.confidence,
+        observationCount: props.observationCount,
+    }, "constitutional-bloom", undefined, { subType: "Distillation" });
+    if (!result.success) {
+        throw new Error(`Distillation creation failed: ${result.error}`);
+    }
+    // Domain-specific wiring: DISTILLED_FROM relationships
+    if (props.sourceObservationIds.length > 0) {
+        await writeTransaction(async (tx) => {
+            await tx.run(`MATCH (di:Distillation {id: $distId})
+         UNWIND $obsIds AS obsId
+         MATCH (o:Observation {id: obsId})
+         MERGE (di)-[:DISTILLED_FROM]->(o)`, { distId: props.id, obsIds: props.sourceObservationIds });
+        });
+    }
 }
 /**
  * Get IDs of active (non-superseded) distillations.
@@ -43,31 +51,37 @@ export async function getActiveDistillationIds(bloomId) {
  * Links to the bloom via bloomId property.
  */
 export async function createStructuredDistillation(props) {
-    await writeTransaction(async (tx) => {
-        await tx.run(`CREATE (di:Distillation {
-         id: $id,
-         bloomId: $bloomId,
-         confidence: $confidence,
-         observationCount: toInteger($observationCount),
-         insight: $insight,
-         meanPhiL: $meanPhiL,
-         phiLTrend: $phiLTrend,
-         phiLVariance: $phiLVariance,
-         successRate: $successRate,
-         windowStart: datetime($windowStart),
-         windowEnd: datetime($windowEnd),
-         preferredModels: $preferredModels,
-         avoidModels: $avoidModels,
-         createdAt: datetime()
-       })`, props);
-        // Create DISTILLED_FROM relationships to source observations
-        if (props.sourceObservationIds.length > 0) {
-            await tx.run(`MATCH (di:Distillation { id: $distId })
+    // Create Distillation Seed through Instantiation Protocol
+    const result = await instantiateMorpheme("seed", {
+        id: props.id,
+        name: `distillation:${props.id}`,
+        content: props.insight,
+        seedType: "distillation",
+        status: "active",
+        bloomId: props.bloomId,
+        confidence: props.confidence,
+        observationCount: props.observationCount,
+        meanPhiL: props.meanPhiL,
+        phiLTrend: props.phiLTrend,
+        phiLVariance: props.phiLVariance,
+        successRate: props.successRate,
+        windowStart: props.windowStart,
+        windowEnd: props.windowEnd,
+        preferredModels: props.preferredModels,
+        avoidModels: props.avoidModels,
+    }, props.bloomId, undefined, { subType: "Distillation" });
+    if (!result.success) {
+        throw new Error(`Distillation creation failed: ${result.error}`);
+    }
+    // Domain-specific wiring: DISTILLED_FROM relationships (batched)
+    if (props.sourceObservationIds.length > 0) {
+        await writeTransaction(async (tx) => {
+            await tx.run(`MATCH (di:Distillation {id: $distId})
          UNWIND $obsIds AS obsId
-         MATCH (o:Observation { id: obsId })
+         MATCH (o:Observation {id: obsId})
          MERGE (di)-[:DISTILLED_FROM]->(o)`, { distId: props.id, obsIds: props.sourceObservationIds });
-        }
-    });
+        });
+    }
 }
 /**
  * Get distillations for a bloom, ordered by creation date (newest first).

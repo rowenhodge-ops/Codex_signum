@@ -48,7 +48,7 @@ getLineEndpointStates, evaluateAndCacheLineConductivity, invalidateLineConductiv
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Instantiation Protocol (M-16.4 — governance Resonator enforcement)
-export { instantiateMorpheme, updateMorpheme, createLine, stampBloomComplete, revertBloomToActive, VALID_CONTAINERS, VALID_LINE_TYPES, } from "./instantiation.js";
+export { instantiateMorpheme, updateMorpheme, createLine, stampBloomComplete, revertBloomToActive, VALID_CONTAINERS, VALID_LINE_TYPES, VALID_SEED_SUBTYPES, } from "./instantiation.js";
 // Inline conditioning write path
 export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map
