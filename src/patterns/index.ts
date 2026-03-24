@@ -175,6 +175,11 @@ export {
   checkGrammar,
   checkAxioms,
   checkAntiPatterns,
+  // Planning faculty
+  runPlanningCycle,
+  scorePlanningIntent,
+  inferScopesForBloom,
+  categoriseMilestone,
 } from "./cognitive/index.js";
 export type {
   BloomSurvey,
@@ -188,6 +193,13 @@ export type {
   CheckResult,
   SweepResult,
   TargetNode,
+  // Planning types
+  IntentCategory,
+  PlanningIntent,
+  PlanningReport,
+  BloomStateEntry,
+  ViolationEntry,
+  MilestoneEntry,
 } from "./cognitive/index.js";
 
 // Retrospective — deterministic graph queries, no LLM

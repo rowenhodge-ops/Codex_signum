@@ -18,7 +18,9 @@ detectUnsourcedReferences, DOCUMENT_NAME_MAP, extractPathReferences, resolveDocu
 // Cognitive Bloom — self-knowledge pattern
 export { surveyBloomTopology, queryTransformationDefinitions, computeConstitutionalDelta, synthesizeIntent, runCognitiveCycle, 
 // Compliance Evaluation faculty
-evaluate, readTargetNode, sweep, checkGrammar, checkAxioms, checkAntiPatterns, } from "./cognitive/index.js";
+evaluate, readTargetNode, sweep, checkGrammar, checkAxioms, checkAntiPatterns, 
+// Planning faculty
+runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone, } from "./cognitive/index.js";
 // Retrospective — deterministic graph queries, no LLM
 export { runRetrospective, deriveConvergenceStatus, worstBand, } from "./retrospective/index.js";
 //# sourceMappingURL=index.js.map

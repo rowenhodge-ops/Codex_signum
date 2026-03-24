@@ -12,6 +12,9 @@ export { queryTransformationDefinitions, computeConstitutionalDelta } from "./co
 export { synthesizeIntent } from "./intent-synthesis.js";
 export { runCognitiveCycle } from "./cognitive-cycle.js";
 
+// Planning faculty
+export { runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone } from "./planning.js";
+
 // Compliance Evaluation faculty
 export { evaluate, readTargetNode } from "./evaluation.js";
 export { sweep } from "./sweep.js";
@@ -32,3 +35,13 @@ export type {
   TargetNode,
 } from "./types.js";
 export type { CognitiveCycleOptions } from "./cognitive-cycle.js";
+
+// Planning types
+export type {
+  IntentCategory,
+  PlanningIntent,
+  PlanningReport,
+  BloomStateEntry,
+  ViolationEntry,
+  MilestoneEntry,
+} from "./planning-types.js";

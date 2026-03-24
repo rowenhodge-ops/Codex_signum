@@ -18,7 +18,9 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { readTransaction, closeDriver } from "../src/graph/client.js";
 import { runCognitiveCycle } from "../src/patterns/cognitive/index.js";
+import { runPlanningCycle } from "../src/patterns/cognitive/planning.js";
 import type { CognitiveIntent } from "../src/patterns/cognitive/types.js";
+import type { PlanningReport, IntentCategory } from "../src/patterns/cognitive/planning-types.js";
 
 // ── .env auto-loader ──────────────────────────────────────────────────────
 
@@ -66,6 +68,7 @@ Usage:
   npx tsx scripts/cognitive.ts survey <bloomId>     Survey topology + produce intent
   npx tsx scripts/cognitive.ts evaluate <nodeId>     Evaluate one morpheme for compliance
   npx tsx scripts/cognitive.ts sweep <bloomId>       Sweep all children for compliance
+  npx tsx scripts/cognitive.ts plan                  Ecosystem-wide planning report
 
 Survey options:
   --cycle=N      Force cycle number (default: auto-increment from Observation Grid)
@@ -76,21 +79,31 @@ Sweep options:
   --depth=N      Max containment depth (default: 3)
   --include-complete   Include completed morphemes (default: skip)
 
+Plan options:
+  --category=X   Filter intents by category (infrastructure, pattern-topology, governance, substrate-grounding)
+  --top=N        Show only top N intents (default: all)
+  --output=json  Output JSON only (no console summary)
+
 Examples:
   npx tsx scripts/cognitive.ts survey architect
   npx tsx scripts/cognitive.ts evaluate resonator:compliance-evaluation
   npx tsx scripts/cognitive.ts sweep architect --depth=5
+  npx tsx scripts/cognitive.ts plan --top=5
+  npx tsx scripts/cognitive.ts plan --category=governance
 `);
 }
 
 interface CliArgs {
-  command: "survey" | "evaluate" | "sweep";
+  command: "survey" | "evaluate" | "sweep" | "plan";
   targetId: string;
   cycleNumber: number | null;
   withLlm: boolean;
   scopes: string[];
   depth: number;
   includeComplete: boolean;
+  planCategory: IntentCategory | null;
+  planTop: number | null;
+  planOutputJson: boolean;
 }
 
 function parseArgs(): CliArgs | null {
@@ -101,13 +114,14 @@ function parseArgs(): CliArgs | null {
   }
 
   const command = args[0] as string;
-  if (command !== "survey" && command !== "evaluate" && command !== "sweep") {
-    console.error(`Unknown command: ${command}. Supported: survey, evaluate, sweep`);
+  if (command !== "survey" && command !== "evaluate" && command !== "sweep" && command !== "plan") {
+    console.error(`Unknown command: ${command}. Supported: survey, evaluate, sweep, plan`);
     return null;
   }
 
-  const targetId = args[1];
-  if (!targetId) {
+  // plan command doesn't require a targetId
+  const targetId = command === "plan" ? "" : args[1];
+  if (command !== "plan" && !targetId) {
     console.error(`Missing target ID. Usage: npx tsx scripts/cognitive.ts ${command} <id>`);
     return null;
   }
@@ -117,10 +131,15 @@ function parseArgs(): CliArgs | null {
   let scopes = ["ecosystem", "architect"];
   let depth = 3;
   let includeComplete = false;
+  let planCategory: IntentCategory | null = null;
+  let planTop: number | null = null;
+  let planOutputJson = false;
 
-  for (const arg of args.slice(2)) {
+  const optArgs = command === "plan" ? args.slice(1) : args.slice(2);
+  for (const arg of optArgs) {
     if (arg === "--with-llm") withLlm = true;
     else if (arg === "--include-complete") includeComplete = true;
+    else if (arg === "--output=json") planOutputJson = true;
     else if (arg.startsWith("--cycle=")) {
       cycleNumber = parseInt(arg.split("=")[1], 10);
       if (isNaN(cycleNumber) || cycleNumber < 1) cycleNumber = null;
@@ -129,10 +148,21 @@ function parseArgs(): CliArgs | null {
     } else if (arg.startsWith("--depth=")) {
       depth = parseInt(arg.split("=")[1], 10);
       if (isNaN(depth) || depth < 1) depth = 3;
+    } else if (arg.startsWith("--category=")) {
+      const cat = arg.split("=")[1] as IntentCategory;
+      const valid: IntentCategory[] = ["infrastructure", "pattern-topology", "governance", "substrate-grounding"];
+      if (valid.includes(cat)) planCategory = cat;
+    } else if (arg.startsWith("--top=")) {
+      planTop = parseInt(arg.split("=")[1], 10);
+      if (isNaN(planTop) || planTop < 1) planTop = null;
     }
   }
 
-  return { command: command as CliArgs["command"], targetId, cycleNumber, withLlm, scopes, depth, includeComplete };
+  return {
+    command: command as CliArgs["command"],
+    targetId, cycleNumber, withLlm, scopes, depth, includeComplete,
+    planCategory, planTop, planOutputJson,
+  };
 }
 
 /**
@@ -266,6 +296,105 @@ async function main(): Promise<void> {
         }
       }
     }
+    console.log("");
+    return;
+  }
+
+  // ── Plan command ───────────────────────────────────────────────
+  if (cliArgs.command === "plan") {
+    if (cliArgs.planOutputJson) {
+      // JSON-only mode — suppress console logs from planning internals
+    } else {
+      console.log("\n" + SEP);
+      console.log("  CODEX SIGNUM -- GNOSIS PLANNING REPORT");
+      console.log(SEP);
+    }
+
+    const report = await runPlanningCycle();
+
+    // Apply filters
+    let filteredIntents = report.intents;
+    if (cliArgs.planCategory) {
+      filteredIntents = filteredIntents.filter((i) => i.category === cliArgs.planCategory);
+    }
+    if (cliArgs.planTop) {
+      filteredIntents = filteredIntents.slice(0, cliArgs.planTop);
+    }
+
+    // Write JSON output
+    const outputDir = resolve(process.cwd(), "docs/gnosis-output");
+    mkdirSync(outputDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    const outputFile = resolve(outputDir, `plan-${ts}.json`);
+    writeFileSync(outputFile, JSON.stringify(report, null, 2), "utf-8");
+
+    if (cliArgs.planOutputJson) {
+      // JSON to stdout for piping
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      // Human-readable console output
+      console.log("");
+      console.log(`  Ecosystem: ${report.ecosystemState.totalBlooms} Blooms, ` +
+        `${report.ecosystemState.totalResonators} Resonators, ` +
+        `${report.ecosystemState.totalGrids} Grids, ` +
+        `${report.ecosystemState.totalHelixes} Helixes`);
+      console.log(`  Violations: ${report.activeViolations.total} active ` +
+        `(${report.activeViolations.bySeverity.critical} critical, ` +
+        `${report.activeViolations.bySeverity.error} error, ` +
+        `${report.activeViolations.bySeverity.warning} warning)`);
+      console.log(`  Milestones: ${report.milestoneState.complete}/${report.milestoneState.total} complete, ` +
+        `${report.milestoneState.unblocked.length} unblocked`);
+      console.log(`  Constitutional gaps: ${report.constitutionalGaps}`);
+
+      if (filteredIntents.length > 0) {
+        const label = cliArgs.planCategory
+          ? `TOP INTENTS [${cliArgs.planCategory}]`
+          : "TOP INTENTS (ranked by structural priority)";
+        console.log(`\n  --- ${label} ---\n`);
+
+        for (let i = 0; i < filteredIntents.length; i++) {
+          const intent = filteredIntents[i];
+          const parts: string[] = [];
+          if (intent.justification.violationSeverity) {
+            parts.push(`Violation: ${intent.justification.violationSeverity}`);
+          }
+          if (intent.justification.gapType) {
+            parts.push(`Gap: ${intent.justification.gapType}`);
+          }
+          if (intent.justification.lambda2Delta) {
+            parts.push(`lambda2 delta: +${intent.justification.lambda2Delta.toFixed(2)}`);
+          }
+          if (intent.justification.unblocks && intent.justification.unblocks.length > 0) {
+            parts.push(`Unblocks: ${intent.justification.unblocks.join(", ")}`);
+          }
+          console.log(`  ${i + 1}. [${intent.category}] ${intent.description}`);
+          console.log(`     Score: ${intent.priorityScore} | ${parts.join(" | ")}`);
+          if (intent.architectIntent) {
+            console.log(`     Intent: ${intent.architectIntent}`);
+          }
+          console.log("");
+        }
+      } else {
+        console.log("\n  No intents found.");
+      }
+
+      // Category distribution
+      const cats = report.byCategory;
+      const catNames: IntentCategory[] = ["governance", "pattern-topology", "infrastructure", "substrate-grounding"];
+      const totalIntents = report.intents.length || 1;
+      console.log("  --- BY CATEGORY ---\n");
+      for (const cat of catNames) {
+        const count = cats[cat].length;
+        const pct = Math.round((count / totalIntents) * 100);
+        const filled = Math.round(pct / 5);
+        const bar = "\u2588".repeat(filled) + "\u2591".repeat(20 - filled);
+        console.log(`  ${cat.padEnd(22)} (${count}): ${bar} ${pct}%`);
+      }
+
+      console.log(`\n  Full report: ${outputFile}`);
+      console.log(`  Time: ${report.processingTimeMs}ms`);
+    }
+
     console.log("");
     return;
   }

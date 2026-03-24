@@ -9,6 +9,8 @@ export { surveyBloomTopology } from "./structural-survey.js";
 export { queryTransformationDefinitions, computeConstitutionalDelta } from "./constitutional-delta.js";
 export { synthesizeIntent } from "./intent-synthesis.js";
 export { runCognitiveCycle } from "./cognitive-cycle.js";
+// Planning faculty
+export { runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone } from "./planning.js";
 // Compliance Evaluation faculty
 export { evaluate, readTargetNode } from "./evaluation.js";
 export { sweep } from "./sweep.js";
