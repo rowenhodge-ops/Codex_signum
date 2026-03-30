@@ -233,3 +233,66 @@ export function checkStructuralTriggers(
 
   return events;
 }
+
+// ============ HYBRID BOCPD DRIFT TRIGGER ============
+// Unlike the 6 pure triggers above, this trigger is stateful — it feeds
+// observations through a BOCPDRegistry and fires when change-point
+// probability exceeds a threshold. When it fires, it resets the metric's
+// detector so the next observation starts from a fresh prior.
+
+import type { BOCPDSignal } from "../signals/types.js";
+import type { BOCPDRegistry } from "../signals/BOCPDRegistry.js";
+
+export interface BOCPDTriggerConfig {
+  /** Name of the metric stream being monitored */
+  metricName: string;
+  /** Change-point probability threshold to fire (0.0–1.0, recommended 0.5–0.7) */
+  changePointThreshold: number;
+  /** Registry that owns the per-metric detector and state */
+  registry: BOCPDRegistry;
+}
+
+export interface BOCPDTriggerResult {
+  /** Whether the trigger fired */
+  fired: boolean;
+  /** Raw change-point probability from the BOCPD detector */
+  changePointProbability: number;
+  /** MAP run-length estimate */
+  runLength: number;
+  /** Metric name that was evaluated */
+  metricName: string;
+  /** Whether the detector was reset (always true when fired) */
+  recalibrated: boolean;
+  /** Human-readable description */
+  detail: string;
+}
+
+/**
+ * Evaluate a single BOCPD drift trigger for one metric observation.
+ *
+ * When changePointProbability >= threshold, the trigger fires AND resets
+ * the metric's detector state, causing the next observation to start from
+ * a fresh prior (self-stabilisation).
+ */
+export function evaluateBOCPDTrigger(
+  config: BOCPDTriggerConfig,
+  value: number,
+): BOCPDTriggerResult {
+  const signal: BOCPDSignal = config.registry.observe(config.metricName, value);
+  const fired = signal.changePointProbability >= config.changePointThreshold;
+
+  if (fired) {
+    config.registry.reset(config.metricName);
+  }
+
+  return {
+    fired,
+    changePointProbability: signal.changePointProbability,
+    runLength: signal.runLength,
+    metricName: config.metricName,
+    recalibrated: fired,
+    detail: fired
+      ? `BOCPD drift detected on "${config.metricName}": P(cp)=${signal.changePointProbability.toFixed(4)} >= ${config.changePointThreshold} — detector reset`
+      : `"${config.metricName}" stable: P(cp)=${signal.changePointProbability.toFixed(4)}, run-length=${signal.runLength}`,
+  };
+}

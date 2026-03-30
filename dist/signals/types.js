@@ -10,4 +10,12 @@ export const DEFAULT_CONFIG = {
     hysteresis: { bandMultiplier: 2 },
     trend: { windowSize: 40, warningHorizonEvents: 20 },
 };
+export const DEFAULT_BOCPD_CONFIG = {
+    mu0: 0,
+    kappa0: 1,
+    alpha0: 1,
+    beta0: 1,
+    hazardRate: 1 / 250,
+    maxRunLength: 500,
+};
 //# sourceMappingURL=types.js.map

@@ -160,4 +160,28 @@ export function checkStructuralTriggers(state) {
         events.push(omegaInversion);
     return events;
 }
+/**
+ * Evaluate a single BOCPD drift trigger for one metric observation.
+ *
+ * When changePointProbability >= threshold, the trigger fires AND resets
+ * the metric's detector state, causing the next observation to start from
+ * a fresh prior (self-stabilisation).
+ */
+export function evaluateBOCPDTrigger(config, value) {
+    const signal = config.registry.observe(config.metricName, value);
+    const fired = signal.changePointProbability >= config.changePointThreshold;
+    if (fired) {
+        config.registry.reset(config.metricName);
+    }
+    return {
+        fired,
+        changePointProbability: signal.changePointProbability,
+        runLength: signal.runLength,
+        metricName: config.metricName,
+        recalibrated: fired,
+        detail: fired
+            ? `BOCPD drift detected on "${config.metricName}": P(cp)=${signal.changePointProbability.toFixed(4)} >= ${config.changePointThreshold} — detector reset`
+            : `"${config.metricName}" stable: P(cp)=${signal.changePointProbability.toFixed(4)}, run-length=${signal.runLength}`,
+    };
+}
 //# sourceMappingURL=structural-triggers.js.map

@@ -24,6 +24,7 @@ export { aggregateHealth, weightedMean } from "./aggregation.js";
 export { computeHierarchicalHealth, computeSystemHealth, propagatePhiLUpward, PHI_L_PROPAGATION_NOISE_GATE, } from "./hierarchical-health.js";
 // Structural triggers
 export { checkStructuralTriggers, checkLambda2Drop, checkFrictionSpike, checkCascadeActivation, checkEpsilonRSpike, checkPhiLVelocityAnomaly, checkOmegaGradientInversion, } from "./structural-triggers.js";
+export { evaluateBOCPDTrigger } from "./structural-triggers.js";
 // Structural review
 export { runStructuralReview, computeGlobalLambda2, computeSpectralGap, computeHubDependencies, computeFrictionDistribution, assessDampening, } from "./structural-review.js";
 // Immune response

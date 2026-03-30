@@ -15,7 +15,7 @@
  *
  * Plus: Nelson Rules (1, 2, 7) run in parallel for SPC alerting.
  *
- * Ported from DND-Manager agent/signals/ — zero external dependencies.
+ * Originally ported from consumer agent/signals/ — zero external dependencies.
  * Core is stateless: callers instantiate SignalPipeline and own its lifecycle.
  *
  * @module codex-signum-core/signals
@@ -31,5 +31,8 @@ export { HysteresisGate } from "./HysteresisGate.js";
 export { MACDDetector } from "./MACDDetector.js";
 export { NelsonRules } from "./NelsonRules.js";
 export { TrendRegression } from "./TrendRegression.js";
-export { DEFAULT_CONFIG } from "./types.js";
+// BOCPD — Bayesian Online Change Point Detection
+export { BOCPDDetector } from "./BOCPDDetector.js";
+export { BOCPDRegistry } from "./BOCPDRegistry.js";
+export { DEFAULT_BOCPD_CONFIG, DEFAULT_CONFIG } from "./types.js";
 //# sourceMappingURL=index.js.map

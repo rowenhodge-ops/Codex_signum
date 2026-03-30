@@ -86,4 +86,35 @@ export declare function checkOmegaGradientInversion(gradientHistory: number[]): 
  * Returns all triggered events (may be multiple simultaneously).
  */
 export declare function checkStructuralTriggers(state: TriggerInputState): TriggeredEvent[];
+import type { BOCPDRegistry } from "../signals/BOCPDRegistry.js";
+export interface BOCPDTriggerConfig {
+    /** Name of the metric stream being monitored */
+    metricName: string;
+    /** Change-point probability threshold to fire (0.0–1.0, recommended 0.5–0.7) */
+    changePointThreshold: number;
+    /** Registry that owns the per-metric detector and state */
+    registry: BOCPDRegistry;
+}
+export interface BOCPDTriggerResult {
+    /** Whether the trigger fired */
+    fired: boolean;
+    /** Raw change-point probability from the BOCPD detector */
+    changePointProbability: number;
+    /** MAP run-length estimate */
+    runLength: number;
+    /** Metric name that was evaluated */
+    metricName: string;
+    /** Whether the detector was reset (always true when fired) */
+    recalibrated: boolean;
+    /** Human-readable description */
+    detail: string;
+}
+/**
+ * Evaluate a single BOCPD drift trigger for one metric observation.
+ *
+ * When changePointProbability >= threshold, the trigger fires AND resets
+ * the metric's detector state, causing the next observation to start from
+ * a fresh prior (self-stabilisation).
+ */
+export declare function evaluateBOCPDTrigger(config: BOCPDTriggerConfig, value: number): BOCPDTriggerResult;
 //# sourceMappingURL=structural-triggers.d.ts.map

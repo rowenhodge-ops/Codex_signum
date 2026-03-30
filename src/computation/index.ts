@@ -99,7 +99,8 @@ export {
   checkPhiLVelocityAnomaly,
   checkOmegaGradientInversion,
 } from "./structural-triggers.js";
-export type { TriggerInputState, TriggeredEvent } from "./structural-triggers.js";
+export type { TriggerInputState, TriggeredEvent, BOCPDTriggerConfig, BOCPDTriggerResult } from "./structural-triggers.js";
+export { evaluateBOCPDTrigger } from "./structural-triggers.js";
 
 // Structural review
 export {

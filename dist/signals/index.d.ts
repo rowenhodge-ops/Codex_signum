@@ -12,7 +12,7 @@
  *
  * Plus: Nelson Rules (1, 2, 7) run in parallel for SPC alerting.
  *
- * Ported from DND-Manager agent/signals/ — zero external dependencies.
+ * Originally ported from consumer agent/signals/ — zero external dependencies.
  * Core is stateless: callers instantiate SignalPipeline and own its lifecycle.
  *
  * @module codex-signum-core/signals
@@ -30,6 +30,8 @@ export type { MACDResult } from "./MACDDetector.js";
 export { NelsonRules } from "./NelsonRules.js";
 export { TrendRegression } from "./TrendRegression.js";
 export type { TrendResult } from "./TrendRegression.js";
-export type { ConditionedSignal, SignalAlert, SignalEvent, StageConfig, } from "./types.js";
-export { DEFAULT_CONFIG } from "./types.js";
+export { BOCPDDetector } from "./BOCPDDetector.js";
+export { BOCPDRegistry } from "./BOCPDRegistry.js";
+export type { BOCPDConfig, BOCPDSignal, BOCPDState, ConditionedSignal, SignalAlert, SignalEvent, StageConfig, } from "./types.js";
+export { DEFAULT_BOCPD_CONFIG, DEFAULT_CONFIG } from "./types.js";
 //# sourceMappingURL=index.d.ts.map
