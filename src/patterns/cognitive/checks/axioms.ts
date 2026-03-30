@@ -17,6 +17,7 @@ import type { CheckResult, TargetNode } from "../types.js";
 const ALLOWED_LABELS = new Set([
   "Seed", "Bloom", "Resonator", "Grid", "Helix",
   "Stage", "PipelineRun", "Observation", "Decision", "TaskOutput", "Distillation",
+  "Archived",  // M-10.1: lifecycle label for retired morphemes
 ]);
 
 /** Placeholder content patterns that violate A1 Fidelity */

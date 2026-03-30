@@ -14,7 +14,7 @@ createSeed, createDataSeed, createContainedDataSeed, getSeed, listActiveSeeds, l
 // Blooms (formerly Patterns)
 createBloom, createContainedBloom, getBloom, updateBloomState, updateBloomStatus, verifyStamp, connectBlooms, 
 // Decisions
-recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, 
+recordDecision, recordDecisionOutcome, updateDecisionQuality, findDecisionForTask, getDecisionsForCluster, getArmStatsForCluster, getDecayWeightedPosteriors, computeTemporalDecay, DEFAULT_HALF_LIFE_MS, 
 // Observations
 recordObservation, getObservationsForBloom, countObservationsForBloom, updateObservationConditioned, 
 // Distillations
@@ -48,7 +48,7 @@ getLineEndpointStates, evaluateAndCacheLineConductivity, invalidateLineConductiv
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Instantiation Protocol (M-16.4 — governance Resonator enforcement)
-export { instantiateMorpheme, updateMorpheme, createLine, stampBloomComplete, revertBloomToActive, VALID_CONTAINERS, VALID_LINE_TYPES, VALID_SEED_SUBTYPES, } from "./instantiation.js";
+export { instantiateMorpheme, updateMorpheme, createLine, deleteLine, stampBloomComplete, revertBloomToActive, VALID_CONTAINERS, VALID_LINE_TYPES, VALID_SEED_SUBTYPES, VALID_ADD_LABELS, } from "./instantiation.js";
 // Inline conditioning write path
 export { writeObservation, writeThresholdEvent, } from "./write-observation.js";
 //# sourceMappingURL=index.js.map

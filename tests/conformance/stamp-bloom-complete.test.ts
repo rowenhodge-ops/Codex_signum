@@ -183,13 +183,14 @@ function setupMilestoneBloom(opts: {
   mockReadTransaction.mockImplementation(async (work: (tx: { run: typeof mockTxRun }) => Promise<unknown>) => {
     return work({
       run: vi.fn().mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+        // Combined read-back (must come before labels-only)
+        if (query.includes("properties(n)")) {
+          const props = { ...storedProps, ...{ status: "complete", phiL: derivedPhiL } };
+          return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : props }] };
+        }
         // labels(n) for getNodeInfo
         if (query.includes("labels(n)")) {
           return { records: [{ get: () => ["Bloom"] }] };
-        }
-        // properties(n) read-back
-        if (query.includes("properties(n)")) {
-          return { records: [{ get: () => ({ ...storedProps, ...{ status: "complete", phiL: derivedPhiL } }) }] };
         }
         // count(n) — nodeExists
         if (query.includes("count(n)")) {
@@ -285,12 +286,14 @@ describe("stampBloomComplete (M-23.2)", () => {
       return work({
         run: vi.fn().mockImplementation(async (query: string, params?: Record<string, unknown>) => {
           const nodeId = params?.nodeId as string;
+          if (query.includes("properties(n)") && nodeId && nodeProps.has(nodeId)) {
+            const props = { ...nodeProps.get(nodeId) };
+            const label = nodeId?.includes(":ec") ? ["Seed"] : ["Bloom"];
+            return { records: [{ get: (key: string) => key === "nodeLabels" ? label : props }] };
+          }
           if (query.includes("labels(n)")) {
             const label = nodeId?.includes(":ec") ? ["Seed"] : ["Bloom"];
             return { records: [{ get: () => label }] };
-          }
-          if (query.includes("properties(n)") && nodeId && nodeProps.has(nodeId)) {
-            return { records: [{ get: () => ({ ...nodeProps.get(nodeId) }) }] };
           }
           if (query.includes("count(n)")) return { records: [{ get: () => 1 }] };
           return { records: [] };
@@ -369,8 +372,8 @@ describe("stampBloomComplete (M-23.2)", () => {
     mockReadTransaction.mockImplementation(async (work: any) => {
       return work({
         run: vi.fn().mockImplementation(async (query: string) => {
+          if (query.includes("properties(n)")) return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : { ...nodeProps } }] };
           if (query.includes("labels(n)")) return { records: [{ get: () => ["Bloom"] }] };
-          if (query.includes("properties(n)")) return { records: [{ get: () => ({ ...nodeProps }) }] };
           if (query.includes("count(n)")) return { records: [{ get: () => 1 }] };
           return { records: [] };
         }),
@@ -406,8 +409,8 @@ describe("stampBloomComplete (M-23.2)", () => {
     mockReadTransaction.mockImplementation(async (work: any) => {
       return work({
         run: vi.fn().mockImplementation(async (query: string) => {
+          if (query.includes("properties(n)")) return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : { ...nodeProps } }] };
           if (query.includes("labels(n)")) return { records: [{ get: () => ["Bloom"] }] };
-          if (query.includes("properties(n)")) return { records: [{ get: () => ({ ...nodeProps }) }] };
           if (query.includes("count(n)")) return { records: [{ get: () => 1 }] };
           return { records: [] };
         }),
@@ -491,8 +494,8 @@ describe("revertBloomToActive (M-23.2)", () => {
     mockReadTransaction.mockImplementation(async (work: any) => {
       return work({
         run: vi.fn().mockImplementation(async (query: string) => {
+          if (query.includes("properties(n)")) return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : { id: "M-revert", status: "active" } }] };
           if (query.includes("labels(n)")) return { records: [{ get: () => ["Bloom"] }] };
-          if (query.includes("properties(n)")) return { records: [{ get: () => ({ id: "M-revert", status: "active" }) }] };
           return { records: [] };
         }),
       });

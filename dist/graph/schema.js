@@ -145,6 +145,13 @@ const SCHEMA_STATEMENTS = [
     "CREATE CONSTRAINT seed_status_required IF NOT EXISTS FOR (s:Seed) REQUIRE s.status IS NOT NULL",
     "CREATE CONSTRAINT bloom_type_required IF NOT EXISTS FOR (b:Bloom) REQUIRE b.type IS NOT NULL",
     "CREATE CONSTRAINT bloom_status_required IF NOT EXISTS FOR (b:Bloom) REQUIRE b.status IS NOT NULL",
+    // M-10.1: γ-recursive Thompson posterior properties (§1)
+    // weightedSuccesses/weightedFailures on Bloom and Resonator nodes.
+    // Updated inline via α_new = γ × α_old + outcome. Default 0 yields uniform Beta(1,1) prior.
+    "CREATE INDEX bloom_weighted_successes IF NOT EXISTS FOR (b:Bloom) ON (b.weightedSuccesses)",
+    "CREATE INDEX bloom_weighted_failures IF NOT EXISTS FOR (b:Bloom) ON (b.weightedFailures)",
+    "CREATE INDEX resonator_weighted_successes IF NOT EXISTS FOR (r:Resonator) ON (r.weightedSuccesses)",
+    "CREATE INDEX resonator_weighted_failures IF NOT EXISTS FOR (r:Resonator) ON (r.weightedFailures)",
 ];
 // ============ SCHEMA MIGRATION ============
 /**
@@ -323,8 +330,8 @@ export async function verifySchema() {
     return {
         constraintCount,
         indexCount,
-        // We expect at least 23 constraints (R-39: +5 property existence) and 20 indexes
-        healthy: constraintCount >= 23 && indexCount >= 20,
+        // We expect at least 23 constraints (R-39: +5 property existence) and 24 indexes (M-10.1: +4 posterior)
+        healthy: constraintCount >= 23 && indexCount >= 24,
     };
 }
 /**

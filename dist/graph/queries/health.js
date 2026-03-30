@@ -5,6 +5,7 @@ import { runQuery } from "../client.js";
 import { computePsiHWithState, createDefaultPsiHState } from "../../computation/psi-h.js";
 import { computeMaturityFactor } from "../../computation/maturity.js";
 import { computeUsageSuccessRate } from "../../computation/phi-l.js";
+import { getDecayWeightedPosteriors } from "./arm-stats.js";
 import { healthBand } from "../../computation/health-band.js";
 import { updateBloomPsiH, updateBloomEpsilonR } from "./bloom.js";
 import { computeEpsilonR, computeEpsilonRFloor } from "../../computation/epsilon-r.js";
@@ -208,8 +209,13 @@ export async function assemblePatternHealthContext(bloomId) {
     else {
         provenanceClarity = commitSha != null ? 0.5 : 0.3; // Some credit for bloom-level provenance
     }
-    // usageSuccessRate: from TaskOutput success/total
-    const usageSuccessRate = computeUsageSuccessRate(succeededTasks, totalTasks);
+    // usageSuccessRate: M-10.1 §4 — derive from γ-recursive posteriors on Bloom properties.
+    // Falls back to TaskOutput counts when posteriors are at uniform prior (no decay data yet).
+    const posteriors = await getDecayWeightedPosteriors(bloomId);
+    const hasPosteriorData = posteriors.alpha > 1 || posteriors.beta > 1;
+    const usageSuccessRate = hasPosteriorData
+        ? posteriors.alpha / (posteriors.alpha + posteriors.beta) // Beta posterior mean
+        : computeUsageSuccessRate(succeededTasks, totalTasks); // V1 fallback
     // temporalStability: from ring buffer if available, else 0.5 (moderate default)
     let temporalStability = 0.5;
     if (phiLState && phiLState.ringBuffer.length >= 2) {

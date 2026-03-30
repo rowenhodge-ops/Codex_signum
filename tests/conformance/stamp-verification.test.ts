@@ -49,13 +49,13 @@ function mockBloomNode(
   properties: Record<string, unknown>,
 ) {
   mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
-    // labels(n) query (getNodeMorphemeType)
+    // Combined read-back query (properties + labels) — must come before labels-only
+    if (query.includes("properties(n)") && params?.nodeId === nodeId) {
+      return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : properties }] };
+    }
+    // labels-only query (getNodeMorphemeType)
     if (query.includes("labels(n)") && params?.nodeId === nodeId) {
       return { records: [{ get: () => ["Bloom"] }] };
-    }
-    // properties(n) query (read-back verification)
-    if (query.includes("properties(n)") && params?.nodeId === nodeId) {
-      return { records: [{ get: () => properties }] };
     }
     return { records: [] };
   });
@@ -67,13 +67,13 @@ function mockBloomNodeWithStalePersistence(
   staleProperties: Record<string, unknown>,
 ) {
   mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
-    // labels(n) query
+    // Combined read-back query — returns stale data
+    if (query.includes("properties(n)") && params?.nodeId === nodeId) {
+      return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Bloom"] : staleProperties }] };
+    }
+    // labels-only query
     if (query.includes("labels(n)") && params?.nodeId === nodeId) {
       return { records: [{ get: () => ["Bloom"] }] };
-    }
-    // properties(n) — returns stale data (write didn't persist)
-    if (query.includes("properties(n)") && params?.nodeId === nodeId) {
-      return { records: [{ get: () => staleProperties }] };
     }
     return { records: [] };
   });
@@ -128,12 +128,13 @@ describe("Stamp Persistence — Read-Back Verification", () => {
   });
 
   it("returns success: false when node disappears after write", async () => {
-    // getNodeInfo succeeds (labels query), but read-back returns nothing
+    // getNodeInfo succeeds (labels-only query), but read-back returns nothing
     mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
-      if (query.includes("labels(n)") && params?.nodeId === "bloom:ghost") {
+      // labels-only query (getNodeInfo) — NOT the combined read-back
+      if (query.includes("labels(n)") && !query.includes("properties(n)") && params?.nodeId === "bloom:ghost") {
         return { records: [{ get: () => ["Bloom"] }] };
       }
-      // properties(n) returns empty — node gone
+      // properties(n) read-back returns empty — node gone
       if (query.includes("properties(n)")) {
         return { records: [] };
       }

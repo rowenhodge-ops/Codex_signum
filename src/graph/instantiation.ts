@@ -88,6 +88,10 @@ export const VALID_LINE_TYPES = [
 
 export type LineType = (typeof VALID_LINE_TYPES)[number];
 
+/** Closed allowlist of labels that updateMorpheme() can add via addLabels parameter (M-10.1 §7) */
+export const VALID_ADD_LABELS = ["Archived"] as const;
+export type AddLabel = (typeof VALID_ADD_LABELS)[number];
+
 /** Specialisation sub-type for Seeds — adds a secondary Neo4j label */
 export type SeedSubType = 'Observation' | 'Decision' | 'TaskOutput' | 'Distillation';
 
@@ -483,6 +487,7 @@ export async function updateMorpheme(
   nodeId: string,
   updates: Record<string, unknown>,
   newParentId?: string,
+  addLabels?: string[],
 ): Promise<MutationResult> {
   // ── Step 1: Existence check ──
   const nodeInfo = await getNodeInfo(nodeId);
@@ -538,6 +543,16 @@ export async function updateMorpheme(
     if (consumers.length > 0) {
       const consumerList = consumers.map((c) => c.id).join(", ");
       const error = `Mutation rejected: cannot retire '${nodeId}' — ${consumers.length} active consumer(s) still wired via FLOWS_TO: ${consumerList}. Remove consumer Lines first (scope reduction, not deletion).`;
+      await recordMutationObservation(nodeId, false, error);
+      return { success: false, error };
+    }
+  }
+
+  // ── Step 2.7: Label allowlist validation (M-10.1 §7) ──
+  if (addLabels && addLabels.length > 0) {
+    const invalid = addLabels.filter(l => !(VALID_ADD_LABELS as readonly string[]).includes(l));
+    if (invalid.length > 0) {
+      const error = `Mutation rejected: label(s) ${invalid.join(", ")} not in allowlist [${VALID_ADD_LABELS.join(", ")}].`;
       await recordMutationObservation(nodeId, false, error);
       return { success: false, error };
     }
@@ -601,6 +616,15 @@ export async function updateMorpheme(
         );
       }
 
+      // ── Step 4.5: Apply labels (M-10.1 §7) ──
+      if (addLabels && addLabels.length > 0) {
+        const labelClause = addLabels.map(l => `n:${l}`).join(", ");
+        await tx.run(
+          `MATCH (n:${label} {id: $nodeId}) SET ${labelClause}`,
+          { nodeId },
+        );
+      }
+
       // ── Step 5: Propagate parent status ──
       await tx.run(
         `MATCH (parent)-[:CONTAINS]->(n:${label} {id: $nodeId})
@@ -626,10 +650,14 @@ export async function updateMorpheme(
     // ── Step 6: Read-back verification ──
     const verified = await readTransaction(async (tx) => {
       const res = await tx.run(
-        `MATCH (n {id: $nodeId}) RETURN properties(n) AS props`,
+        `MATCH (n {id: $nodeId}) RETURN properties(n) AS props, labels(n) AS nodeLabels`,
         { nodeId },
       );
-      return res.records[0]?.get("props") as Record<string, unknown> | undefined;
+      if (res.records.length === 0) return undefined;
+      return {
+        props: res.records[0].get("props") as Record<string, unknown>,
+        nodeLabels: res.records[0].get("nodeLabels") as string[],
+      };
     });
 
     if (!verified) {
@@ -642,10 +670,18 @@ export async function updateMorpheme(
     const mismatches: string[] = [];
     for (const [key, expectedValue] of Object.entries(updates)) {
       if (key === "id") continue;
-      const actualValue = verified[key];
+      const actualValue = verified.props[key];
       // Compare with type coercion for numeric values (Neo4j may return Integer objects)
       if (String(actualValue) !== String(expectedValue)) {
         mismatches.push(`${key}: expected '${expectedValue}', got '${actualValue}'`);
+      }
+    }
+
+    // Verify labels were applied
+    if (addLabels && addLabels.length > 0) {
+      const missingLabels = addLabels.filter(l => !verified.nodeLabels.includes(l));
+      if (missingLabels.length > 0) {
+        mismatches.push(`labels missing: ${missingLabels.join(", ")}`);
       }
     }
 
@@ -775,6 +811,83 @@ export async function createLine(
   } catch (err) {
     const error = `Line creation failed: ${err instanceof Error ? err.message : String(err)}`;
     await recordLineObservation(sourceId, targetId, lineType, false, error);
+    return { success: false, error };
+  }
+}
+
+// ─── Line Deletion Resonator (M-10.1 §6, closes R-61) ──────────────
+
+export interface LineDeletionResult {
+  success: boolean;
+  sourceId?: string;
+  targetId?: string;
+  lineType?: string;
+  error?: string;
+}
+
+/**
+ * Delete a Line (relationship) via the Mutation Resonator.
+ *
+ * Mirrors createLine() pattern: validate → delete → invalidate cache → record observation.
+ *
+ * @param sourceId - Source node ID
+ * @param targetId - Target node ID
+ * @param lineType - Relationship type to delete
+ */
+export async function deleteLine(
+  sourceId: string,
+  targetId: string,
+  lineType: LineType,
+): Promise<LineDeletionResult> {
+  // ── Step 1: Validate line type ──
+  if (!VALID_LINE_TYPES.includes(lineType)) {
+    const error = `Line deletion rejected: unknown line type '${lineType}'.`;
+    await recordLineObservation(sourceId, targetId, lineType, false, error);
+    return { success: false, error };
+  }
+
+  // ── Step 2: Verify the relationship exists ──
+  const exists = await readTransaction(async (tx) => {
+    const res = await tx.run(
+      `MATCH (s {id: $sourceId})-[r:${lineType}]->(t {id: $targetId})
+       RETURN type(r) AS rType`,
+      { sourceId, targetId },
+    );
+    return res.records.length > 0;
+  });
+
+  if (!exists) {
+    const error = `Line deletion rejected: no ${lineType} relationship from '${sourceId}' to '${targetId}'.`;
+    await recordLineObservation(sourceId, targetId, lineType, false, error);
+    return { success: false, error };
+  }
+
+  // ── Step 3: Delete the relationship ──
+  try {
+    await writeTransaction(async (tx) => {
+      await tx.run(
+        `MATCH (s {id: $sourceId})-[r:${lineType}]->(t {id: $targetId})
+         DELETE r`,
+        { sourceId, targetId },
+      );
+    });
+
+    // ── Step 4: Invalidate conductivity cache (M-22.6) ──
+    if (lineType === "FLOWS_TO") {
+      try {
+        await invalidateLineConductivity(sourceId);
+        await invalidateLineConductivity(targetId);
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    // ── Step 5: Record observation ──
+    await recordLineObservation(sourceId, targetId, `DELETE:${lineType}`, true);
+    return { success: true, sourceId, targetId, lineType };
+  } catch (err) {
+    const error = `Line deletion failed: ${err instanceof Error ? err.message : String(err)}`;
+    await recordLineObservation(sourceId, targetId, `DELETE:${lineType}`, false, error);
     return { success: false, error };
   }
 }

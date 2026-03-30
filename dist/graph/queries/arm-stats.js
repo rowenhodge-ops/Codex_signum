@@ -2,6 +2,42 @@
 // Licensed under the Apache License, Version 2.0
 // See LICENSE file for details
 import { runQuery } from "../client.js";
+// ============ TEMPORAL DECAY (M-10.1) ============
+/** Default half-life for model-performance context (~2.5 days in ms) */
+export const DEFAULT_HALF_LIFE_MS = 216_000_000;
+/**
+ * Compute temporal decay factor: γ = e^(-λ × Δt) where λ = ln(2) / halfLifeMs.
+ * Returns 1.0 when elapsedMs is 0, decays toward 0 as time passes.
+ */
+export function computeTemporalDecay(halfLifeMs, elapsedMs) {
+    if (halfLifeMs <= 0)
+        return 0;
+    if (elapsedMs <= 0)
+        return 1;
+    const lambda = Math.LN2 / halfLifeMs;
+    return Math.exp(-lambda * elapsedMs);
+}
+/**
+ * Read γ-recursive decay-weighted posteriors from a Bloom or Resonator node.
+ *
+ * Returns Beta(α, β) where α = weightedSuccesses + 1 and β = weightedFailures + 1.
+ * Missing node or missing properties → uniform Beta(1, 1).
+ *
+ * @param bloomId - Node ID (Bloom or Resonator)
+ * @param _armId - Reserved for future per-arm decomposition
+ */
+export async function getDecayWeightedPosteriors(bloomId, _armId) {
+    const result = await runQuery(`MATCH (n {id: $bloomId})
+     WHERE n:Bloom OR n:Resonator
+     RETURN COALESCE(n.weightedSuccesses, 0.0) AS ws,
+            COALESCE(n.weightedFailures, 0.0) AS wf`, { bloomId }, "READ");
+    if (result.records.length === 0) {
+        return { alpha: 1, beta: 1 }; // Uniform prior — no node found
+    }
+    const ws = Number(result.records[0].get("ws"));
+    const wf = Number(result.records[0].get("wf"));
+    return { alpha: ws + 1, beta: wf + 1 };
+}
 // ============ ARM STATS QUERIES ============
 /** Compute Thompson Sampling arm stats for a context cluster */
 export async function getArmStatsForCluster(clusterId) {

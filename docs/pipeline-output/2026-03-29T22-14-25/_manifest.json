@@ -1,0 +1,386 @@
+{
+  "runId": "2026-03-29T22-14-25",
+  "intent": "M-10.1 Structural Memory Foundation: (1) Add γ-recursive Thompson posterior properties (weightedSuccesses, weightedFailures) to Bloom/Resonator nodes updated inline after execution via α_new = γ × α_old + outcome. (2) Create constitutional dimension set Config Seed config:dimensional-phi-profiles with dimensions [code, analysis, creative, structured_output, classification, synthesis]. (3) Create per-context lambda Config Seeds: config:lambda:model-performance (half-life ~2.5 days), config:lambda:schema-definition (~90 days), config:lambda:threat-archive (~21 days), config:lambda:remedy-archive (~90 days), all in milliseconds. (4) Modify assemblePatternHealthContext() to derive ΦL from γ-recursive running averages on Bloom properties instead of observation Grid reads. (5) New getDecayWeightedPosteriors(bloomId, armId) reading weightedSuccesses/weightedFailures from node properties returning Beta(α,β) — replaces getArmStats(). (6) Implement deleteLine() in Protocol (instantiation.ts) — Line deletion through Mutation Resonator, records in grid:line-creation-observations, closes R-61. (7) Extend updateMorpheme() with optional addLabels parameter, allowlist ['Archived'], applied in same write transaction. (8) Add Archived to Gnosis A7 allowed label set in checks/axioms.ts.",
+  "startedAt": "2026-03-29T22:34:56.840Z",
+  "completedAt": "2026-03-29T23:10:18.257Z",
+  "tasks": [
+    {
+      "taskId": "t8",
+      "title": "Add Archived label to Gnosis A7 allowed label set",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 0.5,
+        "signals": [
+          "no keywords matched — defaulting to generative"
+        ],
+        "layer": "default"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 29921,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t8-add-archived-label-to-gnosis-a7-allowed-label-set.md",
+      "outputChars": 4450
+    },
+    {
+      "taskId": "t1",
+      "title": "Add Thompson posterior properties to Bloom/Resonator schema",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 0.5,
+        "signals": [
+          "no keywords matched — defaulting to generative"
+        ],
+        "layer": "default"
+      },
+      "model": "claude-opus-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 163433,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t1-add-thompson-posterior-properties-to-bloom-resonator-schema.md",
+      "outputChars": 24697
+    },
+    {
+      "taskId": "t2",
+      "title": "Bootstrap dimensional Config Seed and lambda decay Configs",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-haiku-4-5:extended:4k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "4k",
+      "status": "succeeded",
+      "durationMs": 44243,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t2-bootstrap-dimensional-config-seed-and-lambda-decay-configs.md",
+      "outputChars": 13843
+    },
+    {
+      "taskId": "t5",
+      "title": "Implement deleteLine() Protocol function with Mutation Resonator routing",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.5,
+        "signals": [
+          "source files: 1",
+          "mechanical ops: delete"
+        ],
+        "layer": "file_type"
+      },
+      "model": "claude-sonnet-4-5:extended:8k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "8k",
+      "status": "succeeded",
+      "durationMs": 166093,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t5-implement-deleteline-protocol-function-with-mutation-resonat.md",
+      "outputChars": 31656
+    },
+    {
+      "taskId": "t6",
+      "title": "Add line-creation-observations grid tracking for deleteLine mutations",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.5,
+        "signals": [
+          "source files: 1",
+          "mechanical ops: delete"
+        ],
+        "layer": "file_type"
+      },
+      "model": "claude-haiku-4-5:extended:4k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "4k",
+      "status": "succeeded",
+      "durationMs": 47352,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t6-add-line-creation-observations-grid-tracking-for-deleteline-.md",
+      "outputChars": 17603
+    },
+    {
+      "taskId": "t7",
+      "title": "Extend updateMorpheme() with optional addLabels parameter",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 75242,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t7-extend-updatemorpheme-with-optional-addlabels-parameter.md",
+      "outputChars": 12702
+    },
+    {
+      "taskId": "t15",
+      "title": "Test Archived label in Gnosis A7 axiom checks",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 70109,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t15-test-archived-label-in-gnosis-a7-axiom-checks.md",
+      "outputChars": 10484
+    },
+    {
+      "taskId": "t3",
+      "title": "Implement getDecayWeightedPosteriors() query function",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 113339,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t3-implement-getdecayweightedposteriors-query-function.md",
+      "outputChars": 11446
+    },
+    {
+      "taskId": "t9",
+      "title": "Test Thompson posterior property schema and storage",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 55588,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t9-test-thompson-posterior-property-schema-and-storage.md",
+      "outputChars": 8581
+    },
+    {
+      "taskId": "t10",
+      "title": "Test Config Seed seeding for dimensions and lambda decay",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 661187,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t10-test-config-seed-seeding-for-dimensions-and-lambda-decay.md",
+      "outputChars": 7217
+    },
+    {
+      "taskId": "t13",
+      "title": "Test deleteLine() protocol and Mutation Resonator routing",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.5,
+        "signals": [
+          "source files: 1",
+          "mechanical ops: delete"
+        ],
+        "layer": "file_type"
+      },
+      "model": "gemini-2.5-flash:default",
+      "provider": "vertex-ai",
+      "thinkingMode": "default",
+      "status": "succeeded",
+      "durationMs": 82908,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t13-test-deleteline-protocol-and-mutation-resonator-routing.md",
+      "outputChars": 42919
+    },
+    {
+      "taskId": "t14",
+      "title": "Test updateMorpheme() with addLabels parameter",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 68692,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t14-test-updatemorpheme-with-addlabels-parameter.md",
+      "outputChars": 8422
+    },
+    {
+      "taskId": "t11",
+      "title": "Test getDecayWeightedPosteriors() query function",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:32k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "32k",
+      "status": "succeeded",
+      "durationMs": 64270,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t11-test-getdecayweightedposteriors-query-function.md",
+      "outputChars": 7714
+    },
+    {
+      "taskId": "t4",
+      "title": "Refactor assemblePatternHealthContext() and ΦL to use γ-recursive posteriors",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "refactor"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 113146,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t4-refactor-assemblepatternhealthcontext-and-l-to-use-recursive.md",
+      "outputChars": 17658
+    },
+    {
+      "taskId": "t12",
+      "title": "Test ΦL derivation from γ-recursive posteriors",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "verify",
+          "write"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 61432,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t12-test-l-derivation-from-recursive-posteriors.md",
+      "outputChars": 8548
+    },
+    {
+      "taskId": "t16",
+      "title": "Full M-10.1 integration test covering all 8 requirements",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.5,
+        "signals": [
+          "source files: 1",
+          "mechanical ops: delete"
+        ],
+        "layer": "file_type"
+      },
+      "model": "gemini-2.5-flash:default",
+      "provider": "vertex-ai",
+      "thinkingMode": "default",
+      "status": "succeeded",
+      "durationMs": 45625,
+      "outputFile": "docs\\pipeline-output\\2026-03-29T22-14-25\\t16-full-m-10-1-integration-test-covering-all-8-requirements.md",
+      "outputChars": 17151
+    }
+  ],
+  "summary": {
+    "total": 16,
+    "succeeded": 16,
+    "failed": 0,
+    "totalDurationMs": 1862580,
+    "totalOutputChars": 245091,
+    "modelsUsed": [
+      "claude-opus-4-6:adaptive:medium",
+      "claude-opus-4-6:adaptive:low",
+      "claude-haiku-4-5:extended:4k",
+      "claude-sonnet-4-5:extended:8k",
+      "claude-opus-4-6:adaptive:high",
+      "claude-opus-4-5:extended:16k",
+      "claude-opus-4-5:extended:32k",
+      "gemini-2.5-flash:default"
+    ]
+  }
+}

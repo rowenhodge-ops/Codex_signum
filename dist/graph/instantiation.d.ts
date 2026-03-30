@@ -4,6 +4,9 @@ export declare const VALID_CONTAINERS: Record<string, MorphemeType[]>;
 /** Valid Line relationship types and their direction semantics */
 export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY", "SPECIALISES"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
+/** Closed allowlist of labels that updateMorpheme() can add via addLabels parameter (M-10.1 §7) */
+export declare const VALID_ADD_LABELS: readonly ["Archived"];
+export type AddLabel = (typeof VALID_ADD_LABELS)[number];
 /** Specialisation sub-type for Seeds — adds a secondary Neo4j label */
 export type SeedSubType = 'Observation' | 'Decision' | 'TaskOutput' | 'Distillation';
 export declare const VALID_SEED_SUBTYPES: readonly string[];
@@ -79,7 +82,7 @@ export declare function instantiateMorpheme(morphemeType: MorphemeType, properti
  * @param updates - Properties to update (cannot remove required properties)
  * @param newParentId - Optional: reparent the morpheme (new CONTAINS before old removed)
  */
-export declare function updateMorpheme(nodeId: string, updates: Record<string, unknown>, newParentId?: string): Promise<MutationResult>;
+export declare function updateMorpheme(nodeId: string, updates: Record<string, unknown>, newParentId?: string, addLabels?: string[]): Promise<MutationResult>;
 /**
  * Create a Line (relationship) via the Line Creation Resonator.
  *
@@ -92,6 +95,23 @@ export declare function updateMorpheme(nodeId: string, updates: Record<string, u
  * @param properties - Optional properties for the relationship
  */
 export declare function createLine(sourceId: string, targetId: string, lineType: LineType, properties?: Record<string, unknown>): Promise<LineCreationResult>;
+export interface LineDeletionResult {
+    success: boolean;
+    sourceId?: string;
+    targetId?: string;
+    lineType?: string;
+    error?: string;
+}
+/**
+ * Delete a Line (relationship) via the Mutation Resonator.
+ *
+ * Mirrors createLine() pattern: validate → delete → invalidate cache → record observation.
+ *
+ * @param sourceId - Source node ID
+ * @param targetId - Target node ID
+ * @param lineType - Relationship type to delete
+ */
+export declare function deleteLine(sourceId: string, targetId: string, lineType: LineType): Promise<LineDeletionResult>;
 export interface StampOptions {
     /** The Bloom ID to stamp as complete */
     bloomId: string;

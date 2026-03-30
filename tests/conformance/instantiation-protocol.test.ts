@@ -53,10 +53,6 @@ import type {
 function mockNodeLabels(nodeId: string, labels: string[]) {
   const storedProps: Record<string, unknown> = { id: nodeId };
   mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
-    // labels(n) query
-    if (query.includes("labels(n)") && params?.nodeId === nodeId) {
-      return { records: [{ get: () => labels }] };
-    }
     // count(n) query (nodeExists)
     if (query.includes("count(n)") && params?.nodeId === nodeId) {
       return { records: [{ get: () => 1 }] };
@@ -69,9 +65,13 @@ function mockNodeLabels(nodeId: string, labels: string[]) {
         }
       }
     }
-    // properties(n) read-back verification
+    // properties(n) read-back (combined query — must come before labels-only)
     if (query.includes("properties(n)") && params?.nodeId === nodeId) {
-      return { records: [{ get: () => storedProps }] };
+      return { records: [{ get: (key: string) => key === "nodeLabels" ? labels : storedProps }] };
+    }
+    // labels-only query (getNodeInfo)
+    if (query.includes("labels(n)") && params?.nodeId === nodeId) {
+      return { records: [{ get: () => labels }] };
     }
     return { records: [] };
   });
@@ -633,15 +633,15 @@ describe("updateMorpheme()", () => {
     it("wires new CONTAINS before removing old (never orphan)", async () => {
       // Set up both nodes exist with correct types + properties read-back
       mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+        // Combined read-back (must come before labels-only)
+        if (query.includes("properties(n)") && params?.nodeId === "movable-seed") {
+          return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Seed"] : { id: "movable-seed" } }] };
+        }
         if (query.includes("labels(n)") && params?.nodeId === "movable-seed") {
           return { records: [{ get: () => ["Seed"] }] };
         }
         if (query.includes("labels(n)") && params?.nodeId === "new-bloom") {
           return { records: [{ get: () => ["Bloom"] }] };
-        }
-        // Read-back verification: return node props
-        if (query.includes("properties(n)") && params?.nodeId === "movable-seed") {
-          return { records: [{ get: () => ({ id: "movable-seed" }) }] };
         }
         return { records: [] };
       });
@@ -1290,15 +1290,15 @@ describe("Highlander Protocol", () => {
   it("mutation guard allows retirement without active consumers", async () => {
     // Mock: node exists as Resonator, no active consumers
     mockRun.mockImplementation(async (query: string, params?: Record<string, unknown>) => {
+      // Combined read-back (must come before labels-only)
+      if (query.includes("properties(n)") && params?.nodeId === "res-no-consumers") {
+        return { records: [{ get: (key: string) => key === "nodeLabels" ? ["Resonator"] : { id: "res-no-consumers", status: "retired" } }] };
+      }
       if (query.includes("labels(n)") && params?.nodeId === "res-no-consumers") {
         return { records: [{ get: () => ["Resonator"] }] };
       }
       if (query.includes("FLOWS_TO") && query.includes("consumer")) {
         return { records: [] }; // No consumers
-      }
-      // properties(n) read-back verification
-      if (query.includes("properties(n)") && params?.nodeId === "res-no-consumers") {
-        return { records: [{ get: () => ({ id: "res-no-consumers", status: "retired" }) }] };
       }
       return { records: [] };
     });
