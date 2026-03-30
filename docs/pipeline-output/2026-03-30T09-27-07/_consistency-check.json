@@ -1,0 +1,13 @@
+{
+  "issues": [
+    {
+      "type": "wrong-axiom-name",
+      "description": "Non-canonical axiom name \"Compliance\" (not in the 9 canonical axioms)",
+      "tasks": [
+        "t1"
+      ]
+    }
+  ],
+  "checkedAt": "2026-03-30T09:51:31.256Z",
+  "taskCount": 6
+}

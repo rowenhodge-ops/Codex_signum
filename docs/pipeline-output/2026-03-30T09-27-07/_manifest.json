@@ -1,0 +1,157 @@
+{
+  "runId": "2026-03-30T09-27-07",
+  "intent": "BOCPD drift detection: Normal-Inverse-Gamma TypeScript implementation, per-metric instances, hybrid trigger with recalibration action, bounded bocpdState property on Bloom via updateMorpheme. CONSOLIDATION: combine all type scaffolding (signal types, state dimension, Bloom property type, barrel exports) into one task. Combine BOCPDDetector and BOCPDRegistry unit tests into one task. Combine bocpdState persistence wiring with its conformance test.",
+  "startedAt": "2026-03-30T09:35:39.110Z",
+  "completedAt": "2026-03-30T09:51:31.226Z",
+  "tasks": [
+    {
+      "taskId": "t1",
+      "title": "Consolidated BOCPD type scaffolding",
+      "type": "mechanical",
+      "executionPath": "generative",
+      "classification": {
+        "type": "mechanical",
+        "confidence": 0.6666666666666666,
+        "signals": [
+          "source files: 4",
+          "mechanical ops: re-export, barrel"
+        ],
+        "layer": "file_type"
+      },
+      "model": "claude-sonnet-4-6:adaptive:low",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "low",
+      "status": "succeeded",
+      "durationMs": 225040,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t1-consolidated-bocpd-type-scaffolding.md",
+      "outputChars": 26170
+    },
+    {
+      "taskId": "t2",
+      "title": "Implement Normal-Inverse-Gamma BOCPDDetector",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "implement"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 84560,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t2-implement-normal-inverse-gamma-bocpddetector.md",
+      "outputChars": 8724
+    },
+    {
+      "taskId": "t3",
+      "title": "Implement BOCPDRegistry for per-metric detector instances",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create",
+          "implement"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 71016,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t3-implement-bocpdregistry-for-per-metric-detector-instances.md",
+      "outputChars": 11262
+    },
+    {
+      "taskId": "t4",
+      "title": "Combined BOCPDDetector and BOCPDRegistry unit tests",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-5:extended:16k",
+      "provider": "anthropic",
+      "thinkingMode": "extended",
+      "thinkingParameter": "16k",
+      "status": "succeeded",
+      "durationMs": 99696,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t4-combined-bocpddetector-and-bocpdregistry-unit-tests.md",
+      "outputChars": 12989
+    },
+    {
+      "taskId": "t5",
+      "title": "Hybrid BOCPD drift trigger with recalibration action",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "implement",
+          "evaluate"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:high",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "high",
+      "status": "succeeded",
+      "durationMs": 146560,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t5-hybrid-bocpd-drift-trigger-with-recalibration-action.md",
+      "outputChars": 22129
+    },
+    {
+      "taskId": "t6",
+      "title": "bocpdState persistence wiring and conformance test (consolidated)",
+      "type": "generative",
+      "executionPath": "generative",
+      "classification": {
+        "type": "generative",
+        "confidence": 1,
+        "signals": [
+          "create"
+        ],
+        "layer": "keyword"
+      },
+      "model": "claude-opus-4-6:adaptive:medium",
+      "provider": "anthropic",
+      "thinkingMode": "adaptive",
+      "thinkingParameter": "medium",
+      "status": "succeeded",
+      "durationMs": 159280,
+      "outputFile": "docs\\pipeline-output\\2026-03-30T09-27-07\\t6-bocpdstate-persistence-wiring-and-conformance-test-consolida.md",
+      "outputChars": 23416
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "succeeded": 6,
+    "failed": 0,
+    "totalDurationMs": 786152,
+    "totalOutputChars": 104690,
+    "modelsUsed": [
+      "claude-sonnet-4-6:adaptive:low",
+      "claude-opus-4-6:adaptive:high",
+      "claude-opus-4-6:adaptive:medium",
+      "claude-opus-4-5:extended:16k"
+    ]
+  }
+}
