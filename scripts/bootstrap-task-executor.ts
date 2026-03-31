@@ -34,7 +34,7 @@ import {
 } from "../src/graph/queries.js";
 import { writeObservation } from "../src/graph/write-observation.js";
 import { SignalPipeline } from "../src/signals/SignalPipeline.js";
-import { processMemoryAfterExecution } from "../src/memory/graph-operations.js";
+import { updateStructuralMemoryAfterExecution } from "../src/graph/queries/memory-context.js";
 import { assemblePatternHealthContext, computeAndPersistPsiH, computeAndPersistEpsilonR } from "../src/graph/queries/health.js";
 import { checkEpsilonRWarnings } from "../src/computation/epsilon-r.js";
 import { assembleTriggerState, evaluateAndReviewIfNeeded } from "../src/computation/immune-response.js";
@@ -827,10 +827,10 @@ export function createBootstrapTaskExecutor(
               }
             }
 
-            // Trigger memory processing (compaction + distillation check)
+            // Structural memory: γ-recursive posterior update + BOCPD drift detection
             if (config.architectBloomId) {
               try {
-                const memResult = await processMemoryAfterExecution(
+                const memResult = await updateStructuralMemoryAfterExecution(
                   config.architectBloomId,
                   {
                     modelId: result.modelId,
@@ -839,14 +839,17 @@ export function createBootstrapTaskExecutor(
                     durationMs: result.durationMs,
                   },
                 );
-                if (memResult.distillation) {
-                  console.log(`     [GRAPH] Distillation triggered: ${memResult.distillation.distillationId} (${memResult.distillation.observationCount} obs)`);
+                if (memResult.posteriorUpdated) {
+                  console.log(`     [MEMORY] Posteriors updated on ${memResult.llmBloomId}`);
                 }
-                if (memResult.compaction) {
-                  console.log(`     [GRAPH] Compaction: ${memResult.compaction.observationsDeleted}/${memResult.compaction.observationsEvaluated} pruned`);
+                if (memResult.bocpdFired) {
+                  console.log(`     [MEMORY] BOCPD drift detected on ${memResult.llmBloomId} — recalibrated`);
+                }
+                if (memResult.error) {
+                  console.warn(`     [MEMORY] ⚠️  ${memResult.error}`);
                 }
               } catch (err5) {
-                console.warn(`     [GRAPH] ⚠️  Memory processing failed: ${err5 instanceof Error ? err5.message : err5}`);
+                console.warn(`     [MEMORY] ⚠️  Memory processing failed: ${err5 instanceof Error ? err5.message : err5}`);
               }
             }
 
@@ -994,9 +997,9 @@ export function createBootstrapTaskExecutor(
                 // Swallow — already in error path
               }
 
-              // Trigger memory processing for failure path
+              // Structural memory: record failure (modelId "unknown" → no LLM Bloom resolved, non-fatal)
               try {
-                const memResult = await processMemoryAfterExecution(
+                const memResult = await updateStructuralMemoryAfterExecution(
                   config.architectBloomId,
                   {
                     modelId: "unknown",
@@ -1005,11 +1008,14 @@ export function createBootstrapTaskExecutor(
                     durationMs: 0,
                   },
                 );
-                if (memResult.distillation) {
-                  console.log(`     [GRAPH] Distillation triggered: ${memResult.distillation.distillationId} (${memResult.distillation.observationCount} obs)`);
+                if (memResult.posteriorUpdated) {
+                  console.log(`     [MEMORY] Posteriors updated on ${memResult.llmBloomId}`);
                 }
-                if (memResult.compaction) {
-                  console.log(`     [GRAPH] Compaction: ${memResult.compaction.observationsDeleted}/${memResult.compaction.observationsEvaluated} pruned`);
+                if (memResult.bocpdFired) {
+                  console.log(`     [MEMORY] BOCPD drift detected on ${memResult.llmBloomId} — recalibrated`);
+                }
+                if (memResult.error) {
+                  console.warn(`     [MEMORY] ⚠️  ${memResult.error}`);
                 }
               } catch {
                 // Swallow — already in error path

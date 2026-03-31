@@ -57,12 +57,12 @@ export type {
   UpwardFlowResult,
 } from "./flow.js";
 
-// Graph-backed memory operations (M-9.4)
-export {
-  runCompaction,
-  checkAndDistill,
-  processMemoryAfterExecution,
-} from "./graph-operations.js";
+// Graph-backed memory operations (M-9.4) — DEPRECATED by M-10 structural memory paradigm.
+// These functions are retained for type compatibility but throw at runtime.
+// Use updateStructuralMemoryAfterExecution() from src/graph/queries/memory-context.ts instead.
+/** @deprecated */ export { runCompaction } from "./graph-operations.js";
+/** @deprecated */ export { checkAndDistill } from "./graph-operations.js";
+/** @deprecated */ export { processMemoryAfterExecution } from "./graph-operations.js";
 export type {
   CompactionResult,
   DistillationResult,

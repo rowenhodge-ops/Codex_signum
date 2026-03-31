@@ -32,7 +32,6 @@ import {
   runCompaction,
   checkAndDistill,
   processMemoryAfterExecution,
-  _resetExecutionCounter,
 } from "../../src/memory/graph-operations.js";
 import type {
   CompactionResult,
@@ -99,9 +98,7 @@ describe("M-9.4 graph-backed memory operation exports", () => {
     expect(typeof processMemoryAfterExecution).toBe("function");
   });
 
-  it("_resetExecutionCounter is exported for testing", () => {
-    expect(typeof _resetExecutionCounter).toBe("function");
-  });
+  // _resetExecutionCounter removed in M-10 (deprecated functions now throw)
 });
 
 // ============ BARREL EXPORT VERIFICATION ============
@@ -421,76 +418,24 @@ describe("non-fatal error handling", () => {
   // These tests verify that the graph-backed functions handle errors gracefully
   // by mocking the underlying graph query functions to throw.
 
-  it("runCompaction returns error result when getCompactableObservations throws", async () => {
-    // Mock the graph module to simulate Neo4j being down
-    const graphQueries = await import("../../src/graph/queries.js");
-    const spy = vi.spyOn(graphQueries, "getCompactableObservations").mockRejectedValueOnce(
-      new Error("Neo4j connection refused"),
-    );
+  // M-10: These functions are now deprecated and throw at runtime.
+  // Tests verify the deprecated guards work correctly.
 
-    // Re-import to pick up mock — but since graph-operations imports at module level,
-    // we need to test the catch path directly. The function should catch and return error.
-    // Since the actual module already imported the real function, we test the contract:
-    // runCompaction must return CompactionResult (never throw)
-    try {
-      const result = await runCompaction("bloom-nonexistent");
-      // If we get here, it handled the error (or there were no observations)
-      expect(result).toHaveProperty("observationsEvaluated");
-      expect(result).toHaveProperty("observationsDeleted");
-    } catch {
-      // This should not happen — runCompaction is non-fatal
-      expect.unreachable("runCompaction should not throw");
-    }
-
-    spy.mockRestore();
+  it("runCompaction throws with deprecation message", async () => {
+    await expect(runCompaction("bloom-nonexistent")).rejects.toThrow("[DEPRECATED]");
   });
 
-  it("checkAndDistill returns null (not throw) for invalid bloom", async () => {
-    // Even with an invalid bloom ID and no graph, the function should not throw
-    const graphQueries = await import("../../src/graph/queries.js");
-    const spy = vi.spyOn(graphQueries, "getObservationsForDistillation").mockRejectedValueOnce(
-      new Error("Neo4j connection refused"),
-    );
-
-    try {
-      const result = await checkAndDistill("bloom-nonexistent");
-      // null is the expected result when distillation doesn't trigger or fails
-      expect(result).toBeNull();
-    } catch {
-      expect.unreachable("checkAndDistill should not throw");
-    }
-
-    spy.mockRestore();
+  it("checkAndDistill throws with deprecation message", async () => {
+    await expect(checkAndDistill("bloom-nonexistent")).rejects.toThrow("[DEPRECATED]");
   });
 
-  it("processMemoryAfterExecution returns result (not throw) on graph failure", async () => {
-    const graphQueries = await import("../../src/graph/queries.js");
-    const spy = vi.spyOn(graphQueries, "countObservationsForBloom").mockRejectedValueOnce(
-      new Error("Neo4j connection refused"),
-    );
-
-    try {
-      const result = await processMemoryAfterExecution("bloom-nonexistent", {
+  it("processMemoryAfterExecution throws with deprecation message", async () => {
+    await expect(
+      processMemoryAfterExecution("bloom-nonexistent", {
         modelId: "test-model",
         success: true,
         durationMs: 1000,
-      });
-      expect(result).toHaveProperty("compaction");
-      expect(result).toHaveProperty("distillation");
-      // Should have an error field since graph read failed
-      expect(result.error).toBeDefined();
-    } catch {
-      expect.unreachable("processMemoryAfterExecution should not throw");
-    }
-
-    spy.mockRestore();
-  });
-});
-
-// ============ _resetExecutionCounter TESTS ============
-
-describe("execution counter reset", () => {
-  it("_resetExecutionCounter does not throw", () => {
-    expect(() => _resetExecutionCounter()).not.toThrow();
+      }),
+    ).rejects.toThrow("[DEPRECATED]");
   });
 });

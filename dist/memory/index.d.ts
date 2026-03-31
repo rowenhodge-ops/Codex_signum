@@ -9,6 +9,8 @@ export { distillPerformanceProfile, distillRoutingHints, distillThresholdCalibra
 export type { PerformanceObservation, PerformanceProfile, RoutingHints, RoutingObservation, ThresholdCalibrationData, ThresholdObservation, } from "./distillation.js";
 export { computeDownwardFlow, computeUpwardFlow } from "./flow.js";
 export type { DownwardFlowInput, MemoryContext, UpwardFlowInput, UpwardFlowResult, } from "./flow.js";
-export { runCompaction, checkAndDistill, processMemoryAfterExecution, } from "./graph-operations.js";
+/** @deprecated */ export { runCompaction } from "./graph-operations.js";
+/** @deprecated */ export { checkAndDistill } from "./graph-operations.js";
+/** @deprecated */ export { processMemoryAfterExecution } from "./graph-operations.js";
 export type { CompactionResult, DistillationResult, MemoryProcessingResult, } from "./graph-operations.js";
 //# sourceMappingURL=index.d.ts.map

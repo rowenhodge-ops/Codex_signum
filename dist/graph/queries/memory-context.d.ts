@@ -90,4 +90,35 @@ export declare function computePartialReset(currentAlpha: number, currentBeta: n
  * can call when it wants model context.
  */
 export declare function formatMemoryContextForSurvey(contexts: LLMMemoryContext[]): string;
+/** Result of post-execution structural memory update */
+export interface StructuralMemoryResult {
+    posteriorUpdated: boolean;
+    bocpdFired: boolean;
+    llmBloomId: string | null;
+    error?: string;
+}
+/**
+ * Update structural memory after a pipeline task execution.
+ *
+ * Resolves the LLM Bloom from the model/arm ID, then:
+ * 1. γ-recursive posterior update (weightedSuccesses / weightedFailures)
+ * 2. BOCPD drift detection on qualityScore (if provided)
+ * 3. Partial reset if drift fires
+ *
+ * **Concurrency note:** Performs a read-modify-write cycle on Bloom properties.
+ * Safe for single-threaded sequential pipeline execution. If concurrent dispatches
+ * are ever introduced, the read-compute-write needs to become an atomic Cypher SET
+ * with inline computation or use a compare-and-swap pattern.
+ *
+ * Non-fatal: catches all errors. The pipeline must never crash because memory failed.
+ *
+ * @param _architectBloomId - Architect Bloom ID (for context/logging, not updated)
+ * @param outcome - Execution outcome
+ */
+export declare function updateStructuralMemoryAfterExecution(_architectBloomId: string, outcome: {
+    modelId: string;
+    success: boolean;
+    qualityScore?: number;
+    durationMs: number;
+}): Promise<StructuralMemoryResult>;
 //# sourceMappingURL=memory-context.d.ts.map

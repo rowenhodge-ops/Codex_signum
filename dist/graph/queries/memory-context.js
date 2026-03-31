@@ -10,7 +10,9 @@
  * @module codex-signum-core/graph/queries/memory-context
  */
 import { runQuery } from "../client.js";
-import { computeTemporalDecay } from "./arm-stats.js";
+import { computeTemporalDecay, DEFAULT_HALF_LIFE_MS } from "./arm-stats.js";
+import { updateMorpheme } from "../instantiation.js";
+import { BOCPDDetector } from "../../signals/BOCPDDetector.js";
 // ============ CORE QUERY ============
 /**
  * Assemble full memory context for an LLM Bloom.
@@ -188,6 +190,120 @@ export function formatMemoryContextForSurvey(contexts) {
         }
     }
     return lines.join("\n");
+}
+// ============ POST-EXECUTION STRUCTURAL MEMORY ============
+/** BOCPD drift threshold — hybrid trigger (Engineering Bridge §Part 8) */
+const BOCPD_DRIFT_THRESHOLD = 0.7;
+/** Retention factor for partial reset on drift detection */
+const DRIFT_RESET_RETENTION = 0.3;
+/**
+ * Update structural memory after a pipeline task execution.
+ *
+ * Resolves the LLM Bloom from the model/arm ID, then:
+ * 1. γ-recursive posterior update (weightedSuccesses / weightedFailures)
+ * 2. BOCPD drift detection on qualityScore (if provided)
+ * 3. Partial reset if drift fires
+ *
+ * **Concurrency note:** Performs a read-modify-write cycle on Bloom properties.
+ * Safe for single-threaded sequential pipeline execution. If concurrent dispatches
+ * are ever introduced, the read-compute-write needs to become an atomic Cypher SET
+ * with inline computation or use a compare-and-swap pattern.
+ *
+ * Non-fatal: catches all errors. The pipeline must never crash because memory failed.
+ *
+ * @param _architectBloomId - Architect Bloom ID (for context/logging, not updated)
+ * @param outcome - Execution outcome
+ */
+export async function updateStructuralMemoryAfterExecution(_architectBloomId, outcome) {
+    try {
+        // ── Step 1: Resolve LLM Bloom from arm/model ID ──
+        // result.modelId = selectedSeedId (arm ID like "claude-opus-4-6:adaptive:max")
+        const resolveResult = await runQuery(`MATCH (llm:Bloom)-[:CONTAINS]->(arm:Agent:Resonator {id: $modelId})
+       RETURN DISTINCT llm.id AS llmBloomId
+       LIMIT 1`, { modelId: outcome.modelId }, "READ");
+        if (resolveResult.records.length === 0) {
+            // Edge case: model not yet reclassified into LLM Bloom
+            console.warn(`[MEMORY] No LLM Bloom found for modelId="${outcome.modelId}" — skipping posterior update`);
+            return { posteriorUpdated: false, bocpdFired: false, llmBloomId: null };
+        }
+        const llmBloomId = String(resolveResult.records[0].get("llmBloomId"));
+        // ── Step 2: Read current posteriors + BOCPD state from LLM Bloom ──
+        const stateResult = await runQuery(`MATCH (b:Bloom {id: $llmBloomId})
+       RETURN COALESCE(b.weightedSuccesses, 0.0) AS ws,
+              COALESCE(b.weightedFailures, 0.0) AS wf,
+              b.bocpdState AS bocpdState,
+              b.lastObservationAt AS lastObsAt`, { llmBloomId }, "READ");
+        if (stateResult.records.length === 0) {
+            return {
+                posteriorUpdated: false,
+                bocpdFired: false,
+                llmBloomId,
+                error: `LLM Bloom "${llmBloomId}" resolved but not found on read`,
+            };
+        }
+        const rec = stateResult.records[0];
+        const wsOld = Number(rec.get("ws"));
+        const wfOld = Number(rec.get("wf"));
+        const bocpdStateJson = rec.get("bocpdState") ?? null;
+        const lastObsAt = rec.get("lastObsAt") ?? null;
+        // ── Step 3: γ-recursive posterior update ──
+        // Compute elapsed time since last observation for decay
+        let gamma = 1.0; // No decay if no prior observation
+        if (lastObsAt) {
+            const elapsed = Date.now() - new Date(lastObsAt).getTime();
+            gamma = computeTemporalDecay(DEFAULT_HALF_LIFE_MS, elapsed);
+        }
+        const wsNew = gamma * wsOld + (outcome.success ? 1 : 0);
+        const wfNew = gamma * wfOld + (outcome.success ? 0 : 1);
+        const updates = {
+            weightedSuccesses: wsNew,
+            weightedFailures: wfNew,
+            lastObservationAt: new Date().toISOString(),
+        };
+        // ── Step 4: BOCPD drift detection ──
+        let bocpdFired = false;
+        if (outcome.qualityScore !== undefined) {
+            const detector = new BOCPDDetector(); // default config
+            let state;
+            if (bocpdStateJson) {
+                try {
+                    state = JSON.parse(bocpdStateJson);
+                }
+                catch {
+                    state = detector.initialState();
+                }
+            }
+            else {
+                state = detector.initialState();
+            }
+            const { signal, nextState } = detector.update(outcome.qualityScore, state);
+            if (signal.changePointProbability >= BOCPD_DRIFT_THRESHOLD) {
+                // Drift detected — partial reset posteriors
+                bocpdFired = true;
+                const reset = computePartialReset(wsNew + 1, wfNew + 1, DRIFT_RESET_RETENTION);
+                updates.weightedSuccesses = reset.alpha - 1; // Convert back from Beta params
+                updates.weightedFailures = reset.beta - 1;
+                updates.bocpdState = JSON.stringify(detector.initialState()); // Reset BOCPD
+                console.warn(`[MEMORY] BOCPD drift on ${llmBloomId}: P(cp)=${signal.changePointProbability.toFixed(4)} ≥ ${BOCPD_DRIFT_THRESHOLD} — posteriors reset (${DRIFT_RESET_RETENTION * 100}% retention)`);
+            }
+            else {
+                updates.bocpdState = JSON.stringify(nextState);
+            }
+        }
+        // ── Step 5: Persist ──
+        await updateMorpheme(llmBloomId, updates);
+        return { posteriorUpdated: true, bocpdFired, llmBloomId };
+    }
+    catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.warn(`[MEMORY] updateStructuralMemoryAfterExecution failed: ${msg}`);
+        return {
+            posteriorUpdated: false,
+            bocpdFired: false,
+            llmBloomId: null,
+            error: msg,
+        };
+    }
 }
 // ============ INTERNAL HELPERS ============
 /** Return the index of the maximum value in an array */

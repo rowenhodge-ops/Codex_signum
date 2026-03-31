@@ -16,8 +16,8 @@
  * @see codex-signum-v3.0.md §Memory Topology
  * @module codex-signum-core/memory/graph-operations
  */
-import { type CompactionConfig } from "./compaction.js";
-import { type PerformanceProfile, type RoutingHints } from "./distillation.js";
+import type { CompactionConfig } from "./compaction.js";
+import type { PerformanceProfile, RoutingHints } from "./distillation.js";
 export interface CompactionResult {
     observationsEvaluated: number;
     observationsDeleted: number;
@@ -36,42 +36,27 @@ export interface MemoryProcessingResult {
     error?: string;
 }
 /**
- * Run compaction for a bloom's observations.
- * Fetches compactable observations from Neo4j, runs identifyCompactable(),
- * deletes the safe-to-remove ones.
- *
- * Non-fatal: returns error result instead of throwing.
+ * @deprecated M-10 structural memory paradigm replaces Grid-based compaction.
+ * Use `updateStructuralMemoryAfterExecution()` from `src/graph/queries/memory-context.ts` instead.
+ * Calling this function throws — DETACH DELETE destroys A4 provenance data.
  */
-export declare function runCompaction(bloomId: string, config?: Partial<CompactionConfig>): Promise<CompactionResult>;
+export declare function runCompaction(_bloomId: string, _config?: Partial<CompactionConfig>): Promise<CompactionResult>;
 /**
- * Check if distillation should trigger for a bloom, and if so, run it.
- * Fetches observations, checks shouldDistill(), runs distillPerformanceProfile()
- * and distillRoutingHints(), persists results, supersedes old distillations.
- *
- * Returns null if distillation was not triggered.
- * Non-fatal: returns null + logs warning on error.
+ * @deprecated M-10 structural memory paradigm replaces Grid-based distillation.
+ * Use `updateStructuralMemoryAfterExecution()` from `src/graph/queries/memory-context.ts` instead.
+ * Calling this function throws.
  */
-export declare function checkAndDistill(bloomId: string): Promise<DistillationResult | null>;
+export declare function checkAndDistill(_bloomId: string): Promise<DistillationResult | null>;
 /**
- * Run the full upward memory flow after a task execution.
- * This is what the executor calls after each task when graphEnabled.
- *
- * 1. Compute upward flow (should we distill? promote to institutional?)
- * 2. If distillation triggered, run checkAndDistill()
- * 3. Opportunistic compaction (every Nth call)
- *
- * Non-fatal: if any step fails, logs warning and continues.
+ * @deprecated M-10 structural memory paradigm replaces the upward-flow memory model.
+ * Use `updateStructuralMemoryAfterExecution()` from `src/graph/queries/memory-context.ts` instead.
+ * Calling this function throws.
  */
-export declare function processMemoryAfterExecution(bloomId: string, executionResult: {
+export declare function processMemoryAfterExecution(_bloomId: string, _executionResult: {
     modelId: string;
     success: boolean;
     qualityScore?: number;
     durationMs: number;
     failureSignature?: string;
 }): Promise<MemoryProcessingResult>;
-/**
- * Reset the execution counter (for testing purposes).
- * @internal
- */
-export declare function _resetExecutionCounter(): void;
 //# sourceMappingURL=graph-operations.d.ts.map
