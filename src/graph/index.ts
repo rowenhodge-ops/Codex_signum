@@ -126,6 +126,8 @@ export {
   getLineEndpointStates,
   evaluateAndCacheLineConductivity,
   invalidateLineConductivity,
+  // M-10.3: Learning Grid ring buffer
+  enforceGridRingBuffer,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,

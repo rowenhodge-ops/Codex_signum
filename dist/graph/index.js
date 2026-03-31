@@ -45,6 +45,8 @@ getGrammarElements, getGrammarCoverage, getAxiomDependencies, getAntiPatternViol
 getPatternTopology, getVisualisationTopology, getGrammarInstances, 
 // M-22.6: Conductivity queries
 getLineEndpointStates, evaluateAndCacheLineConductivity, invalidateLineConductivity, 
+// M-10.3: Learning Grid ring buffer
+enforceGridRingBuffer, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Instantiation Protocol (M-16.4 — governance Resonator enforcement)

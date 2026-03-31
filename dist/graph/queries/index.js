@@ -20,4 +20,5 @@ export * from "./health.js";
 export * from "./human-feedback.js";
 export * from "./ecosystem.js";
 export * from "./conductivity.js";
+export * from "./learning-grid.js";
 //# sourceMappingURL=index.js.map
