@@ -133,6 +133,8 @@ export {
   computeColdStartPriors,
   computePartialReset,
   formatMemoryContextForSurvey,
+  // M-10.5: Post-execution structural memory
+  updateStructuralMemoryAfterExecution,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -188,6 +190,8 @@ export type {
   StampVerification,
   // M-10.4: Memory context types
   LLMMemoryContext,
+  // M-10.5: Structural memory result type
+  StructuralMemoryResult,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,

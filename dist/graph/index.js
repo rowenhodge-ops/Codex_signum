@@ -49,6 +49,8 @@ getLineEndpointStates, evaluateAndCacheLineConductivity, invalidateLineConductiv
 enforceGridRingBuffer, 
 // M-10.4: Cross-Stratum Query Interface
 getMemoryContextForBloom, computeColdStartPriors, computePartialReset, formatMemoryContextForSurvey, 
+// M-10.5: Post-execution structural memory
+updateStructuralMemoryAfterExecution, 
 // Backward compatibility aliases (deprecated)
 createAgent, getAgent, listActiveAgents, listActiveAgentsByCapability, createPattern, getPattern, updatePatternState, connectPatterns, getObservationsForPattern, countObservationsForPattern, getPatternDegree, getPatternAdjacency, getPatternsWithHealth, updatePatternPhiL, } from "./queries.js";
 // Instantiation Protocol (M-16.4 — governance Resonator enforcement)
