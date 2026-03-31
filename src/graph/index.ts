@@ -128,6 +128,11 @@ export {
   invalidateLineConductivity,
   // M-10.3: Learning Grid ring buffer
   enforceGridRingBuffer,
+  // M-10.4: Cross-Stratum Query Interface
+  getMemoryContextForBloom,
+  computeColdStartPriors,
+  computePartialReset,
+  formatMemoryContextForSurvey,
   // Backward compatibility aliases (deprecated)
   createAgent,
   getAgent,
@@ -181,6 +186,8 @@ export type {
   ResonatorProps,
   // Stamp verification
   StampVerification,
+  // M-10.4: Memory context types
+  LLMMemoryContext,
   // Backward compatibility aliases (deprecated)
   AgentProps,
   PatternProps,
