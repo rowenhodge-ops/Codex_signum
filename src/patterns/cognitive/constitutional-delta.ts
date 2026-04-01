@@ -63,12 +63,6 @@ export function computeConstitutionalDelta(
   scope: string[],
 ): GapSeed[] {
   const gaps: GapSeed[] = [];
-  let gapCounter = 0;
-
-  const nextGapId = (): string => {
-    gapCounter++;
-    return `gap:${survey.bloomId}:${gapCounter}`;
-  };
 
   // Collect all instantiated definition IDs from the survey
   const instantiatedDefIds = new Set(
@@ -76,11 +70,14 @@ export function computeConstitutionalDelta(
   );
 
   // 1. MISSING INSTANCES (constitutional -- mandatory)
+  // Gap ID is deterministic: based on definition ID, not survey context.
+  // "def:transformation:thompson-selection has no instance" is the same gap
+  // regardless of which Bloom's survey found it.
   const scopedDefs = definitions.filter((d) => scope.includes(d.scope));
   for (const def of scopedDefs) {
     if (!instantiatedDefIds.has(def.id)) {
       gaps.push({
-        gapId: nextGapId(),
+        gapId: `gap:missing-instance:${def.id}`,
         gapType: "constitutional",
         description: `Definition '${def.name}' (${def.id}) has no active instance with INSTANTIATES edge.`,
         severity: "mandatory",
@@ -91,11 +88,11 @@ export function computeConstitutionalDelta(
   }
 
   // 2. EMPTY STAGES (constitutional -- mandatory)
-  // Children that are Blooms but have zero internal morphemes
+  // Gap ID based on child ID — a specific stage being empty is a fact about that stage.
   for (const child of survey.children) {
     if (child.labels.includes("Bloom") && child.internalMorphemes.length === 0) {
       gaps.push({
-        gapId: nextGapId(),
+        gapId: `gap:empty-stage:${child.id}`,
         gapType: "constitutional",
         description: `Stage Bloom '${child.name}' (${child.id}) has no internal morphemes.`,
         severity: "mandatory",
@@ -104,16 +101,21 @@ export function computeConstitutionalDelta(
   }
 
   // 3. MISSING LINES -- children with zero FLOWS_TO to any ecosystem Resonator
-  // Detect children that have no inter-child Lines at all (isolated stages)
+  // Gap ID based on child ID — a specific stage being isolated is a fact about that stage.
   const connectedChildIds = new Set<string>();
   for (const line of survey.interChildLines) {
     connectedChildIds.add(line.sourceId);
     connectedChildIds.add(line.targetId);
   }
   for (const child of survey.children) {
+    // Skip definition Seeds — constitutional reference data, not pipeline stages
+    if (child.labels.includes("Seed") &&
+        (child.id.startsWith("def:") || child.id.startsWith("config:"))) {
+      continue;
+    }
     if (!connectedChildIds.has(child.id) && survey.children.length > 1) {
       gaps.push({
-        gapId: nextGapId(),
+        gapId: `gap:missing-line:${child.id}:FLOWS_TO`,
         gapType: "constitutional",
         description: `Stage '${child.name}' (${child.id}) has no FLOWS_TO or DEPENDS_ON Lines to other children.`,
         severity: "mandatory",
@@ -124,9 +126,10 @@ export function computeConstitutionalDelta(
   }
 
   // 4. TOPOLOGICAL GAPS (advisory)
+  // These ARE per-Bloom — lambda2 is a property of a specific Bloom's topology.
   if (survey.lambda2 === 0 && survey.children.length > 1) {
     gaps.push({
-      gapId: nextGapId(),
+      gapId: `gap:topological:disconnected:${survey.bloomId}`,
       gapType: "topological",
       description: `lambda2=0: disconnected components. Stages have no inter-edges.`,
       severity: "advisory",
@@ -134,7 +137,7 @@ export function computeConstitutionalDelta(
     });
   } else if (survey.lambda2 > 0 && survey.lambda2 < 0.1) {
     gaps.push({
-      gapId: nextGapId(),
+      gapId: `gap:topological:weak:${survey.bloomId}`,
       gapType: "topological",
       description: `lambda2=${survey.lambda2}: below threshold. Weak connectivity.`,
       severity: "advisory",
@@ -154,7 +157,7 @@ export function computeConstitutionalDelta(
       && [...inDegree.values()].every((d) => d <= 1);
     if (isChain) {
       gaps.push({
-        gapId: nextGapId(),
+        gapId: `gap:topological:chain:${survey.bloomId}`,
         gapType: "topological",
         description: "Topology is a linear chain. CPT v3 targets data dependency DAG.",
         severity: "advisory",

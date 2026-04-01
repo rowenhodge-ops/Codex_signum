@@ -38,6 +38,7 @@ declare function ensureGnosisToArchitectWiring(): Promise<boolean>;
  */
 declare function inferScopesForBloom(bloomId: string, definitions: TransformationDef[]): string[];
 declare function categoriseMilestone(name: string): IntentCategory;
+declare function clusterGapIntents(intents: PlanningIntent[]): PlanningIntent[];
 declare function scorePlanningIntent(intent: PlanningIntent): number;
 /**
  * Run the Gnosis Planning Cycle — ecosystem-wide structural prioritisation.
@@ -54,5 +55,5 @@ declare function scorePlanningIntent(intent: PlanningIntent): number;
  * @param enrichTopN - Number of top intents to enrich (default: 10)
  */
 export declare function runPlanningCycle(modelExecutor?: ModelExecutor, enrichTopN?: number): Promise<PlanningReport>;
-export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };
+export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, clusterGapIntents, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };
 //# sourceMappingURL=planning.d.ts.map

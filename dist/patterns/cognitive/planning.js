@@ -499,7 +499,21 @@ async function computeScopedDelta(definitions) {
             console.warn(`  [Planning] Survey failed for ${bloomId}, skipping`);
         }
     }
-    return allGaps;
+    // Deduplicate by gap ID (deterministic IDs from Fix 2 make this work).
+    // Ecosystem-level gaps (missing-instance, empty-stage, missing-line) produce
+    // the same ID from every Bloom survey. Per-Bloom topology gaps have Bloom-specific
+    // IDs and are preserved.
+    const seen = new Map();
+    for (const gap of allGaps) {
+        if (!seen.has(gap.gapId)) {
+            seen.set(gap.gapId, gap);
+        }
+    }
+    const deduped = Array.from(seen.values());
+    if (deduped.length < allGaps.length) {
+        console.log(`  [Planning] Deduped gaps: ${allGaps.length} → ${deduped.length} (${allGaps.length - deduped.length} duplicates removed)`);
+    }
+    return deduped;
 }
 /**
  * Infer which definition scopes are relevant for a given Bloom ID.
@@ -564,6 +578,57 @@ function categoriseMilestone(name) {
         return "substrate-grounding";
     // Default to infrastructure for unclassifiable milestones
     return "infrastructure";
+}
+// ─── Gap Clustering (Fix 4) ──────────────────────────────────────
+function clusterGapIntents(intents) {
+    const gapIntents = intents.filter((i) => i.intentId.startsWith("plan:gap:gap:missing-instance:"));
+    const otherIntents = intents.filter((i) => !i.intentId.startsWith("plan:gap:gap:missing-instance:"));
+    if (gapIntents.length <= 1)
+        return intents;
+    // Group missing-instance gaps by definition type prefix
+    const clusters = new Map();
+    for (const intent of gapIntents) {
+        const defId = intent.targetDefId ?? "";
+        let clusterKey;
+        if (defId.startsWith("def:transformation:"))
+            clusterKey = "missing-transformation-instances";
+        else if (defId.startsWith("def:bloom:"))
+            clusterKey = "missing-bloom-instances";
+        else if (defId.startsWith("def:grid:"))
+            clusterKey = "missing-grid-instances";
+        else if (defId.startsWith("def:helix:"))
+            clusterKey = "missing-helix-instances";
+        else
+            clusterKey = "missing-other-instances";
+        if (!clusters.has(clusterKey))
+            clusters.set(clusterKey, []);
+        clusters.get(clusterKey).push(intent);
+    }
+    const composites = [];
+    for (const [clusterKey, members] of clusters) {
+        if (members.length === 1) {
+            composites.push(members[0]);
+            continue;
+        }
+        const defNames = members
+            .map((m) => m.targetDefId ?? m.description)
+            .join(", ");
+        const composite = {
+            intentId: `plan:cluster:${clusterKey}`,
+            category: "pattern-topology",
+            description: `${members.length} missing ${clusterKey.replace(/-/g, " ")}: ${defNames}. ` +
+                `These are related ecosystem gaps — instantiate as a group and wire FLOWS_TO Lines.`,
+            priorityScore: 0,
+            justification: {
+                gapType: "constitutional",
+                lambda2Delta: members.reduce((sum, m) => sum + (m.justification.lambda2Delta ?? 0), 0),
+            },
+            architectIntent: `[Gnosis Planning] pattern-topology: Instantiate ${members.length} ${clusterKey.replace(/-/g, " ")}. ` +
+                `Definitions: ${defNames}. Wire FLOWS_TO from relevant Stage Blooms to each.`,
+        };
+        composites.push(composite);
+    }
+    return [...composites, ...otherIntents];
 }
 // ─── Step 6: Score and Rank ───────────────────────────────────────
 function scorePlanningIntent(intent) {
@@ -842,6 +907,15 @@ export async function runPlanningCycle(modelExecutor, enrichTopN = 10) {
             },
         });
     }
+    // Cluster related missing-instance gaps into composite intents (Fix 4)
+    const preclusterCount = intents.length;
+    const clustered = clusterGapIntents(intents);
+    // Replace intents array contents with clustered result
+    intents.length = 0;
+    intents.push(...clustered);
+    if (intents.length < preclusterCount) {
+        console.log(`  [Planning] Clustered: ${preclusterCount} → ${intents.length} intents (${preclusterCount - intents.length} atoms merged into composites)`);
+    }
     // Score all intents
     for (const intent of intents) {
         if (intent.priorityScore === 0) {
@@ -934,5 +1008,5 @@ export async function runPlanningCycle(modelExecutor, enrichTopN = 10) {
     return report;
 }
 // Re-export for testing and CLI
-export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };
+export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, clusterGapIntents, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };
 //# sourceMappingURL=planning.js.map

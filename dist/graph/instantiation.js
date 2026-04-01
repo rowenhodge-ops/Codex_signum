@@ -73,6 +73,7 @@ export const VALID_LINE_TYPES = [
     "REFERENCES",
     "SPECIFIED_BY",
     "SPECIALISES",
+    "SUPERSEDED_BY",
 ];
 /** Closed allowlist of labels that updateMorpheme() can add via addLabels parameter (M-10.1 §7) */
 export const VALID_ADD_LABELS = ["Archived"];
@@ -1125,5 +1126,57 @@ async function recordLineObservation(sourceId, targetId, lineType, success, erro
     catch {
         // Observation recording is non-fatal
     }
+}
+// ─── Definition Retirement ──────────────────────────────────────
+/**
+ * Retire a constitutional definition that has been superseded.
+ *
+ * Lifecycle operation like stampBloomComplete() — enforces invariants
+ * structurally so absorption/supersession can't be forgotten.
+ *
+ * 1. Validates definition Seed exists and is 'active'
+ * 2. Validates superseding morpheme exists
+ * 3. Sets status: 'retired' via updateMorpheme()
+ * 4. Creates SUPERSEDED_BY Line from retired def to absorbing morpheme
+ * 5. Returns any active instances still pointing at this definition
+ */
+export async function retireDefinition(defId, supersededById, reason) {
+    const defNode = await readTransaction(async (tx) => {
+        const res = await tx.run(`MATCH (d:Seed {id: $defId})
+       WHERE d.seedType IN ['transformation-definition', 'bloom-definition',
+                             'grid-definition', 'helix-definition']
+       RETURN d.status AS status`, { defId });
+        return res.records[0] ?? null;
+    });
+    if (!defNode) {
+        throw new Error(`retireDefinition: definition '${defId}' not found`);
+    }
+    if (defNode.get("status") !== "active") {
+        throw new Error(`retireDefinition: definition '${defId}' is not active (status: ${defNode.get("status")})`);
+    }
+    const superseder = await readTransaction(async (tx) => {
+        const res = await tx.run(`MATCH (n {id: $supersededById}) RETURN n.id AS id`, { supersededById });
+        return res.records[0] ?? null;
+    });
+    if (!superseder) {
+        throw new Error(`retireDefinition: superseding morpheme '${supersededById}' not found`);
+    }
+    await updateMorpheme(defId, {
+        status: "retired",
+        retiredReason: reason,
+        retiredAt: new Date().toISOString(),
+        supersededBy: supersededById,
+    });
+    await createLine(defId, supersededById, "SUPERSEDED_BY", {
+        label: "definition-retirement",
+        reason,
+    });
+    const orphans = await readTransaction(async (tx) => {
+        const res = await tx.run(`MATCH (n)-[:INSTANTIATES]->(d:Seed {id: $defId})
+       WHERE n.status IN ['active', 'planned']
+       RETURN n.id AS id`, { defId });
+        return res.records.map((r) => r.get("id"));
+    });
+    return { retired: true, orphanedInstances: orphans };
 }
 //# sourceMappingURL=instantiation.js.map

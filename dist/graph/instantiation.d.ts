@@ -2,7 +2,7 @@ export type MorphemeType = "seed" | "bloom" | "resonator" | "grid" | "helix";
 /** Valid containment: which types can contain which */
 export declare const VALID_CONTAINERS: Record<string, MorphemeType[]>;
 /** Valid Line relationship types and their direction semantics */
-export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY", "SPECIALISES"];
+export declare const VALID_LINE_TYPES: readonly ["CONTAINS", "FLOWS_TO", "INSTANTIATES", "DEPENDS_ON", "OBSERVES", "SCOPED_TO", "VIOLATES", "ROUTED_TO", "ORIGINATED_FROM", "IN_CONTEXT", "DECIDED_DURING", "OBSERVED_IN", "DISTILLED_FROM", "EXECUTED_IN", "PRODUCED", "PROCESSED", "REFERENCES", "SPECIFIED_BY", "SPECIALISES", "SUPERSEDED_BY"];
 export type LineType = (typeof VALID_LINE_TYPES)[number];
 /** Closed allowlist of labels that updateMorpheme() can add via addLabels parameter (M-10.1 §7) */
 export declare const VALID_ADD_LABELS: readonly ["Archived"];
@@ -167,4 +167,20 @@ export declare function stampBloomComplete(options: StampOptions): Promise<Stamp
  * Delegates to updateMorpheme() — Step 5 propagates upward.
  */
 export declare function revertBloomToActive(bloomId: string): Promise<MutationResult>;
+/**
+ * Retire a constitutional definition that has been superseded.
+ *
+ * Lifecycle operation like stampBloomComplete() — enforces invariants
+ * structurally so absorption/supersession can't be forgotten.
+ *
+ * 1. Validates definition Seed exists and is 'active'
+ * 2. Validates superseding morpheme exists
+ * 3. Sets status: 'retired' via updateMorpheme()
+ * 4. Creates SUPERSEDED_BY Line from retired def to absorbing morpheme
+ * 5. Returns any active instances still pointing at this definition
+ */
+export declare function retireDefinition(defId: string, supersededById: string, reason: string): Promise<{
+    retired: boolean;
+    orphanedInstances: string[];
+}>;
 //# sourceMappingURL=instantiation.d.ts.map

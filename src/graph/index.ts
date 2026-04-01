@@ -205,6 +205,7 @@ export {
   deleteLine,
   stampBloomComplete,
   revertBloomToActive,
+  retireDefinition,
   VALID_CONTAINERS,
   VALID_LINE_TYPES,
   VALID_SEED_SUBTYPES,
