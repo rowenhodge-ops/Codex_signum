@@ -30,6 +30,8 @@ declare function detectStructuralDrift(bloomStates: BloomStateEntry[]): Promise<
 }>>;
 declare function findUnwiredBlooms(): Promise<string[]>;
 declare function persistIntents(intents: PlanningIntent[]): Promise<PersistedIntentStats>;
+declare function enrichTopIntents(intents: PlanningIntent[], bloomStates: BloomStateEntry[], modelExecutor: ModelExecutor, topN: number): Promise<number>;
+declare function ensureGnosisToArchitectWiring(): Promise<boolean>;
 /**
  * Infer which definition scopes are relevant for a given Bloom ID.
  * Maps Bloom identity to scope names based on naming conventions + definitions.
@@ -52,5 +54,5 @@ declare function scorePlanningIntent(intent: PlanningIntent): number;
  * @param enrichTopN - Number of top intents to enrich (default: 10)
  */
 export declare function runPlanningCycle(modelExecutor?: ModelExecutor, enrichTopN?: number): Promise<PlanningReport>;
-export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents };
+export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };
 //# sourceMappingURL=planning.d.ts.map

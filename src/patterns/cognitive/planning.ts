@@ -427,6 +427,94 @@ async function persistIntents(
   return stats;
 }
 
+// ─── LLM Enrichment (Stream 6) ──────────────────────────────────
+
+async function enrichTopIntents(
+  intents: PlanningIntent[],
+  bloomStates: BloomStateEntry[],
+  modelExecutor: ModelExecutor,
+  topN: number,
+): Promise<number> {
+  const bloomMap = new Map(bloomStates.map((b) => [b.id, b]));
+  let enriched = 0;
+
+  const toEnrich = intents.slice(0, topN);
+  for (let i = 0; i < toEnrich.length; i++) {
+    const intent = toEnrich[i];
+    const bloom = intent.justification.phiLTarget
+      ? bloomMap.get(intent.justification.phiLTarget)
+      : undefined;
+
+    try {
+      const prompt = `You are enriching a structural governance intent for the Codex Signum system.
+
+INTENT: ${intent.description}
+CATEGORY: ${intent.category}
+SCORE: ${intent.priorityScore}
+${bloom ? `TARGET BLOOM: ${bloom.id} (λ₂=${bloom.lambda2}, ΨH=${bloom.psiH}, ΦL=${bloom.phiL}, children=${bloom.childCount})` : ""}
+${intent.targetDefId ? `CONSTITUTIONAL DEFINITION: ${intent.targetDefId}` : ""}
+
+CRITICAL FRAMING — apply these principles:
+- State is structural. No separate monitoring layers.
+- Poka-yoke: fix at the source, not downstream. Infrastructure failures (404/429/auth/timeout) must NOT update model quality posteriors.
+- Only genuine transformations are Resonators. ΦL/ΨH/εR are inline derivations.
+- The system derives its own composition — don't prescribe from outside.
+
+Produce a 2-3 paragraph architectural description covering:
+1. What this intent fixes and why it matters structurally
+2. Which source files are likely affected
+3. The approach (what changes, what stays)
+4. What NOT to do (boundaries, anti-patterns to avoid)
+
+Be specific. Name files, functions, graph node IDs where possible.`;
+
+      const result = await modelExecutor.execute(prompt, {
+        taskType: "analytical",
+        complexity: "moderate",
+      });
+
+      if (result.text) {
+        await updateMorpheme(intent.intentId, { content: result.text });
+        enriched++;
+        console.log(`  [Planning] Enriched ${i + 1}/${toEnrich.length}: ${intent.intentId}`);
+      }
+    } catch {
+      // Enrichment failure is non-fatal — raw description remains
+      console.warn(`  [Planning] Enrichment failed for ${intent.intentId}, keeping raw description`);
+    }
+  }
+
+  return enriched;
+}
+
+// ─── FLOWS_TO Wiring (Stream 7a) ────────────────────────────────
+
+async function ensureGnosisToArchitectWiring(): Promise<boolean> {
+  try {
+    const exists = await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (cb:Bloom {id: 'cognitive-bloom'})-[r:FLOWS_TO]->(a:Bloom {id: 'architect'})
+         RETURN count(r) AS cnt`,
+      );
+      return asNumber(res.records[0]?.get("cnt")) > 0;
+    });
+
+    if (!exists) {
+      const { createLine } = await import("../../graph/instantiation.js");
+      await createLine("cognitive-bloom", "architect", "FLOWS_TO", {
+        label: "gnosis-to-architect",
+        description: "Gnosis planning output informs Architect SURVEY enrichment",
+      });
+      console.log("  [Planning] Created FLOWS_TO: cognitive-bloom → architect");
+      return true;
+    }
+    return false;
+  } catch {
+    // Wiring failure is non-fatal
+    return false;
+  }
+}
+
 // ─── Step 3: Read Milestone State ─────────────────────────────────
 
 async function readMilestoneState(): Promise<{
@@ -939,6 +1027,19 @@ export async function runPlanningCycle(
   console.log(`  [Planning] Persisted: ${persistenceStats.total} total ` +
     `(${persistenceStats.created} new, ${persistenceStats.updated} updated, ${persistenceStats.resolved} resolved)`);
 
+  // Step 7.5: LLM enrichment of top-N intents (Stream 6)
+  if (modelExecutor && enrichTopN > 0) {
+    console.log(`  [Planning] Step 7.5: Enriching top ${enrichTopN} intents via Thompson...`);
+    const enrichedCount = await enrichTopIntents(
+      intents, ecosystem.bloomStates, modelExecutor, enrichTopN,
+    );
+    persistenceStats.enriched = enrichedCount;
+    console.log(`  [Planning] Enriched ${enrichedCount}/${enrichTopN} intents`);
+  }
+
+  // Step 7.7: Ensure FLOWS_TO wiring (Stream 7a) — one-time
+  await ensureGnosisToArchitectWiring();
+
   // Compute cross-cycle delta
   const previousCycleDelta = previousObs ? {
     previousTimestamp: previousObs.previousTimestamp,
@@ -997,4 +1098,4 @@ export async function runPlanningCycle(
 }
 
 // Re-export for testing and CLI
-export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents };
+export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents, enrichTopIntents, ensureGnosisToArchitectWiring };

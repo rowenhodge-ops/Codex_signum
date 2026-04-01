@@ -21,6 +21,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { closeDriver } from "../src/graph/index.js";
+import { readTransaction } from "../src/graph/client.js";
 import { executePlan } from "../src/patterns/architect/architect.js";
 import { survey } from "../src/patterns/architect/survey.js";
 import type { PipelineSurveyOutput } from "../src/patterns/architect/types.js";
@@ -213,6 +214,31 @@ function parseArgs(): CliArgs | null {
   return { command, intent, autoGate, dryRun, decomposeN, allowDegraded, milestone, intentFile };
 }
 
+// ── Gnosis Planning Context (Stream 7b) ──────────────────────────────────────
+
+async function getGnosisContext(): Promise<string> {
+  try {
+    const result = await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (g:Grid {id: 'grid:cognitive-observations'})-[:CONTAINS]->(s:Seed)
+         WHERE s.seedType = 'observation' AND s.name = 'Planning Cycle Observation'
+         RETURN s.content AS content, s.intentCount AS intentCount,
+                s.violationCount AS violationCount, s.createdAt AS timestamp
+         ORDER BY s.createdAt DESC
+         LIMIT 1`,
+      );
+      return res.records[0] ?? null;
+    });
+    if (!result) return "";
+    const ts = result.get("timestamp");
+    const tsStr = typeof ts === "object" && ts !== null && "toString" in ts
+      ? String(ts) : String(ts ?? "");
+    return `\n## Gnosis Planning Context (${tsStr})\n` +
+           `${result.get("content") as string}\n` +
+           `Active violations: ${result.get("violationCount")}, Pending intents: ${result.get("intentCount")}`;
+  } catch { return ""; }
+}
+
 // ── Survey → PipelineSurveyOutput conversion ────────────────────────────────
 
 function toPipelineSurveyOutput(
@@ -311,8 +337,15 @@ async function main(): Promise<void> {
     }
   }
 
-  // SURVEY
+  // SURVEY (with Gnosis context injection — Stream 7b)
   console.log("\n── SURVEY ──────────────────────────────────────────────────");
+  const gnosisContext = await getGnosisContext();
+  if (gnosisContext) {
+    console.log("  Gnosis planning context injected into SURVEY");
+  }
+  const enrichedIntent = gnosisContext
+    ? `${cliArgs.intent}\n\n--- GNOSIS PLANNING CONTEXT ---${gnosisContext}`
+    : cliArgs.intent;
   const surveyResult = await survey({
     repoPath,
     specificationRefs: [
@@ -322,7 +355,7 @@ async function main(): Promise<void> {
     ],
     docsPaths: ["docs/specs/", "docs/research/"],
     hypothesesPath: "docs/hypotheses/",
-    intent: cliArgs.intent,
+    intent: enrichedIntent,
   });
 
   console.log(`  Documents: ${surveyResult.documentSources.length}`);

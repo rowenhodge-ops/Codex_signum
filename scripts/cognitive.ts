@@ -69,6 +69,7 @@ Usage:
   npx tsx scripts/cognitive.ts evaluate <nodeId>     Evaluate one morpheme for compliance
   npx tsx scripts/cognitive.ts sweep <bloomId>       Sweep all children for compliance
   npx tsx scripts/cognitive.ts plan                  Ecosystem-wide planning report
+  npx tsx scripts/cognitive.ts execute               Read top intent, write projection, print Architect command
 
 Survey options:
   --cycle=N      Force cycle number (default: auto-increment from Observation Grid)
@@ -84,17 +85,22 @@ Plan options:
   --top=N        Show only top N intents (default: all)
   --output=json  Output JSON only (no console summary)
 
+Execute options:
+  --dry-run      Display intent without updating status or writing file
+
 Examples:
   npx tsx scripts/cognitive.ts survey architect
   npx tsx scripts/cognitive.ts evaluate resonator:compliance-evaluation
   npx tsx scripts/cognitive.ts sweep architect --depth=5
   npx tsx scripts/cognitive.ts plan --top=5
   npx tsx scripts/cognitive.ts plan --category=governance
+  npx tsx scripts/cognitive.ts execute
+  npx tsx scripts/cognitive.ts execute --dry-run
 `);
 }
 
 interface CliArgs {
-  command: "survey" | "evaluate" | "sweep" | "plan";
+  command: "survey" | "evaluate" | "sweep" | "plan" | "execute";
   targetId: string;
   cycleNumber: number | null;
   withLlm: boolean;
@@ -104,6 +110,7 @@ interface CliArgs {
   planCategory: IntentCategory | null;
   planTop: number | null;
   planOutputJson: boolean;
+  dryRun: boolean;
 }
 
 function parseArgs(): CliArgs | null {
@@ -114,14 +121,14 @@ function parseArgs(): CliArgs | null {
   }
 
   const command = args[0] as string;
-  if (command !== "survey" && command !== "evaluate" && command !== "sweep" && command !== "plan") {
-    console.error(`Unknown command: ${command}. Supported: survey, evaluate, sweep, plan`);
+  if (command !== "survey" && command !== "evaluate" && command !== "sweep" && command !== "plan" && command !== "execute") {
+    console.error(`Unknown command: ${command}. Supported: survey, evaluate, sweep, plan, execute`);
     return null;
   }
 
-  // plan command doesn't require a targetId
-  const targetId = command === "plan" ? "" : args[1];
-  if (command !== "plan" && !targetId) {
+  // plan and execute commands don't require a targetId
+  const targetId = (command === "plan" || command === "execute") ? "" : args[1];
+  if (command !== "plan" && command !== "execute" && !targetId) {
     console.error(`Missing target ID. Usage: npx tsx scripts/cognitive.ts ${command} <id>`);
     return null;
   }
@@ -134,12 +141,14 @@ function parseArgs(): CliArgs | null {
   let planCategory: IntentCategory | null = null;
   let planTop: number | null = null;
   let planOutputJson = false;
+  let dryRun = false;
 
-  const optArgs = command === "plan" ? args.slice(1) : args.slice(2);
+  const optArgs = (command === "plan" || command === "execute") ? args.slice(1) : args.slice(2);
   for (const arg of optArgs) {
     if (arg === "--with-llm") withLlm = true;
     else if (arg === "--include-complete") includeComplete = true;
     else if (arg === "--output=json") planOutputJson = true;
+    else if (arg === "--dry-run") dryRun = true;
     else if (arg.startsWith("--cycle=")) {
       cycleNumber = parseInt(arg.split("=")[1], 10);
       if (isNaN(cycleNumber) || cycleNumber < 1) cycleNumber = null;
@@ -161,7 +170,7 @@ function parseArgs(): CliArgs | null {
   return {
     command: command as CliArgs["command"],
     targetId, cycleNumber, withLlm, scopes, depth, includeComplete,
-    planCategory, planTop, planOutputJson,
+    planCategory, planTop, planOutputJson, dryRun,
   };
 }
 
@@ -432,6 +441,84 @@ async function main(): Promise<void> {
       console.log(`  Time: ${report.processingTimeMs}ms`);
     }
 
+    console.log("");
+    return;
+  }
+
+  // ── Execute command (Stream 7c) ──────────────────────────────────
+  if (cliArgs.command === "execute") {
+    const { updateMorpheme } = await import("../src/graph/instantiation.js");
+
+    console.log("\n" + SEP);
+    console.log("  CODEX SIGNUM -- GNOSIS EXECUTE");
+    console.log(SEP);
+
+    // Query top-ranked proposed intent from graph
+    const topIntent = await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (cb:Bloom {id: 'cognitive-bloom'})-[:CONTAINS]->(i:Seed {seedType: 'intent', status: 'proposed'})
+         RETURN i.id AS id, i.name AS name, i.content AS content,
+                i.category AS category, i.priorityScore AS priorityScore,
+                i.architectIntent AS architectIntent
+         ORDER BY i.priorityScore DESC
+         LIMIT 1`,
+      );
+      if (res.records.length === 0) return null;
+      const r = res.records[0];
+      return {
+        id: r.get("id") as string,
+        name: (r.get("name") as string) ?? "",
+        content: (r.get("content") as string) ?? "",
+        category: (r.get("category") as string) ?? "unknown",
+        priorityScore: r.get("priorityScore") as number ?? 0,
+        architectIntent: (r.get("architectIntent") as string) ?? "",
+      };
+    });
+
+    if (!topIntent) {
+      console.log("\n  No proposed intents found. Run 'gnosis plan' first.");
+      console.log("");
+      return;
+    }
+
+    console.log(`\n  TOP INTENT: ${topIntent.id}`);
+    console.log(`  Score: ${topIntent.priorityScore} | Category: ${topIntent.category}`);
+    console.log(`  Name: ${topIntent.name}`);
+    if (topIntent.content && topIntent.content !== topIntent.name) {
+      console.log(`\n  Content:\n${topIntent.content.split("\n").map((l: string) => `    ${l}`).join("\n")}`);
+    }
+    if (topIntent.architectIntent) {
+      console.log(`\n  Architect intent: ${topIntent.architectIntent}`);
+    }
+
+    if (cliArgs.dryRun) {
+      console.log("\n  [DRY RUN] Would update status to 'approved' and write projection file.");
+      console.log("");
+      return;
+    }
+
+    // Write projection file
+    const outputDir = resolve(process.cwd(), "docs/cognitive-output");
+    mkdirSync(outputDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    const projectionFile = resolve(outputDir, `execute-${ts}.json`);
+    const projection = {
+      intentId: topIntent.id,
+      category: topIntent.category,
+      priorityScore: topIntent.priorityScore,
+      content: topIntent.content,
+      architectIntent: topIntent.architectIntent,
+      timestamp: new Date().toISOString(),
+    };
+    writeFileSync(projectionFile, JSON.stringify(projection, null, 2), "utf-8");
+
+    // Update intent status to approved
+    await updateMorpheme(topIntent.id, { status: "approved" });
+
+    console.log(`\n  Status: proposed → approved`);
+    console.log(`  Projection: docs/cognitive-output/execute-${ts}.json`);
+    console.log(`\n  Feed to Architect:`);
+    console.log(`    npx tsx scripts/architect.ts plan --intent-file=docs/cognitive-output/execute-${ts}.json`);
     console.log("");
     return;
   }
