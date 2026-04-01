@@ -44,4 +44,5 @@ export type {
   BloomStateEntry,
   ViolationEntry,
   MilestoneEntry,
+  PersistedIntentStats,
 } from "./planning-types.js";

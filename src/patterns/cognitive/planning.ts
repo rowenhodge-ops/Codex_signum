@@ -21,7 +21,11 @@
 import { readTransaction } from "../../graph/client.js";
 import { surveyBloomTopology } from "./structural-survey.js";
 import { queryTransformationDefinitions, computeConstitutionalDelta } from "./constitutional-delta.js";
-import { instantiateMorpheme } from "../../graph/instantiation.js";
+import { instantiateMorpheme, updateMorpheme } from "../../graph/instantiation.js";
+import { getMemoryContextForBloom, formatMemoryContextForSurvey } from "../../graph/queries/memory-context.js";
+import { BOCPDDetector } from "../../signals/BOCPDDetector.js";
+import type { LLMMemoryContext } from "../../graph/queries/memory-context.js";
+import type { ModelExecutor } from "../architect/types.js";
 import type { GapSeed, TransformationDef } from "./types.js";
 import type {
   PlanningReport,
@@ -30,6 +34,7 @@ import type {
   BloomStateEntry,
   ViolationEntry,
   MilestoneEntry,
+  PersistedIntentStats,
 } from "./planning-types.js";
 
 // ─── Step 1: Ecosystem Survey ─────────────────────────────────────
@@ -94,11 +99,17 @@ async function readViolations(): Promise<{
 }> {
   try {
     const violations = await readTransaction(async (tx) => {
+      // Handles both CE violations (checkId, targetNodeId) and
+      // A6 Highlander violations (transformationDefId, attemptedNodeId)
       const result = await tx.run(
         `MATCH (g:Grid {id: 'grid:violation:ecosystem'})-[:CONTAINS]->(v:Seed)
          WHERE v.status = 'active'
-         RETURN v.id AS id, v.checkId AS checkId, v.targetNodeId AS targetNodeId,
-                v.severity AS severity, v.evidence AS evidence, v.createdAt AS createdAt
+         RETURN v.id AS id,
+                coalesce(v.checkId, CASE WHEN v.id STARTS WITH 'violation:a6:' THEN 'A6' ELSE 'unknown' END) AS checkId,
+                coalesce(v.targetNodeId, v.attemptedNodeId, 'unknown') AS targetNodeId,
+                v.severity AS severity,
+                coalesce(v.evidence, v.content, '') AS evidence,
+                v.createdAt AS createdAt
          ORDER BY
            CASE v.severity WHEN 'critical' THEN 0 WHEN 'error' THEN 1 WHEN 'warning' THEN 2 ELSE 3 END,
            v.createdAt DESC`,
@@ -123,6 +134,297 @@ async function readViolations(): Promise<{
     // Violation Grid may not exist yet — non-fatal
     return { total: 0, bySeverity: { critical: 0, error: 0, warning: 0 }, top: [] };
   }
+}
+
+// ─── Step 2.5a: Read LLM Memory State (Stream 2) ────────────────
+
+async function readLLMMemoryState(): Promise<{
+  contexts: LLMMemoryContext[];
+  infrastructureFailures: string[];
+  driftingModels: string[];
+  topPerformers: string[];
+  summary: string;
+}> {
+  try {
+    const llmBlooms = await readTransaction(async (tx) => {
+      const result = await tx.run(
+        `MATCH (b:Bloom) WHERE b.id STARTS WITH 'llm:' AND b.status = 'active'
+         RETURN b.id AS id ORDER BY b.id`,
+      );
+      return result.records.map((r) => r.get("id") as string);
+    });
+
+    const contexts: LLMMemoryContext[] = [];
+    for (const bloomId of llmBlooms) {
+      try {
+        const ctx = await getMemoryContextForBloom(bloomId);
+        if (ctx) contexts.push(ctx);
+      } catch { /* non-fatal */ }
+    }
+
+    // Infrastructure failures = cold start + recent failures (stale endpoints, not dead models)
+    const infrastructureFailures = contexts
+      .filter((c) => c.isColdStart && c.recentFailures.length > 0)
+      .map((c) => c.bloomId);
+
+    const driftingModels = contexts
+      .filter((c) => c.bocpd?.currentRunLength !== null &&
+                     c.bocpd?.currentRunLength !== undefined &&
+                     c.bocpd.currentRunLength < 3)
+      .map((c) => c.bloomId);
+
+    const topPerformers = contexts
+      .filter((c) => !c.isColdStart)
+      .sort((a, b) => b.posteriors.mean - a.posteriors.mean)
+      .slice(0, 5)
+      .map((c) => c.bloomId);
+
+    const summary = formatMemoryContextForSurvey(contexts);
+
+    return { contexts, infrastructureFailures, driftingModels, topPerformers, summary };
+  } catch {
+    return { contexts: [], infrastructureFailures: [], driftingModels: [], topPerformers: [], summary: "" };
+  }
+}
+
+// ─── Step 0: Read Previous Planning Observation (Stream 3a) ──────
+
+async function readPreviousPlanningObservation(): Promise<{
+  previousViolations: number;
+  previousGaps: number;
+  previousIntents: number;
+  previousTimestamp: string;
+} | null> {
+  try {
+    return await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (g:Grid {id: 'grid:cognitive-observations'})-[:CONTAINS]->(s:Seed)
+         WHERE s.seedType = 'observation' AND s.name = 'Planning Cycle Observation'
+         RETURN s.violationCount AS violations, s.constitutionalGapCount AS gaps,
+                s.intentCount AS intents, s.createdAt AS timestamp
+         ORDER BY s.createdAt DESC
+         LIMIT 1`,
+      );
+      if (res.records.length === 0) return null;
+      const r = res.records[0];
+      return {
+        previousViolations: asNumber(r.get("violations")),
+        previousGaps: asNumber(r.get("gaps")),
+        previousIntents: asNumber(r.get("intents")),
+        previousTimestamp: String(r.get("timestamp") ?? ""),
+      };
+    });
+  } catch { return null; }
+}
+
+// ─── Step 3.5: Read Existing Backlog (Stream 3b) ─────────────────
+
+async function readExistingBacklog(): Promise<{
+  activeIntents: Array<{ id: string; name: string; category: string; priorityScore: number; status: string }>;
+  rItems: Array<{ id: string; name: string; status: string }>;
+}> {
+  try {
+    return await readTransaction(async (tx) => {
+      const intentResult = await tx.run(
+        `MATCH (cb:Bloom {id: 'cognitive-bloom'})-[:CONTAINS]->(i:Seed)
+         WHERE i.seedType = 'intent' AND i.status IN ['proposed', 'approved', 'active']
+         RETURN i.id AS id, i.name AS name, coalesce(i.category, 'unknown') AS category,
+                coalesce(i.priorityScore, 0) AS priorityScore, i.status AS status
+         ORDER BY i.priorityScore DESC`,
+      );
+      const activeIntents = intentResult.records.map((r) => ({
+        id: r.get("id") as string,
+        name: (r.get("name") as string) ?? "",
+        category: r.get("category") as string,
+        priorityScore: asNumber(r.get("priorityScore")),
+        status: r.get("status") as string,
+      }));
+
+      const rResult = await tx.run(
+        `MATCH (s:Seed)
+         WHERE s.id =~ 'R-\\\\d+' AND s.status IN ['planned', 'active']
+         RETURN s.id AS id, s.name AS name, s.status AS status
+         ORDER BY s.id`,
+      );
+      const rItems = rResult.records.map((r) => ({
+        id: r.get("id") as string,
+        name: (r.get("name") as string) ?? "",
+        status: r.get("status") as string,
+      }));
+
+      return { activeIntents, rItems };
+    });
+  } catch {
+    return { activeIntents: [], rItems: [] };
+  }
+}
+
+// ─── Step 2.7: Structural Drift Detection (Stream 4) ────────────
+
+async function detectStructuralDrift(
+  bloomStates: BloomStateEntry[],
+): Promise<Array<{ bloomId: string; metric: string; changePointProbability: number }>> {
+  const drifts: Array<{ bloomId: string; metric: string; changePointProbability: number }> = [];
+  const DRIFT_THRESHOLD = 0.7;
+
+  const patternBlooms = bloomStates.filter((b) =>
+    !b.id.startsWith("M-") &&
+    !/^\d{4}-\d{2}-/.test(b.id) &&
+    b.status === "active",
+  );
+
+  const detector = new BOCPDDetector();
+
+  for (const bloom of patternBlooms) {
+    try {
+      const stateResult = await readTransaction(async (tx) => {
+        const res = await tx.run(
+          `MATCH (b:Bloom {id: $bloomId})
+           RETURN b.bocpdState_phiL AS phiLState, b.bocpdState_lambda2 AS lambda2State`,
+          { bloomId: bloom.id },
+        );
+        return res.records[0] ?? null;
+      });
+      if (!stateResult) continue;
+
+      // ΦL drift
+      if (bloom.phiL > 0) {
+        const phiLStateJson = stateResult.get("phiLState") as string | null;
+        const phiLState = phiLStateJson ? JSON.parse(phiLStateJson) : detector.initialState();
+        const { signal, nextState } = detector.update(bloom.phiL, phiLState);
+        if (signal.changePointProbability >= DRIFT_THRESHOLD) {
+          drifts.push({ bloomId: bloom.id, metric: "phiL", changePointProbability: signal.changePointProbability });
+        }
+        try { await updateMorpheme(bloom.id, { bocpdState_phiL: JSON.stringify(nextState) }); } catch { /* non-fatal */ }
+      }
+
+      // λ₂ drift
+      if (bloom.lambda2 > 0) {
+        const lambda2StateJson = stateResult.get("lambda2State") as string | null;
+        const lambda2State = lambda2StateJson ? JSON.parse(lambda2StateJson) : detector.initialState();
+        const { signal, nextState } = detector.update(bloom.lambda2, lambda2State);
+        if (signal.changePointProbability >= DRIFT_THRESHOLD) {
+          drifts.push({ bloomId: bloom.id, metric: "lambda2", changePointProbability: signal.changePointProbability });
+        }
+        try { await updateMorpheme(bloom.id, { bocpdState_lambda2: JSON.stringify(nextState) }); } catch { /* non-fatal */ }
+      }
+    } catch { /* non-fatal per-bloom */ }
+  }
+  return drifts;
+}
+
+// ─── CE Scope Detection (Stream 8) ──────────────────────────────
+
+async function findUnwiredBlooms(): Promise<string[]> {
+  try {
+    const result = await readTransaction(async (tx) => {
+      const res = await tx.run(
+        `MATCH (b:Bloom)
+         WHERE b.status IN ['active', 'planned']
+           AND NOT (b)-[:FLOWS_TO]->(:Resonator {id: 'resonator:compliance-evaluation'})
+           AND NOT b.id = 'constitutional-bloom'
+           AND NOT b.id STARTS WITH 'M-'
+           AND NOT b.id =~ '\\\\d{4}-\\\\d{2}-.*'
+         RETURN b.id AS id`,
+      );
+      return res.records.map((r) => r.get("id") as string);
+    });
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+// ─── Intent Persistence (Stream 5) ──────────────────────────────
+
+async function persistIntents(
+  intents: PlanningIntent[],
+): Promise<PersistedIntentStats> {
+  const stats: PersistedIntentStats = { total: 0, created: 0, updated: 0, resolved: 0, enriched: 0 };
+
+  // Read existing intent Seeds for idempotency
+  const existingIntents = await readTransaction(async (tx) => {
+    const res = await tx.run(
+      `MATCH (cb:Bloom {id: 'cognitive-bloom'})-[:CONTAINS]->(i:Seed {seedType: 'intent'})
+       WHERE i.status IN ['proposed', 'approved', 'active']
+       RETURN i.id AS id, coalesce(i.proposedCycleCount, 1) AS cycleCount`,
+    );
+    return new Map(res.records.map((r) => [r.get("id") as string, asNumber(r.get("cycleCount"))]));
+  });
+
+  // Build set of current intent IDs for resolved detection
+  const currentIntentIds = new Set(intents.map((i) => i.intentId));
+
+  // Mark existing intents that are no longer in the current set as resolved
+  for (const [existingId] of existingIntents) {
+    if (!currentIntentIds.has(existingId)) {
+      try {
+        await updateMorpheme(existingId, { status: "resolved" });
+        stats.resolved++;
+      } catch { /* non-fatal */ }
+    }
+  }
+
+  // Persist current intents
+  for (let i = 0; i < intents.length; i++) {
+    const intent = intents[i];
+    if ((i + 1) % 50 === 0) {
+      console.log(`  [Planning] Persisting intent ${i + 1}/${intents.length}...`);
+    }
+
+    try {
+      if (existingIntents.has(intent.intentId)) {
+        // Update existing — bump cycle count, update score
+        const oldCycleCount = existingIntents.get(intent.intentId) ?? 1;
+        await updateMorpheme(intent.intentId, {
+          priorityScore: intent.priorityScore,
+          proposedCycleCount: oldCycleCount + 1,
+          category: intent.category,
+          architectIntent: intent.architectIntent ?? "",
+        });
+        stats.updated++;
+      } else {
+        // Create new intent Seed
+        await instantiateMorpheme("seed", {
+          id: intent.intentId,
+          name: intent.description.slice(0, 200),
+          content: intent.description,
+          seedType: "intent",
+          status: "proposed",
+          category: intent.category,
+          priorityScore: intent.priorityScore,
+          architectIntent: intent.architectIntent ?? "",
+          proposedCycleCount: 1,
+        }, "cognitive-bloom");
+        stats.created++;
+
+        // Wire SCOPED_TO if target Bloom exists
+        if (intent.justification.phiLTarget) {
+          try {
+            const { createLine } = await import("../../graph/instantiation.js");
+            await createLine(intent.intentId, intent.justification.phiLTarget, "SCOPED_TO", {
+              label: "intent-scope",
+            });
+          } catch { /* target may not exist — non-fatal */ }
+        }
+
+        // Wire REFERENCES if constitutional definition
+        if (intent.targetDefId) {
+          try {
+            const { createLine } = await import("../../graph/instantiation.js");
+            await createLine(intent.intentId, intent.targetDefId, "REFERENCES", {
+              label: "intent-reference",
+            });
+          } catch { /* def may not exist — non-fatal */ }
+        }
+      }
+      stats.total++;
+    } catch {
+      // Individual persist failure is non-fatal
+    }
+  }
+
+  return stats;
 }
 
 // ─── Step 3: Read Milestone State ─────────────────────────────────
@@ -393,7 +695,9 @@ async function recordPlanningObservation(
                `${report.activeViolations.total} violations, ` +
                `${report.milestoneState.unblocked.length} unblocked milestones, ` +
                `${report.constitutionalGaps} constitutional gaps, ` +
-               `${report.intents.length} intents produced.`,
+               `${report.intents.length} intents produced. ` +
+               `Models: ${report.modelMemory.totalModels} total, ${report.modelMemory.infrastructureFailures.length} infra-failures. ` +
+               `Drifts: ${report.structuralDrifts.length}. Unwired: ${report.unwiredBlooms.length}.`,
       seedType: "observation",
       status: "recorded",
       bloomCount: report.ecosystemState.totalBlooms,
@@ -401,6 +705,11 @@ async function recordPlanningObservation(
       milestoneUnblockedCount: report.milestoneState.unblocked.length,
       constitutionalGapCount: report.constitutionalGaps,
       intentCount: report.intents.length,
+      modelCount: report.modelMemory.totalModels,
+      infraFailureCount: report.modelMemory.infrastructureFailures.length,
+      driftCount: report.structuralDrifts.length,
+      unwiredCount: report.unwiredBlooms.length,
+      persistedCount: report.persistenceStats?.total ?? 0,
       processingTimeMs: report.processingTimeMs,
     }, "grid:cognitive-observations");
   } catch {
@@ -427,13 +736,31 @@ function asNumber(val: unknown): number {
  * Run the Gnosis Planning Cycle — ecosystem-wide structural prioritisation.
  *
  * Surveys all active Blooms, reads violations and milestone state, computes
- * constitutional delta across pattern Blooms, and produces a ranked, categorised
- * list of intents with structural justification.
+ * constitutional delta across pattern Blooms, reads LLM memory and existing
+ * backlog, detects structural drift via BOCPD, and produces a ranked,
+ * categorised list of intents with structural justification.
  *
  * All ranking is deterministic — derived from graph properties, no LLM.
+ * LLM enrichment of top-N intents is optional (requires modelExecutor).
+ *
+ * @param modelExecutor - Optional: Thompson-routed model for intent enrichment
+ * @param enrichTopN - Number of top intents to enrich (default: 10)
  */
-export async function runPlanningCycle(): Promise<PlanningReport> {
+export async function runPlanningCycle(
+  modelExecutor?: ModelExecutor,
+  enrichTopN: number = 10,
+): Promise<PlanningReport> {
   const startTime = Date.now();
+
+  // Step 0: Read previous planning observation (cross-cycle delta)
+  console.log("  [Planning] Step 0: Reading previous planning cycle...");
+  const previousObs = await readPreviousPlanningObservation();
+  if (previousObs) {
+    console.log(`  [Planning] Previous cycle: ${previousObs.previousViolations} violations, ` +
+      `${previousObs.previousGaps} gaps, ${previousObs.previousIntents} intents`);
+  } else {
+    console.log("  [Planning] No previous cycle found (first run)");
+  }
 
   // Step 1: Ecosystem survey
   console.log("  [Planning] Step 1: Surveying ecosystem...");
@@ -447,12 +774,30 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
   console.log(`  [Planning] ${violations.total} active violations ` +
     `(${violations.bySeverity.critical} critical, ${violations.bySeverity.error} error, ${violations.bySeverity.warning} warning)`);
 
+  // Step 2.5: Read LLM memory state (Stream 2)
+  console.log("  [Planning] Step 2.5: Reading LLM memory state...");
+  const memoryState = await readLLMMemoryState();
+  console.log(`  [Planning] ${memoryState.contexts.length} LLM models, ` +
+    `${memoryState.infrastructureFailures.length} infra-failures, ` +
+    `${memoryState.driftingModels.length} drifting`);
+
+  // Step 2.7: Structural drift detection (Stream 4)
+  console.log("  [Planning] Step 2.7: Detecting structural drift (BOCPD)...");
+  const structuralDrifts = await detectStructuralDrift(ecosystem.bloomStates);
+  console.log(`  [Planning] ${structuralDrifts.length} structural drifts detected`);
+
   // Step 3: Read milestone state
   console.log("  [Planning] Step 3: Reading milestone state...");
   const milestones = await readMilestoneState();
   console.log(`  [Planning] ${milestones.total} milestones ` +
     `(${milestones.complete} complete, ${milestones.active} active, ${milestones.planned} planned, ` +
     `${milestones.unblocked.length} unblocked)`);
+
+  // Step 3.5: Read existing backlog (Stream 3b)
+  console.log("  [Planning] Step 3.5: Reading existing backlog...");
+  const backlog = await readExistingBacklog();
+  console.log(`  [Planning] Backlog: ${backlog.activeIntents.length} intent Seeds, ` +
+    `${backlog.rItems.length} R-items`);
 
   // Step 4: Constitutional delta across pattern Blooms
   console.log("  [Planning] Step 4: Computing constitutional delta...");
@@ -461,8 +806,8 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
   const constitutionalGaps = gaps.filter((g) => g.gapType === "constitutional").length;
   console.log(`  [Planning] ${gaps.length} gaps (${constitutionalGaps} constitutional)`);
 
-  // Step 5 + 6: Build intents from all sources, categorise, score
-  console.log("  [Planning] Step 5-6: Building and scoring intents...");
+  // Step 5: Build intents from all sources, categorise, score
+  console.log("  [Planning] Step 5: Building and scoring intents...");
   const intents: PlanningIntent[] = [];
 
   // Violations → intents
@@ -480,10 +825,102 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
     intents.push(milestoneToIntent(m));
   }
 
+  // Infrastructure failure models → poka-yoke intents (Stream 2)
+  for (const model of memoryState.infrastructureFailures) {
+    intents.push({
+      intentId: `plan:memory:infra-failure:${model}`,
+      category: "infrastructure",
+      description: `Model ${model}: infrastructure failures (likely stale API endpoint). ` +
+                   `Poka-yoke fix: updateStructuralMemoryAfterExecution() must classify failures — ` +
+                   `infrastructure errors (404/429/auth/timeout) must NOT update posteriors.`,
+      priorityScore: 0,
+      justification: {
+        gapType: "topological",
+        phiLTarget: model,
+        phiLCurrent: 0,
+      },
+    });
+  }
+
+  // Drifting models → investigation intents (Stream 2)
+  for (const model of memoryState.driftingModels) {
+    intents.push({
+      intentId: `plan:memory:drift:${model}`,
+      category: "infrastructure",
+      description: `BOCPD drift on ${model}: quality change point detected. Review recent outputs, consider recalibration.`,
+      priorityScore: 0,
+      justification: {
+        gapType: "topological",
+        phiLTarget: model,
+      },
+    });
+  }
+
+  // Structural drifts → governance intents (Stream 4)
+  for (const drift of structuralDrifts) {
+    intents.push({
+      intentId: `plan:drift:${drift.bloomId}:${drift.metric}`,
+      category: "governance",
+      description: `Structural drift on ${drift.bloomId} (${drift.metric}): change point P=${drift.changePointProbability.toFixed(2)}. Investigate cause.`,
+      priorityScore: 0,
+      justification: {
+        gapType: "topological",
+        phiLTarget: drift.bloomId,
+      },
+    });
+  }
+
+  // R-items → intents (Stream 3b)
+  for (const r of backlog.rItems) {
+    const category = categoriseMilestone(r.name);
+    intents.push({
+      intentId: `plan:backlog:${r.id}`,
+      category,
+      description: `Backlog ${r.id}: ${r.name} (status: ${r.status})`,
+      priorityScore: 0,
+      justification: {
+        gapType: "milestone",
+      },
+    });
+  }
+
+  // CE scope detection → governance intents (Stream 8)
+  const unwiredBlooms = await findUnwiredBlooms();
+  for (const bloomId of unwiredBlooms) {
+    intents.push({
+      intentId: `plan:unwired:${bloomId}`,
+      category: "governance",
+      description: `Bloom ${bloomId} has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.`,
+      priorityScore: 0,
+      justification: {
+        gapType: "topological",
+        phiLTarget: bloomId,
+      },
+    });
+  }
+
+  // Score all intents
+  for (const intent of intents) {
+    if (intent.priorityScore === 0) {
+      intent.priorityScore = scorePlanningIntent(intent);
+    }
+  }
+
+  // Backlog boost: active/approved intents get 1.5× score, stale proposed get 0.8×
+  const existingIntentStatuses = new Map(
+    backlog.activeIntents.map((i) => [i.id, i.status]),
+  );
+  for (const intent of intents) {
+    const existingStatus = existingIntentStatuses.get(intent.intentId);
+    if (existingStatus === "active" || existingStatus === "approved") {
+      intent.priorityScore = Math.round(intent.priorityScore * 1.5 * 100) / 100;
+    }
+  }
+
   // Sort by priority score (descending)
   intents.sort((a, b) => b.priorityScore - a.priorityScore);
 
-  // Step 7: Group by category
+  // Step 6: Group by category
   const byCategory: Record<IntentCategory, PlanningIntent[]> = {
     infrastructure: [],
     "pattern-topology": [],
@@ -495,6 +932,28 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
   }
 
   console.log(`  [Planning] ${intents.length} intents produced`);
+
+  // Step 7: Persist all scored intents as Seeds (Stream 5)
+  console.log("  [Planning] Step 7: Persisting intent Seeds...");
+  const persistenceStats = await persistIntents(intents);
+  console.log(`  [Planning] Persisted: ${persistenceStats.total} total ` +
+    `(${persistenceStats.created} new, ${persistenceStats.updated} updated, ${persistenceStats.resolved} resolved)`);
+
+  // Compute cross-cycle delta
+  const previousCycleDelta = previousObs ? {
+    previousTimestamp: previousObs.previousTimestamp,
+    violationDelta: violations.total - previousObs.previousViolations,
+    gapDelta: constitutionalGaps - previousObs.previousGaps,
+    intentDelta: intents.length - previousObs.previousIntents,
+  } : null;
+
+  // Backlog summary
+  const backlogCounts = {
+    activeIntents: backlog.activeIntents.filter((i) => i.status === "active").length,
+    approvedIntents: backlog.activeIntents.filter((i) => i.status === "approved").length,
+    proposedIntents: backlog.activeIntents.filter((i) => i.status === "proposed").length,
+    rItems: backlog.rItems.length,
+  };
 
   const processingTimeMs = Date.now() - startTime;
 
@@ -510,6 +969,19 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
     activeViolations: violations,
     milestoneState: milestones,
     constitutionalGaps,
+    modelMemory: {
+      totalModels: memoryState.contexts.length,
+      activeModels: memoryState.contexts.filter((c) => !c.isColdStart).length,
+      infrastructureFailures: memoryState.infrastructureFailures,
+      driftingModels: memoryState.driftingModels,
+      topPerformers: memoryState.topPerformers,
+      summary: memoryState.summary,
+    },
+    previousCycleDelta,
+    existingBacklog: backlogCounts,
+    structuralDrifts,
+    unwiredBlooms,
+    persistenceStats,
     intents,
     byCategory,
     processingTimeMs,
@@ -524,5 +996,5 @@ export async function runPlanningCycle(): Promise<PlanningReport> {
   return report;
 }
 
-// Re-export scoring for testing
-export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone };
+// Re-export for testing and CLI
+export { scorePlanningIntent, inferScopesForBloom, categoriseMilestone, readLLMMemoryState, readExistingBacklog, detectStructuralDrift, findUnwiredBlooms, persistIntents };

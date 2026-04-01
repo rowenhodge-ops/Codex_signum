@@ -310,7 +310,18 @@ async function main(): Promise<void> {
       console.log(SEP);
     }
 
-    const report = await runPlanningCycle();
+    // Create ModelExecutor for LLM enrichment (optional — non-fatal if unavailable)
+    let modelExecutor;
+    try {
+      const { createBootstrapModelExecutor } = await import("./bootstrap-executor.js");
+      const { checkVertexAuth } = await import("./vertex-auth.js");
+      const vertexAvailable = await checkVertexAuth();
+      modelExecutor = createBootstrapModelExecutor({ vertexAvailable });
+    } catch {
+      // ModelExecutor unavailable — planning runs without enrichment
+    }
+
+    const report = await runPlanningCycle(modelExecutor);
 
     // Apply filters
     let filteredIntents = report.intents;
@@ -342,6 +353,26 @@ async function main(): Promise<void> {
         `(${report.activeViolations.bySeverity.critical} critical, ` +
         `${report.activeViolations.bySeverity.error} error, ` +
         `${report.activeViolations.bySeverity.warning} warning)`);
+      console.log(`  Models: ${report.modelMemory.activeModels} active, ` +
+        `${report.modelMemory.infrastructureFailures.length} infra-failures, ` +
+        `${report.modelMemory.driftingModels.length} drifting (BOCPD)`);
+      if (report.modelMemory.topPerformers.length > 0) {
+        console.log(`  Top performers: ${report.modelMemory.topPerformers.join(", ")}`);
+      }
+      if (report.previousCycleDelta) {
+        const d = report.previousCycleDelta;
+        const fmt = (n: number) => n > 0 ? `+${n}` : `${n}`;
+        console.log(`  Previous cycle (${d.previousTimestamp}): ` +
+          `violations ${fmt(d.violationDelta)}, gaps ${fmt(d.gapDelta)}, intents ${fmt(d.intentDelta)}`);
+      }
+      console.log(`  Backlog: ${report.existingBacklog.activeIntents} active, ` +
+        `${report.existingBacklog.proposedIntents} proposed intents, ` +
+        `${report.existingBacklog.rItems} R-items`);
+      console.log(`  Structural drifts: ${report.structuralDrifts.length}` +
+        (report.structuralDrifts.length > 0
+          ? ` (${report.structuralDrifts.map(d => `${d.bloomId}: ${d.metric} P=${d.changePointProbability.toFixed(2)}`).join(", ")})`
+          : ""));
+      console.log(`  Unwired Blooms: ${report.unwiredBlooms.length}`);
       console.log(`  Milestones: ${report.milestoneState.complete}/${report.milestoneState.total} complete, ` +
         `${report.milestoneState.unblocked.length} unblocked`);
       console.log(`  Constitutional gaps: ${report.constitutionalGaps}`);
@@ -389,6 +420,12 @@ async function main(): Promise<void> {
         const filled = Math.round(pct / 5);
         const bar = "\u2588".repeat(filled) + "\u2591".repeat(20 - filled);
         console.log(`  ${cat.padEnd(22)} (${count}): ${bar} ${pct}%`);
+      }
+
+      if (report.persistenceStats) {
+        const ps = report.persistenceStats;
+        console.log(`\n  Persisted: ${ps.total} intent Seeds ` +
+          `(${ps.created} new, ${ps.updated} updated, ${ps.resolved} resolved)`);
       }
 
       console.log(`\n  Full report: ${outputFile}`);

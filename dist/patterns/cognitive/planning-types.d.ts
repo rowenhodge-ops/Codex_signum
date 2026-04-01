@@ -73,6 +73,19 @@ export interface MilestoneEntry {
     childrenTotal: number;
     blockedBy: string[];
 }
+/** Persistence statistics for intent Seeds */
+export interface PersistedIntentStats {
+    /** Total intents persisted */
+    total: number;
+    /** Newly created intent Seeds */
+    created: number;
+    /** Updated existing intent Seeds (re-plan) */
+    updated: number;
+    /** Intent Seeds marked resolved (gap no longer exists) */
+    resolved: number;
+    /** Intents enriched by LLM (top-N) */
+    enriched: number;
+}
 /** Full planning report */
 export interface PlanningReport {
     /** When this report was generated */
@@ -108,6 +121,39 @@ export interface PlanningReport {
     };
     /** Constitutional gaps from delta computation */
     constitutionalGaps: number;
+    /** LLM model memory state (from structural posteriors) */
+    modelMemory: {
+        totalModels: number;
+        activeModels: number;
+        infrastructureFailures: string[];
+        driftingModels: string[];
+        topPerformers: string[];
+        summary: string;
+    };
+    /** Cross-cycle delta (null on first run) */
+    previousCycleDelta: {
+        previousTimestamp: string;
+        violationDelta: number;
+        gapDelta: number;
+        intentDelta: number;
+    } | null;
+    /** Existing backlog summary */
+    existingBacklog: {
+        activeIntents: number;
+        approvedIntents: number;
+        proposedIntents: number;
+        rItems: number;
+    };
+    /** BOCPD structural drift detections */
+    structuralDrifts: Array<{
+        bloomId: string;
+        metric: string;
+        changePointProbability: number;
+    }>;
+    /** Blooms without FLOWS_TO to Compliance Evaluation */
+    unwiredBlooms: string[];
+    /** Intent persistence statistics (null if persistence not run) */
+    persistenceStats: PersistedIntentStats | null;
     /** Ranked intents across all categories */
     intents: PlanningIntent[];
     /** Intents grouped by category (same data, different view) */
