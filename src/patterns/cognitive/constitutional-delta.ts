@@ -100,17 +100,18 @@ export function computeConstitutionalDelta(
     }
   }
 
-  // 3. MISSING LINES -- children with zero FLOWS_TO to any ecosystem Resonator
-  // Gap ID based on child ID — a specific stage being isolated is a fact about that stage.
+  // 3. MISSING LINES between stage Blooms
+  // G1: Connection requires intent — siblings are NOT automatically connected.
+  // Only Bloom children (pipeline stages) have a structural expectation of
+  // inter-sibling FLOWS_TO for data flow. Seeds may be Dormant (valid per spec).
+  // Resonators, Grids, and Helixes connect cross-boundary by design (G3, G4).
   const connectedChildIds = new Set<string>();
   for (const line of survey.interChildLines) {
     connectedChildIds.add(line.sourceId);
     connectedChildIds.add(line.targetId);
   }
   for (const child of survey.children) {
-    // Skip definition Seeds — constitutional reference data, not pipeline stages
-    if (child.labels.includes("Seed") &&
-        (child.id.startsWith("def:") || child.id.startsWith("config:"))) {
+    if (!child.labels.includes("Bloom")) {
       continue;
     }
     if (!connectedChildIds.has(child.id) && survey.children.length > 1) {
