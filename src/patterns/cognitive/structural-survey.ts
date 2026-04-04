@@ -152,6 +152,12 @@ export async function surveyBloomTopology(bloomId: string): Promise<BloomSurvey>
        WHERE def.seedType = 'bloom-definition'
          AND instance.status IN ['active', 'planned', 'complete', 'created']
        RETURN DISTINCT instance.id AS fromId, instance.name AS fromName,
+              def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType
+       UNION
+       MATCH (instance:Resonator)-[:INSTANTIATES]->(def:Seed)
+       WHERE def.seedType = 'transformation-definition'
+         AND instance.status IN ['active', 'planned', 'complete', 'created']
+       RETURN DISTINCT instance.id AS fromId, instance.name AS fromName,
               def.id AS toDefId, def.name AS defName, def.seedType AS defSeedType`,
       { bloomId },
     );
