@@ -127,6 +127,7 @@ async function parseAnthropicStream(
 async function callAnthropicNonStreaming(
   apiModelString: string,
   requestBody: Record<string, unknown>,
+  systemPrompt?: string,
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
@@ -134,6 +135,9 @@ async function callAnthropicNonStreaming(
   // Remove stream flag for fallback
   const body = { ...requestBody, stream: false };
   delete body.stream;
+  if (systemPrompt) {
+    body.system = systemPrompt;
+  }
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -166,6 +170,7 @@ async function callAnthropic(
   thinkingMode: string,
   thinkingParameter: string | undefined,
   prompt: string,
+  systemPrompt?: string,
 ): Promise<ProviderCallResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
@@ -178,6 +183,10 @@ async function callAnthropic(
     messages,
     stream: true,
   };
+
+  if (systemPrompt) {
+    requestBody.system = systemPrompt;
+  }
 
   // Adaptive thinking (4.6 models) — no budget_tokens, just type: "adaptive"
   if (thinkingMode === "adaptive") {
@@ -228,6 +237,7 @@ async function callAnthropic(
     const text = await callAnthropicNonStreaming(
       apiModelString,
       requestBody,
+      systemPrompt,
     );
     return { text, durationMs: Date.now() - start };
   }
@@ -300,14 +310,18 @@ async function parseGoogleStream(
 async function callGoogle(
   apiModelString: string,
   prompt: string,
+  systemPrompt?: string,
 ): Promise<ProviderCallResult> {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_API_KEY not set");
 
-  const requestBody = {
+  const requestBody: Record<string, unknown> = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { maxOutputTokens: getMaxOutputTokens(apiModelString) },
   };
+  if (systemPrompt) {
+    requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+  }
 
   // Try streaming first
   const streamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModelString}:streamGenerateContent?alt=sse&key=${apiKey}`;
@@ -367,6 +381,7 @@ async function callGoogle(
 async function callVertexGemini(
   apiModelString: string,
   prompt: string,
+  systemPrompt?: string,
 ): Promise<ProviderCallResult> {
   const token = await getVertexToken();
   if (!token) {
@@ -375,10 +390,13 @@ async function callVertexGemini(
     throw err;
   }
 
-  const requestBody = {
+  const requestBody: Record<string, unknown> = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: { maxOutputTokens: getMaxOutputTokens(apiModelString) },
   };
+  if (systemPrompt) {
+    requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+  }
 
   // Streaming: streamGenerateContent with alt=sse for single-line JSON events
   const streamUrl = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/google/models/${apiModelString}:streamGenerateContent?alt=sse`;
@@ -448,6 +466,7 @@ async function callVertexGemini(
 async function callVertexMistral(
   apiModelString: string,
   prompt: string,
+  systemPrompt?: string,
 ): Promise<ProviderCallResult> {
   const token = await getVertexToken();
   if (!token) {
@@ -458,9 +477,15 @@ async function callVertexMistral(
 
   const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/mistralai/models/${apiModelString}:rawPredict`;
 
+  const messages: Array<{ role: string; content: string }> = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
+
   const requestBody = {
     model: apiModelString,
-    messages: [{ role: "user", content: prompt }],
+    messages,
     max_tokens: getMaxOutputTokens(apiModelString),
   };
 
@@ -492,6 +517,7 @@ async function callVertexMistral(
 async function callVertexOpenAI(
   apiModelString: string,
   prompt: string,
+  systemPrompt?: string,
 ): Promise<ProviderCallResult> {
   const token = await getVertexToken();
   if (!token) {
@@ -502,9 +528,15 @@ async function callVertexOpenAI(
 
   const url = `https://${VERTEX_REGION}-aiplatform.googleapis.com/v1/projects/${getGcpProject()}/locations/${VERTEX_REGION}/publishers/openai/models/${apiModelString}:rawPredict`;
 
+  const messages: Array<{ role: string; content: string }> = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
+
   const requestBody = {
     model: apiModelString,
-    messages: [{ role: "user", content: prompt }],
+    messages,
     max_tokens: getMaxOutputTokens(apiModelString),
   };
 
@@ -693,6 +725,7 @@ export interface DirectCallOptions {
   apiModelString: string;
   thinkingMode: string;
   thinkingParameter?: string;
+  systemPrompt?: string;
 }
 
 /**
@@ -712,18 +745,19 @@ export async function callModelDirect(
       options.thinkingMode,
       options.thinkingParameter,
       prompt,
+      options.systemPrompt,
     );
   } else if (providerClass === "vertex") {
     if (!vertexAvailable) {
       throw new Error("[INFRASTRUCTURE] Vertex AI credentials not available");
     }
     if (isVertexMistralModel(options.apiModelString)) {
-      return callVertexMistral(options.apiModelString, prompt);
+      return callVertexMistral(options.apiModelString, prompt, options.systemPrompt);
     } else {
-      return callVertexGemini(options.apiModelString, prompt);
+      return callVertexGemini(options.apiModelString, prompt, options.systemPrompt);
     }
   } else if (providerClass === "google") {
-    return callGoogle(options.apiModelString, prompt);
+    return callGoogle(options.apiModelString, prompt, options.systemPrompt);
   }
 
   throw new Error(`Unsupported provider: ${options.provider} (classified as ${providerClass})`);
@@ -819,6 +853,8 @@ export function createBootstrapModelExecutor(
 
         let result: ProviderCallResult;
 
+        const sp = context?.systemPrompt;
+
         try {
           if (providerClass === "anthropic") {
             result = await callAnthropic(
@@ -826,17 +862,18 @@ export function createBootstrapModelExecutor(
               selection.thinkingMode,
               selection.thinkingParameter,
               prompt,
+              sp,
             );
           } else if (providerClass === "vertex") {
             if (isVertexMistralModel(selection.apiModelString)) {
-              result = await callVertexMistral(selection.apiModelString, prompt);
+              result = await callVertexMistral(selection.apiModelString, prompt, sp);
             } else if (isVertexOpenAIModel(selection.apiModelString)) {
-              result = await callVertexOpenAI(selection.apiModelString, prompt);
+              result = await callVertexOpenAI(selection.apiModelString, prompt, sp);
             } else {
-              result = await callVertexGemini(selection.apiModelString, prompt);
+              result = await callVertexGemini(selection.apiModelString, prompt, sp);
             }
           } else if (providerClass === "google") {
-            result = await callGoogle(selection.apiModelString, prompt);
+            result = await callGoogle(selection.apiModelString, prompt, sp);
           } else {
             throw new Error(`Unsupported provider ${selection.provider}`);
           }

@@ -180,6 +180,8 @@ export {
   scorePlanningIntent,
   inferScopesForBloom,
   categoriseMilestone,
+  buildConstitutionalContext,
+  buildIntentGroundingContext,
 } from "./cognitive/index.js";
 export type {
   BloomSurvey,

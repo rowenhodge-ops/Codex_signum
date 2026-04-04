@@ -20,7 +20,7 @@ export { surveyBloomTopology, queryTransformationDefinitions, computeConstitutio
 // Compliance Evaluation faculty
 evaluate, readTargetNode, sweep, checkGrammar, checkAxioms, checkAntiPatterns, 
 // Planning faculty
-runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone, } from "./cognitive/index.js";
+runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone, buildConstitutionalContext, buildIntentGroundingContext, } from "./cognitive/index.js";
 // Retrospective — deterministic graph queries, no LLM
 export { runRetrospective, deriveConvergenceStatus, worstBand, } from "./retrospective/index.js";
 //# sourceMappingURL=index.js.map

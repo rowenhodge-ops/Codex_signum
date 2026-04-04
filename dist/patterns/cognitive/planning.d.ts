@@ -30,6 +30,19 @@ declare function detectStructuralDrift(bloomStates: BloomStateEntry[]): Promise<
 }>>;
 declare function findUnwiredBlooms(): Promise<string[]>;
 declare function persistIntents(intents: PlanningIntent[]): Promise<PersistedIntentStats>;
+/**
+ * Query the Constitutional Bloom for organisational grounding (system prompt).
+ * Called once per planning cycle, result cached. Pure graph query — no LLM.
+ */
+export declare function buildConstitutionalContext(): Promise<string>;
+/**
+ * Build per-intent grounding context from graph queries.
+ * Returns the context string and the list of file paths provided (for hallucination detection).
+ */
+export declare function buildIntentGroundingContext(intent: PlanningIntent, bloomMap: Map<string, BloomStateEntry>): Promise<{
+    context: string;
+    providedFiles: string[];
+}>;
 declare function enrichTopIntents(intents: PlanningIntent[], bloomStates: BloomStateEntry[], modelExecutor: ModelExecutor, topN: number): Promise<number>;
 declare function ensureGnosisToArchitectWiring(): Promise<boolean>;
 /**

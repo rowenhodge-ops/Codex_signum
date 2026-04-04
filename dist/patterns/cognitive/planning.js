@@ -22,6 +22,8 @@ import { queryTransformationDefinitions, computeConstitutionalDelta } from "./co
 import { instantiateMorpheme, updateMorpheme } from "../../graph/instantiation.js";
 import { getMemoryContextForBloom, formatMemoryContextForSurvey } from "../../graph/queries/memory-context.js";
 import { BOCPDDetector } from "../../signals/BOCPDDetector.js";
+import { detectUnsourcedReferences } from "../architect/hallucination-detection.js";
+import { extractPathReferences } from "../architect/canonical-references.js";
 // ─── Step 1: Ecosystem Survey ─────────────────────────────────────
 async function surveyEcosystem() {
     return readTransaction(async (tx) => {
@@ -342,46 +344,395 @@ async function persistIntents(intents) {
     }
     return stats;
 }
+// ─── Constitutional Context (Stream A) ──────────────────────────
+/** Repo structure constant — canonical file paths the LLM may reference */
+const REPO_STRUCTURE_CONTEXT = `REPO STRUCTURE (TypeScript — NOT Python, NOT YAML, NOT Java):
+  src/graph/instantiation.ts — instantiateMorpheme(), updateMorpheme(), createLine(), stampBloomComplete(), retireDefinition()
+  src/graph/client.ts — Neo4j driver, readTransaction(), writeTransaction()
+  src/graph/queries/ — Neo4j query functions
+  src/patterns/architect/ — Architect pipeline (survey, decompose, classify, sequence, gate, dispatch, adapt)
+  src/patterns/cognitive/ — Gnosis (planning, survey, delta, evaluation, sweep)
+  src/patterns/thompson-router/ — Thompson Sampling model selection
+  src/patterns/dev-agent/ — DevAgent pipeline (scope, execute, review, validate)
+  src/patterns/assayer/ — Structural integrity verification
+  src/computation/ — State dimension calculators (phi-l, psi-h, epsilon-r, dampening)
+  src/computation/signals/ — 7-stage signal conditioning pipeline
+  src/signals/ — BOCPD, signal conditioning
+  src/constitutional/ — Governance layer
+  src/memory/ — Four-stratum memory operations
+  scripts/architect.ts — CLI: Architect pipeline entry
+  scripts/cognitive.ts — CLI: Gnosis entry (survey, evaluate, sweep, plan, execute)
+  scripts/dev-agent.ts — CLI: DevAgent entry
+  scripts/bootstrap-executor.ts — ModelExecutor implementation (raw fetch)`;
+/** Parse known file paths from REPO_STRUCTURE_CONTEXT */
+const REPO_STRUCTURE_FILES = (() => {
+    const paths = [];
+    const lines = REPO_STRUCTURE_CONTEXT.split("\n");
+    for (const line of lines) {
+        const match = line.match(/^\s+(src\/[^\s—]+|scripts\/[^\s—]+)/);
+        if (match)
+            paths.push(match[1]);
+    }
+    return paths;
+})();
+/**
+ * Query the Constitutional Bloom for organisational grounding (system prompt).
+ * Called once per planning cycle, result cached. Pure graph query — no LLM.
+ */
+export async function buildConstitutionalContext() {
+    // Step 1: Diagnostic discovery — find actual seedType values
+    const discovery = await readTransaction(async (tx) => {
+        const res = await tx.run(`MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS]->(s:Seed)
+       RETURN DISTINCT s.seedType AS seedType, count(s) AS count,
+              collect(s.id)[0..3] AS sampleIds
+       ORDER BY count DESC`);
+        return res.records.map((r) => ({
+            seedType: r.get("seedType"),
+            count: asNumber(r.get("count")),
+            sampleIds: r.get("sampleIds"),
+        }));
+    });
+    console.log(`  [Planning] Constitutional discovery: ${discovery.length} seedTypes found`);
+    for (const d of discovery) {
+        console.log(`    ${d.seedType}: ${d.count} (samples: ${d.sampleIds.join(", ")})`);
+    }
+    // Step 2: Extraction — query by seedType, not by ID prefix
+    const seedTypeSet = new Set(discovery.map((d) => d.seedType));
+    const constitutionalData = await readTransaction(async (tx) => {
+        const res = await tx.run(`MATCH (cb:Bloom {id: 'constitutional-bloom'})-[:CONTAINS]->(s:Seed)
+       WHERE s.status = 'active'
+       RETURN s.id AS id, s.name AS name, s.seedType AS seedType,
+              left(coalesce(s.content, ''), 300) AS contentSnippet`);
+        return res.records.map((r) => ({
+            id: r.get("id"),
+            name: r.get("name") ?? "",
+            seedType: r.get("seedType") ?? "",
+            contentSnippet: r.get("contentSnippet") ?? "",
+        }));
+    });
+    // Categorise by seedType
+    const axioms = [];
+    const grammarRules = [];
+    const antiPatterns = [];
+    const morphemeDefs = [];
+    const interactionRules = [];
+    for (const s of constitutionalData) {
+        const st = s.seedType.toLowerCase();
+        if (st === "axiom" || st === "axiom-definition") {
+            axioms.push({ id: s.id, name: s.name });
+        }
+        else if (st === "grammar-rule" || st === "grammar-rule-definition") {
+            const firstSentence = s.contentSnippet.split(/[.!]\s/)[0] ?? "";
+            grammarRules.push({ id: s.id, name: s.name, summary: firstSentence.slice(0, 150) });
+        }
+        else if (st === "anti-pattern" || st === "anti-pattern-definition") {
+            const firstSentence = s.contentSnippet.split(/[.!]\s/)[0] ?? "";
+            antiPatterns.push({ id: s.id, name: s.name, summary: firstSentence.slice(0, 100) });
+        }
+        else if (st === "transformation-definition" || st === "bloom-definition" ||
+            st === "grid-definition" || st === "helix-definition") {
+            const category = st.replace("-definition", "");
+            morphemeDefs.push({ id: s.id, name: s.name, category });
+        }
+        else if (st === "interaction-rule" || st === "morpheme-interaction-rule" || st === "containment-rule") {
+            interactionRules.push({ id: s.id, name: s.name, content: s.contentSnippet });
+        }
+    }
+    // Build compact output
+    const sections = [];
+    sections.push(`You are reasoning about Codex Signum, a graph-native AI governance system built in TypeScript on Neo4j. State is structural — there is no separate monitoring layer. The graph IS the observability.`);
+    // Axioms
+    if (axioms.length > 0) {
+        const lines = axioms.map((a) => `  ${a.id}: ${a.name}`);
+        sections.push(`AXIOMS (${axioms.length} constraints — all graph writes must satisfy these):\n${lines.join("\n")}`);
+    }
+    // Grammar rules
+    if (grammarRules.length > 0) {
+        const lines = grammarRules.map((g) => `  ${g.id}: ${g.name}${g.summary ? ` — ${g.summary}` : ""}`);
+        sections.push(`GRAMMAR RULES (composition constraints):\n${lines.join("\n")}`);
+    }
+    // Anti-patterns
+    if (antiPatterns.length > 0) {
+        const lines = antiPatterns.map((a) => `  ${a.name}: ${a.summary}`);
+        sections.push(`ANTI-PATTERNS (if your response would create any of these, stop):\n${lines.join("\n")}`);
+    }
+    // Morpheme containment rules (from graph if available, else hardcoded from v5.0)
+    if (interactionRules.length > 0) {
+        const lines = interactionRules.map((r) => `  ${r.name}: ${r.content}`);
+        sections.push(`MORPHEME CONTAINMENT (what may contain what):\n${lines.join("\n")}`);
+    }
+    else {
+        // Fallback: encode from v5.0 §Morpheme Interaction Rules
+        sections.push(`MORPHEME CONTAINMENT (what may contain what):
+  Bloom: may contain Seeds, Lines, Resonators, Grids, Helixes, other Blooms
+  Grid: may contain Seeds, Lines only — NO computation inside
+  Resonator: does NOT contain — transforms through input/output Lines
+  Helix: does NOT contain — spans across elements it governs
+  Seed: does NOT contain — atomic unit
+Note: any morpheme may BE CONTAINED by a Bloom. The rules above govern what each type may contain as children.`);
+    }
+    // Morpheme type definitions
+    if (morphemeDefs.length > 0) {
+        const byCategory = new Map();
+        for (const d of morphemeDefs) {
+            const cat = d.category;
+            if (!byCategory.has(cat))
+                byCategory.set(cat, []);
+            byCategory.get(cat).push(d.name || d.id);
+        }
+        const lines = [];
+        for (const [cat, names] of byCategory) {
+            lines.push(`  ${cat}s (${names.length}): ${names.join(", ")}`);
+        }
+        sections.push(`VALID MORPHEME TYPES (${morphemeDefs.length} active definitions):\n${lines.join("\n")}`);
+    }
+    // Repo structure
+    sections.push(REPO_STRUCTURE_CONTEXT);
+    sections.push(`When enriching intents, reference ONLY files and node IDs from the grounding context provided in the user message. Do not invent file paths, function names, or graph node IDs.`);
+    return sections.join("\n\n");
+}
+// ─── Intent Grounding Context (Stream B) ────────────────────────
+/**
+ * Build per-intent grounding context from graph queries.
+ * Returns the context string and the list of file paths provided (for hallucination detection).
+ */
+export async function buildIntentGroundingContext(intent, bloomMap) {
+    const sections = [];
+    const allProvidedFiles = new Set(REPO_STRUCTURE_FILES);
+    // Path 1: Single definition reference
+    if (intent.targetDefId) {
+        try {
+            const defData = await readTransaction(async (tx) => {
+                const res = await tx.run(`MATCH (s:Seed {id: $defId})
+           RETURN s.content AS content, s.name AS name, s.seedType AS seedType`, { defId: intent.targetDefId });
+                if (res.records.length === 0)
+                    return null;
+                const r = res.records[0];
+                return {
+                    content: r.get("content") ?? "",
+                    name: r.get("name") ?? "",
+                    seedType: r.get("seedType") ?? "",
+                };
+            });
+            if (defData?.content) {
+                sections.push(`=== GOVERNING CONSTRAINT ===\nDefinition: ${intent.targetDefId}\nName: ${defData.name}\nContent: ${defData.content}`);
+            }
+            // Query existing instances via INSTANTIATES
+            const instances = await readTransaction(async (tx) => {
+                const res = await tx.run(`MATCH (inst)-[:INSTANTIATES]->(def:Seed {id: $defId})
+           RETURN inst.id AS id, inst.status AS status, labels(inst) AS labels`, { defId: intent.targetDefId });
+                return res.records.map((r) => ({
+                    id: r.get("id"),
+                    status: r.get("status") ?? "unknown",
+                    labels: r.get("labels"),
+                }));
+            });
+            if (instances.length > 0) {
+                const instanceLines = instances.map((i) => `  ${i.id} (${i.labels.join(":")}, ${i.status})`);
+                sections.push(`=== EXISTING INSTANCES ===\nDefinition ${intent.targetDefId} has ${instances.length} instance(s) — do NOT recreate:\n${instanceLines.join("\n")}`);
+            }
+            else {
+                sections.push(`=== EXISTING INSTANCES ===\nDefinition ${intent.targetDefId} has NO instances — this needs creation.`);
+            }
+        }
+        catch { /* non-fatal */ }
+    }
+    // Path 2: Cluster intent — multiple definitions
+    if (intent.intentId.startsWith("plan:cluster:") && intent.architectIntent) {
+        try {
+            const defIdPattern = /def:[a-z-]+:[a-z-]+/g;
+            const defIds = [...new Set(intent.architectIntent.match(defIdPattern) ?? [])];
+            if (defIds.length > 0) {
+                const truncateContent = defIds.length > 3;
+                const contentLimit = truncateContent ? 300 : 2000;
+                const defsData = await readTransaction(async (tx) => {
+                    const res = await tx.run(`UNWIND $defIds AS defId
+             MATCH (s:Seed {id: defId})
+             OPTIONAL MATCH (inst)-[:INSTANTIATES]->(s)
+             RETURN s.id AS id, s.name AS name,
+                    left(coalesce(s.content, ''), $limit) AS content,
+                    collect(DISTINCT inst.id) AS instanceIds`, { defIds, limit: contentLimit });
+                    return res.records.map((r) => ({
+                        id: r.get("id"),
+                        name: r.get("name") ?? "",
+                        content: r.get("content") ?? "",
+                        instanceIds: r.get("instanceIds").filter(Boolean),
+                    }));
+                });
+                const withInstances = defsData.filter((d) => d.instanceIds.length > 0);
+                const withoutInstances = defsData.filter((d) => d.instanceIds.length === 0);
+                const lines = ["=== GOVERNING CONSTRAINTS (cluster) ==="];
+                if (withInstances.length > 0) {
+                    lines.push("Definitions WITH existing instances (do NOT recreate):");
+                    for (const d of withInstances) {
+                        lines.push(`  ${d.id} (${d.name}) → ${d.instanceIds.join(", ")}`);
+                    }
+                }
+                if (withoutInstances.length > 0) {
+                    lines.push("Definitions WITHOUT instances (these need creation):");
+                    for (const d of withoutInstances) {
+                        lines.push(`  ${d.id} (${d.name}): ${d.content.slice(0, 150)}`);
+                    }
+                }
+                sections.push(lines.join("\n"));
+            }
+        }
+        catch { /* non-fatal */ }
+    }
+    // Path 3: Target Bloom topology
+    if (intent.justification.phiLTarget) {
+        const bloomEntry = bloomMap.get(intent.justification.phiLTarget);
+        if (bloomEntry) {
+            try {
+                const children = await readTransaction(async (tx) => {
+                    const res = await tx.run(`MATCH (b:Bloom {id: $bloomId})-[:CONTAINS]->(child)
+             RETURN child.id AS id, child.name AS name, labels(child) AS labels,
+                    child.status AS status, child.seedType AS seedType
+             ORDER BY child.id
+             LIMIT 30`, { bloomId: intent.justification.phiLTarget });
+                    return res.records.map((r) => ({
+                        id: r.get("id"),
+                        name: r.get("name") ?? "",
+                        labels: r.get("labels"),
+                        status: r.get("status") ?? "unknown",
+                        seedType: r.get("seedType") ?? "",
+                    }));
+                });
+                // Filter FLOWS_TO to those involving the intent's definitions or instances
+                const relevantIds = new Set();
+                if (intent.targetDefId)
+                    relevantIds.add(intent.targetDefId);
+                for (const child of children)
+                    relevantIds.add(child.id);
+                const flowsTo = await readTransaction(async (tx) => {
+                    const res = await tx.run(`MATCH (b:Bloom {id: $bloomId})-[:CONTAINS]->(child)-[r:FLOWS_TO]->(target)
+             WHERE child.id IN $relevantIds OR target.id IN $relevantIds
+             RETURN child.id AS from, target.id AS to, type(r) AS relType
+             LIMIT 20`, { bloomId: intent.justification.phiLTarget, relevantIds: [...relevantIds] });
+                    return res.records.map((r) => ({
+                        from: r.get("from"),
+                        to: r.get("to"),
+                    }));
+                });
+                const childLines = children.map((c) => {
+                    const type = c.labels.filter((l) => l !== "Seed" && l !== "Bloom").join(":") || c.labels[0];
+                    return `  ${c.id} (${type}${c.seedType ? `:${c.seedType}` : ""}, ${c.status})`;
+                });
+                const topoLines = [
+                    `=== TARGET TOPOLOGY ===`,
+                    `Bloom: ${bloomEntry.id} (${bloomEntry.name}, ΦL=${bloomEntry.phiL}, λ₂=${bloomEntry.lambda2}, ΨH=${bloomEntry.psiH}, children=${bloomEntry.childCount})`,
+                ];
+                if (childLines.length > 0) {
+                    topoLines.push(`Children:\n${childLines.join("\n")}`);
+                }
+                if (flowsTo.length > 0) {
+                    const flowLines = flowsTo.map((f) => `  ${f.from} → ${f.to}`);
+                    topoLines.push(`Relevant FLOWS_TO:\n${flowLines.join("\n")}`);
+                }
+                sections.push(topoLines.join("\n"));
+            }
+            catch { /* non-fatal */ }
+        }
+    }
+    // Path 4: Violation-sourced intent
+    if (intent.violationId) {
+        try {
+            const violationData = await readTransaction(async (tx) => {
+                const res = await tx.run(`MATCH (v:Seed {id: $violationId})
+           RETURN v.checkId AS checkId, v.targetNodeId AS targetNodeId,
+                  v.evidence AS evidence, v.severity AS severity`, { violationId: intent.violationId });
+                if (res.records.length === 0)
+                    return null;
+                const r = res.records[0];
+                return {
+                    checkId: r.get("checkId") ?? "",
+                    targetNodeId: r.get("targetNodeId") ?? "",
+                    evidence: r.get("evidence") ?? "",
+                    severity: r.get("severity") ?? "",
+                };
+            });
+            if (violationData) {
+                sections.push(`=== VIOLATION CONTEXT ===\nCheck: ${violationData.checkId}\nTarget: ${violationData.targetNodeId}\nSeverity: ${violationData.severity}\nEvidence: ${violationData.evidence}`);
+            }
+        }
+        catch { /* non-fatal */ }
+    }
+    // Fallback: minimal context
+    if (sections.length === 0) {
+        sections.push(`Intent: ${intent.description}\nCategory: ${intent.category}`);
+    }
+    const context = sections.join("\n\n");
+    // Build providedFiles from repo structure + extracted paths from grounding
+    const groundingPaths = extractPathReferences(context);
+    for (const p of groundingPaths)
+        allProvidedFiles.add(p);
+    return { context, providedFiles: [...allProvidedFiles] };
+}
 // ─── LLM Enrichment (Stream 6) ──────────────────────────────────
 async function enrichTopIntents(intents, bloomStates, modelExecutor, topN) {
     const bloomMap = new Map(bloomStates.map((b) => [b.id, b]));
     let enriched = 0;
+    // Build constitutional system prompt once for the entire enrichment batch
+    let constitutionalSystemPrompt;
+    try {
+        constitutionalSystemPrompt = await buildConstitutionalContext();
+        console.log(`  [Planning] Constitutional context built (${constitutionalSystemPrompt.length} chars)`);
+    }
+    catch (err) {
+        console.warn(`  [Planning] Failed to build constitutional context, enrichment will proceed without system prompt: ${err}`);
+        constitutionalSystemPrompt = "";
+    }
     const toEnrich = intents.slice(0, topN);
     for (let i = 0; i < toEnrich.length; i++) {
         const intent = toEnrich[i];
-        const bloom = intent.justification.phiLTarget
-            ? bloomMap.get(intent.justification.phiLTarget)
-            : undefined;
         try {
-            const prompt = `You are enriching a structural governance intent for the Codex Signum system.
+            // Build per-intent grounding context from graph
+            const { context: groundingContext, providedFiles } = await buildIntentGroundingContext(intent, bloomMap);
+            const prompt = `${groundingContext}
+
+TASK: Produce a 2-3 paragraph architectural enrichment for this intent.
 
 INTENT: ${intent.description}
 CATEGORY: ${intent.category}
 SCORE: ${intent.priorityScore}
-${bloom ? `TARGET BLOOM: ${bloom.id} (λ₂=${bloom.lambda2}, ΨH=${bloom.psiH}, ΦL=${bloom.phiL}, children=${bloom.childCount})` : ""}
-${intent.targetDefId ? `CONSTITUTIONAL DEFINITION: ${intent.targetDefId}` : ""}
 
-CRITICAL FRAMING — apply these principles:
-- State is structural. No separate monitoring layers.
-- Poka-yoke: fix at the source, not downstream. Infrastructure failures (404/429/auth/timeout) must NOT update model quality posteriors.
-- Only genuine transformations are Resonators. ΦL/ΨH/εR are inline derivations.
-- The system derives its own composition — don't prescribe from outside.
+Rules:
+- The GOVERNING CONSTRAINT section above defines what is valid. Your response must conform to it.
+- If existing instances already satisfy a definition, say so — do not propose recreating them.
+- Do not pull in work outside the intent's scope.
+- Name specific anti-patterns from the system context that this intent must avoid.
 
-Produce a 2-3 paragraph architectural description covering:
-1. What this intent fixes and why it matters structurally
-2. Which source files are likely affected
-3. The approach (what changes, what stays)
-4. What NOT to do (boundaries, anti-patterns to avoid)
-
-Be specific. Name files, functions, graph node IDs where possible.`;
+Cover:
+1. What this fixes structurally (reference ΦL/λ₂/ΨH implications)
+2. Which existing files and functions are affected
+3. Approach: what to create, what to wire, what already exists
+4. Boundaries: what anti-patterns to avoid, what NOT to do`;
             const result = await modelExecutor.execute(prompt, {
                 taskType: "analytical",
                 complexity: "moderate",
+                systemPrompt: constitutionalSystemPrompt || undefined,
             });
             if (result.text) {
-                await updateMorpheme(intent.intentId, { content: result.text });
-                enriched++;
-                console.log(`  [Planning] Enriched ${i + 1}/${toEnrich.length}: ${intent.intentId}`);
+                const flags = detectUnsourcedReferences(result.text, intent.intentId, providedFiles);
+                const hasErrors = flags.some((f) => f.severity === "error");
+                if (hasErrors) {
+                    console.warn(`  [Planning] Enrichment REJECTED for ${intent.intentId} — unsourced references detected:`);
+                    for (const flag of flags) {
+                        console.warn(`    [${flag.severity}] ${flag.description}`);
+                    }
+                    // Do NOT persist — intent keeps its raw unenriched content
+                }
+                else {
+                    if (flags.length > 0) {
+                        console.warn(`  [Planning] Enrichment warnings for ${intent.intentId}:`);
+                        for (const flag of flags) {
+                            console.warn(`    [${flag.severity}] ${flag.description}`);
+                        }
+                    }
+                    await updateMorpheme(intent.intentId, { content: result.text });
+                    enriched++;
+                    console.log(`  [Planning] Enriched ${i + 1}/${toEnrich.length}: ${intent.intentId}`);
+                }
             }
         }
         catch {

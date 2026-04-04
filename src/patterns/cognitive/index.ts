@@ -13,7 +13,7 @@ export { synthesizeIntent } from "./intent-synthesis.js";
 export { runCognitiveCycle } from "./cognitive-cycle.js";
 
 // Planning faculty
-export { runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone } from "./planning.js";
+export { runPlanningCycle, scorePlanningIntent, inferScopesForBloom, categoriseMilestone, buildConstitutionalContext, buildIntentGroundingContext } from "./planning.js";
 
 // Compliance Evaluation faculty
 export { evaluate, readTargetNode } from "./evaluation.js";

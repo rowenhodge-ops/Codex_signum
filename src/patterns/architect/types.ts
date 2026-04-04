@@ -381,6 +381,8 @@ export interface ModelExecutorContext {
   runId?: string;
   /** Task ID within the pipeline run */
   taskId?: string;
+  /** System prompt — constitutional/identity framing for the LLM. Passed via provider's system prompt mechanism (Anthropic: system field, Google/Vertex: systemInstruction, Mistral/OpenAI: system role message). Optional — existing callers unaffected. */
+  systemPrompt?: string;
 }
 
 export interface ModelExecutorResult {
