@@ -1,0 +1,2864 @@
+{
+  "timestamp": "2026-04-02T04:16:04.422Z",
+  "ecosystemState": {
+    "totalBlooms": 58,
+    "totalResonators": 108,
+    "totalGrids": 80,
+    "totalHelixes": 33,
+    "bloomStates": [
+      {
+        "id": "ecosystem",
+        "name": "Pattern ecosystem",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 30
+      },
+      {
+        "id": "dev-agent",
+        "name": "DevAgent Pipeline",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "grammar-ref-v5.0",
+        "name": "Grammar Reference v5.0",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 9
+      },
+      {
+        "id": "cat:morphemes",
+        "name": "Morphemes",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 6
+      },
+      {
+        "id": "cat:axioms",
+        "name": "Axioms",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 8
+      },
+      {
+        "id": "cat:grammar-rules",
+        "name": "Grammar Rules",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "cat:state-dimensions",
+        "name": "State Dimensions",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 3
+      },
+      {
+        "id": "cat:heuristic-imperatives",
+        "name": "Heuristic Imperatives",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 3
+      },
+      {
+        "id": "cat:anti-patterns",
+        "name": "Anti-Patterns (v5.0 Canonical)",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 10
+      },
+      {
+        "id": "cat:implementation-incidents",
+        "name": "Implementation Incidents",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 8
+      },
+      {
+        "id": "cat:operational-records",
+        "name": "Operational Records",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "cat:memory-strata",
+        "name": "Memory Strata",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 4
+      },
+      {
+        "id": "cognitive-bloom",
+        "name": "Cognitive Bloom",
+        "phiL": 0,
+        "psiH": 0.6,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 12
+      },
+      {
+        "id": "architect_SURVEY",
+        "name": "SURVEY",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_DECOMPOSE",
+        "name": "DECOMPOSE",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_CLASSIFY",
+        "name": "CLASSIFY",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_SEQUENCE",
+        "name": "SEQUENCE",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_GATE",
+        "name": "GATE",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_DISPATCH",
+        "name": "DISPATCH",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect_ADAPT",
+        "name": "ADAPT",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "llm:claude-haiku-4-5",
+        "name": "LLM Bloom: claude-haiku-4-5",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 9
+      },
+      {
+        "id": "llm:claude-opus-4",
+        "name": "LLM Bloom: claude-opus-4",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:claude-opus-4-1",
+        "name": "LLM Bloom: claude-opus-4-1",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 4
+      },
+      {
+        "id": "llm:claude-opus-4-5",
+        "name": "LLM Bloom: claude-opus-4-5",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 9
+      },
+      {
+        "id": "llm:claude-opus-4-6",
+        "name": "LLM Bloom: claude-opus-4-6",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 11
+      },
+      {
+        "id": "llm:claude-sonnet-4",
+        "name": "LLM Bloom: claude-sonnet-4",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 7
+      },
+      {
+        "id": "llm:claude-sonnet-4-5",
+        "name": "LLM Bloom: claude-sonnet-4-5",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 7
+      },
+      {
+        "id": "llm:claude-sonnet-4-6",
+        "name": "LLM Bloom: claude-sonnet-4-6",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 9
+      },
+      {
+        "id": "llm:codestral-2",
+        "name": "LLM Bloom: codestral-2",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-2.0-flash",
+        "name": "LLM Bloom: gemini-2.0-flash",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-2.0-flash-lite",
+        "name": "LLM Bloom: gemini-2.0-flash-lite",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-2.5-flash",
+        "name": "LLM Bloom: gemini-2.5-flash",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-2.5-flash-lite",
+        "name": "LLM Bloom: gemini-2.5-flash-lite",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-2.5-pro",
+        "name": "LLM Bloom: gemini-2.5-pro",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-3-flash-preview",
+        "name": "LLM Bloom: gemini-3-flash-preview",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-3-pro-preview",
+        "name": "LLM Bloom: gemini-3-pro-preview",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:gemini-3.1-pro-preview",
+        "name": "LLM Bloom: gemini-3.1-pro-preview",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:mistral-large-3",
+        "name": "LLM Bloom: mistral-large-3",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:mistral-medium-3",
+        "name": "LLM Bloom: mistral-medium-3",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "llm:mistral-small",
+        "name": "LLM Bloom: mistral-small",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      },
+      {
+        "id": "M-13",
+        "name": "UI",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 3
+      },
+      {
+        "id": "M-18",
+        "name": "Assayer Implementation",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 4
+      },
+      {
+        "id": "M-11",
+        "name": "Research Pattern",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 4
+      },
+      {
+        "id": "M-12",
+        "name": "Constitutional Evolution",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 5
+      },
+      {
+        "id": "M-14",
+        "name": "Self-Recursive Learning L1-L3",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 3
+      },
+      {
+        "id": "M-15",
+        "name": "Pattern Exchange Protocol",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 3
+      },
+      {
+        "id": "M-19",
+        "name": "Hypothesis Tracking + Research Pipeline",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 5
+      },
+      {
+        "id": "M-25.1",
+        "name": "Highlander Protocol + Constitutional Reference Standard",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 0
+      },
+      {
+        "id": "M-25.2",
+        "name": "Cognitive Bloom — Structural Self-Knowledge",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 0
+      },
+      {
+        "id": "M-25.3",
+        "name": "First Autopoietic Cycle",
+        "phiL": 0,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 0
+      },
+      {
+        "id": "constitutional-bloom",
+        "name": "Constitutional Bloom",
+        "phiL": 0.023255813953488372,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 93
+      },
+      {
+        "id": "R-T1-codex-native-protocol",
+        "name": "Tier 1: Codex-Native Inter-Stage Protocol",
+        "phiL": 0.25,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 4
+      },
+      {
+        "id": "M-8.INT",
+        "name": "Architect Adaptive Routing",
+        "phiL": 0.2857142857142857,
+        "psiH": 0.6,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 7
+      },
+      {
+        "id": "R-T2-pipeline-architecture",
+        "name": "Tier 2: Pipeline Architecture Upgrades",
+        "phiL": 0.3,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "planned",
+        "childCount": 3
+      },
+      {
+        "id": "router",
+        "name": "Pattern router",
+        "phiL": 0.5,
+        "psiH": 0,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 0
+      },
+      {
+        "id": "architect",
+        "name": "Architect Pipeline",
+        "phiL": 0.5543709719830052,
+        "psiH": 0.6,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 111
+      },
+      {
+        "id": "roadmap-v7",
+        "name": "Codex Signum Canonical Roadmap",
+        "phiL": 0.6,
+        "psiH": 0.5408522727272727,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 40
+      },
+      {
+        "id": "M-8",
+        "name": "Optimisation Runs",
+        "phiL": 0.8,
+        "psiH": 0.6,
+        "lambda2": 0,
+        "status": "active",
+        "childCount": 5
+      }
+    ]
+  },
+  "activeViolations": {
+    "total": 0,
+    "bySeverity": {
+      "critical": 0,
+      "error": 0,
+      "warning": 0
+    },
+    "top": []
+  },
+  "milestoneState": {
+    "total": 75,
+    "complete": 61,
+    "active": 3,
+    "planned": 11,
+    "unblocked": [
+      {
+        "id": "M-11",
+        "name": "Research Pattern",
+        "phiL": 0,
+        "childrenComplete": 0,
+        "childrenTotal": 4,
+        "blockedBy": []
+      },
+      {
+        "id": "M-12",
+        "name": "Constitutional Evolution",
+        "phiL": 0,
+        "childrenComplete": 0,
+        "childrenTotal": 5,
+        "blockedBy": []
+      },
+      {
+        "id": "M-19",
+        "name": "Hypothesis Tracking + Research Pipeline",
+        "phiL": 0,
+        "childrenComplete": 0,
+        "childrenTotal": 5,
+        "blockedBy": []
+      },
+      {
+        "id": "R-T1-codex-native-protocol",
+        "name": "Tier 1: Codex-Native Inter-Stage Protocol",
+        "phiL": 0.25,
+        "childrenComplete": 0,
+        "childrenTotal": 0,
+        "blockedBy": []
+      },
+      {
+        "id": "M-8",
+        "name": "Optimisation Runs",
+        "phiL": 0.8,
+        "childrenComplete": 4,
+        "childrenTotal": 5,
+        "blockedBy": []
+      },
+      {
+        "id": "M-25.1",
+        "name": "Highlander Protocol + Constitutional Reference Standard",
+        "phiL": 0,
+        "childrenComplete": 0,
+        "childrenTotal": 0,
+        "blockedBy": []
+      }
+    ]
+  },
+  "constitutionalGaps": 17,
+  "modelMemory": {
+    "totalModels": 20,
+    "activeModels": 0,
+    "infrastructureFailures": [],
+    "driftingModels": [],
+    "topPerformers": [],
+    "summary": "## Model Memory Context\n- **llm:claude-haiku-4-5**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-opus-4**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-opus-4-1**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-opus-4-5**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-opus-4-6**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-sonnet-4**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-sonnet-4-5**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:claude-sonnet-4-6**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:codestral-2**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-2.0-flash**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-2.0-flash-lite**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-2.5-flash**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-2.5-flash-lite**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-2.5-pro**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-3-flash-preview**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-3-pro-preview**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:gemini-3.1-pro-preview**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:mistral-large-3**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:mistral-medium-3**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]\n- **llm:mistral-small**: posterior mean=0.500 (α=2.0, β=2.0) [cold start]"
+  },
+  "previousCycleDelta": {
+    "previousTimestamp": "2026-04-01T04:48:17.005000000Z",
+    "violationDelta": 0,
+    "gapDelta": -527,
+    "intentDelta": -537
+  },
+  "existingBacklog": {
+    "activeIntents": 0,
+    "approvedIntents": 0,
+    "proposedIntents": 0,
+    "rItems": 32
+  },
+  "structuralDrifts": [],
+  "unwiredBlooms": [
+    "router",
+    "ecosystem",
+    "dev-agent",
+    "architect",
+    "grammar-ref-v5.0",
+    "cat:morphemes",
+    "cat:axioms",
+    "cat:grammar-rules",
+    "cat:state-dimensions",
+    "cat:heuristic-imperatives",
+    "cat:anti-patterns",
+    "cat:implementation-incidents",
+    "cat:operational-records",
+    "cat:memory-strata",
+    "roadmap-v7",
+    "R-T1-codex-native-protocol",
+    "cognitive-bloom",
+    "llm:claude-haiku-4-5",
+    "llm:claude-opus-4",
+    "llm:claude-opus-4-1",
+    "llm:claude-opus-4-5",
+    "llm:claude-opus-4-6",
+    "llm:claude-sonnet-4",
+    "llm:claude-sonnet-4-5",
+    "llm:claude-sonnet-4-6",
+    "llm:codestral-2",
+    "llm:gemini-2.0-flash",
+    "llm:gemini-2.0-flash-lite",
+    "llm:gemini-2.5-flash",
+    "llm:gemini-2.5-flash-lite",
+    "llm:gemini-2.5-pro",
+    "llm:gemini-3-flash-preview",
+    "llm:gemini-3-pro-preview",
+    "llm:gemini-3.1-pro-preview",
+    "llm:mistral-large-3",
+    "llm:mistral-medium-3",
+    "llm:mistral-small",
+    "R-T2-pipeline-architecture"
+  ],
+  "persistenceStats": {
+    "total": 107,
+    "created": 107,
+    "updated": 0,
+    "resolved": 0,
+    "enriched": 10
+  },
+  "intents": [
+    {
+      "intentId": "plan:cluster:missing-transformation-instances",
+      "category": "pattern-topology",
+      "description": "11 missing missing transformation instances: def:transformation:llm-invocation, def:transformation:thompson-selection, def:transformation:human-gate, def:transformation:compliance-evaluation, def:transformation:instantiation, def:transformation:mutation, def:transformation:line-creation, def:transformation:rule-classification, def:transformation:topological-sort, def:transformation:task-dispatch, def:transformation:adaptation-analysis. These are related ecosystem gaps — instantiate as a group and wire FLOWS_TO Lines.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional",
+        "lambda2Delta": 0
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Instantiate 11 missing transformation instances. Definitions: def:transformation:llm-invocation, def:transformation:thompson-selection, def:transformation:human-gate, def:transformation:compliance-evaluation, def:transformation:instantiation, def:transformation:mutation, def:transformation:line-creation, def:transformation:rule-classification, def:transformation:topological-sort, def:transformation:task-dispatch, def:transformation:adaptation-analysis. Wire FLOWS_TO from relevant Stage Blooms to each."
+    },
+    {
+      "intentId": "plan:gap:gap:empty-stage:bloom:m-21",
+      "category": "governance",
+      "description": "Stage Bloom 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no internal morphemes.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] governance: Stage Bloom 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no internal morphemes."
+    },
+    {
+      "intentId": "plan:gap:gap:missing-line:bloom:m-21:FLOWS_TO",
+      "category": "pattern-topology",
+      "description": "Stage 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+    },
+    {
+      "intentId": "plan:gap:gap:missing-line:bloom:m-22:FLOWS_TO",
+      "category": "pattern-topology",
+      "description": "Stage 'M-22: Vertical Wiring' (bloom:m-22) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'M-22: Vertical Wiring' (bloom:m-22) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+    },
+    {
+      "intentId": "plan:gap:gap:missing-line:cognitive-bloom:FLOWS_TO",
+      "category": "pattern-topology",
+      "description": "Stage 'Cognitive Bloom' (cognitive-bloom) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Cognitive Bloom' (cognitive-bloom) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+    },
+    {
+      "intentId": "plan:gap:gap:missing-line:2026-03-29T22-14-25:FLOWS_TO",
+      "category": "pattern-topology",
+      "description": "Stage 'Pipeline Run 2026-03-29T22-14-25' (2026-03-29T22-14-25) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Pipeline Run 2026-03-29T22-14-25' (2026-03-29T22-14-25) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+    },
+    {
+      "intentId": "plan:gap:gap:missing-line:2026-03-30T09-27-07:FLOWS_TO",
+      "category": "pattern-topology",
+      "description": "Stage 'Pipeline Run 2026-03-30T09-27-07' (2026-03-30T09-27-07) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+      "priorityScore": 40,
+      "justification": {
+        "gapType": "constitutional"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Pipeline Run 2026-03-30T09-27-07' (2026-03-30T09-27-07) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+    },
+    {
+      "intentId": "plan:milestone:M-11",
+      "category": "pattern-topology",
+      "description": "Advance M-11 (Research Pattern): 0/4 children complete, ΦL=0",
+      "priorityScore": 15,
+      "justification": {
+        "phiLTarget": "M-11",
+        "phiLCurrent": 0,
+        "gapType": "milestone"
+      },
+      "milestoneId": "M-11",
+      "architectIntent": "[Gnosis Planning] pattern-topology: Advance M-11 — Research Pattern (0/4 children complete)"
+    },
+    {
+      "intentId": "plan:milestone:M-12",
+      "category": "governance",
+      "description": "Advance M-12 (Constitutional Evolution): 0/5 children complete, ΦL=0",
+      "priorityScore": 15,
+      "justification": {
+        "phiLTarget": "M-12",
+        "phiLCurrent": 0,
+        "gapType": "milestone"
+      },
+      "milestoneId": "M-12",
+      "architectIntent": "[Gnosis Planning] governance: Advance M-12 — Constitutional Evolution (0/5 children complete)"
+    },
+    {
+      "intentId": "plan:milestone:M-19",
+      "category": "infrastructure",
+      "description": "Advance M-19 (Hypothesis Tracking + Research Pipeline): 0/5 children complete, ΦL=0",
+      "priorityScore": 15,
+      "justification": {
+        "phiLTarget": "M-19",
+        "phiLCurrent": 0,
+        "gapType": "milestone"
+      },
+      "milestoneId": "M-19",
+      "architectIntent": "[Gnosis Planning] infrastructure: Advance M-19 — Hypothesis Tracking + Research Pipeline (0/5 children complete)"
+    },
+    {
+      "intentId": "plan:milestone:M-25.1",
+      "category": "governance",
+      "description": "Advance M-25.1 (Highlander Protocol + Constitutional Reference Standard): no children tracked, ΦL=0",
+      "priorityScore": 15,
+      "justification": {
+        "phiLTarget": "M-25.1",
+        "phiLCurrent": 0,
+        "gapType": "milestone"
+      },
+      "milestoneId": "M-25.1",
+      "architectIntent": "[Gnosis Planning] governance: Advance M-25.1 — Highlander Protocol + Constitutional Reference Standard (no children tracked)"
+    },
+    {
+      "intentId": "plan:milestone:R-T1-codex-native-protocol",
+      "category": "infrastructure",
+      "description": "Advance R-T1-codex-native-protocol (Tier 1: Codex-Native Inter-Stage Protocol): no children tracked, ΦL=0.25",
+      "priorityScore": 11.25,
+      "justification": {
+        "phiLTarget": "R-T1-codex-native-protocol",
+        "phiLCurrent": 0.25,
+        "gapType": "milestone"
+      },
+      "milestoneId": "R-T1-codex-native-protocol",
+      "architectIntent": "[Gnosis Planning] infrastructure: Advance R-T1-codex-native-protocol — Tier 1: Codex-Native Inter-Stage Protocol (no children tracked)"
+    },
+    {
+      "intentId": "plan:milestone:M-8",
+      "category": "infrastructure",
+      "description": "Advance M-8 (Optimisation Runs): 4/5 children complete, ΦL=0.8",
+      "priorityScore": 3,
+      "justification": {
+        "phiLTarget": "M-8",
+        "phiLCurrent": 0.8,
+        "gapType": "milestone"
+      },
+      "milestoneId": "M-8",
+      "architectIntent": "[Gnosis Planning] infrastructure: Advance M-8 — Optimisation Runs (4/5 children complete)"
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:constitutional-bloom",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:architect",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:cognitive-bloom",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:R-T1-codex-native-protocol",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:R-T2-pipeline-architecture",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-haiku-4-5",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-1",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-5",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-6",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4-5",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4-6",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:codestral-2",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.0-flash",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.0-flash-lite",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-flash",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-flash-lite",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-pro",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3-flash-preview",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3-pro-preview",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3.1-pro-preview",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-large-3",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-medium-3",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-small",
+      "category": "pattern-topology",
+      "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+      "priorityScore": 2,
+      "justification": {
+        "lambda2Delta": 0.1,
+        "gapType": "topological"
+      },
+      "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+    },
+    {
+      "intentId": "plan:backlog:R-02",
+      "category": "infrastructure",
+      "description": "Backlog R-02: Axiom Dependency Declaration — DAG annotation (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-03",
+      "category": "pattern-topology",
+      "description": "Backlog R-03: Dimensional Collapse — add to anti-pattern table in CLAUDE.md (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-06",
+      "category": "infrastructure",
+      "description": "Backlog R-06: Parallel execution — Phase 1/3 concurrent (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-08",
+      "category": "infrastructure",
+      "description": "Backlog R-08: Thompson exploration on process tweaks (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-10",
+      "category": "infrastructure",
+      "description": "Backlog R-10: Model retirement preserves capabilities (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-12",
+      "category": "infrastructure",
+      "description": "Backlog R-12: Spec-compliant tests (Level 5) (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-16",
+      "category": "substrate-grounding",
+      "description": "Backlog R-16: Agent-as-trigger — agent becomes substrate, Architect routes (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-18",
+      "category": "infrastructure",
+      "description": "Backlog R-18: Per-task FMEA advisory via Assayer pre-DISPATCH (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-22",
+      "category": "infrastructure",
+      "description": "Backlog R-22: Research paper Bloom structure (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-23",
+      "category": "pattern-topology",
+      "description": "Backlog R-23: Sandbox evaluation pattern (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-24",
+      "category": "infrastructure",
+      "description": "Backlog R-24: Flywheel validation (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-26",
+      "category": "infrastructure",
+      "description": "Backlog R-26: assessTaskQuality failed-with-zero-output gets max hallucination bonus (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-27",
+      "category": "substrate-grounding",
+      "description": "Backlog R-27: R-27: Deployable Model Substrate (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-28",
+      "category": "infrastructure",
+      "description": "Backlog R-28: R-28: Anti-Drift Fine-Tuning Recipe (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-29",
+      "category": "infrastructure",
+      "description": "Backlog R-29: DECOMPOSE synthesis detection (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-30",
+      "category": "infrastructure",
+      "description": "Backlog R-30: Consolidation detail preservation (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-32",
+      "category": "infrastructure",
+      "description": "Backlog R-32: Data ingestion as Seeds — seed first classify later (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-33",
+      "category": "infrastructure",
+      "description": "Backlog R-33: Typed containment relationships (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-36",
+      "category": "infrastructure",
+      "description": "Backlog R-36: Pipeline output decomposition (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-38",
+      "category": "infrastructure",
+      "description": "Backlog R-38: Structural data lifecycle (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-40",
+      "category": "infrastructure",
+      "description": "Backlog R-40: R-40: Structured DECOMPOSE Input (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-41",
+      "category": "infrastructure",
+      "description": "Backlog R-41: R-41: Conditional DevAgent SCOPE Bypass (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-42",
+      "category": "infrastructure",
+      "description": "Backlog R-42: R-42: Hybrid Prompt Template (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-43",
+      "category": "infrastructure",
+      "description": "Backlog R-43: R-43: Tool-Use DECOMPOSE Output (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-44",
+      "category": "infrastructure",
+      "description": "Backlog R-44: R-44: Graph-Derived Context Transfer (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-45",
+      "category": "infrastructure",
+      "description": "Backlog R-45: R-45: Structured Corrections + Deterministic VALIDATE (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-52",
+      "category": "pattern-topology",
+      "description": "Backlog R-52: Architect composition — derived by Cognitive Bloom (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-53",
+      "category": "pattern-topology",
+      "description": "Backlog R-53: DevAgent composition — derived by Cognitive Bloom (after Architect) (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-59",
+      "category": "infrastructure",
+      "description": "Backlog R-59: R-59: Cascading Document Updates (Identity Map v2.0 Reclassifications) (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-60",
+      "category": "infrastructure",
+      "description": "Backlog R-60: R-60: Statistical Assessment Resonator Phase 1 — CI on Thompson Posteriors (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-62",
+      "category": "infrastructure",
+      "description": "Backlog R-62: Route all operational node types through Instantiation Protocol (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:backlog:R-63",
+      "category": "infrastructure",
+      "description": "Backlog R-63: Adversarial perimeter defence — detect and prevent ungoverned node creation (status: planned)",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "milestone"
+      }
+    },
+    {
+      "intentId": "plan:unwired:router",
+      "category": "governance",
+      "description": "Bloom router has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "router"
+      }
+    },
+    {
+      "intentId": "plan:unwired:ecosystem",
+      "category": "governance",
+      "description": "Bloom ecosystem has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "ecosystem"
+      }
+    },
+    {
+      "intentId": "plan:unwired:dev-agent",
+      "category": "governance",
+      "description": "Bloom dev-agent has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "dev-agent"
+      }
+    },
+    {
+      "intentId": "plan:unwired:architect",
+      "category": "governance",
+      "description": "Bloom architect has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "architect"
+      }
+    },
+    {
+      "intentId": "plan:unwired:grammar-ref-v5.0",
+      "category": "governance",
+      "description": "Bloom grammar-ref-v5.0 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "grammar-ref-v5.0"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:morphemes",
+      "category": "governance",
+      "description": "Bloom cat:morphemes has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:morphemes"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:axioms",
+      "category": "governance",
+      "description": "Bloom cat:axioms has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:axioms"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:grammar-rules",
+      "category": "governance",
+      "description": "Bloom cat:grammar-rules has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:grammar-rules"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:state-dimensions",
+      "category": "governance",
+      "description": "Bloom cat:state-dimensions has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:state-dimensions"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:heuristic-imperatives",
+      "category": "governance",
+      "description": "Bloom cat:heuristic-imperatives has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:heuristic-imperatives"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:anti-patterns",
+      "category": "governance",
+      "description": "Bloom cat:anti-patterns has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:anti-patterns"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:implementation-incidents",
+      "category": "governance",
+      "description": "Bloom cat:implementation-incidents has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:implementation-incidents"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:operational-records",
+      "category": "governance",
+      "description": "Bloom cat:operational-records has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:operational-records"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cat:memory-strata",
+      "category": "governance",
+      "description": "Bloom cat:memory-strata has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cat:memory-strata"
+      }
+    },
+    {
+      "intentId": "plan:unwired:roadmap-v7",
+      "category": "governance",
+      "description": "Bloom roadmap-v7 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "roadmap-v7"
+      }
+    },
+    {
+      "intentId": "plan:unwired:R-T1-codex-native-protocol",
+      "category": "governance",
+      "description": "Bloom R-T1-codex-native-protocol has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "R-T1-codex-native-protocol"
+      }
+    },
+    {
+      "intentId": "plan:unwired:cognitive-bloom",
+      "category": "governance",
+      "description": "Bloom cognitive-bloom has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "cognitive-bloom"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-haiku-4-5",
+      "category": "governance",
+      "description": "Bloom llm:claude-haiku-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-haiku-4-5"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-opus-4",
+      "category": "governance",
+      "description": "Bloom llm:claude-opus-4 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-opus-4"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-opus-4-1",
+      "category": "governance",
+      "description": "Bloom llm:claude-opus-4-1 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-opus-4-1"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-opus-4-5",
+      "category": "governance",
+      "description": "Bloom llm:claude-opus-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-opus-4-5"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-opus-4-6",
+      "category": "governance",
+      "description": "Bloom llm:claude-opus-4-6 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-opus-4-6"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-sonnet-4",
+      "category": "governance",
+      "description": "Bloom llm:claude-sonnet-4 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-sonnet-4"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-sonnet-4-5",
+      "category": "governance",
+      "description": "Bloom llm:claude-sonnet-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-sonnet-4-5"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:claude-sonnet-4-6",
+      "category": "governance",
+      "description": "Bloom llm:claude-sonnet-4-6 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:claude-sonnet-4-6"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:codestral-2",
+      "category": "governance",
+      "description": "Bloom llm:codestral-2 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:codestral-2"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-2.0-flash",
+      "category": "governance",
+      "description": "Bloom llm:gemini-2.0-flash has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-2.0-flash"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-2.0-flash-lite",
+      "category": "governance",
+      "description": "Bloom llm:gemini-2.0-flash-lite has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-2.0-flash-lite"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-2.5-flash",
+      "category": "governance",
+      "description": "Bloom llm:gemini-2.5-flash has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-2.5-flash"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-2.5-flash-lite",
+      "category": "governance",
+      "description": "Bloom llm:gemini-2.5-flash-lite has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-2.5-flash-lite"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-2.5-pro",
+      "category": "governance",
+      "description": "Bloom llm:gemini-2.5-pro has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-2.5-pro"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-3-flash-preview",
+      "category": "governance",
+      "description": "Bloom llm:gemini-3-flash-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-3-flash-preview"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-3-pro-preview",
+      "category": "governance",
+      "description": "Bloom llm:gemini-3-pro-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-3-pro-preview"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:gemini-3.1-pro-preview",
+      "category": "governance",
+      "description": "Bloom llm:gemini-3.1-pro-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:gemini-3.1-pro-preview"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:mistral-large-3",
+      "category": "governance",
+      "description": "Bloom llm:mistral-large-3 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:mistral-large-3"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:mistral-medium-3",
+      "category": "governance",
+      "description": "Bloom llm:mistral-medium-3 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:mistral-medium-3"
+      }
+    },
+    {
+      "intentId": "plan:unwired:llm:mistral-small",
+      "category": "governance",
+      "description": "Bloom llm:mistral-small has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "llm:mistral-small"
+      }
+    },
+    {
+      "intentId": "plan:unwired:R-T2-pipeline-architecture",
+      "category": "governance",
+      "description": "Bloom R-T2-pipeline-architecture has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+      "priorityScore": 0,
+      "justification": {
+        "gapType": "topological",
+        "phiLTarget": "R-T2-pipeline-architecture"
+      }
+    }
+  ],
+  "byCategory": {
+    "infrastructure": [
+      {
+        "intentId": "plan:milestone:M-19",
+        "category": "infrastructure",
+        "description": "Advance M-19 (Hypothesis Tracking + Research Pipeline): 0/5 children complete, ΦL=0",
+        "priorityScore": 15,
+        "justification": {
+          "phiLTarget": "M-19",
+          "phiLCurrent": 0,
+          "gapType": "milestone"
+        },
+        "milestoneId": "M-19",
+        "architectIntent": "[Gnosis Planning] infrastructure: Advance M-19 — Hypothesis Tracking + Research Pipeline (0/5 children complete)"
+      },
+      {
+        "intentId": "plan:milestone:R-T1-codex-native-protocol",
+        "category": "infrastructure",
+        "description": "Advance R-T1-codex-native-protocol (Tier 1: Codex-Native Inter-Stage Protocol): no children tracked, ΦL=0.25",
+        "priorityScore": 11.25,
+        "justification": {
+          "phiLTarget": "R-T1-codex-native-protocol",
+          "phiLCurrent": 0.25,
+          "gapType": "milestone"
+        },
+        "milestoneId": "R-T1-codex-native-protocol",
+        "architectIntent": "[Gnosis Planning] infrastructure: Advance R-T1-codex-native-protocol — Tier 1: Codex-Native Inter-Stage Protocol (no children tracked)"
+      },
+      {
+        "intentId": "plan:milestone:M-8",
+        "category": "infrastructure",
+        "description": "Advance M-8 (Optimisation Runs): 4/5 children complete, ΦL=0.8",
+        "priorityScore": 3,
+        "justification": {
+          "phiLTarget": "M-8",
+          "phiLCurrent": 0.8,
+          "gapType": "milestone"
+        },
+        "milestoneId": "M-8",
+        "architectIntent": "[Gnosis Planning] infrastructure: Advance M-8 — Optimisation Runs (4/5 children complete)"
+      },
+      {
+        "intentId": "plan:backlog:R-02",
+        "category": "infrastructure",
+        "description": "Backlog R-02: Axiom Dependency Declaration — DAG annotation (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-06",
+        "category": "infrastructure",
+        "description": "Backlog R-06: Parallel execution — Phase 1/3 concurrent (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-08",
+        "category": "infrastructure",
+        "description": "Backlog R-08: Thompson exploration on process tweaks (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-10",
+        "category": "infrastructure",
+        "description": "Backlog R-10: Model retirement preserves capabilities (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-12",
+        "category": "infrastructure",
+        "description": "Backlog R-12: Spec-compliant tests (Level 5) (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-18",
+        "category": "infrastructure",
+        "description": "Backlog R-18: Per-task FMEA advisory via Assayer pre-DISPATCH (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-22",
+        "category": "infrastructure",
+        "description": "Backlog R-22: Research paper Bloom structure (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-24",
+        "category": "infrastructure",
+        "description": "Backlog R-24: Flywheel validation (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-26",
+        "category": "infrastructure",
+        "description": "Backlog R-26: assessTaskQuality failed-with-zero-output gets max hallucination bonus (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-28",
+        "category": "infrastructure",
+        "description": "Backlog R-28: R-28: Anti-Drift Fine-Tuning Recipe (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-29",
+        "category": "infrastructure",
+        "description": "Backlog R-29: DECOMPOSE synthesis detection (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-30",
+        "category": "infrastructure",
+        "description": "Backlog R-30: Consolidation detail preservation (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-32",
+        "category": "infrastructure",
+        "description": "Backlog R-32: Data ingestion as Seeds — seed first classify later (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-33",
+        "category": "infrastructure",
+        "description": "Backlog R-33: Typed containment relationships (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-36",
+        "category": "infrastructure",
+        "description": "Backlog R-36: Pipeline output decomposition (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-38",
+        "category": "infrastructure",
+        "description": "Backlog R-38: Structural data lifecycle (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-40",
+        "category": "infrastructure",
+        "description": "Backlog R-40: R-40: Structured DECOMPOSE Input (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-41",
+        "category": "infrastructure",
+        "description": "Backlog R-41: R-41: Conditional DevAgent SCOPE Bypass (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-42",
+        "category": "infrastructure",
+        "description": "Backlog R-42: R-42: Hybrid Prompt Template (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-43",
+        "category": "infrastructure",
+        "description": "Backlog R-43: R-43: Tool-Use DECOMPOSE Output (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-44",
+        "category": "infrastructure",
+        "description": "Backlog R-44: R-44: Graph-Derived Context Transfer (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-45",
+        "category": "infrastructure",
+        "description": "Backlog R-45: R-45: Structured Corrections + Deterministic VALIDATE (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-59",
+        "category": "infrastructure",
+        "description": "Backlog R-59: R-59: Cascading Document Updates (Identity Map v2.0 Reclassifications) (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-60",
+        "category": "infrastructure",
+        "description": "Backlog R-60: R-60: Statistical Assessment Resonator Phase 1 — CI on Thompson Posteriors (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-62",
+        "category": "infrastructure",
+        "description": "Backlog R-62: Route all operational node types through Instantiation Protocol (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-63",
+        "category": "infrastructure",
+        "description": "Backlog R-63: Adversarial perimeter defence — detect and prevent ungoverned node creation (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      }
+    ],
+    "pattern-topology": [
+      {
+        "intentId": "plan:cluster:missing-transformation-instances",
+        "category": "pattern-topology",
+        "description": "11 missing missing transformation instances: def:transformation:llm-invocation, def:transformation:thompson-selection, def:transformation:human-gate, def:transformation:compliance-evaluation, def:transformation:instantiation, def:transformation:mutation, def:transformation:line-creation, def:transformation:rule-classification, def:transformation:topological-sort, def:transformation:task-dispatch, def:transformation:adaptation-analysis. These are related ecosystem gaps — instantiate as a group and wire FLOWS_TO Lines.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional",
+          "lambda2Delta": 0
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Instantiate 11 missing transformation instances. Definitions: def:transformation:llm-invocation, def:transformation:thompson-selection, def:transformation:human-gate, def:transformation:compliance-evaluation, def:transformation:instantiation, def:transformation:mutation, def:transformation:line-creation, def:transformation:rule-classification, def:transformation:topological-sort, def:transformation:task-dispatch, def:transformation:adaptation-analysis. Wire FLOWS_TO from relevant Stage Blooms to each."
+      },
+      {
+        "intentId": "plan:gap:gap:missing-line:bloom:m-21:FLOWS_TO",
+        "category": "pattern-topology",
+        "description": "Stage 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+      },
+      {
+        "intentId": "plan:gap:gap:missing-line:bloom:m-22:FLOWS_TO",
+        "category": "pattern-topology",
+        "description": "Stage 'M-22: Vertical Wiring' (bloom:m-22) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'M-22: Vertical Wiring' (bloom:m-22) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+      },
+      {
+        "intentId": "plan:gap:gap:missing-line:cognitive-bloom:FLOWS_TO",
+        "category": "pattern-topology",
+        "description": "Stage 'Cognitive Bloom' (cognitive-bloom) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Cognitive Bloom' (cognitive-bloom) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+      },
+      {
+        "intentId": "plan:gap:gap:missing-line:2026-03-29T22-14-25:FLOWS_TO",
+        "category": "pattern-topology",
+        "description": "Stage 'Pipeline Run 2026-03-29T22-14-25' (2026-03-29T22-14-25) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Pipeline Run 2026-03-29T22-14-25' (2026-03-29T22-14-25) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+      },
+      {
+        "intentId": "plan:gap:gap:missing-line:2026-03-30T09-27-07:FLOWS_TO",
+        "category": "pattern-topology",
+        "description": "Stage 'Pipeline Run 2026-03-30T09-27-07' (2026-03-30T09-27-07) has no FLOWS_TO or DEPENDS_ON Lines to other children.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: Stage 'Pipeline Run 2026-03-30T09-27-07' (2026-03-30T09-27-07) has no FLOWS_TO or DEPENDS_ON Lines to other children."
+      },
+      {
+        "intentId": "plan:milestone:M-11",
+        "category": "pattern-topology",
+        "description": "Advance M-11 (Research Pattern): 0/4 children complete, ΦL=0",
+        "priorityScore": 15,
+        "justification": {
+          "phiLTarget": "M-11",
+          "phiLCurrent": 0,
+          "gapType": "milestone"
+        },
+        "milestoneId": "M-11",
+        "architectIntent": "[Gnosis Planning] pattern-topology: Advance M-11 — Research Pattern (0/4 children complete)"
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:constitutional-bloom",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:architect",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:cognitive-bloom",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:R-T1-codex-native-protocol",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:R-T2-pipeline-architecture",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-haiku-4-5",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-1",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-5",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-opus-4-6",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4-5",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:claude-sonnet-4-6",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:codestral-2",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.0-flash",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.0-flash-lite",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-flash",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-flash-lite",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-2.5-pro",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3-flash-preview",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3-pro-preview",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:gemini-3.1-pro-preview",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-large-3",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-medium-3",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:gap:gap:topological:disconnected:llm:mistral-small",
+        "category": "pattern-topology",
+        "description": "lambda2=0: disconnected components. Stages have no inter-edges.",
+        "priorityScore": 2,
+        "justification": {
+          "lambda2Delta": 0.1,
+          "gapType": "topological"
+        },
+        "architectIntent": "[Gnosis Planning] pattern-topology: lambda2=0: disconnected components. Stages have no inter-edges."
+      },
+      {
+        "intentId": "plan:backlog:R-03",
+        "category": "pattern-topology",
+        "description": "Backlog R-03: Dimensional Collapse — add to anti-pattern table in CLAUDE.md (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-23",
+        "category": "pattern-topology",
+        "description": "Backlog R-23: Sandbox evaluation pattern (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-52",
+        "category": "pattern-topology",
+        "description": "Backlog R-52: Architect composition — derived by Cognitive Bloom (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-53",
+        "category": "pattern-topology",
+        "description": "Backlog R-53: DevAgent composition — derived by Cognitive Bloom (after Architect) (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      }
+    ],
+    "governance": [
+      {
+        "intentId": "plan:gap:gap:empty-stage:bloom:m-21",
+        "category": "governance",
+        "description": "Stage Bloom 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no internal morphemes.",
+        "priorityScore": 40,
+        "justification": {
+          "gapType": "constitutional"
+        },
+        "architectIntent": "[Gnosis Planning] governance: Stage Bloom 'M-21: Bridge Grid Instantiation' (bloom:m-21) has no internal morphemes."
+      },
+      {
+        "intentId": "plan:milestone:M-12",
+        "category": "governance",
+        "description": "Advance M-12 (Constitutional Evolution): 0/5 children complete, ΦL=0",
+        "priorityScore": 15,
+        "justification": {
+          "phiLTarget": "M-12",
+          "phiLCurrent": 0,
+          "gapType": "milestone"
+        },
+        "milestoneId": "M-12",
+        "architectIntent": "[Gnosis Planning] governance: Advance M-12 — Constitutional Evolution (0/5 children complete)"
+      },
+      {
+        "intentId": "plan:milestone:M-25.1",
+        "category": "governance",
+        "description": "Advance M-25.1 (Highlander Protocol + Constitutional Reference Standard): no children tracked, ΦL=0",
+        "priorityScore": 15,
+        "justification": {
+          "phiLTarget": "M-25.1",
+          "phiLCurrent": 0,
+          "gapType": "milestone"
+        },
+        "milestoneId": "M-25.1",
+        "architectIntent": "[Gnosis Planning] governance: Advance M-25.1 — Highlander Protocol + Constitutional Reference Standard (no children tracked)"
+      },
+      {
+        "intentId": "plan:unwired:router",
+        "category": "governance",
+        "description": "Bloom router has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "router"
+        }
+      },
+      {
+        "intentId": "plan:unwired:ecosystem",
+        "category": "governance",
+        "description": "Bloom ecosystem has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "ecosystem"
+        }
+      },
+      {
+        "intentId": "plan:unwired:dev-agent",
+        "category": "governance",
+        "description": "Bloom dev-agent has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "dev-agent"
+        }
+      },
+      {
+        "intentId": "plan:unwired:architect",
+        "category": "governance",
+        "description": "Bloom architect has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "architect"
+        }
+      },
+      {
+        "intentId": "plan:unwired:grammar-ref-v5.0",
+        "category": "governance",
+        "description": "Bloom grammar-ref-v5.0 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "grammar-ref-v5.0"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:morphemes",
+        "category": "governance",
+        "description": "Bloom cat:morphemes has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:morphemes"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:axioms",
+        "category": "governance",
+        "description": "Bloom cat:axioms has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:axioms"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:grammar-rules",
+        "category": "governance",
+        "description": "Bloom cat:grammar-rules has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:grammar-rules"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:state-dimensions",
+        "category": "governance",
+        "description": "Bloom cat:state-dimensions has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:state-dimensions"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:heuristic-imperatives",
+        "category": "governance",
+        "description": "Bloom cat:heuristic-imperatives has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:heuristic-imperatives"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:anti-patterns",
+        "category": "governance",
+        "description": "Bloom cat:anti-patterns has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:anti-patterns"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:implementation-incidents",
+        "category": "governance",
+        "description": "Bloom cat:implementation-incidents has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:implementation-incidents"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:operational-records",
+        "category": "governance",
+        "description": "Bloom cat:operational-records has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:operational-records"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cat:memory-strata",
+        "category": "governance",
+        "description": "Bloom cat:memory-strata has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cat:memory-strata"
+        }
+      },
+      {
+        "intentId": "plan:unwired:roadmap-v7",
+        "category": "governance",
+        "description": "Bloom roadmap-v7 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "roadmap-v7"
+        }
+      },
+      {
+        "intentId": "plan:unwired:R-T1-codex-native-protocol",
+        "category": "governance",
+        "description": "Bloom R-T1-codex-native-protocol has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "R-T1-codex-native-protocol"
+        }
+      },
+      {
+        "intentId": "plan:unwired:cognitive-bloom",
+        "category": "governance",
+        "description": "Bloom cognitive-bloom has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "cognitive-bloom"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-haiku-4-5",
+        "category": "governance",
+        "description": "Bloom llm:claude-haiku-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-haiku-4-5"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-opus-4",
+        "category": "governance",
+        "description": "Bloom llm:claude-opus-4 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-opus-4"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-opus-4-1",
+        "category": "governance",
+        "description": "Bloom llm:claude-opus-4-1 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-opus-4-1"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-opus-4-5",
+        "category": "governance",
+        "description": "Bloom llm:claude-opus-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-opus-4-5"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-opus-4-6",
+        "category": "governance",
+        "description": "Bloom llm:claude-opus-4-6 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-opus-4-6"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-sonnet-4",
+        "category": "governance",
+        "description": "Bloom llm:claude-sonnet-4 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-sonnet-4"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-sonnet-4-5",
+        "category": "governance",
+        "description": "Bloom llm:claude-sonnet-4-5 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-sonnet-4-5"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:claude-sonnet-4-6",
+        "category": "governance",
+        "description": "Bloom llm:claude-sonnet-4-6 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:claude-sonnet-4-6"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:codestral-2",
+        "category": "governance",
+        "description": "Bloom llm:codestral-2 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:codestral-2"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-2.0-flash",
+        "category": "governance",
+        "description": "Bloom llm:gemini-2.0-flash has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-2.0-flash"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-2.0-flash-lite",
+        "category": "governance",
+        "description": "Bloom llm:gemini-2.0-flash-lite has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-2.0-flash-lite"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-2.5-flash",
+        "category": "governance",
+        "description": "Bloom llm:gemini-2.5-flash has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-2.5-flash"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-2.5-flash-lite",
+        "category": "governance",
+        "description": "Bloom llm:gemini-2.5-flash-lite has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-2.5-flash-lite"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-2.5-pro",
+        "category": "governance",
+        "description": "Bloom llm:gemini-2.5-pro has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-2.5-pro"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-3-flash-preview",
+        "category": "governance",
+        "description": "Bloom llm:gemini-3-flash-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-3-flash-preview"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-3-pro-preview",
+        "category": "governance",
+        "description": "Bloom llm:gemini-3-pro-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-3-pro-preview"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:gemini-3.1-pro-preview",
+        "category": "governance",
+        "description": "Bloom llm:gemini-3.1-pro-preview has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:gemini-3.1-pro-preview"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:mistral-large-3",
+        "category": "governance",
+        "description": "Bloom llm:mistral-large-3 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:mistral-large-3"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:mistral-medium-3",
+        "category": "governance",
+        "description": "Bloom llm:mistral-medium-3 has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:mistral-medium-3"
+        }
+      },
+      {
+        "intentId": "plan:unwired:llm:mistral-small",
+        "category": "governance",
+        "description": "Bloom llm:mistral-small has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "llm:mistral-small"
+        }
+      },
+      {
+        "intentId": "plan:unwired:R-T2-pipeline-architecture",
+        "category": "governance",
+        "description": "Bloom R-T2-pipeline-architecture has no FLOWS_TO to resonator:compliance-evaluation. Wire or justify exclusion.",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "topological",
+          "phiLTarget": "R-T2-pipeline-architecture"
+        }
+      }
+    ],
+    "substrate-grounding": [
+      {
+        "intentId": "plan:backlog:R-16",
+        "category": "substrate-grounding",
+        "description": "Backlog R-16: Agent-as-trigger — agent becomes substrate, Architect routes (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      },
+      {
+        "intentId": "plan:backlog:R-27",
+        "category": "substrate-grounding",
+        "description": "Backlog R-27: R-27: Deployable Model Substrate (status: planned)",
+        "priorityScore": 0,
+        "justification": {
+          "gapType": "milestone"
+        }
+      }
+    ]
+  },
+  "processingTimeMs": 2004049
+}
