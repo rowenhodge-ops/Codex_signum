@@ -89,8 +89,15 @@ export function computeConstitutionalDelta(
 
   // 2. EMPTY STAGES (constitutional -- mandatory)
   // Gap ID based on child ID — a specific stage being empty is a fact about that stage.
+  // Completed Blooms are structurally valid even if empty (work products may live elsewhere).
+  // PipelineRun temporal containers (IDs matching YYYY-MM-DD...) are execution records, not stages.
   for (const child of survey.children) {
-    if (child.labels.includes("Bloom") && child.internalMorphemes.length === 0) {
+    if (
+      child.labels.includes("Bloom") &&
+      child.internalMorphemes.length === 0 &&
+      child.status !== "complete" &&
+      !/^\d{4}-\d{2}-/.test(child.id)
+    ) {
       gaps.push({
         gapId: `gap:empty-stage:${child.id}`,
         gapType: "constitutional",
@@ -114,6 +121,10 @@ export function computeConstitutionalDelta(
     if (!child.labels.includes("Bloom")) {
       continue;
     }
+    // Completed stages don't need forward wiring — their flow is historical.
+    if (child.status === "complete") continue;
+    // PipelineRun temporal containers (YYYY-MM-DD...) are execution records, not pipeline stages.
+    if (/^\d{4}-\d{2}-/.test(child.id)) continue;
     if (!connectedChildIds.has(child.id) && survey.children.length > 1) {
       gaps.push({
         gapId: `gap:missing-line:${child.id}:FLOWS_TO`,
