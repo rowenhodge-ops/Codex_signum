@@ -354,6 +354,12 @@ async function persistIntents(
     return new Map(res.records.map((r) => [r.get("id") as string, asNumber(r.get("cycleCount"))]));
   });
 
+  // Poka-yoke: if upstream produced 0 intents, skip resolve to prevent cascading data loss
+  if (intents.length === 0) {
+    console.warn('  [Planning] WARNING: 0 intents produced — skipping resolve to prevent cascading data loss');
+    return stats;
+  }
+
   // Build set of current intent IDs for resolved detection
   const currentIntentIds = new Set(intents.map((i) => i.intentId));
 
@@ -1108,7 +1114,7 @@ function clusterGapIntents(intents: PlanningIntent[]): PlanningIntent[] {
   const gapIntents = intents.filter((i) => i.intentId.startsWith("plan:gap:gap:missing-instance:"));
   const otherIntents = intents.filter((i) => !i.intentId.startsWith("plan:gap:gap:missing-instance:"));
 
-  if (gapIntents.length <= 1) return intents;
+  if (gapIntents.length <= 1) return [...intents];
 
   // Group missing-instance gaps by definition type prefix
   const clusters = new Map<string, PlanningIntent[]>();

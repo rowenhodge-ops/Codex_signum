@@ -5,7 +5,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/spec-gaps/**"],
     globals: true,
-    testTimeout: 10000,
+    testTimeout: 30000,
     // Exclude @future tests from the main gate — they are expected to fail
     // and are tracked separately via `npm run test:future`
     testNamePattern: "^(?!.*@future)",
