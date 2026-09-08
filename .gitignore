@@ -95,3 +95,27 @@ docs/prompts/
 *argyris*
 *checkland*
 *physical-ai-trajectory*
+
+# ============================================================
+# Repo root is code, not a notebook (added 2026-09-08)
+# Nothing new at the root is tracked unless whitelisted below.
+# To track a new root document, add an exception line here.
+# ============================================================
+/*.md
+!/README.md
+!/CLAUDE.md
+!/AGENTS.md
+!/CONTRIBUTING.md
+!/CODE_OF_CONDUCT.md
+!/SECURITY.md
+!/MERGE_MAP.md
+
+# Credentials must never sit in the tree
+/*token*
+/*secret*
+/*credential*
+/*api-key*
+
+# Obsidian scratch files
+Untitled*.md
+Untitled/
