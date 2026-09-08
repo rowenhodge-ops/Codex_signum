@@ -13,10 +13,11 @@ dist/
 # Development artifacts (not public) — LOWERCASE to match actual paths
 docs/audits/
 docs/plans/
-docs/prompts/
-# Exception: operational prompts that should survive across sessions
-!docs/Prompts/
-!docs/Prompts/gcloud-vertex-auth-preferred-prompt.md
+docs/prompts/*
+# Exception: operational prompts that should survive across sessions.
+# Whitelisted by file. Capitalising the directory only worked on
+# case-insensitive filesystems and split docs/prompts in two on Linux.
+!docs/prompts/gcloud-vertex-auth-preferred-prompt.md
 
 # Journal is tracked (public narrative of development)
 # docs/journal/
