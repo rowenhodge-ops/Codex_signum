@@ -2,9 +2,9 @@
 
 ## A Semantic Encoding Where State Is Structural
 
-**Version:** 5.0 (Draft)
-**Status:** Draft — Architect Review Required
-**Prior Version:** 4.3 (Draft)
+**Version:** 5.0
+**Status:** Active
+**Prior Version:** 4.3
 **License:** CC0 / Public Domain (Specification) · Apache 2.0 (Reference Implementations)
 **Canonical URL:** TBD
 **SHA-256:** TBD (computed on release)
@@ -17,9 +17,9 @@
 
 In current architectures, system state and system representation are separate concerns. You build a system, then add observability. Metrics, logs, dashboards, and alerts form a parallel infrastructure for understanding what the system is doing.
 
-Codex Signum eliminates the separation. It is a semantic encoding where **state is structural**. A protocol for representing complex patterns in a way that is simultaneously human-legible and machine-processable, where the encoding of a pattern **is** its observable state.
+Codex Signum eliminates the separation. It is a semantic encoding where **state is structural**. A protocol for representing complex patterns in a way that is simultaneously human-legible and machine-processable, where the encoding of a pattern is its observable state.
 
-It describes systems where coherent work flows through layers of abstraction (agentic workflows, knowledge graphs, distributed processes, organisational dynamics) and where the health, provenance, relationships, and learning dynamics between components need to be *visible* rather than queried.
+It describes systems where coherent work flows through layers of abstraction (for example, agentic workflows, knowledge graphs, distributed processes, organisational dynamics) and where the health, provenance, relationships, and learning dynamics between components need to be *visible* rather than queried.
 
 It is a protocol for encoding patterns so that their state is inseparable from their representation, and their adaptation is inseparable from their operation.
 
@@ -28,25 +28,23 @@ It is a protocol for encoding patterns so that their state is inseparable from t
 
 ## Purpose
 
-Every digital system today carries a hidden cost. You build the system, then you build a second system to watch the first. Monitoring tools, compliance dashboards, health checks, governance layers, audit trails. The observer infrastructure often rivals the complexity of the thing it observes. And it lags. By the time the dashboard shows a problem, the problem has been happening for a while.
+Contemporary digital infrastructure carries a hidden cost. You build the system, then you build more systems to watch the first. Monitoring tools, compliance dashboards, health checks, governance layers, audit trails. The observer infrastructure often rivals the complexity of the thing it observes, and it's always behind. By the time a dashboard flags an anomaly, the problem has been happening for a while. AI and automation are making this worse, generating decisions and data at a rate that makes after-the-fact observation structurally inadequate.
 
-This specification proposes that the observer infrastructure is unnecessary. Its thesis: when state is structural, when the health, coherence and learning capacity of a system are properties of the system's own structure rather than measurements taken from outside, the consequences extend far beyond eliminating dashboards.
+Codex Signum proposes that if the structure of a system is its observable state, then:
 
-If the structure of a system IS its observable state, then:
+**Complexity dissolves.** The apparatus required to monitor, govern and coordinate a system collapses when the structure itself carries that information. Separate calculations for health propagation, coherence measurement, spatial positioning and signal conditioning turn out to be different views of the same structural properties. The grammar is dense. The computation is simple. This follows from Ashby's Law of Requisite Variety: a grammar with sufficient variety to match its domain does not need supplementary mechanisms to govern what it can already express. `Δ(distinct_computations) / Δ(governed_complexity) < 0`
 
-**Complexity dissolves.** The mathematical apparatus required to monitor, govern and coordinate a system collapses when the structure itself carries that information. Separate calculations for health propagation, coherence measurement, spatial positioning and signal conditioning turn out to be different views of the same structural properties. The grammar is dense. The computation is simple. This follows from Ashby's Law of Requisite Variety: a grammar with sufficient variety to match its domain does not need supplementary mechanisms to govern what it can already express. `Δ(distinct_computations) / Δ(governed_complexity) < 0`
+**Governance becomes structural.** Governance is not a layer applied to a system. It is a property of how the system is composed. A well-structured system governs itself for the same reason a well-built bridge holds weight. It is a consequence of the structure, not an addition to it. Maturana's structural determinism provides the theoretical basis: a structure-determined system's behaviour is fully determined by its current structure. If governance state is the structure, governance behaviour follows without a separate governance system. `|ΦL_governance − ΦL_operational| → 0`
 
-**Governance becomes structural.** Governance is not a layer applied to a system. It is a property of how the system is composed. A well-structured system governs itself for the same reason a well-built bridge holds weight. It is a consequence of the structure, not an addition to it. Maturana's structural determinism provides the theoretical basis: a structure-determined system's behaviour is fully determined by its current structure. If governance state IS the structure, governance behaviour follows without a separate governance system. `|ΦL_governance − ΦL_operational| → 0`
-
-**Degradation becomes visible before failure.** A failing component dims before it goes dark. The dimming propagates through the structure. There is no gap between the system failing and someone noticing, because the failure IS a structural change and structural changes are visible by definition. This is the structural encoding of Meadows' leverage point on information flows: missing feedback is the most common cause of system malfunction. When state is structural, feedback is never missing. `Δt(observation_Seed, threshold_event_Seed) → 0 as maturity_index → 1`
+**Degradation becomes visible before failure.** A failing component dims before it goes dark. The dimming propagates through the structure. There is no gap between the system failing and someone noticing, because the failure is a structural change and structural changes are visible by definition. This is the structural encoding of Meadows' leverage point on information flows: missing feedback is the most common cause of system malfunction. When state is structural, feedback is never missing. `Δt(observation_Seed, threshold_event_Seed) → 0 as maturity_index → 1`
 
 **Scale follows from grammar.** The same grammar that describes a single function describes an organisation. The same rules that govern a local pattern govern a federated network. If the grammar is sound at small scale, it is sound at any scale. Scaling is composition, not re-engineering. This follows from the grammar's fractal property: any valid expression at one scale remains valid at all scales. `Δλ₂ / Δ(node_count) ≥ 0`
 
-**The system governs its own governance.** The grammar that defines how patterns behave also defines how the grammar's own governance mechanisms behave. The system that computes health has a health. The system that detects violations is subject to the same violation detection. This self-reference is the operational closure that Maturana and Varela defined as autopoiesis: the system produces its own governance artifacts through its own governance operations. It eliminates the need for external oversight infrastructure. `ΦL_constitutional_bloom ≥ 0.9 without external intervention`
+**The system governs its own governance (Autopoiesis).** The grammar that defines how patterns behave also defines how the grammar's own governance mechanisms behave. The system that computes health has a health. The system that detects violations is subject to the same violation detection. This self-reference is the operational closure that Maturana and Varela defined as autopoiesis: the system produces its own governance artifacts through its own governance operations. It eliminates the need for external oversight infrastructure. `ΦL_constitutional_bloom ≥ 0.9 without external intervention`
 
 **Adaptation accelerates with complexity.** This is the counter-thesis to the dominant pattern in complex systems, where increasing complexity produces diminishing returns on adaptation. Senge's Limits to Growth archetype describes the norm: a reinforcing process drives performance until it encounters a balancing constraint, typically coordination overhead, governance cost, or information loss across layers. In the current paradigm, these constraints are internal. The more complex the system, the more monitoring, governance and coordination infrastructure it needs, and the more that infrastructure costs. `Δ²Ω / Δt² > 0 while ΨH_boundary → 1`
 
-When state is structural, these internal constraints dissolve. There is no monitoring infrastructure that scales with the system because monitoring is not separate from the system. There is no governance overhead that grows with complexity because governance is a structural property. Each new pattern added to the graph enriches the topology that all governance computations read from. The harmonic profile gets richer. The immune memory gets deeper. The distillation cascade produces denser knowledge. Each cycle teaches the system not just about its domain but about how to learn about its domain. The learning compounds because the structure that learns IS the structure that operates. `TV_G(boundary) → 0 as structural_density → ∞`
+When state is structural, these internal constraints dissolve. There is no monitoring infrastructure that scales with the system because monitoring is not separate from the system. There is no governance overhead that grows with complexity because governance is a structural property. Each new pattern added to the graph enriches the topology that all governance computations read from. The harmonic profile gets richer. The immune memory gets deeper. The distillation cascade produces denser knowledge. Each cycle teaches the system not just about its domain but about how to learn about its domain. The learning compounds because the structure that learns is the structure that operates. `TV_G(boundary) → 0 as structural_density → ∞`
 
 The acceleration is bounded, but the bounds are external, not internal. The system's rate of useful adaptation increases with complexity until it encounters the limits of its environment:
 
@@ -93,7 +91,7 @@ Eight principles constrain all valid expressions. They are organised in three gr
 
 ### Axiom Dependency Structure
 
-The eight axioms are numbered for stable reference. A5 (Reversibility) was removed in v5.0 — it is a derived consequence of Provenance (A4) plus the append-only memory topology, not an independent constraint. The numbering gap is preserved for stable reference across versions. Their logical dependencies form a directed acyclic graph (DAG):
+The eight axioms are numbered for stable reference. Their logical dependencies form a directed acyclic graph (DAG):
 
 ```text
                     ┌──→ Fidelity (1)
@@ -108,6 +106,8 @@ Transparency (3) ──→ Fidelity (1)
 
 Minimal Authority (6) ─── (independent)
 ```
+
+ *A5 (Reversibility) was removed in v5.0 — it is a derived consequence of Provenance (A4) plus the append-only memory topology, not an independent constraint. The numbering gap is preserved for stable reference across versions.*
 
 **Reading the DAG:**
 
